@@ -1,0 +1,321 @@
+season,team,oc_name,first_year_in_seat,promotion_type,prior_team,prior_role,hc_is_playcaller,confidence,notes
+2016,ARI,Harold Goodwin,False,returning,,,False,high,OC since 2013
+2017,ARI,Harold Goodwin,False,returning,,,False,high,Fired after 2017
+2018,ARI,Mike McCoy,True,outside_hire,DEN,HC (2015-2016),False,medium,New HC Steve Wilks staff
+2019,ARI,Kliff Kingsbury (HC),True,outside_hire,Texas Tech (college),HC,True,low,No prominent titled OC identified; Kingsbury (rookie HC from college spread system) presumed primary playcaller. Verify against team media guide.
+2020,ARI,Kliff Kingsbury (HC),False,returning,,,True,low,Same caveat as 2019
+2021,ARI,Kliff Kingsbury (HC),False,returning,,,True,low,Same caveat as 2019
+2022,ARI,Kliff Kingsbury (HC),False,returning,,,True,low,Kingsbury/staff fired after 2022; low confidence on exact OC of record this season
+2023,ARI,Drew Petzing,True,outside_hire,MIN,passing game coordinator/WR coach,False,medium,New HC Jonathan Gannon staff
+2024,ARI,Drew Petzing,False,returning,,,False,medium,Not independently re-verified for 2024
+2025,ARI,Drew Petzing,False,returning,,,False,medium,Not independently re-verified for 2025
+2016,ATL,Kyle Shanahan,False,returning,,,False,high,OC since 2015; departed to SF HC after 2016 (Super Bowl LI season)
+2017,ATL,Steve Sarkisian,True,outside_hire,Alabama (college),offensive coordinator,False,medium,
+2018,ATL,Steve Sarkisian,False,returning,,,False,medium,
+2019,ATL,Dirk Koetter,True,outside_hire,TB,head coach,False,high,Rejoined ATL (was ATL OC 2012-2014) after TB HC stint
+2020,ATL,Dirk Koetter,False,returning,,,False,high,
+2021,ATL,Dave Ragone,True,outside_hire,HOU,QB coach,False,medium,New HC Arthur Smith staff
+2022,ATL,Dave Ragone,False,returning,,,False,medium,
+2023,ATL,Dave Ragone,False,returning,,,False,low,Tenure length/exact departure not independently verified
+2024,ATL,Zac Robinson,True,outside_hire,LA,passing game coordinator,False,medium,
+2025,ATL,Zac Robinson,False,returning,,,False,high,
+2016,BAL,Marty Mornhinweg,True,outside_hire,NYJ,OC/assistant HC,False,medium,
+2017,BAL,Marty Mornhinweg,False,returning,,,False,medium,
+2018,BAL,Marty Mornhinweg,False,returning,,,False,medium,Departed after 2018
+2019,BAL,Greg Roman,True,outside_hire,BUF,assistant HC/TE coach,False,high,
+2020,BAL,Greg Roman,False,returning,,,False,high,
+2021,BAL,Greg Roman,False,returning,,,False,high,
+2022,BAL,Greg Roman,False,returning,,,False,high,
+2023,BAL,Todd Monken,True,outside_hire,Georgia (college),offensive coordinator,False,high,
+2024,BAL,Todd Monken,False,returning,,,False,high,
+2025,BAL,Todd Monken,False,returning,,,False,high,
+2016,BUF,Greg Roman,False,returning,,,False,low,Started 2015 under Rex Ryan; exact 2016-2017 Bills OC timeline not independently verified
+2017,BUF,Rick Dennison,True,outside_hire,DEN,offensive coordinator,False,medium,
+2018,BUF,Brian Daboll,True,outside_hire,Alabama (college),co-offensive coordinator,False,high,New HC Sean McDermott's first full staff build
+2019,BUF,Brian Daboll,False,returning,,,False,high,
+2020,BUF,Brian Daboll,False,returning,,,False,high,
+2021,BUF,Brian Daboll,False,returning,,,False,high,
+2022,BUF,Ken Dorsey,True,internal,BUF,QB coach,False,high,Promoted after Daboll left to be NYG HC
+2023,BUF,Ken Dorsey,False,returning,,,False,high,Fired in-season (~week 15); Joe Brady took over playcalling as interim for remainder of season
+2024,BUF,Joe Brady,True,internal,BUF,passing game coordinator,False,high,Formalized in full-season seat after 2023 interim promotion
+2025,BUF,Joe Brady,False,returning,,,False,high,
+2016,CAR,Mike Shula,False,returning,,,False,medium,
+2017,CAR,Mike Shula,False,returning,,,False,medium,
+2018,CAR,Norv Turner,True,outside_hire,MIN,offensive coordinator,False,medium,Resigned in-season (~week 9); Scott Turner (his son) took over playcalling as interim
+2019,CAR,Scott Turner,True,internal,CAR,QB coach/2018 interim OC,False,low,
+2020,CAR,Joe Brady,True,outside_hire,LSU (college),passing game coordinator,False,high,New HC Matt Rhule staff
+2021,CAR,Joe Brady,False,returning,,,False,medium,Fired in-season (~week 12); Jeff Nixon interim rest of season
+2022,CAR,Ben McAdoo,True,outside_hire,JAX,senior offensive assistant,False,low,Rhule/staff fired in-season (week 5); OC continuity through remainder of season uncertain
+2023,CAR,Thomas Brown,True,internal,CAR,passing game coordinator,False,low,"New HC Frank Reich initially called plays himself; Brown reportedly took over playcalling mid-season after Reich was fired. High turbulence season,   low confidence on attribution."
+2024,CAR,Dave Canales,True,outside_hire,TB,offensive coordinator,False,high,New HC
+2025,CAR,Brad Idzik,True,outside_hire,TB,offensive assistant,False,medium,Verified via Wikipedia (2025 season page); exact prior title not confirmed
+2016,CHI,Dowell Loggains,True,internal,CHI,QB coach,False,medium,
+2017,CHI,Dowell Loggains,False,returning,,,False,medium,
+2018,CHI,Mark Helfrich,True,outside_hire,Oregon (college),head coach,False,medium,New HC Matt Nagy staff
+2019,CHI,Mark Helfrich,False,returning,,,False,medium,
+2020,CHI,Bill Lazor,True,outside_hire,CIN,pass game coordinator,False,low,
+2021,CHI,Bill Lazor,False,returning,,,False,low,
+2022,CHI,Luke Getsy,True,outside_hire,GB,passing game coordinator,False,high,New HC Matt Eberflus staff
+2023,CHI,Luke Getsy,False,returning,,,False,high,
+2024,CHI,Shane Waldron,True,outside_hire,SEA,offensive coordinator,False,high,"Fired in-season (week 9,   first in-season OC change in franchise history); Thomas Brown (passing game coord) then Chris Beatty (WR coach) served as interim OC rest of season. Verified via Wikipedia."
+2025,CHI,Declan Doyle,True,outside_hire,,,False,low,New HC Ben Johnson staff; prior team/role not confirmed in source consulted
+2016,CIN,Ken Zampese,True,internal,CIN,QB coach,False,medium,
+2017,CIN,Ken Zampese,False,returning,,,False,low,Fired early in season; Bill Lazor took over playcalling
+2018,CIN,Bill Lazor,False,returning,,,False,low,
+2019,CIN,Brian Callahan,True,outside_hire,DET,QB coach,True,low,New HC Zac Taylor is believed to have called plays himself for much of 2019-2021 with Callahan titled passing game coordinator/QB coach; exact OC-of-record title and playcalling split not independently verified for 2019-2021
+2020,CIN,Brian Callahan,False,returning,,,True,low,See 2019 note
+2021,CIN,Brian Callahan,False,returning,,,True,low,See 2019 note
+2022,CIN,Brian Callahan,False,returning,,,False,low,Believed promoted to formal OC title around this time; exact year uncertain
+2023,CIN,Brian Callahan,False,returning,,,False,medium,Left to become TEN HC after 2023
+2024,CIN,Dan Pitcher,True,internal,CIN,QB coach,False,high,Verified via Wikipedia
+2025,CIN,Dan Pitcher,False,returning,,,False,high,Verified via Wikipedia
+2016,CLE,Pep Hamilton,True,outside_hire,IND,offensive coordinator (college/pro assistant),False,low,
+2017,CLE,Pep Hamilton,False,returning,,,True,low,HC Hue Jackson believed heavily involved in playcalling
+2018,CLE,Todd Haley,True,outside_hire,PIT,offensive coordinator,False,medium,
+2019,CLE,Todd Monken,True,outside_hire,TB,offensive coordinator,True,low,HC Freddie Kitchens (2018 OC promoted to HC) reportedly retained playcalling duties despite Monken's OC title; ambiguous season
+2020,CLE,Alex Van Pelt,True,internal,CLE,QB coach,False,high,New HC Kevin Stefanski staff
+2021,CLE,Alex Van Pelt,False,returning,,,False,high,
+2022,CLE,Alex Van Pelt,False,returning,,,False,high,
+2023,CLE,Alex Van Pelt,False,returning,,,False,high,
+2024,CLE,Ken Dorsey,True,outside_hire,BUF,offensive coordinator,False,high,Reportedly had play-calling duties curtailed/reassigned in-season; verify exact split
+2025,CLE,Tommy Rees,True,internal,CLE,TE coach/passing game specialist,False,high,Verified via Wikipedia; replaced Dorsey (fired Jan 14 2025)
+2016,DAL,Scott Linehan,False,returning,,,False,medium,OC since 2014
+2017,DAL,Scott Linehan,False,returning,,,False,medium,
+2018,DAL,Scott Linehan,False,returning,,,False,medium,
+2019,DAL,Kellen Moore,True,internal,DAL,QB coach,False,high,
+2020,DAL,Kellen Moore,False,returning,,,False,high,
+2021,DAL,Kellen Moore,False,returning,,,False,high,
+2022,DAL,Kellen Moore,False,returning,,,False,high,Left to LAC OC after 2022
+2023,DAL,Brian Schottenheimer,True,outside_hire,SEA,passing game coordinator/QB coach,False,medium,
+2024,DAL,Brian Schottenheimer,False,returning,,,False,high,
+2025,DAL,Klayton Adams,True,internal,DAL,run game coordinator/OL coach,False,medium,Promoted when Schottenheimer became HC; verified via Wikipedia
+2016,DEN,Rick Dennison,False,returning,,,False,medium,OC since 2015 under Gary Kubiak
+2017,DEN,Mike McCoy,True,outside_hire,LAC,head coach,False,medium,Fired in-season (week 14); Bill Musgrave interim rest of season
+2018,DEN,Bill Musgrave,True,internal,DEN,2017 interim OC,False,medium,
+2019,DEN,Rich Scangarello,True,outside_hire,SF,QB coach,False,medium,New HC Vic Fangio staff
+2020,DEN,Pat Shurmur,True,outside_hire,NYG,head coach,False,medium,
+2021,DEN,Pat Shurmur,False,returning,,,False,medium,
+2022,DEN,Justin Outten,True,outside_hire,GB,passing game coordinator,False,medium,New HC Nathaniel Hackett staff
+2023,DEN,Klint Kubiak,True,outside_hire,MIN,passing game coordinator/QB coach,False,high,New HC Sean Payton staff
+2024,DEN,Joe Lombardi,True,outside_hire,LAC,QB coach,False,medium,
+2025,DEN,Joe Lombardi,False,returning,,,False,high,Verified via Wikipedia; fired after AFC Championship loss (offseason 2026)
+2016,DET,Jim Bob Cooter,True,internal,DET,QB coach,False,medium,
+2017,DET,Jim Bob Cooter,False,returning,,,False,medium,
+2018,DET,Jim Bob Cooter,False,returning,,,False,medium,
+2019,DET,Darrell Bevell,True,outside_hire,SEA,offensive coordinator,False,medium,New HC Matt Patricia staff
+2020,DET,Darrell Bevell,False,returning,,,False,medium,
+2021,DET,Anthony Lynn,True,outside_hire,LAC,head coach,False,medium,New HC Dan Campbell staff
+2022,DET,Ben Johnson,True,internal,DET,passing game coordinator,False,high,
+2023,DET,Ben Johnson,False,returning,,,False,high,
+2024,DET,Ben Johnson,False,returning,,,False,high,Verified via Wikipedia; departed to CHI HC after 2024
+2025,DET,John Morton,True,outside_hire,,,False,low,Verified name via Wikipedia only; prior team/role not confirmed
+2016,GB,Edgar Bennett,False,returning,,,True,medium,Mike McCarthy (HC) heavily involved in playcalling this era
+2017,GB,Edgar Bennett,False,returning,,,True,medium,
+2018,GB,Edgar Bennett,False,returning,,,True,medium,McCarthy fired in-season
+2019,GB,Nathaniel Hackett,True,outside_hire,JAX,offensive coordinator,True,medium,New HC Matt LaFleur (McVay coaching tree) is believed to call plays himself; Hackett's exact playcalling role vs title uncertain
+2020,GB,Nathaniel Hackett,False,returning,,,True,medium,
+2021,GB,Nathaniel Hackett,False,returning,,,True,medium,Left to DEN HC after 2021
+2022,GB,Adam Stenavich,True,internal,GB,OL coach,True,medium,Same LaFleur-playcaller caveat as above
+2023,GB,Adam Stenavich,False,returning,,,True,medium,
+2024,GB,Adam Stenavich,False,returning,,,True,medium,
+2025,GB,Adam Stenavich,False,returning,,,True,high,Verified via Wikipedia
+2016,HOU,George Godsey,False,returning,,,False,medium,OC since 2015
+2017,HOU,George Godsey,False,returning,,,True,low,HC Bill O'Brien reported to have taken over playcalling later in season
+2018,HOU,Bill O'Brien (HC),False,returning,,,True,low,No distinct titled offensive coordinator identified; O'Brien (HC) believed primary playcaller 2018-2020
+2019,HOU,Bill O'Brien (HC),False,returning,,,True,low,Same caveat as 2018
+2020,HOU,Bill O'Brien (HC),False,returning,,,True,low,O'Brien fired in-season (week 4); Romeo Crennel interim HC rest of season
+2021,HOU,Tim Kelly,False,returning,,,False,medium,"Kelly reportedly took over as titled OC by 2019-2021; exact start year uncertain,   listed here for continuity"
+2022,HOU,Pep Hamilton,True,internal,HOU,passing game coordinator,False,medium,New HC Lovie Smith staff
+2023,HOU,Bobby Slowik,True,outside_hire,SF,passing game coordinator,False,high,New HC DeMeco Ryans staff
+2024,HOU,Bobby Slowik,False,returning,,,False,high,Fired Jan 24 2025; verified via Wikipedia
+2025,HOU,Nick Caley,True,outside_hire,LA,TE coach/passing game coordinator,False,high,Verified via Wikipedia
+2016,IND,Rob Chudzinski,True,outside_hire,,,False,low,
+2017,IND,Rob Chudzinski,False,returning,,,False,low,
+2018,IND,Nick Sirianni,True,outside_hire,LAC,WR coach/passing game coordinator,False,medium,New HC Frank Reich staff
+2019,IND,Nick Sirianni,False,returning,,,False,medium,
+2020,IND,Nick Sirianni,False,returning,,,False,medium,Left to PHI HC after 2020
+2021,IND,Marcus Brady,True,internal,IND,QB coach,False,medium,
+2022,IND,Marcus Brady,False,returning,,,False,low,Fired in-season; Parks Frazier interim rest of season
+2023,IND,Jim Bob Cooter,True,outside_hire,DET,passing game coordinator,False,medium,"Return to org he previously worked for (DET) as OC 2016-2018,   not IND itself"
+2024,IND,Jim Bob Cooter,False,returning,,,False,medium,
+2025,IND,Jim Bob Cooter,False,returning,,,False,high,Verified via Wikipedia
+2016,JAX,Greg Olson,False,returning,,,False,medium,OC since 2015
+2017,JAX,Nathaniel Hackett,True,outside_hire,,,False,medium,New HC Doug Marrone staff
+2018,JAX,Nathaniel Hackett,False,returning,,,False,medium,
+2019,JAX,John DeFilippo,True,outside_hire,MIN,offensive coordinator,False,medium,
+2020,JAX,Jay Gruden,True,outside_hire,WAS,head coach,False,medium,
+2021,JAX,Darrell Bevell,True,outside_hire,DET,passing game coordinator,False,medium,New HC Urban Meyer staff
+2022,JAX,Press Taylor,True,outside_hire,PHI,passing game coordinator,False,medium,New HC Doug Pederson staff
+2023,JAX,Press Taylor,False,returning,,,False,medium,
+2024,JAX,Press Taylor,False,returning,,,False,medium,
+2025,JAX,Grant Udinski,True,outside_hire,,,False,low,"New HC Liam Coen staff; verified name via Wikipedia only,   prior team/role not confirmed"
+2016,KC,Matt Nagy,True,internal,KC,QB coach,True,medium,HC Andy Reid heavily involved in playcalling throughout KC tenure
+2017,KC,Matt Nagy,False,returning,,,True,medium,Left to CHI HC after 2017
+2018,KC,Eric Bieniemy,True,internal,KC,RB coach,True,high,Same Andy-Reid-playcalling caveat
+2019,KC,Eric Bieniemy,False,returning,,,True,high,
+2020,KC,Eric Bieniemy,False,returning,,,True,high,
+2021,KC,Eric Bieniemy,False,returning,,,True,high,
+2022,KC,Eric Bieniemy,False,returning,,,True,high,Left to WAS OC after 2022
+2023,KC,Matt Nagy,True,outside_hire,KC,senior offensive assistant (2022),True,medium,Nagy returned to KC staff in 2022 as assistant before reclaiming OC title 2023; classified outside_hire relative to the OC seat itself since he'd left the org and returned
+2024,KC,Matt Nagy,False,returning,,,True,high,Verified via Wikipedia
+2025,KC,Matt Nagy,False,returning,,,True,high,Verified via Wikipedia
+2016,LV,Bill Musgrave,False,returning,,,False,medium,OC since 2015 (then Oakland Raiders)
+2017,LV,Todd Downing,True,internal,LV,QB coach,False,medium,
+2018,LV,Greg Olson,True,outside_hire,LA,QB coach,False,medium,New HC Jon Gruden staff
+2019,LV,Greg Olson,False,returning,,,False,medium,
+2020,LV,Greg Olson,False,returning,,,False,medium,
+2021,LV,Greg Olson,False,returning,,,False,low,"Gruden resigned in-season; Rich Bisaccia interim HC,   OC continuity assumed but not verified"
+2022,LV,Mick Lombardi,True,outside_hire,NE,WR coach,False,medium,New HC Josh McDaniels staff
+2023,LV,Mick Lombardi,False,returning,,,False,low,"McDaniels fired in-season; Antonio Pierce interim HC,   OC continuity assumed but not verified"
+2024,LV,Luke Getsy,True,outside_hire,CHI,offensive coordinator,False,medium,
+2025,LV,Chip Kelly,True,outside_hire,Ohio State (college),offensive coordinator,False,high,"Verified via Wikipedia; fired Nov 23 2025,   replaced by QB coach Greg Olson (internal) for remainder of season"
+2016,LAC,Ken Whisenhunt,False,returning,,,False,medium,OC since 2013 (then San Diego)
+2017,LAC,Ken Whisenhunt,False,returning,,,False,medium,
+2018,LAC,Ken Whisenhunt,False,returning,,,False,medium,
+2019,LAC,Ken Whisenhunt,False,returning,,,False,medium,
+2020,LAC,Shane Steichen,True,internal,LAC,QB coach,False,high,
+2021,LAC,Joe Lombardi,True,outside_hire,NO,QB coach,False,medium,New HC Brandon Staley staff
+2022,LAC,Joe Lombardi,False,returning,,,False,medium,
+2023,LAC,Kellen Moore,True,outside_hire,DAL,offensive coordinator,False,high,
+2024,LAC,Greg Roman,True,outside_hire,BAL,offensive coordinator,False,high,New HC Jim Harbaugh staff
+2025,LAC,Greg Roman,False,returning,,,False,high,Verified via Wikipedia
+2016,LA,Rob Boras,True,internal,LA,TE coach,False,low,Team relocated STL->LA this season
+2017,LA,Matt LaFleur,True,outside_hire,ATL,QB coach,True,medium,New HC Sean McVay's first staff; McVay (rookie HC from Redskins OC) widely reported to call plays himself even with a titled OC
+2018,LA,Sean McVay (HC),False,returning,,,True,low,"LaFleur departed to TEN OC; no equally prominent replacement identified,   McVay presumed playcaller"
+2019,LA,Sean McVay (HC),False,returning,,,True,low,Same caveat
+2020,LA,Kevin O'Connell,True,outside_hire,WAS,QB coach,True,medium,McVay-playcaller caveat persists; O'Connell titled passing game coordinator/OC
+2021,LA,Kevin O'Connell,False,returning,,,True,medium,Left to MIN HC after 2021
+2022,LA,Liam Coen,True,outside_hire,Kentucky (college),offensive coordinator,True,medium,
+2023,LA,Liam Coen,False,returning,,,True,low,"Departed for 2023 Kentucky return per some reporting; exact 2023 LA OC uncertain,   flagged for verification"
+2024,LA,Mike LaFleur,True,outside_hire,NYJ,offensive coordinator,True,medium,Verified via Wikipedia for 2024; unclear if this was actually his first year (could have started 2023 - see note above)
+2025,LA,Mike LaFleur,False,returning,,,True,high,Verified via Wikipedia
+2016,MIA,Clyde Christensen,True,outside_hire,IND,QB coach,False,low,
+2017,MIA,Clyde Christensen,False,returning,,,False,low,
+2018,MIA,Dowell Loggains,True,outside_hire,CHI,offensive coordinator,False,low,
+2019,MIA,Chad O'Shea,True,outside_hire,NE,WR coach,False,medium,New HC Brian Flores staff
+2020,MIA,Chan Gailey,True,outside_hire,,retired/former HC,False,medium,
+2021,MIA,George Godsey,True,internal,MIA,TE coach,False,medium,
+2022,MIA,Frank Smith,True,internal,MIA,run game coordinator/OL coach,True,medium,New HC Mike McDaniel (Shanahan coaching tree) widely reported to call plays himself
+2023,MIA,Frank Smith,False,returning,,,True,medium,
+2024,MIA,Frank Smith,False,returning,,,True,medium,
+2025,MIA,Frank Smith,False,returning,,,True,high,Verified via Wikipedia
+2016,MIN,Norv Turner,False,returning,,,False,medium,Resigned in-season (week 3); Pat Shurmur (pass game coordinator/TE coach) took over as interim/full-season OC
+2017,MIN,Pat Shurmur,False,returning,,,False,medium,Left to NYG HC after 2017
+2018,MIN,John DeFilippo,True,outside_hire,PHI,QB coach,False,medium,Fired in-season (week 14); Kevin Stefanski interim rest of season
+2019,MIN,Kevin Stefanski,True,internal,MIN,TE coach/2018 interim OC,False,medium,Left to CLE HC after 2019
+2020,MIN,Gary Kubiak,True,outside_hire,MIN,assistant HC/offensive advisor (2019),False,medium,
+2021,MIN,Klint Kubiak,True,internal,MIN,passing game coordinator,False,medium,Gary Kubiak's son
+2022,MIN,Wes Phillips,True,internal,MIN,passing game coordinator/TE coach,False,medium,
+2023,MIN,Wes Phillips,False,returning,,,False,medium,
+2024,MIN,Wes Phillips,False,returning,,,False,medium,
+2025,MIN,Wes Phillips,False,returning,,,False,high,Verified via Wikipedia
+2016,NE,Josh McDaniels,False,returning,,,False,high,OC since 2012 (with a brief 2009 stint before that)
+2017,NE,Josh McDaniels,False,returning,,,False,high,
+2018,NE,Josh McDaniels,False,returning,,,False,high,
+2019,NE,Josh McDaniels,False,returning,,,False,high,
+2020,NE,Josh McDaniels,False,returning,,,False,high,
+2021,NE,Josh McDaniels,False,returning,,,False,high,Left to LV HC after 2021
+2022,NE,Matt Patricia,True,internal,NE,senior football advisor,False,low,Highly unconventional 2022 arrangement: Patricia and Joe Judge shared offensive playcalling/coordinator duties with no formal OC title reported. Bill Belichick (HC) also closely involved. Treat this row with caution.
+2023,NE,Bill O'Brien,True,outside_hire,Alabama (college),offensive coordinator,False,medium,Belichick's final season as HC
+2024,NE,Alex Van Pelt,True,outside_hire,CLE,offensive coordinator,False,high,New HC Jerod Mayo staff
+2025,NE,Josh McDaniels,True,outside_hire,LV,head coach,False,high,"Verified via Wikipedia; new HC Mike Vrabel staff,   McDaniels returning to org he was long associated with"
+2016,NO,Pete Carmichael Jr.,False,returning,,,True,high,OC since 2009; HC Sean Payton widely reported as the actual primary playcaller throughout this tenure
+2017,NO,Pete Carmichael Jr.,False,returning,,,True,high,
+2018,NO,Pete Carmichael Jr.,False,returning,,,True,high,
+2019,NO,Pete Carmichael Jr.,False,returning,,,True,high,
+2020,NO,Pete Carmichael Jr.,False,returning,,,True,high,
+2021,NO,Pete Carmichael Jr.,False,returning,,,True,medium,Payton's final season as HC before 2022 sabbatical
+2022,NO,Pete Carmichael Jr.,False,returning,,,False,low,New HC Dennis Allen; unclear if Carmichael retained playcalling or role changed. Flag for verification.
+2023,NO,Klint Kubiak,True,outside_hire,MIN,passing game coordinator/QB coach,False,low,Uncertain whether Kubiak's OC tenure started 2023 or 2024 (Wikipedia only confirms 2024); flagged for verification
+2024,NO,Klint Kubiak,False,returning,,,False,high,Verified via Wikipedia; left to SEA OC after 2024
+2025,NO,Doug Nussmeier,True,outside_hire,,,False,medium,"New HC Kellen Moore staff; verified name via Wikipedia,   exact prior team/role not confirmed"
+2016,NYG,Mike Sullivan,True,internal,NYG,WR coach,False,low,HC Ben McAdoo (2016 promoted from OC to HC) may have retained heavy playcalling involvement
+2017,NYG,Mike Sullivan,False,returning,,,False,low,Fired in-season along with McAdoo
+2018,NYG,Mike Shula,True,outside_hire,CAR,offensive coordinator,False,medium,New HC Pat Shurmur staff
+2019,NYG,Mike Shula,False,returning,,,False,medium,
+2020,NYG,Jason Garrett,True,outside_hire,DAL,head coach,False,medium,New HC Joe Judge staff
+2021,NYG,Jason Garrett,False,returning,,,False,medium,Fired in-season (week 9); Freddie Kitchens interim rest of season
+2022,NYG,Mike Kafka,True,outside_hire,KC,passing game coordinator/QB coach,False,high,New HC Brian Daboll staff
+2023,NYG,Mike Kafka,False,returning,,,False,high,
+2024,NYG,Mike Kafka,False,returning,,,False,high,
+2025,NYG,Tim Kelly,True,outside_hire,HOU,passing game coordinator/OC,False,high,Verified via Wikipedia
+2016,NYJ,Chan Gailey,False,returning,,,False,medium,OC since 2015
+2017,NYJ,John Morton,True,outside_hire,LA,QB coach,False,medium,
+2018,NYJ,Jeremy Bates,True,outside_hire,,,False,low,
+2019,NYJ,Dowell Loggains,True,outside_hire,MIA,offensive coordinator,False,low,
+2020,NYJ,Adam Gase (HC),False,returning,,,True,low,No distinct titled OC identified; HC Gase presumed primary playcaller
+2021,NYJ,Mike LaFleur,True,outside_hire,SF,passing game coordinator,False,high,New HC Robert Saleh staff
+2022,NYJ,Mike LaFleur,False,returning,,,False,high,
+2023,NYJ,Nathaniel Hackett,True,outside_hire,DEN,head coach,False,high,
+2024,NYJ,Nathaniel Hackett,False,returning,,,False,high,
+2025,NYJ,Tanner Engstrand,True,outside_hire,DET,passing game coordinator,False,medium,New HC Aaron Glenn staff; verified name via Wikipedia
+2016,PHI,Frank Reich,True,outside_hire,SD/LAC,QB coach,False,medium,New HC Doug Pederson staff
+2017,PHI,Frank Reich,False,returning,,,False,medium,
+2018,PHI,Mike Groh,True,internal,PHI,WR coach,False,medium,
+2019,PHI,Mike Groh,False,returning,,,True,low,HC Doug Pederson reported to have significant playcalling involvement
+2020,PHI,Press Taylor,True,internal,PHI,passing game coordinator/QB coach,True,low,Pederson playcalling caveat persists; no clearly separate primary OC identified
+2021,PHI,Shane Steichen,True,outside_hire,LAC,offensive coordinator,False,high,New HC Nick Sirianni staff
+2022,PHI,Shane Steichen,False,returning,,,False,high,Left to IND HC after 2022
+2023,PHI,Brian Johnson,True,internal,PHI,QB coach,False,medium,
+2024,PHI,Kellen Moore,True,outside_hire,LAC,offensive coordinator,False,high,
+2025,PHI,Kevin Patullo,True,internal,PHI,passing game coordinator (2021-2024),False,high,Verified via Wikipedia; 4th consecutive year with a new OC per source
+2016,PIT,Todd Haley,False,returning,,,False,high,OC since 2012
+2017,PIT,Todd Haley,False,returning,,,False,high,Left to CLE OC after 2017
+2018,PIT,Randy Fichtner,True,internal,PIT,QB coach,False,high,
+2019,PIT,Randy Fichtner,False,returning,,,False,high,
+2020,PIT,Randy Fichtner,False,returning,,,False,high,
+2021,PIT,Randy Fichtner,False,returning,,,False,high,
+2022,PIT,Matt Canada,True,internal,PIT,QB coach,False,high,
+2023,PIT,Matt Canada,False,returning,,,False,high,Fired in-season (week 9); Eddie Faulkner/Mike Sullivan interim rest of season
+2024,PIT,Arthur Smith,True,outside_hire,ATL,head coach,False,high,
+2025,PIT,Arthur Smith,False,returning,,,False,high,Verified via Wikipedia
+2016,SEA,Darrell Bevell,False,returning,,,False,high,OC since 2011
+2017,SEA,Darrell Bevell,False,returning,,,False,high,Fired after 2017
+2018,SEA,Brian Schottenheimer,True,outside_hire,LA,passing game coordinator,False,high,
+2019,SEA,Brian Schottenheimer,False,returning,,,False,high,
+2020,SEA,Brian Schottenheimer,False,returning,,,False,high,
+2021,SEA,Shane Waldron,True,outside_hire,LA,passing game coordinator,False,high,
+2022,SEA,Shane Waldron,False,returning,,,False,high,
+2023,SEA,Shane Waldron,False,returning,,,False,high,Left to CHI OC after 2023
+2024,SEA,Ryan Grubb,True,outside_hire,Washington (college),offensive coordinator,False,high,New HC Mike Macdonald staff; fired after 2024 season
+2025,SEA,Klint Kubiak,True,outside_hire,NO,offensive coordinator,False,high,Verified via Wikipedia; departed to LV HC after 2025
+2016,SF,Chip Kelly (HC),True,outside_hire,PHI,head coach,True,medium,"No distinct titled OC identified; Kelly (HC,   spread-system pedigree) presumed primary playcaller"
+2017,SF,Kyle Shanahan (HC),True,outside_hire,ATL,offensive coordinator,True,high,"New HC; Shanahan is one of the most well-documented HC-playcallers in the league and has called plays continuously through 2025. Titled 'OC'/pass-game-coordinator staff beneath him have rotated (see notes in later years) but tendency profile should track Shanahan,   not the nominal title-holder."
+2018,SF,Kyle Shanahan (HC),False,returning,,,True,high,
+2019,SF,Kyle Shanahan (HC),False,returning,,,True,high,Mike LaFleur was passing game coordinator/nominal OC-adjacent this era
+2020,SF,Kyle Shanahan (HC),False,returning,,,True,high,
+2021,SF,Kyle Shanahan (HC),False,returning,,,True,high,
+2022,SF,Kyle Shanahan (HC),False,returning,,,True,high,
+2023,SF,Kyle Shanahan (HC),False,returning,,,True,high,
+2024,SF,Kyle Shanahan (HC),False,returning,,,True,high,
+2025,SF,Kyle Shanahan (HC),False,returning,,,True,high,Klay Kubiak holds the titled OC role per Wikipedia; Shanahan presumed to remain actual playcaller
+2016,TB,Dirk Koetter (HC),False,returning,,,True,low,"Koetter promoted OC->HC in 2016; presumed to retain heavy playcalling involvement,   no equally prominent separate OC identified"
+2017,TB,Todd Monken,True,outside_hire,Southern Miss (college),head coach,False,medium,
+2018,TB,Todd Monken,False,returning,,,False,medium,
+2019,TB,Byron Leftwich,True,outside_hire,ARI,QB coach,False,medium,New HC Bruce Arians brought Leftwich from ARI where he'd been an assistant under Arians previously
+2020,TB,Byron Leftwich,False,returning,,,False,high,Brady/Super Bowl LV season
+2021,TB,Byron Leftwich,False,returning,,,False,high,
+2022,TB,Byron Leftwich,False,returning,,,False,high,Arians stepped down mid-tenure to Todd Bowles (HC); Leftwich retained through season
+2023,TB,Dave Canales,True,internal,TB,QB coach,False,high,
+2024,TB,Liam Coen,True,outside_hire,LA,passing game coordinator,False,high,Verified via Wikipedia
+2025,TB,Josh Grizzard,True,internal,TB,passing game coordinator/QB coach,False,medium,"Verified name via Wikipedia; prior role inferred,   not directly confirmed"
+2016,TEN,Terry Robiskie,False,returning,,,False,medium,
+2017,TEN,Terry Robiskie,False,returning,,,False,medium,
+2018,TEN,Matt LaFleur,True,outside_hire,LA,offensive coordinator,False,high,New HC Mike Vrabel staff
+2019,TEN,Arthur Smith,True,internal,TEN,TE coach,False,high,
+2020,TEN,Arthur Smith,False,returning,,,False,high,Left to ATL HC after 2020
+2021,TEN,Todd Downing,True,internal,TEN,passing game coordinator,False,medium,
+2022,TEN,Todd Downing,False,returning,,,False,medium,
+2023,TEN,Tim Kelly,True,outside_hire,HOU,passing game coordinator,False,medium,
+2024,TEN,Nick Holz,True,outside_hire,JAX,passing game coordinator,False,medium,New HC Brian Callahan staff
+2025,TEN,Nick Holz,False,returning,,,False,high,Verified via Wikipedia
+2016,WAS,Sean McVay,False,returning,,,False,high,OC since 2014; left to LA HC after 2016
+2017,WAS,Matt Cavanaugh,True,internal,WAS,QB coach,False,medium,
+2018,WAS,Matt Cavanaugh,False,returning,,,False,medium,
+2019,WAS,Kevin O'Connell,True,outside_hire,LA,passing game coordinator,True,low,"SELF-CAUGHT INCONSISTENCY: this row and the 2020 LA row for the same person point in opposite directions (WAS->LA prior_team here, LA->WAS prior_team there). Real history is likely that O'Connell was WAS QB coach/passing-game coordinator (not full OC - HC Jay Gruden is believed to have called plays) through 2019 and was then hired by LA as OC in 2020; this WAS row's OC title and prior_team are not independently verified. Flagged rather than silently guessed."
+2020,WAS,Scott Turner,True,outside_hire,CAR,passing game coordinator,False,medium,New HC Ron Rivera staff
+2021,WAS,Scott Turner,False,returning,,,False,medium,
+2022,WAS,Scott Turner,False,returning,,,False,medium,
+2023,WAS,Eric Bieniemy,True,outside_hire,KC,offensive coordinator,False,high,
+2024,WAS,Kliff Kingsbury,True,outside_hire,USC (college),offensive coordinator,False,high,"New HC Dan Quinn staff; verified via Wikipedia that he joined in 2024,   not 2025 as some secondary sources implied"
+2025,WAS,Kliff Kingsbury,False,returning,,,False,high,Verified via Wikipedia
