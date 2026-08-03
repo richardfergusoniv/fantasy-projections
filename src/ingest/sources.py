@@ -48,10 +48,32 @@ def get_pbp(seasons, force=False):
 
 
 def get_weekly_data(seasons, force=False):
-    def fetch_one(season):
-        return nfl.import_weekly_data([season], downcast=True)
+    """Official nflverse player_stats file, per season. If a season's file
+    hasn't been published upstream yet (e.g. 2025 as of this writing), fall
+    back to aggregating attempts/yards/TDs/receptions/targets directly from
+    pbp for that season rather than dropping it - decided explicitly with
+    the user rather than silently choosing either behavior. Rows from the
+    fallback are tagged stat_source='pbp_fallback' (official rows get
+    stat_source='player_stats') so downstream code can tell them apart.
+    """
+    from src.ingest.pbp_stats_fallback import aggregate_weekly_stats_from_pbp
 
-    return cached_multi_season("weekly", seasons, fetch_one, force=force, skip_missing=True)
+    def fetch_one(season):
+        df = nfl.import_weekly_data([season], downcast=True)
+        df["stat_source"] = "player_stats"
+        return df
+
+    df, failed = cached_multi_season("weekly", seasons, fetch_one, force=force, skip_missing=True)
+
+    if failed:
+        fallback_seasons = [s for s, _ in failed]
+        pbp_df, pbp_failed = get_pbp(fallback_seasons, force=force)
+        fallback_df = aggregate_weekly_stats_from_pbp(pbp_df)
+        df = pd.concat([df, fallback_df], ignore_index=True)
+        # seasons that failed both the official file AND the pbp fallback are real gaps
+        failed = pbp_failed
+
+    return df, failed
 
 
 def get_snap_counts(seasons, force=False):

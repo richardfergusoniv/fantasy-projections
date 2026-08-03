@@ -27,7 +27,7 @@ the OL and coordinator-tendency models both key off participation.
 
 | Source | Gap | Cause |
 |---|---|---|
-| `weekly` (player_stats) | **2025 missing entirely** | Real upstream gap — nflverse has not yet published `player_stats_2025.parquet`, even though `pbp`, `participation`, and `ftn` all have full 2025 data (confirmed 22 weeks incl. playoffs). This needs your attention: weekly attempts/yards/TDs/receptions/targets are the actual target variables for the projection models. **Workaround available but not yet built:** these stats can be aggregated directly from `pbp` for 2025 instead of relying on the pre-aggregated `player_stats` release. Flagging for your decision before Phase 4 rather than building the workaround silently. |
+| `weekly` (player_stats) | **2025 fell back to pbp aggregation** — resolved | Real upstream gap — nflverse has not yet published `player_stats_2025.parquet`, even though `pbp`, `participation`, and `ftn` all have full 2025 data (confirmed 22 weeks incl. playoffs). **Decision (confirmed with user):** built a pbp-based fallback (`src/ingest/pbp_stats_fallback.py`) that aggregates attempts/completions/yards/TDs/interceptions/carries/targets/receptions directly from play-by-play whenever the official file 404s. Fallback rows are tagged `stat_source='pbp_fallback'` vs `'player_stats'` for official rows, so downstream code (and backtests) can tell them apart — this is NOT a full replica of nflverse's player_stats methodology (no 2pt conversions, fumbles, or fantasy points), just the fields this project needs. |
 | `ftn` | 2016-2021 missing | Expected — FTN charting starts 2022 (confirmed in Phase 0). |
 | `weekly_pfr_*` / `seasonal_pfr_*` | 2016-2017 missing | Expected — PFR advanced stats start 2018 (`nfl_data_py` raises below that). |
 
@@ -69,9 +69,3 @@ imperfect join — not yet root-caused. It doesn't block Phase 2 (which joins th
 the gate, but should be root-caused before Phase 4 depends on seasonal_rosters
 directly for share calculations.
 
-## Open item for your decision
-
-Do you want the Phase 4 target-variable pull to fall back to aggregating weekly
-stats from `pbp` for any season where `player_stats` isn't published yet (i.e.
-2025 today, and potentially future in-season gaps if this tool is ever re-run
-mid-season)? This wasn't built without checking with you first, per your validate-before-building rule.
