@@ -160,6 +160,13 @@ def get_seasonal_pfr(seasons, s_type, force=False):
     return df, failed
 
 
+def get_draft_picks(seasons, force=False):
+    def fetch_one(season):
+        return nfl.import_draft_picks([season])
+
+    return cached_multi_season("draft_picks", seasons, fetch_one, force=force, skip_missing=True)
+
+
 def get_ids(force=False):
     """Master player-id crosswalk. Not season-indexed -> cache under a single pseudo-season key."""
     return cached_season("ids", 0, lambda: nfl.import_ids(), force=force), []

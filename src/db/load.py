@@ -43,6 +43,7 @@ TABLE_SPECS = [
     ("seasonal_pfr_pass", lambda: src.get_seasonal_pfr(SEASONS, "pass"), ["season", "pfr_id"]),
     ("seasonal_pfr_rec", lambda: src.get_seasonal_pfr(SEASONS, "rec"), ["season", "pfr_id"]),
     ("seasonal_pfr_rush", lambda: src.get_seasonal_pfr(SEASONS, "rush"), ["season", "pfr_id"]),
+    ("draft_picks", lambda: src.get_draft_picks(SEASONS), ["season", "gsis_id"]),
     ("ids", lambda: src.get_ids(), ["gsis_id", "pfr_id", "espn_id"]),
     ("players", lambda: src.get_players(), ["gsis_id"]),
 ]
