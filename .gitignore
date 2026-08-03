@@ -6,3 +6,4 @@ data/
 ingest_log*.txt
 phase0_results.json
 .claude/
+models/
