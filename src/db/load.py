@@ -21,7 +21,7 @@ DB_PATH = os.path.join(
     "projections.db",
 )
 
-SEASONS = list(range(2016, 2026))
+SEASONS = list(range(2016, 2027))
 
 # (table_name, fetch_fn, index_columns)
 TABLE_SPECS = [

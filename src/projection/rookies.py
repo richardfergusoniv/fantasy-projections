@@ -33,6 +33,23 @@ from src.projection.features import TARGET_STATS
 ROUND_BUCKETS = {1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7", 5: "round_4_7",
                   6: "round_4_7", 7: "round_4_7"}
 VACATED_CLIP = (0.3, 2.5)
+ROOKIE_INTERVAL_QUANTILES = (0.10, 0.90)  # same width as the veteran empirical interval, for comparability
+ROOKIE_INTERVAL_MIN_N = 20  # bucket sample sizes below this get interval_low_n_flag=True
+
+# draft_picks.team ships PFR-style abbreviations, not nflverse's standard
+# ones used everywhere else in this project (weekly/pbp/seasonal_rosters/
+# oc_tendency_profiles) - found while validating identify_target_season_rookie_class's
+# output: every 2026 draft pick's team fell back to draft_picks.team (their
+# placeholder id isn't in seasonal_rosters at all - see that function's
+# docstring), and 100% of those came through as GNB/KAN/LAR/LVR/NOR/NWE/SFO/TAM
+# instead of GB/KC/LA/LV/NO/NE/SF/TB. Left unfixed, this both mislabels
+# rookie rows in the final output AND corrupts team_vacated_opportunity's
+# roster-fallback join (a Rams rookie tagged "LAR" would never match the
+# team's actual vacated-share row, keyed "LA").
+TEAM_ABBR_FIX = {
+    "GNB": "GB", "KAN": "KC", "LAR": "LA", "LVR": "LV",
+    "NOR": "NO", "NWE": "NE", "SFO": "SF", "TAM": "TB",
+}
 
 
 def _round_bucket(rnd):
@@ -62,9 +79,51 @@ def identify_rookie_seasons(conn, seasons=SEASONS):
     draft = load_draft_capital(conn)
     rookies = draft.merge(first_season, on="player_id", how="inner")
     rookies = rookies[rookies["draft_season"] == rookies["first_active_season"]]
-    return rookies[["player_id", "draft_season", "round", "pick", "round_bucket", "position"]].rename(
+    rookies = rookies[rookies["draft_season"].isin(seasons)]
+    rookies = rookies[["player_id", "draft_season", "round", "pick", "round_bucket", "position"]].rename(
         columns={"draft_season": "season"}
     )
+    rookies["rookie_tier"] = "drafted"
+    return rookies
+
+
+def identify_udfa_rookie_seasons(conn, seasons=SEASONS):
+    """UDFA counterpart to identify_rookie_seasons: (player_id, season) pairs
+    for players with NO draft round (`players.draft_round` is null) whose
+    first active `weekly` season equals `players.rookie_season`.
+
+    Deliberately NOT implemented as "absent from draft_picks in this
+    season" - draft_picks only covers 2016+, so a veteran actually drafted
+    before 2016 (data left-censored) would look falsely "undrafted" the
+    moment their first active week in OUR window happens to land in 2016
+    (spot-checked: 484 players' first-active-season lands in 2016 under
+    that naive definition, nearly all of them established veterans per
+    players.rookie_season/draft_year predating 2016, e.g. Tom Brady,
+    Drew Brees - not real UDFA rookies). `players.rookie_season` and
+    `draft_round` are nflverse master-roster fields, not windowed by this
+    project's ingestion range, so they don't have this problem."""
+    wu = load_weekly_usage(conn)
+    agg = season_aggregate(wu)
+    active = agg[agg["games_played"] > 0]
+    first_season = active.groupby("player_id")["season"].min().rename("first_active_season").reset_index()
+
+    players = pd.read_sql(
+        "select gsis_id as player_id, rookie_season, draft_round from players where draft_round is null", conn,
+    )
+    udfa = players.merge(first_season, on="player_id", how="inner")
+    udfa = udfa[udfa["rookie_season"] == udfa["first_active_season"]]
+    udfa = udfa[udfa["first_active_season"].isin(seasons)]
+
+    pos_lookup = active[["player_id", "season", "position"]].drop_duplicates(subset=["player_id", "season"])
+    udfa = udfa.merge(
+        pos_lookup, left_on=["player_id", "first_active_season"], right_on=["player_id", "season"], how="inner",
+    )
+    udfa = udfa[udfa["position"].isin(["QB", "RB", "WR", "TE"])].copy()
+    udfa["round"] = np.nan
+    udfa["pick"] = np.nan
+    udfa["round_bucket"] = "undrafted"
+    udfa["rookie_tier"] = "udfa"
+    return udfa[["player_id", "season", "round", "pick", "round_bucket", "position", "rookie_tier"]]
 
 
 def team_vacated_opportunity(conn, seasons=SEASONS):
@@ -72,18 +131,40 @@ def team_vacated_opportunity(conn, seasons=SEASONS):
     fraction of the team's season-(N-1) carries/targets that belonged to
     players who did NOT have an active week for that same team in season N
     (retired, cut, signed elsewhere, or simply lost their role - this
-    doesn't distinguish why, only that the volume is no longer theirs)."""
+    doesn't distinguish why, only that the volume is no longer theirs).
+
+    Roster-fallback for a genuinely future `season` with zero played games
+    (e.g. projecting a season that hasn't started): "active in season N" is
+    structurally undeterminable from `weekly` there, so this falls back to
+    `seasonal_rosters[season]` (available pre-season, unlike game logs) to
+    determine which season-(N-1) players are still on the same roster. This
+    is a weaker signal than confirmed game participation (a rostered player
+    could still be cut/inactive all year), but it's the best pre-season
+    proxy available - the alternative would be reporting zero vacated
+    opportunity for every rookie in the target season, which is worse."""
     wu = load_weekly_usage(conn)
     agg = season_aggregate(wu)
     agg = agg[agg["games_played"] > 0]
+    seasons_with_games = set(agg["season"].unique())
+
+    roster_fallback_seasons = [s for s in seasons if s not in seasons_with_games]
+    roster_team = pd.DataFrame(columns=["player_id", "season", "team"])
+    if roster_fallback_seasons:
+        q = (
+            "select player_id, season, team from seasonal_rosters where season in "
+            f"({','.join(map(str, roster_fallback_seasons))})"
+        )
+        roster_team = pd.read_sql(q, conn).drop_duplicates(subset=["player_id", "season"])
 
     rows = []
     for season in seasons:
         prev = agg[agg["season"] == season - 1]
-        curr = agg[agg["season"] == season]
         if prev.empty:
             continue
-        curr_team_of_player = curr.set_index("player_id")["team"]
+        if season in seasons_with_games:
+            curr_team_of_player = agg[agg["season"] == season].set_index("player_id")["team"]
+        else:
+            curr_team_of_player = roster_team[roster_team["season"] == season].set_index("player_id")["team"]
         prev = prev.copy()
         prev["returning_same_team"] = prev["player_id"].map(curr_team_of_player) == prev["team"]
 
@@ -108,8 +189,17 @@ def team_vacated_opportunity(conn, seasons=SEASONS):
 def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
     """Rookie player-seasons with draft capital + vacated opportunity +
     actual per-game rates (for fitting the historical bucket averages /
-    for backtest evaluation) - NOT the veteran feature columns."""
+    for backtest evaluation) - NOT the veteran feature columns.
+
+    Includes both drafted rookies and UDFA rookies (identify_udfa_rookie_seasons)
+    in one combined table so fit_rookie_baselines' groupby('round_bucket')
+    naturally produces an 'undrafted' bucket populated by real UDFA per-game
+    rates, not the empty bucket PHASE4_REPORT.md flagged (drafted rows with
+    round_bucket='undrafted' essentially never occur - that requires a
+    draft_picks row with a null round, which doesn't happen in practice)."""
     rookies = identify_rookie_seasons(conn, seasons)
+    udfa = identify_udfa_rookie_seasons(conn, seasons)
+    rookies = pd.concat([rookies, udfa], ignore_index=True, sort=False)
     vacated = team_vacated_opportunity(conn, seasons)
 
     stat_cols = sorted({s for stats in TARGET_STATS.values() for s in stats})
@@ -119,6 +209,54 @@ def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
     df = rookies.merge(actuals, on=["player_id", "season"], how="inner")
     df = df.merge(vacated, on=["season", "team"], how="left")
     return df
+
+
+def identify_target_season_rookie_class(conn, target_season):
+    """Drafted + UDFA rookie class for `target_season`, built WITHOUT
+    requiring any played game in that season - unlike
+    identify_rookie_seasons/identify_udfa_rookie_seasons (both require
+    confirmed active-week production and are only appropriate for fitting
+    HISTORICAL baselines). A genuinely future target_season has no `weekly`
+    rows at all, so "first active season" can't be computed - the target
+    season's rookie class has to be read directly off draft_picks (drafted)
+    and seasonal_rosters (UDFA: years_exp==0, draft_number null - both
+    fields already populated pre-season) instead.
+
+    Team is resolved from `seasonal_rosters[target_season]` (the most
+    current post-draft/free-agency snapshot) with a fallback to
+    draft_picks' own `team` column for a drafted player not found there
+    (e.g. a crosswalk/ids gap)."""
+    drafted = pd.read_sql(
+        f"select gsis_id as player_id, round, pick, position, team as draft_team "
+        f"from draft_picks where season = {target_season} and gsis_id is not null "
+        f"and position in ('QB','RB','WR','TE')", conn,
+    )
+    drafted["draft_team"] = drafted["draft_team"].replace(TEAM_ABBR_FIX)
+    drafted["round_bucket"] = drafted["round"].apply(_round_bucket)
+    drafted["rookie_tier"] = "drafted"
+
+    roster = pd.read_sql(
+        f"select player_id, team, position, years_exp, draft_number from seasonal_rosters "
+        f"where season = {target_season}", conn,
+    ).drop_duplicates(subset=["player_id"])
+
+    udfa = roster[
+        (roster["years_exp"] == 0) & (roster["draft_number"].isna())
+        & (roster["position"].isin(["QB", "RB", "WR", "TE"]))
+        & (~roster["player_id"].isin(set(drafted["player_id"])))
+    ].copy()
+    udfa["round"] = np.nan
+    udfa["pick"] = np.nan
+    udfa["round_bucket"] = "undrafted"
+    udfa["rookie_tier"] = "udfa"
+
+    team_map = roster.set_index("player_id")["team"]
+    drafted["team"] = drafted["player_id"].map(team_map).fillna(drafted["draft_team"])
+
+    cols = ["player_id", "team", "round", "pick", "position", "round_bucket", "rookie_tier"]
+    combined = pd.concat([drafted[cols], udfa[cols]], ignore_index=True)
+    combined["season"] = target_season
+    return combined
 
 
 def fit_rookie_baselines(rookie_df, train_seasons):
@@ -139,8 +277,13 @@ def predict_rookies(rookie_df, baselines, target_seasons):
     target share of passing volume used as the closest available proxy).
     Falls back to the unscaled bucket mean if the bucket has no historical
     rows or the vacated feature is null (e.g. an expansion-style edge case).
+
+    pg_cols is read off `baselines.columns`, not `rookie_df.columns` - the
+    target rows (a genuinely future season) have no actual per-game rates
+    to speak of, so rookie_df itself may not carry any `*_pg` columns; the
+    baselines (fit on historical data) always do.
     """
-    pg_cols = [c for c in rookie_df.columns if c.endswith("_pg")]
+    pg_cols = [c for c in baselines.columns if c.endswith("_pg")]
     target = rookie_df[rookie_df["season"].isin(target_seasons)].copy()
 
     def project_row(row):
@@ -160,5 +303,52 @@ def predict_rookies(rookie_df, baselines, target_seasons):
         return pd.Series(preds)
 
     preds = target.apply(project_row, axis=1)
-    out = pd.concat([target[["player_id", "season", "team", "position", "round_bucket", "pick"]], preds], axis=1)
+    out = pd.concat(
+        [target[["player_id", "season", "team", "position", "round_bucket", "pick", "rookie_tier"]], preds], axis=1
+    )
     return out
+
+
+def rookie_interval_ratios(rookie_df, baselines, train_seasons, quantiles=ROOKIE_INTERVAL_QUANTILES):
+    """Rookie prediction intervals: no naive-baseline backtest comparison
+    exists for rookies (no prior season to carry forward as a baseline -
+    see PHASE4_REPORT.md), so veteran-style additive residuals from a
+    held-out backtest aren't available either. Fallback used instead: for
+    each (position, round_bucket, stat), the empirical p10/p90 of
+    actual_pg / bucket_mean_pg across all historical rookies in that bucket
+    (train_seasons only, same rows fit_rookie_baselines used). Applied
+    MULTIPLICATIVELY to a given player's point prediction
+    (pred_pg_low = pred_pg * ratio_low) rather than additively, because the
+    point prediction itself is bucket_mean * a vacated-opportunity scale
+    factor - a multiplicative ratio stays consistent with that scaling
+    logic instead of bolting on a flat additive band that ignores how much
+    a specific player's prediction was scaled up/down.
+
+    Sample sizes here are the bucket sizes already reported in
+    PHASE4_REPORT.md (11-132) - smaller than the veteran backtest's 61-170,
+    so buckets below ROOKIE_INTERVAL_MIN_N are flagged via
+    interval_low_n_flag rather than silently presented at equal
+    confidence to a well-sampled bucket."""
+    train = rookie_df[rookie_df["season"].isin(train_seasons) & (rookie_df["games_played"] > 0)]
+    pg_cols = [c for c in rookie_df.columns if c.endswith("_pg")]
+    stat_names = [c[:-3] for c in pg_cols]
+
+    rows = []
+    for (position, bucket), grp in train.groupby(["position", "round_bucket"]):
+        n = len(grp)
+        if (position, bucket) not in baselines.index:
+            continue
+        b = baselines.loc[(position, bucket)]
+        for stat, pg_col in zip(stat_names, pg_cols):
+            mean = b[pg_col]
+            vals = grp[pg_col].dropna()
+            if pd.isna(mean) or mean == 0 or len(vals) < 3:
+                continue
+            ratio = vals / mean
+            lo, hi = np.quantile(ratio, quantiles)
+            rows.append({
+                "position": position, "round_bucket": bucket, "stat": stat, "n": n,
+                "ratio_low": float(lo), "ratio_high": float(hi),
+                "interval_low_n_flag": n < ROOKIE_INTERVAL_MIN_N,
+            })
+    return pd.DataFrame(rows)

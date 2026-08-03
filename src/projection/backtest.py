@@ -17,6 +17,8 @@ Rookie evaluation is reported separately (fit_rookie_baselines on
 (no prior season to carry forward) - MAE is reported but there's no
 apples-to-apples baseline comparison to make for them.
 """
+import os
+
 import numpy as np
 import pandas as pd
 from lightgbm import LGBMRegressor
@@ -29,6 +31,11 @@ from src.projection.train import LGBM_PARAMS
 
 TRAIN_PAIRS = [(2021, 2022), (2022, 2023), (2023, 2024)]
 TEST_PAIR = (2024, 2025)
+
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+MODELS_DIR = os.path.join(REPO_ROOT, "models")
+INTERVAL_QUANTILES = (0.10, 0.90)  # 80% empirical interval width - see PHASE5_REPORT.md for why
+INTERVAL_MIN_N = 30  # veteran (position, stat) test-set n below this would need a parametric fallback (none do - min is 61)
 
 
 def mae(a, b):
@@ -54,6 +61,38 @@ def backtest_position_stat(feat, position, stat):
         "model_mae": mae(pred, actual), "naive_mae": mae(naive, actual),
         "model_wins": mae(pred, actual) < mae(naive, actual),
     }
+
+
+def residual_quantiles(feat, quantiles=INTERVAL_QUANTILES):
+    """Empirical (position, stat) -> (resid_low, resid_high, resid_std) from
+    the SAME held-out 2025 backtest (train 2021-22/22-23/23-24, predict
+    2025) used for the MAE table above - genuine out-of-sample errors, not
+    train-fit residuals (which would be optimistically narrow). Used by
+    predict.py to build pred_pg_low/pred_pg_high = pred_pg + resid_low/high
+    for the veteran path. All 20 position/stat combos have n_test in
+    61-170 (see PHASE4_REPORT.md's backtest table) - above INTERVAL_MIN_N,
+    so no position/stat needs a parametric (normal-approximation) fallback;
+    resid_std is still carried through in case a future season's smaller
+    test set ever needs one."""
+    rows = []
+    for position, stats in TARGET_STATS.items():
+        for stat in stats:
+            y_col = f"{stat}_pg"
+            train = build_transition_pairs(feat, position, stat, TRAIN_PAIRS)
+            test = build_transition_pairs(feat, position, stat, [TEST_PAIR])
+            if train.empty or test.empty:
+                continue
+            model = LGBMRegressor(**LGBM_PARAMS)
+            model.fit(train[ALL_FEATURES], train[y_col])
+            pred = model.predict(test[ALL_FEATURES])
+            resid = test[y_col].values - pred
+            lo, hi = np.quantile(resid, quantiles)
+            rows.append({
+                "position": position, "stat": stat, "n_test": len(test),
+                "resid_low": float(lo), "resid_high": float(hi), "resid_std": float(np.std(resid)),
+                "low_n_flag": len(test) < INTERVAL_MIN_N,
+            })
+    return pd.DataFrame(rows)
 
 
 def run_veteran_backtest(feat):
@@ -102,8 +141,16 @@ def main():
     rook = run_rookie_backtest(conn, feat)
     print(rook.to_string(index=False))
 
+    print("\n=== Empirical residual quantiles (for predict.py's veteran prediction intervals) ===")
+    resid = residual_quantiles(feat)
+    print(resid.to_string(index=False))
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    resid_path = os.path.join(MODELS_DIR, "interval_residuals.csv")
+    resid.to_csv(resid_path, index=False)
+    print(f"Saved -> {resid_path}")
+
     conn.close()
-    return vet, rook
+    return vet, rook, resid
 
 
 if __name__ == "__main__":
