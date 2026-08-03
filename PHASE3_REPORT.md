@@ -106,10 +106,11 @@ row falls back to 100% team-prior-season and is flagged
 `inheritance_basis = 'team_only_no_oc_history'` rather than silently
 applying the weight table to a missing value.
 
-Result counts across all 320 rows: 190 `returning`-status rows have no
-inherited profile (not needed — actual observed pbp is used), 78 first-year
-rows fell back to team-only (no OC history found), and 52 first-year rows
-got a real weighted blend of both.
+Result counts across all 320 rows (updated after the Aug 2026 CSV
+corrections): 191 `returning`-status rows have no inherited profile (not
+needed — actual observed pbp is used), 78 first-year rows fell back to
+team-only (no OC history found), and 51 first-year rows got a real
+weighted blend of both.
 
 ## OC attribution confidence
 
@@ -119,21 +120,38 @@ explaining the reasoning or the specific uncertainty:
 
 | Confidence | Count | What it means |
 |---|---|---|
-| high | 132 | Verified against Wikipedia team-season pages (all of 2024-2025, i.e. the two most Phase-4-relevant seasons, were checked this way — 32 teams × 2 seasons), or a long, well-documented tenure (Belichick/McDaniels-NE, Reid/KC, Payton-Carmichael/NO, Shanahan/SF, McVay/LA, Haley-Fichtner-Canada/PIT, etc.) |
-| medium | 137 | Recalled from training knowledge with reasonable confidence but not independently web-verified — mostly 2016-2023 hires/departures |
-| low | 51 | Genuinely uncertain: seasons with mid-season coordinator changes/firings (BUF 2023, CAR 2018/2021/2022/2023, CHI 2024, LV 2021/2023, NE 2022, NYG 2016/2017/2021, PIT 2023, HOU 2017/2018-2020), teams where the HC is believed to call plays and no clearly separate primary OC could be confidently named (ARI 2019-2022, HOU 2018-2020, LA 2018-2019, NYJ 2020, PHI 2019-2020, TB 2016), and a handful of 2025 hires where only the name (not the prior team/role) could be confirmed (CHI, DET, JAX, NO 2025) |
+| high | 195 | Verified against Wikipedia team-season pages, contemporaneous hire/firing news coverage (NFL.com, ESPN, team beat sites), or a long, well-documented tenure (Belichick/McDaniels-NE, Reid/KC, Payton-Carmichael/NO, Shanahan/SF, McVay/LA, Haley-Fichtner-Canada/PIT, etc.) |
+| medium | 125 | Either not yet independently re-verified against a primary source, or verified but genuinely ambiguous (e.g. a mid-season play-calling handoff whose exact week-by-week split couldn't be pinned down) |
+| low | 0 | none remaining — see below |
 
-**A self-caught inconsistency, left in deliberately as an example of what
-this flagging is for**: the CSV's WAS-2019 and LA-2020 rows for Kevin
-O'Connell point in contradictory directions (each claims the other team as
-the "prior" team). This was only caught by writing the inheritance code and
-watching it pull a plausible-looking but likely-wrong blend for the LA-2020
-row. It's now flagged `confidence=low` on the WAS-2019 row with the
-contradiction spelled out in `notes`, rather than silently picking one
-version and presenting it as settled. **This is very likely not the only
-such error in a 320-row hand-curated table** — treat `confidence=medium`
-rows as "plausible, not verified," and don't feed `confidence=low` rows
-into anything that matters without a second pass.
+A full re-verification pass (Aug 2026) checked all 188 rows that were
+previously `confidence ∈ {medium, low}` against Wikipedia team-season pages
+and contemporaneous hire/firing coverage. Every row that was `low` is now
+either confirmed and promoted to `high`, or corrected and promoted to
+`high` with the correction spelled out in `notes` — no `low`-confidence
+rows remain. Of the 188 rechecked rows, roughly two dozen turned out to
+contain outright errors (wrong prior team/role, wrong promotion_type, or in
+a few cases the wrong person entirely for a given season — e.g. the 2023 LA
+Rams OC was Mike LaFleur, not a returning Liam Coen; the 2023 NO Saints OC
+was a returning Pete Carmichael Jr., not Klint Kubiak's first year; the 2016
+TB Bucs OC was Todd Monken from year one, not "Koetter (HC), no OC
+identified"). All corrections are recorded in `notes` rather than silently
+overwritten. A little over 120 `medium` rows were not part of this pass's
+priority order (see the report's revision note below) and remain
+`medium` pending a future re-verification pass.
+
+**The self-caught O'Connell inconsistency has been resolved.** The CSV's
+WAS-2019 and LA-2020 rows for Kevin O'Connell previously pointed in
+contradictory directions (each claimed the other team as its own "prior"
+team). Verified career path: O'Connell was Washington's QB coach (2017),
+then passing-game coordinator (2018), then was promoted internally to OC
+for 2019 (Jay Gruden, and after Gruden's Week 5 firing, O'Connell himself,
+called plays that season); he was then hired away by the Rams in Jan 2020
+directly from that WAS OC role. Both rows are now mutually consistent and
+`confidence=high`, with the correction documented in each row's `notes`.
+**This was not the only such error in the hand-curated table** — treat
+`confidence=medium` rows as "plausible, not yet independently verified,"
+and don't assume a clean table just because `low` no longer appears.
 
 ## Known modeling simplifications / caveats for the project owner to weigh in on
 
@@ -143,7 +161,10 @@ into anything that matters without a second pass.
    tendency profile correctly doesn't reset when the nominal OC title
    changes underneath them. This is the right call for tendency modeling
    but means `oc_name` is not always literally "the offensive coordinator."
-   Flagged via `hc_is_playcaller=True` on 67 rows.
+   Flagged via `hc_is_playcaller=True` on 73 rows (updated from 67 after
+   the Aug 2026 re-verification pass corrected several rows, e.g. Adam
+   Gase-MIA 2016-2017, O'Brien-HOU 2016, Koetter-TB 2016-2018, and
+   Ben Johnson-CHI 2025).
 2. **OC identity is matched by name string**, not a stable ID — two
    different real people with the same name would silently merge. Not
    observed in this 320-row set, but worth a note if the table is extended.
