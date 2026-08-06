@@ -51,7 +51,7 @@ from src.projection.transitions import ALL_FEATURES
 from src.projection.rookies import (
     build_rookie_dataset, fit_rookie_baselines, predict_rookies,
     identify_target_season_rookie_class,
-    team_vacated_opportunity, rookie_interval_ratios,
+    team_vacated_opportunity, rookie_interval_ratios, combine_athletic_scores_by_pfr_id,
 )
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -452,12 +452,25 @@ def project_season(conn, target_season):
     target_class = identify_target_season_rookie_class(conn, target_season)
     vacated = team_vacated_opportunity(conn, [target_season])
     target_class = target_class.merge(vacated, on=["season", "team"], how="left")
+    # Combine-athleticism tier (Addendum 4, Part 3) - joined via pfr_id
+    # (identify_target_season_rookie_class now carries draft_picks'
+    # pfr_player_id / seasonal_rosters' pfr_id directly), NOT via player_id,
+    # because target_season's drafted rookies have a placeholder gsis_id
+    # (see that function's docstring) that would silently fail to match
+    # combine_athletic_scores' player_id-keyed form for nearly the entire
+    # drafted class. 'no_data' (not NaN) for any rookie with no combine_data
+    # match at all (didn't test, or genuinely absent from the pull), so
+    # predict_rookies' scale lookup always resolves.
+    athletic = combine_athletic_scores_by_pfr_id(conn)
+    target_class = target_class.merge(athletic, on="pfr_id", how="left")
+    target_class["athletic_tier"] = target_class["athletic_tier"].fillna("no_data")
     depth_chart = load_depth_chart(target_season)
     rookie_preds = predict_rookies(target_class, baselines, [target_season], depth_chart=depth_chart)
 
     pg_cols = [c for c in rookie_preds.columns if c.endswith("_pg")]
     rookie_long = rookie_preds.melt(
-        id_vars=["player_id", "team", "position", "season", "rookie_tier", "round_bucket", "qb_sleeper_play_prob"],
+        id_vars=["player_id", "team", "position", "season", "rookie_tier", "round_bucket",
+                 "qb_sleeper_play_prob", "athletic_tier"],
         value_vars=pg_cols, var_name="stat", value_name="pred_pg",
     )
     rookie_long["stat"] = rookie_long["stat"].str.replace("_pg", "", regex=False)
@@ -510,6 +523,7 @@ OUTPUT_COLUMNS = [
     "team_changed", "roster_status",            # Task 1 - team reassignment transparency
     "depth_rank", "role", "depth_chart_status",  # Task 2/3 - curated depth chart + gating
     "qb_sleeper_play_prob",  # rookie QB survivorship-bias correction - NaN for non-QB/veteran rows
+    "athletic_tier",  # Addendum 4 - combine-athleticism scale tier; NaN for veteran_model rows
 ]
 
 

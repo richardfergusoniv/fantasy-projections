@@ -163,3 +163,110 @@ def player_season_snap_pct(conn, seasons=SEASONS):
     sc = sc.merge(crosswalk, left_on="pfr_player_id", right_on="pfr_id", how="inner")
     out = sc.groupby(["season", "gsis_id"])["offense_pct"].mean().reset_index()
     return out.rename(columns={"gsis_id": "player_id", "offense_pct": "snap_pct"})
+
+
+# NFL expanded to a 17-game regular season starting 2021 - used below as the
+# denominator for "how many of the team's scheduled games did this player
+# miss," a well-known structural fact (not derived from a query) in the same
+# spirit as this project's other hardcoded structural constants
+# (PARTICIPATION_MIN_SEASON, FTN_MIN_SEASON, etc. in src/ingest/sources.py).
+def _team_season_game_count(season):
+    return 17 if season >= 2021 else 16
+
+
+# Weight applied to a week the player was flagged Out/Doubtful/Questionable
+# on the injury report but STILL PLAYED (per games_played's own active-week
+# definition), relative to a full weight of 1.0 for a week they missed
+# outright. Stated judgment call: a genuinely missed game is a stronger
+# durability signal for NEXT season than "played through a questionable
+# tag" - equal weighting would score a player who was Questionable every
+# single week but never missed a game identically to a player who missed
+# half the season outright, which is exactly the distinction this feature
+# is supposed to capture (see build_player_season_injury_durability's
+# docstring). 0.4 is a considered-but-not-tuned choice, not fit to any
+# target - same spirit as this project's other stated-not-tuned constants
+# (train.py's LGBM_PARAMS, rookies.py's VACATED_CLIP).
+INJURY_PLAYED_WEIGHT = 0.4
+
+
+def build_player_season_injury_durability(conn, seasons=SEASONS):
+    """Player-season trailing injury-durability feature (Addendum 4).
+
+    Measures: (missed games this season, weighted 1.0 each) + (games this
+    season the player carried an Out/Doubtful/Questionable report status
+    but STILL PLAYED, weighted INJURY_PLAYED_WEIGHT each), as a fraction of
+    the team's scheduled games that season - clipped to [0, 1].
+
+    This is a TRAILING feature exactly like every other column in
+    FEATURE_COLS: it is computed from season N's own observed injury
+    history and fed into the season-N feature row, which transitions.py's
+    existing season-N -> season-(N+1) pairing turns into a genuine trailing
+    predictor for next season automatically - there is no separate shift
+    logic needed here, matching how carry_share/snap_pct/etc. already work.
+
+    Why not just "fraction of weeks flagged on the report," full stop
+    (the first option floated for this feature): spot-checked a real,
+    extreme case (Christian McCaffrey, 2024 Achilles injury, played only 4
+    of 17 games) and found the injuries table STOPS filing weekly reports
+    for a player once they are on long-term IR - his 2024 injuries rows
+    exist only for weeks 1-2 (Questionable/Out, before the initial
+    IR placement) and week 10 (Questionable, on his way back); weeks 3-9 have
+    NO injuries row at all, not because he wasn't hurt but because there is
+    nothing left to report once a player is already out long-term. A
+    "fraction of weeks flagged" metric using only weeks with an injuries
+    row - or even using only weeks with a `weekly` row as the denominator -
+    would score McCaffrey's 2024 as barely notable, exactly backwards for a
+    season that should be a maximal durability red flag. Anchoring the
+    denominator to the team's actual scheduled game count and crediting
+    every genuinely MISSED game (regardless of whether a report row exists
+    for it) fixes this: McCaffrey 2024 comes out to (13 missed + 0.4*1
+    flagged-but-played week) / 17 = 0.79, correctly one of the highest
+    durability-risk scores in the dataset (verified below in the report).
+
+    Collapsing multiple injuries rows per player-week: the table has no
+    day-of-week field (checked directly against the actual schema - only a
+    raw `date_modified` timestamp), so a Wednesday-practice-report vs.
+    Friday-final-status distinction isn't recoverable from what nflverse
+    ships. Spot-checked the real row structure: duplicate (season, week,
+    gsis_id) rows are rare (2 of ~5-6k player-weeks checked for 2024) and
+    represent a status UPDATE during the week (e.g. Questionable -> Out)
+    rather than genuinely distinct practice-day snapshots - the judgment
+    call made here is to take the row with the latest `date_modified` per
+    player-week as that week's status, which is equivalent to "most
+    recently known status" and, given how rare duplicates are, close enough
+    to "final status of the week" in practice.
+
+    Players who never appear on an injury report AND never miss a game get
+    a real 0.0 (not NaN) - by construction of the arithmetic above, not a
+    silently-filled default."""
+    inj = pd.read_sql(
+        f"select season, week, gsis_id as player_id, report_status, date_modified from injuries "
+        f"where season in ({','.join(map(str, seasons))}) and gsis_id is not null", conn,
+    )
+    inj = inj.sort_values("date_modified").drop_duplicates(subset=["season", "week", "player_id"], keep="last")
+    inj["flagged"] = inj["report_status"].isin(["Out", "Doubtful", "Questionable"])
+    flagged = inj[inj["flagged"]][["season", "week", "player_id"]].drop_duplicates()
+
+    wu = load_weekly_usage(conn)
+    wu = wu[wu["season"].isin(seasons)].copy()
+    wu["_active"] = (
+        ((wu["position"] == "QB") & (wu["attempts"] > 0))
+        | ((wu["position"] != "QB") & ((wu["carries"] > 0) | (wu["targets"] > 0)))
+    )
+
+    played = wu[wu["_active"]][["season", "week", "player_id"]].drop_duplicates()
+    games_played = played.groupby(["season", "player_id"]).size().rename("games_played").reset_index()
+
+    played_flagged = played.merge(flagged, on=["season", "week", "player_id"], how="inner")
+    flagged_played_weeks = (
+        played_flagged.groupby(["season", "player_id"]).size().rename("flagged_played_weeks").reset_index()
+    )
+
+    out = games_played.merge(flagged_played_weeks, on=["season", "player_id"], how="left")
+    out["flagged_played_weeks"] = out["flagged_played_weeks"].fillna(0)
+    out["team_games"] = out["season"].apply(_team_season_game_count)
+    out["missed_games"] = (out["team_games"] - out["games_played"]).clip(lower=0)
+    out["injury_durability_rate"] = (
+        (out["missed_games"] + INJURY_PLAYED_WEIGHT * out["flagged_played_weeks"]) / out["team_games"]
+    ).clip(upper=1.0)
+    return out[["season", "player_id", "injury_durability_rate"]]

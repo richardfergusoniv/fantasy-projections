@@ -39,6 +39,21 @@ NO_SLEEPER_MATCH_PLAY_PROB = 0.05
 ROUND_BUCKETS = {1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7", 5: "round_4_7",
                   6: "round_4_7", 7: "round_4_7"}
 VACATED_CLIP = (0.3, 2.5)
+
+# Modest multiplicative scale applied to a rookie's whole projected line
+# based on a discrete combine-athleticism tier (Addendum 4, Part 3) - see
+# load_combine_athletic_tier's docstring for the full reasoning. Deliberately
+# small (+/-8%/6%, not a big swing) and applied as a THIRD discrete tier
+# rather than a continuous score, per the spec's own guidance to prefer
+# flags/tiers over precise continuous scaling on a sample this thin (11-132
+# historical rookies per bucket, ~85% combine pfr_id join coverage on top of
+# that) - fitting a continuous relationship between combine testing and NFL
+# per-game production on these sample sizes would be noise-fitting, not
+# signal. Chosen as a SCALE on the existing bucket-mean projection (not a
+# new bucketing dimension for fit_rookie_baselines) specifically so it does
+# NOT further fragment the already-thin (position, round_bucket) training
+# samples the way adding a third grouping key would.
+ATHLETIC_SCALE = {"above_median": 1.08, "below_median": 0.94, "no_data": 1.0}
 ROOKIE_INTERVAL_QUANTILES = (0.10, 0.90)  # same width as the veteran empirical interval, for comparability
 ROOKIE_INTERVAL_MIN_N = 20  # bucket sample sizes below this get interval_low_n_flag=True
 
@@ -132,6 +147,82 @@ def identify_udfa_rookie_seasons(conn, seasons=SEASONS):
     return udfa[["player_id", "season", "round", "pick", "round_bucket", "position", "rookie_tier"]]
 
 
+def load_combine_athletic_tier(conn):
+    """(player_id) -> athletic_score, athletic_tier from `combine_data`
+    (Addendum 4, Part 3): a rookie's discrete athletic-testing tier,
+    joined via players.pfr_id per this project's established convention
+    (players is the general master crosswalk; `ids` is fantasy-platform
+    -scoped and known to drop many players - see Phase 1 findings, restated
+    in PHASE4_REPORT.md's ingestion notes).
+
+    Not fed into the veteran LightGBM path as a continuous regressor and not
+    used to fit a new (position, round_bucket, tier) baseline - see
+    ATHLETIC_SCALE's comment for why: the per-(position, round_bucket)
+    rookie sample is already thin (11-132 rows, PHASE4_REPORT.md), and
+    combine_data's ~85% pfr_id join coverage would shrink any tier-specific
+    subgroup further. Instead this produces a simple discrete tier
+    (`athletic_tier` in {'above_median','below_median','no_data'}) that
+    predict_rookies applies as a modest multiplicative scale on the
+    existing bucket-mean x vacated-opportunity projection - refining the
+    point estimate without needing its own fitted sample.
+
+    athletic_score = mean of two units-normalized percentile ranks, WITHIN
+    POSITION (raw 40 times and vertical jumps aren't comparable across
+    QB/RB/WR/TE - a 4.5 forty is elite for a guard-sized TE prospect and
+    mediocre for a WR): 40-time percentile (faster => higher percentile) and
+    vertical-jump percentile (higher => higher percentile). The percentile
+    population is EVERY combine tester at that position in the table, not
+    just the subset who made an NFL roster - using only "players who made
+    it" as the reference population would bias the percentile scale itself
+    (the same kind of survivorship-bias trap Addendum 3 already found and
+    fixed for the QB play-probability rookie signal), so the wider raw
+    combine-invitee population is used instead. A player missing one of the
+    two metrics still gets a score from whichever one they have (mean with
+    skipna); missing both (or no combine_data row/pfr_id join at all)
+    produces athletic_tier='no_data' - a real, explicit fallback tier, not
+    a silently-dropped row or a NaN scale multiplier.
+
+    Tier cutoff is a simple median split (>=0.5 combined percentile =
+    'above_median') - deliberately the simplest possible discretization
+    given the "keep it simple, don't overfit the rookie path" mandate,
+    not a data-driven optimal cutpoint search on a sample this small.
+
+    Returns the PLAYER_ID-keyed version (via players.pfr_id) - correct for
+    any HISTORICAL rookie season, where player_id is always a real gsis_id.
+    For the current target season's own drafted rookie class, use
+    combine_athletic_scores_by_pfr_id instead and join on pfr_id directly -
+    see that function's docstring for the placeholder-gsis_id bug this
+    avoids."""
+    scores = combine_athletic_scores_by_pfr_id(conn)
+    crosswalk = pd.read_sql("select gsis_id as player_id, pfr_id from players where pfr_id is not null", conn)
+    out = scores.merge(crosswalk, on="pfr_id", how="inner")
+    return out[["player_id", "athletic_score", "athletic_tier"]]
+
+
+def combine_athletic_scores_by_pfr_id(conn):
+    """(pfr_id) -> athletic_score, athletic_tier - the pfr_id-keyed form of
+    load_combine_athletic_tier's scoring logic, factored out so callers with
+    their OWN real pfr_id in hand (e.g. draft_picks.pfr_player_id, which is
+    unaffected by the 2026 draft class's placeholder-gsis_id bug - see
+    identify_target_season_rookie_class's docstring) can join directly
+    without going through the players.gsis_id crosswalk at all."""
+    combine = pd.read_sql(
+        "select season, pos, pfr_id, forty, vertical from combine_data "
+        "where pos in ('QB','RB','WR','TE') and pfr_id is not null", conn,
+    )
+    combine["forty_pctile"] = combine.groupby("pos")["forty"].rank(pct=True, ascending=False)
+    combine["vertical_pctile"] = combine.groupby("pos")["vertical"].rank(pct=True, ascending=True)
+    combine["athletic_score"] = combine[["forty_pctile", "vertical_pctile"]].mean(axis=1, skipna=True)
+    combine = combine.dropna(subset=["athletic_score"])
+    # No duplicate pfr_id rows found in combine_data as of this data pull
+    # (spot-checked directly) - drop_duplicates here is a defensive
+    # backstop against a future data refresh introducing one, not a known
+    # active case.
+    combine = combine.sort_values("season").drop_duplicates(subset=["pfr_id"], keep="last")
+    combine["athletic_tier"] = np.where(combine["athletic_score"] >= 0.5, "above_median", "below_median")
+    return combine[["pfr_id", "athletic_score", "athletic_tier"]]
+
+
 def team_vacated_opportunity(conn, seasons=SEASONS):
     """(season, team) -> vacated_carry_share, vacated_target_share: the
     fraction of the team's season-(N-1) carries/targets that belonged to
@@ -213,11 +304,20 @@ def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
     naturally produces an 'undrafted' bucket populated by real UDFA per-game
     rates, not the empty bucket PHASE4_REPORT.md flagged (drafted rows with
     round_bucket='undrafted' essentially never occur - that requires a
-    draft_picks row with a null round, which doesn't happen in practice)."""
+    draft_picks row with a null round, which doesn't happen in practice).
+
+    Also merges the combine-athleticism tier (Addendum 4, Part 3,
+    load_combine_athletic_tier) onto every rookie row - both for
+    predict_rookies' target-season scaling AND so backtest.py's historical
+    rookie evaluation exercises the exact same combine-scaled code path
+    the real 2026 prediction uses, not a separate untested branch. Players
+    with no combine match get athletic_tier='no_data' (the real, explicit
+    fallback - not a dropped row) rather than NaN."""
     rookies = identify_rookie_seasons(conn, seasons)
     udfa = identify_udfa_rookie_seasons(conn, seasons)
     rookies = pd.concat([rookies, udfa], ignore_index=True, sort=False)
     vacated = team_vacated_opportunity(conn, seasons)
+    athletic = load_combine_athletic_tier(conn)
 
     stat_cols = sorted({s for stats in TARGET_STATS.values() for s in stats})
     pg_cols = [f"{s}_pg" for s in stat_cols]
@@ -225,6 +325,8 @@ def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
 
     df = rookies.merge(actuals, on=["player_id", "season"], how="inner")
     df = df.merge(vacated, on=["season", "team"], how="left")
+    df = df.merge(athletic, on="player_id", how="left")
+    df["athletic_tier"] = df["athletic_tier"].fillna("no_data")
     return df
 
 
@@ -242,9 +344,28 @@ def identify_target_season_rookie_class(conn, target_season):
     Team is resolved from `seasonal_rosters[target_season]` (the most
     current post-draft/free-agency snapshot) with a fallback to
     draft_picks' own `team` column for a drafted player not found there
-    (e.g. a crosswalk/ids gap)."""
+    (e.g. a crosswalk/ids gap).
+
+    `pfr_id` (Addendum 4, Part 3): carried through here specifically so
+    predict.py can join `load_combine_athletic_tier` WITHOUT going through
+    `player_id` -> `players.gsis_id` for drafted rookies. Bug found and
+    fixed while wiring up the combine feature for the 2026 class: every
+    2026 draft_picks.gsis_id is the known placeholder id (not a real
+    gsis_id - see the `name` column's docstring above for the same
+    root cause), so joining combine data via player_id/players.pfr_id
+    silently matched almost nothing for drafted rookies (spot-checked: Drew
+    Allar, who DID test at the 2026 combine and has a real
+    draft_picks.pfr_player_id of 'AllaDr00', still came back 'no_data' via
+    the player_id path, because 'AllaDr00' only exists under his REAL
+    gsis_id 00-0041565 in `players`, not under his placeholder draft_picks
+    id). draft_picks.pfr_player_id is unaffected by the gsis_id placeholder
+    bug and matches combine_data.pfr_id's format directly, so it's used
+    here for drafted rookies; UDFA rookies still get pfr_id from
+    seasonal_rosters (their player_id IS a real gsis_id, but seasonal_rosters
+    already carries pfr_id directly, avoiding an extra crosswalk hop)."""
     drafted = pd.read_sql(
-        f"select gsis_id as player_id, round, pick, position, team as draft_team, pfr_player_name as name "
+        f"select gsis_id as player_id, round, pick, position, team as draft_team, "
+        f"pfr_player_name as name, pfr_player_id as pfr_id "
         f"from draft_picks where season = {target_season} and gsis_id is not null "
         f"and position in ('QB','RB','WR','TE')", conn,
     )
@@ -253,8 +374,8 @@ def identify_target_season_rookie_class(conn, target_season):
     drafted["rookie_tier"] = "drafted"
 
     roster = pd.read_sql(
-        f"select player_id, team, position, years_exp, draft_number, player_name as name from seasonal_rosters "
-        f"where season = {target_season}", conn,
+        f"select player_id, team, position, years_exp, draft_number, player_name as name, pfr_id "
+        f"from seasonal_rosters where season = {target_season}", conn,
     ).drop_duplicates(subset=["player_id"])
 
     udfa = roster[
@@ -277,7 +398,7 @@ def identify_target_season_rookie_class(conn, target_season):
     name_map = roster.set_index("player_id")["name"]
     drafted["name"] = drafted["player_id"].map(name_map).fillna(drafted["name"])
 
-    cols = ["player_id", "team", "round", "pick", "position", "round_bucket", "rookie_tier", "name"]
+    cols = ["player_id", "team", "round", "pick", "position", "round_bucket", "rookie_tier", "name", "pfr_id"]
     combined = pd.concat([drafted[cols], udfa[cols]], ignore_index=True)
     combined["season"] = target_season
     return combined
@@ -396,11 +517,26 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
                 scale = min(scale, 1.0)
         preds = {c: b[c] * scale for c in pg_cols}
 
+        # Combine-athleticism scale (Addendum 4, Part 3) - a modest,
+        # discrete-tier multiplier on top of the vacated-opportunity scale
+        # above, same reasoning as ATHLETIC_SCALE's module-level comment.
+        # row.get(...) rather than row["athletic_tier"] so this stays a
+        # no-op (scale=1.0, tier reported as 'no_data') for any caller that
+        # hasn't merged load_combine_athletic_tier onto its rookie frame -
+        # defensive, but every real caller (build_rookie_dataset,
+        # project_season's target-class path) does merge it.
+        athletic_tier = row.get("athletic_tier", "no_data")
+        if pd.isna(athletic_tier):
+            athletic_tier = "no_data"
+        athletic_scale = ATHLETIC_SCALE.get(athletic_tier, 1.0)
+        preds = {c: v * athletic_scale for c, v in preds.items()}
+
         play_prob = np.nan
         if row["position"] == "QB" and has_names:
             play_prob = _qb_play_prob(row)
             preds = {c: v * play_prob for c, v in preds.items()}
         preds["qb_sleeper_play_prob"] = play_prob
+        preds["athletic_tier"] = athletic_tier
 
         preds["low_confidence"] = True
         preds["baseline_n"] = b["n_train_rookies"]

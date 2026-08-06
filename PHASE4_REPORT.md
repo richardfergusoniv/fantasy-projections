@@ -474,3 +474,337 @@ addendum's rookie table, not just less embarrassing on inspection.
 8. **2025 ground truth is the pbp-fallback aggregation**, not the official
    nflverse release — inherited from Phase 1, restated here since it's the
    backtest's actual test-set label.
+
+## Addendum 4: injury history (veterans) + combine athleticism (rookies)
+
+Two new free nflverse sources (`import_injuries`, `import_combine_data`) were
+validated as available and wired in end-to-end: ingestion, a new trailing
+veteran feature, a new rookie-path scale, and a full retrain/backtest/
+predict/Sleeper-compare cycle. Results below, reported honestly per this
+project's rule — the net effect on both the backtest and the Sleeper
+comparison is small and mixed, not a clear win, and that is stated plainly
+rather than oversold.
+
+### Part 1: ingestion
+
+Added `get_injuries(seasons)` and `get_combine_data(seasons)` to
+`src/ingest/sources.py`, following the existing `cached_multi_season(...,
+skip_missing=True)` pattern, and added both to `src/db/load.py`'s
+`TABLE_SPECS`.
+
+- **`injuries`**: 55,556 rows, 2016-2025. `failed_seasons` reported exactly
+  one gap: `(2026, 'HTTP Error 404: Not Found')` — 2026 hasn't been played
+  yet, so no injury reports exist. **No hard MIN_SEASON floor was found**
+  within this project's window (unlike participation/FTN/PFR) — spot-checked
+  2015-2020 directly and every one of those seasons returns thousands of
+  rows with a real, non-null `report_status` distribution, not empty
+  scaffolding, so `get_injuries` has no season gate.
+- **`combine_data`**: 3,744 rows, 2016-2026, reported as "full coverage" by
+  `failed_seasons` — but that claim needs one caveat stated explicitly:
+  `import_combine_data` does **not** raise for a season with no data yet (a
+  future combine that hasn't happened), it silently returns an **empty**
+  DataFrame, which `cached_multi_season`'s `skip_missing` logic can't detect
+  as a failure (it only catches exceptions). Verified directly: `season=2027`
+  returns 0 rows with no error. This project's `SEASONS` window
+  (2016-2027) means the 2027 slot contributes silently zero rows without a
+  `failed_seasons` entry — a real gap in what "full coverage" can claim for
+  this specific source, documented in `get_combine_data`'s docstring and
+  restated here rather than assumed benign. It doesn't affect this task
+  (2026 is the target season and its combine already happened), but the next
+  engagement that touches `combine_data` for a future season should re-check
+  row counts directly, not just trust `failed_seasons`.
+- **pfr_id join coverage**: 84.6% of all `combine_data` rows overall have a
+  non-null `pfr_id` (matches the ~85% figure this task was scoped against).
+  QB/RB/WR/TE-only subset: 1,263 rows.
+
+### Part 2: veteran injury-durability feature
+
+Added `injury_durability_rate` to `FEATURE_COLS` (`src/projection/features.py`),
+built by `src/projection/data_prep.py::build_player_season_injury_durability`.
+
+**What it measures**: for a player-season, `(missed_games + 0.4 *
+flagged_but_played_games) / team_games`, clipped to `[0, 1]`, where
+`team_games` is 17 for 2021+ / 16 for 2016-2020 (the NFL's well-known
+schedule-length change), `missed_games = team_games - games_played`, and
+`flagged_but_played_games` counts weeks the player carried an
+Out/Doubtful/Questionable status on the injury report **but still played**
+that week (using `games_played`'s own existing active-week definition).
+
+**Design judgment calls, stated plainly**:
+- **Why not simply "fraction of weeks flagged," full stop** (the first
+  design floated): spot-checked a real, extreme case — Christian
+  McCaffrey's 2024 season (Achilles injury, 4 of 17 games played) — and
+  found the `injuries` table **stops filing weekly reports once a player is
+  on long-term IR**: his 2024 rows exist only for weeks 1-2 (pre-placement)
+  and week 10 (on his way back); weeks 3-9 have no injuries row at all, not
+  because he wasn't hurt but because there's nothing left to report. A
+  "fraction of weeks flagged" metric — using either weeks-with-an-injuries-
+  row or weeks-with-a-`weekly`-row as the denominator — would score
+  McCaffrey's 2024 as barely notable, exactly backwards for what should be a
+  maximal durability red flag. Anchoring the denominator to the team's
+  actual scheduled game count and crediting every genuinely MISSED game
+  (regardless of whether a report row exists for it) fixes this.
+- **Why missed games are weighted 1.0 and played-but-flagged weeks only
+  0.4**: the spec explicitly asks the feature to distinguish "banged up all
+  year but always played" from "missed several games" — equal weighting
+  would score a player who was Questionable every single week but never
+  missed a game identically to a player who missed half the season
+  outright, collapsing exactly the distinction the feature is supposed to
+  capture. 0.4 is a stated, not-tuned judgment call, in the same spirit as
+  this project's other stated-not-tuned constants (`train.py`'s
+  `LGBM_PARAMS`, `rookies.py`'s `VACATED_CLIP`).
+- **Collapsing multiple injuries rows per player-week**: the table has no
+  day-of-week field (checked the actual schema — only a raw `date_modified`
+  timestamp), so a Wednesday-practice-report vs. Friday-final-status
+  distinction isn't recoverable from what nflverse ships. Spot-checked the
+  real row structure for 2024: duplicate `(season, week, gsis_id)` rows are
+  rare (2 of ~5-6k player-weeks) and represent a genuine status update
+  during the week (Questionable -> Out), not distinct practice-day
+  snapshots — the row with the latest `date_modified` is taken per
+  player-week, equivalent to "most recently known status."
+- **Trailing framing**: this is computed as season N's own value and fed
+  into season N's feature row, exactly like every other `FEATURE_COLS`
+  entry — `transitions.py`'s existing season-N -> season-(N+1) pairing
+  automatically makes it a genuine trailing predictor with no extra shift
+  logic needed, and no leakage (season N's games_played, itself downstream
+  of season N's own injuries, is only ever used to predict season N+1).
+- **No-report players get a real 0.0**, by construction of the arithmetic
+  (missed_games=0, flagged_but_played=0), not a filled NaN. Verified: 5,597
+  player-seasons in the full feature table, zero nulls in
+  `injury_durability_rate`.
+
+**Spot-checks (by name, not just aggregates)**:
+- **Christian McCaffrey, 2024**: games_played=4/17,
+  `injury_durability_rate=0.788` — correctly one of the highest scores in
+  the dataset for a season that should be a maximal red flag.
+- **Healthy full-season players (2025)**: Jared Goff, Hunter Henry, Keenan
+  Allen, DeAndre Hopkins — all 17/17 games, all score exactly `0.0`.
+- **Jayden Reed (GB WR), 2025**: a real injury-shortened season (5/17 games
+  played), scores `0.729` — high durability-risk flag. His 2026 projection
+  (`output/projections_2026.csv`) comes out modest for a player who was a
+  legitimate WR1/2-caliber target-earner before the injury (20.7
+  receiving_yards/game, 3.25 targets/game) — directionally sensible, though
+  the low 2025 games_played also directly depresses his other 2025-based
+  share features (`target_share`, `snap_pct`), so this is not a clean
+  isolation of the injury feature's effect alone.
+- **Feature importance** (LightGBM split counts, all 22 position/stat
+  models): `injury_durability_rate` is a real, non-trivial signal, not dead
+  weight — it ranks in the top 3 of 18 features for RB targets, RB
+  receptions, RB receiving_yards/receiving_tds, WR targets, and QB
+  passing_tds, and top-10 for 16 of the 22 models overall. It ranks lowest
+  (13th-15th) for RB rushing_yards/rushing_tds and TE receptions.
+
+### Part 3: rookie combine-athleticism scale
+
+Added `combine_athletic_scores_by_pfr_id` / `load_combine_athletic_tier` to
+`src/projection/rookies.py`: a discrete `athletic_tier` in
+`{'above_median', 'below_median', 'no_data'}` per rookie, applied as a
+modest multiplicative scale (`ATHLETIC_SCALE = {'above_median': 1.08,
+'below_median': 0.94, 'no_data': 1.0}`) on top of the existing bucket-mean x
+vacated-opportunity projection in `predict_rookies`.
+
+**Design judgment calls**:
+- **Discrete tier + multiplicative scale on the existing prediction, not a
+  new fitted bucketing dimension**: chosen deliberately per the spec's own
+  guidance to prefer flags/tiers over precise continuous scaling on data
+  this thin. The per-`(position, round_bucket)` rookie sample is already
+  11-132 rows; splitting further into a `(position, round_bucket,
+  athletic_tier)` grouping for `fit_rookie_baselines` would shrink an
+  already-thin sample further (combine's ~85% pfr_id join coverage costs
+  more rows on top of that) and risk noise-fitting. A scale on the existing
+  point estimate needs no new fitted sample at all.
+- **athletic_score** = mean of two WITHIN-POSITION percentile ranks (raw
+  40-times/verticals aren't comparable across QB/RB/WR/TE): 40-time
+  percentile (faster = higher) and vertical-jump percentile (higher =
+  higher), each ranked against **every combine tester at that position**,
+  not just the subset who made an NFL roster — using only "players who made
+  it" as the percentile population would bias the scale itself, the same
+  survivorship-bias trap Addendum 3 already found and fixed for the QB
+  play-probability signal. A player missing one metric still gets scored
+  off the other (mean with `skipna`); missing both, or no combine match at
+  all, is `'no_data'` (a real, explicit fallback — not a dropped row or a
+  NaN multiplier). Tier cutoff is a simple median split, not a
+  data-optimized cutpoint, per the "keep the rookie path simple" mandate.
+- **Bug found and fixed while wiring this up**: joining `combine_data` to a
+  target-season rookie via `player_id -> players.gsis_id -> players.pfr_id`
+  (the natural first approach, matching every other player_id join in this
+  project) silently failed for nearly the entire 2026 **drafted** rookie
+  class, because `draft_picks.gsis_id` for the 2026 class is the
+  already-known placeholder id (not a real gsis_id — see `predict.py`'s
+  `with_display_names` docstring for the same root cause), so it can't match
+  `players.gsis_id` at all. Concretely: Drew Allar (2026 QB, real
+  `draft_picks.pfr_player_id='AllaDr00'`) came back `'no_data'` via the
+  `player_id` path even before checking whether he actually tested at the
+  combine. Fixed by carrying `pfr_id` through
+  `identify_target_season_rookie_class` directly from `draft_picks.
+  pfr_player_id` (drafted) / `seasonal_rosters.pfr_id` (UDFA, whose
+  `player_id` IS a real gsis_id) and joining `combine_athletic_scores_by_
+  pfr_id` on that instead — bypassing the broken gsis_id entirely. Verified
+  the fix: the 2026 drafted-QB `no_data` count before the fix was 8/8 (every
+  single QB, including real testers) with the placeholder-gsis_id path;
+  after the fix, real testers correctly resolve (e.g. Taylen Green:
+  `above_median`, 1.00; Jalon Daniels: `above_median`, 0.78; Luke Altmyer:
+  `above_median`, 0.62) and QB prospects who genuinely skipped every drill
+  at the combine (Drew Allar, Cade Klubnik, Fernando Mendoza — all have a
+  combine row with every drill field null) still correctly resolve to
+  `'no_data'`, not a false match. `build_rookie_dataset` (the historical
+  path used for baselines/backtest) is unaffected by this bug — historical
+  seasons' `draft_picks.gsis_id` is real, confirmed in Phase 6's own
+  spot-check (256/256 for 2025 vs. 0/230 for 2026).
+- **Coverage for the 2026 target class**: 254 rookies total; 38
+  `above_median`, 10 `below_median`, 172 `no_data` (didn't test the relevant
+  drills, or genuinely absent from the pull — not a residual join bug).
+
+**Spot-check (by name)**: WR round_2_3 bucket, 2026 class — Zachariah Branch
+(`above_median`, score 0.85) vs. Germie Bernard (`below_median`, score
+0.36). Verified the scale mechanism is applied correctly by backing out the
+pre-athletic-scale implied baseline for each (dividing their final
+`receiving_yards` prediction by their own tier's multiplier): Branch's
+implied pre-scale baseline was 25.5 yd/game, scaled up to 27.5 (x1.08);
+Bernard's was 30.4, scaled down to 28.6 (x0.94) — the mechanism is doing
+exactly what it's supposed to. **Caveat worth stating**: Bernard's own
+FINAL number still lands higher than Branch's, because his team's
+vacated-opportunity scale (a much bigger, independent factor) outweighs the
+modest +/-6-8% athletic adjustment — this is by design (the athletic scale
+is a secondary refinement, not meant to dominate the projection), not a bug,
+but it means the athletic tier's effect on the final ranked list is subtle
+and easy to miss without unpacking the math as done here.
+
+### Part 4: retrain / backtest / predict / Sleeper-compare
+
+Ran the full cycle (`train.py`, `backtest.py`, `predict.py --season 2026`,
+`fantasy_points.py --season 2026`, `sleeper_compare.py --season 2026`) and
+also reran the **exact pre-Addendum-4 code** (via `git stash`) through the
+same train/backtest cycle, to get an honest apples-to-apples before/after —
+the numbers already written in this report's earlier addenda were computed
+against an older DB/code snapshot and are no longer a clean baseline (the
+rookie path picked up UDFA-rookie handling since then, which alone moves
+rookie backtest `n_test` up for RB/WR/TE independent of this task).
+
+**Veteran backtest (2025 holdout), before vs. after this task's changes** —
+model MAE, all other columns (n_test, naive_mae) unchanged since the same
+2025 holdout / naive baseline is used both times:
+
+| Position | Stat | Before MAE | After MAE | Delta |
+|---|---|---|---|---|
+| QB | attempts | 6.879 | 6.888 | +0.009 (worse) |
+| QB | completions | 4.210 | 4.123 | -0.087 (better) |
+| QB | passing_yards | 49.034 | 48.988 | -0.046 (better) |
+| QB | passing_tds | 0.419 | 0.413 | -0.006 (better) |
+| QB | interceptions | 0.259 | 0.263 | +0.004 (worse) |
+| QB | carries | 1.291 | 1.276 | -0.015 (better) |
+| QB | rushing_yards | 8.469 | 8.486 | +0.017 (worse) |
+| QB | rushing_tds | 0.115 | 0.118 | +0.003 (worse) |
+| RB | carries | 2.652 | 2.652 | +0.0005 (worse) |
+| RB | rushing_yards | 12.584 | 12.552 | -0.033 (better) |
+| RB | rushing_tds | 0.150 | 0.151 | +0.0005 (worse) |
+| RB | targets | 0.815 | 0.817 | +0.002 (worse) |
+| RB | receptions | 0.693 | 0.701 | +0.009 (worse) |
+| RB | receiving_yards | 5.945 | 5.769 | -0.176 (better) |
+| RB | receiving_tds | 0.061 | 0.060 | -0.001 (better) |
+| WR | targets | 1.155 | 1.179 | +0.024 (worse) |
+| WR | receptions | 0.849 | 0.844 | -0.005 (better) |
+| WR | receiving_yards | 11.419 | 11.339 | -0.080 (better) |
+| WR | receiving_tds | 0.127 | 0.127 | -0.0002 (better) |
+| TE | targets | 0.789 | 0.812 | +0.024 (worse) |
+| TE | receptions | 0.689 | 0.681 | -0.008 (better) |
+| TE | receiving_yards | 7.576 | 7.673 | +0.097 (worse) |
+| TE | receiving_tds | 0.129 | 0.129 | +0.0002 (worse) |
+
+**Stated plainly, per this project's rule**: the injury feature is a
+**wash on the veteran backtest** — 10 of 22 stat models improved, 12 got
+marginally worse, and every delta is small (largest single move is RB
+receiving_yards at -0.176). The same 3 stats that lost to the naive
+baseline before this change (QB rushing_yards, RB targets, RB receptions)
+still lose to naive after it — unchanged, not newly broken or newly fixed.
+This is a plausible, honest outcome for adding one new trailing feature to
+an already heavily-regularized, small-sample (250-660 rows) model — the
+feature importance numbers above show LightGBM IS using it, just not in a
+way that moves aggregate MAE meaningfully in either direction on this
+particular 2025 holdout.
+
+**Rookie backtest (2025 holdout), before vs. after**:
+
+| Position | Stat | Before MAE | After MAE | Delta |
+|---|---|---|---|---|
+| QB | attempts | 6.849 | 6.487 | -0.362 (better) |
+| QB | completions | 3.463 | 3.248 | -0.215 (better) |
+| QB | passing_yards | 42.603 | 40.317 | -2.286 (better) |
+| QB | passing_tds | 0.249 | 0.249 | ~0 |
+| QB | interceptions | 0.304 | 0.304 | ~0 |
+| QB | carries | 1.343 | 1.337 | -0.006 (better) |
+| QB | rushing_yards | 7.619 | 7.727 | +0.107 (worse) |
+| QB | rushing_tds | 0.170 | 0.169 | ~0 |
+| RB | carries | 2.936 | 2.964 | +0.028 (worse) |
+| RB | rushing_yards | 13.439 | 13.617 | +0.179 (worse) |
+| RB | targets/receptions/TDs | ~unchanged | ~unchanged | <0.02 either way |
+| WR | targets/receptions | 1.040/0.673 | 1.054/0.684 | +0.014/+0.011 (worse) |
+| WR | receiving_yards | 10.453 | 10.664 | +0.211 (worse) |
+| TE | receiving_yards | 9.922 | 9.806 | -0.115 (better) |
+| TE | other stats | ~unchanged | ~unchanged | <0.02 either way |
+
+**Stated plainly**: the combine-athleticism scale shows a real, if modest,
+improvement for the **QB** rookie stats that matter most for fantasy
+(attempts/completions/passing_yards all improved, passing_yards MAE dropped
+~5.4%), and is a small-to-negligible wash for RB/WR/TE — again honest and
+consistent with the mechanism's design (a +/-6-8% scale on top of a bucket
+mean is a small lever, not expected to transform performance on an n=9-38
+holdout).
+
+**Sleeper comparison, 2026 season** (`python -m src.comparison.sleeper_compare
+--season 2026`), 773/789 rows matched (98%):
+
+| Scope | Baseline (pre-task) corr | After-task corr | Delta |
+|---|---|---|---|
+| Overall | 0.894 | 0.892 | -0.002 |
+| QB | 0.923 | 0.922 | -0.001 |
+| RB | 0.895 | 0.892 | -0.003 |
+| WR | 0.854 | 0.854 | ~0.000 |
+| TE | 0.867 | 0.866 | -0.001 |
+
+Mean absolute delta (points/game, after-task): overall 1.42, QB 1.75, RB
+1.50, WR 1.43, TE 1.11.
+
+**Stated plainly, per this project's rule**: the Sleeper-comparison
+correlation **did not move the needle** — every position's correlation
+shifted by 0.003 or less, indistinguishable from noise. Combined with the
+backtest results above, the honest overall conclusion for this task is that
+the injury-durability and combine-athleticism features are **real, sane,
+non-leaking signals that LightGBM/the rookie path do use** (confirmed via
+feature importances and the mechanism-level spot-checks), but their effect
+on this project's two existing top-line evaluation metrics (backtest MAE,
+Sleeper correlation) is small and mixed rather than a clear win. This is not
+a failure of implementation — it is a realistic result for adding one
+modest new signal on top of an already-decent model with a small training
+set, and is reported as such rather than framed as a bigger improvement
+than the numbers support.
+
+### Caveats and residual limitations (Addendum 4)
+
+1. **`injury_durability_rate` conflates "missed games due to injury" with
+   "missed games for any reason"** (holdout, suspension, personal reasons,
+   simple roster churn) — `missed_games` is purely `team_games -
+   games_played`, with no way to distinguish cause. For the low-games_played
+   fringe/practice-squad players spot-checked (e.g. a player with 1 game
+   played gets a high score by this formula's arithmetic even with zero
+   actual injury designations), this is really measuring "wasn't on this
+   team's active roster most of the season" more than genuine injury
+   durability — a real, stated limitation, not hidden by the McCaffrey/Reed
+   spot-checks that happen to be genuine injury cases.
+2. **`combine_data`'s empty-DataFrame-instead-of-exception behavior for a
+   not-yet-held combine** (Part 1) means `failed_seasons`/"full coverage"
+   claims for this specific source need a manual row-count sanity check for
+   any future season, not blind trust — flagged in the source code and
+   restated here.
+3. **The combine-athleticism scale's real-world effect on the final ranked
+   projection list is easy to overstate at a glance** — as the Branch/Bernard
+   spot-check shows, the vacated-opportunity scale (pre-existing, much
+   larger swings) can easily dominate the athletic tier's modest +/-6-8%
+   adjustment in the final number. The mechanism is verified correct in
+   isolation; its practical impact on who ends up ranked where is smaller
+   than either scale examined independently might suggest.
+4. **Not otherwise re-verified**: this addendum did not re-run
+   `apply_depth_chart_gating`/`reassign_team_changers` spot-checks (Phase 6)
+   or re-verify the QB Sleeper play-probability correction (Addendum 3) —
+   both are unchanged by this task's code and were only exercised
+   incidentally by running the full `predict.py` pipeline end-to-end.

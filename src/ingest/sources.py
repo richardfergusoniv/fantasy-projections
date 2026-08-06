@@ -167,6 +167,44 @@ def get_draft_picks(seasons, force=False):
     return cached_multi_season("draft_picks", seasons, fetch_one, force=force, skip_missing=True)
 
 
+def get_injuries(seasons, force=False):
+    """Weekly injury report data. No hard floor was found within this
+    project's 2016-2026 ingestion window - spot-checked 2015-2020 directly
+    and every one of those seasons returns thousands of rows with a real,
+    non-null `report_status` distribution (not just empty scaffolding), so
+    unlike participation/FTN/PFR there is no MIN_SEASON gate needed here.
+    The only season expected to fail within this project's window is a
+    season with no games played yet (e.g. 2026 as of this writing raises a
+    404 - no injury reports exist for a season that hasn't started), which
+    surfaces normally via failed_seasons rather than needing a special case."""
+    def fetch_one(season):
+        return nfl.import_injuries([season])
+
+    return cached_multi_season("injuries", seasons, fetch_one, force=force, skip_missing=True)
+
+
+def get_combine_data(seasons, force=False):
+    """Draft-combine athletic testing, one row per (combine `season`,
+    player) - `season` here is the year the combine was held (draft year),
+    not an NFL season of play, but `TABLE_SPECS`/this project's SEASONS list
+    still lines up (a player's combine season == their draft season == the
+    first season they could be a rookie).
+
+    Caveat found and NOT silently absorbed: `import_combine_data` does not
+    raise for a season with no data yet (e.g. next year's combine hasn't
+    happened) - it returns an EMPTY DataFrame instead, which `skip_missing`
+    can't detect as a failure (cached_multi_season only catches exceptions).
+    Concretely: seasons beyond the most recently held combine return 0 rows
+    silently. This project's SEASONS window (2016-2027) means the 2027 slot
+    in `load.py`'s report will show 0 extra rows for that season without an
+    explicit failed_seasons entry - documented here and in the load report
+    rather than assumed benign."""
+    def fetch_one(season):
+        return nfl.import_combine_data([season])
+
+    return cached_multi_season("combine_data", seasons, fetch_one, force=force, skip_missing=True)
+
+
 def get_ids(force=False):
     """Master player-id crosswalk. Not season-indexed -> cache under a single pseudo-season key."""
     return cached_season("ids", 0, lambda: nfl.import_ids(), force=force), []

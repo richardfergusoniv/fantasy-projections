@@ -29,7 +29,7 @@ import pandas as pd
 
 from src.projection.data_prep import (
     SEASONS, load_weekly_usage, season_aggregate, team_season_pbp_totals,
-    player_rz_usage, player_season_snap_pct,
+    player_rz_usage, player_season_snap_pct, build_player_season_injury_durability,
 )
 from src.projection.ol_quality import team_season_ol_quality
 
@@ -59,6 +59,7 @@ OC_METRICS = [
 FEATURE_COLS = [
     "carry_share", "target_share", "rz_carry_share", "rz_target_share", "snap_pct",
     "ol_pass_protection_score", "ol_run_blocking_score", "ol_confidence_low_churn",
+    "injury_durability_rate",
 ] + OC_METRICS
 
 
@@ -87,6 +88,17 @@ def build_player_season_features(conn, seasons=SEASONS):
 
     olq = team_season_ol_quality(conn, seasons)
     base = base.merge(olq, on=["season", "team"], how="left")
+
+    injury = build_player_season_injury_durability(conn, seasons)
+    base = base.merge(injury, on=["season", "player_id"], how="left")
+    # Every row in `base` originates from load_weekly_usage/season_aggregate,
+    # the exact same universe build_player_season_injury_durability is built
+    # from - so this merge should always find a match. fillna(0) here is a
+    # defensive backstop (0 = "no missed games, no injury-report weeks
+    # found," a real meaningful value), not a silent cover for an expected
+    # gap - if this ever actually fires it means the two functions'
+    # universes have diverged and is worth investigating.
+    base["injury_durability_rate"] = base["injury_durability_rate"].fillna(0)
 
     import numpy as np
 
