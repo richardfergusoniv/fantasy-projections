@@ -169,20 +169,31 @@ def team_vacated_opportunity(conn, seasons=SEASONS):
         prev["returning_same_team"] = prev["player_id"].map(curr_team_of_player) == prev["team"]
 
         g = prev.groupby("team")
-        team_totals = g[["carries", "targets"]].sum().rename(
-            columns={"carries": "prev_team_carries", "targets": "prev_team_targets"}
+        team_totals = g[["carries", "targets", "attempts"]].sum().rename(
+            columns={"carries": "prev_team_carries", "targets": "prev_team_targets", "attempts": "prev_team_attempts"}
         )
-        returning = prev[prev["returning_same_team"]].groupby("team")[["carries", "targets"]].sum().rename(
-            columns={"carries": "returning_carries", "targets": "returning_targets"}
+        returning = prev[prev["returning_same_team"]].groupby("team")[["carries", "targets", "attempts"]].sum().rename(
+            columns={"carries": "returning_carries", "targets": "returning_targets", "attempts": "returning_attempts"}
         )
         merged = team_totals.join(returning, how="left").fillna(0)
         merged["vacated_carry_share"] = 1 - merged["returning_carries"] / merged["prev_team_carries"].replace(0, np.nan)
         merged["vacated_target_share"] = 1 - merged["returning_targets"] / merged["prev_team_targets"].replace(0, np.nan)
+        # QB-specific proxy - see predict_rookies' docstring for the bug this
+        # fixes: vacated_target_share reflects WR/TE/RB receiving-corps
+        # turnover, which has nothing to do with whether a backup/rookie QB
+        # gets snaps. vacated_attempts_share instead measures how much of
+        # the team's PASSING volume belonged to QBs no longer on the roster
+        # (attempts is ~exclusively a QB stat, so this isolates QB-room
+        # turnover specifically) - the right signal for "is the starting job
+        # actually open," not receiver churn.
+        merged["vacated_attempts_share"] = 1 - merged["returning_attempts"] / merged["prev_team_attempts"].replace(0, np.nan)
         merged["season"] = season
-        rows.append(merged.reset_index()[["season", "team", "vacated_carry_share", "vacated_target_share"]])
+        rows.append(merged.reset_index()[
+            ["season", "team", "vacated_carry_share", "vacated_target_share", "vacated_attempts_share"]
+        ])
 
     return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(
-        columns=["season", "team", "vacated_carry_share", "vacated_target_share"]
+        columns=["season", "team", "vacated_carry_share", "vacated_target_share", "vacated_attempts_share"]
     )
 
 
@@ -265,16 +276,28 @@ def fit_rookie_baselines(rookie_df, train_seasons):
     holdout season's own rookies never inform their own baseline)."""
     train = rookie_df[rookie_df["season"].isin(train_seasons) & (rookie_df["games_played"] > 0)]
     pg_cols = [c for c in rookie_df.columns if c.endswith("_pg")]
-    baselines = train.groupby(["position", "round_bucket"])[pg_cols + ["vacated_carry_share", "vacated_target_share"]].mean()
+    vacated_cols = ["vacated_carry_share", "vacated_target_share", "vacated_attempts_share"]
+    baselines = train.groupby(["position", "round_bucket"])[pg_cols + vacated_cols].mean()
     counts = train.groupby(["position", "round_bucket"]).size().rename("n_train_rookies")
     return baselines.join(counts)
 
 
-def predict_rookies(rookie_df, baselines, target_seasons):
+def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
     """Rule-based projection: bucket mean per-game rate, scaled by this
     player's team's vacated opportunity vs. the bucket's historical average
-    vacated opportunity (RB/WR/TE: carry or target share as relevant; QB:
-    target share of passing volume used as the closest available proxy).
+    vacated opportunity (RB: vacated carry share; WR/TE: vacated target
+    share; QB: vacated ATTEMPTS share - see team_vacated_opportunity's
+    docstring for why this must be QB-specific and not the receiving-corps
+    target share used for WR/TE. Bug found and fixed here: QB rookies used
+    to be scaled by vacated_target_share too, which measures WR/TE/RB
+    turnover, not QB-room turnover - a team that lost a lot of receivers
+    (nothing to do with the QB depth chart) would inflate a buried
+    7th-round/UDFA QB's projection toward starter volume purely because of
+    that unrelated churn. Verified: Athan Kaliakmanis (WAS, round_4_7,
+    clearly a long-shot) was projected ~28 attempts/game before this fix -
+    driven by WAS's 0.52 vacated_target_share (real WR/TE turnover) versus
+    the round_4_7 QB bucket's historical average, with nothing capping a QB
+    scale factor derived from a receiving-corps signal.
     Falls back to the unscaled bucket mean if the bucket has no historical
     rows or the vacated feature is null (e.g. an expansion-style edge case).
 
@@ -282,21 +305,46 @@ def predict_rookies(rookie_df, baselines, target_seasons):
     target rows (a genuinely future season) have no actual per-game rates
     to speak of, so rookie_df itself may not carry any `*_pg` columns; the
     baselines (fit on historical data) always do.
+
+    `depth_chart` (optional, Phase 6's src/depth_chart/starters_2026.csv -
+    empty/None for any other season): caps the UPWARD half of the vacancy
+    scale (>1.0) to a rookie the curated table actually lists for their
+    (team, position) - same principle predict.py's reassign_team_changers
+    already applies to team-changing veterans, applied here to fix its
+    rookie-path sibling. Bug this fixes: a rookie/UDFA with zero real
+    chance of playing could still get boosted toward starter volume purely
+    because their team's ACTUAL new starter opened up a big vacancy (e.g. a
+    random UDFA QB scaled toward 45 attempts/game because the team's
+    veteran QB left for another team) - the vacancy is real, but nothing
+    checked whether THIS specific long-shot player is who's stepping into
+    it. Downward scaling (a below-average opportunity) still always
+    applies - a below-average situation should reduce even an unconfirmed
+    player's already-modest bucket-mean projection.
     """
     pg_cols = [c for c in baselines.columns if c.endswith("_pg")]
     target = rookie_df[rookie_df["season"].isin(target_seasons)].copy()
+    curated_players = set()
+    if depth_chart is not None and not depth_chart.empty:
+        curated_players = set(zip(depth_chart["gsis_id"], depth_chart["position"]))
 
     def project_row(row):
         key = (row["position"], row["round_bucket"])
         if key not in baselines.index:
             return pd.Series({c: np.nan for c in pg_cols} | {"low_confidence": True, "baseline_n": 0})
         b = baselines.loc[key]
-        vac_col = "vacated_carry_share" if row["position"] == "RB" else "vacated_target_share"
+        if row["position"] == "RB":
+            vac_col = "vacated_carry_share"
+        elif row["position"] == "QB":
+            vac_col = "vacated_attempts_share"
+        else:
+            vac_col = "vacated_target_share"
         player_vac, hist_vac = row.get(vac_col), b[vac_col]
         if pd.isna(player_vac) or pd.isna(hist_vac) or hist_vac == 0:
             scale = 1.0
         else:
             scale = np.clip(player_vac / hist_vac, *VACATED_CLIP)
+            if (row["player_id"], row["position"]) not in curated_players:
+                scale = min(scale, 1.0)
         preds = {c: b[c] * scale for c in pg_cols}
         preds["low_confidence"] = True
         preds["baseline_n"] = b["n_train_rookies"]

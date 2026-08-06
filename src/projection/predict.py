@@ -452,7 +452,8 @@ def project_season(conn, target_season):
     target_class = identify_target_season_rookie_class(conn, target_season)
     vacated = team_vacated_opportunity(conn, [target_season])
     target_class = target_class.merge(vacated, on=["season", "team"], how="left")
-    rookie_preds = predict_rookies(target_class, baselines, [target_season])
+    depth_chart = load_depth_chart(target_season)
+    rookie_preds = predict_rookies(target_class, baselines, [target_season], depth_chart=depth_chart)
 
     pg_cols = [c for c in rookie_preds.columns if c.endswith("_pg")]
     rookie_long = rookie_preds.melt(

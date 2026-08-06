@@ -339,14 +339,57 @@ for all five (Allen -8.3 -> -3.9, Lamar -7.9 -> -4.5, Daniels -7.1 -> -3.5,
 Caleb Williams -7.6 -> -3.2 pts/game); Kyler Murray improved less (-7.3 ->
 -6.1) and remains a real residual gap.
 
-**New issue surfaced by this comparison, pre-existing and NOT caused by this
-change**: several deep-bench/late-round rookie QBs (e.g. Athan Kaliakmanis,
-Mark Gronowski, Cole Payton) show implausible starter-level volume (~28
-pass attempts/game) via the `rookie_rule` path, confirmed present in the
-commit BEFORE this addendum's change (`git show HEAD~1:output/projections_2026.csv`
-already had Kaliakmanis at 27.9 attempts/game). This is a bug in the rookie
-QB vacated-opportunity scaling, not something today's rushing-stat addition
-introduced - flagged for the user's decision on priority, not fixed here.
+## Addendum 2: rookie QB over-projection root-caused and fixed
+
+The issue flagged above (Kaliakmanis-style deep-bench QBs at implausible
+starter-level volume) had two distinct, compounding causes, both in
+`rookies.py`/`predict.py`:
+
+1. **Wrong vacated-opportunity proxy.** `predict_rookies` scaled every
+   non-RB rookie's projection by `vacated_target_share` - the team's
+   WR/TE/RB *receiving-corps* turnover. For a QB, that's a category error:
+   whether a backup QB plays has nothing to do with how many receivers left.
+   Concretely, WAS's 2026 `vacated_target_share` (0.52, driven by real
+   WR/TE departures) was scaling Kaliakmanis's whole passing line toward
+   starter volume, even though WAS's actual 2026 starter (Jayden Daniels)
+   never left. Fixed: `team_vacated_opportunity` now also computes
+   `vacated_attempts_share` (how much of the team's PASSING volume belonged
+   to departed QBs specifically - `attempts` is ~exclusively a QB stat, so
+   this isolates QB-room turnover), and `predict_rookies` uses it for QB
+   instead of the receiving-corps proxy.
+2. **No depth-chart check on the boost, mirroring the Phase 6 veteran bug.**
+   Even with the QB-correct proxy, a real vacancy (e.g. Tua Tagovailoa
+   leaving MIA for ATL) would boost ANY rookie/UDFA QB on that roster
+   toward the opening's volume, with no check on whether that specific
+   player is actually a candidate for it - Mark Gronowski (an anonymous MIA
+   UDFA) got scaled to 45 attempts/game purely because MIA's real starter
+   departed. Fixed the same way Phase 6 fixed it for team-changing
+   veterans: `predict_rookies` now takes the curated
+   `src/depth_chart/starters_2026.csv` and only allows the upward half of
+   the scale (>1.0) for a rookie the table actually lists for their
+   (team, position); everyone else still gets scaled down for a
+   below-average situation, capped at 1.0 on the upside.
+
+Verified: Kaliakmanis 27.9 -> 5.7 attempts/game, Gronowski 45.4 -> 18.2
+(still capped-scale, see residual limitation below), Cole Payton/Garrett
+Nussmeier/Behren Morton (all uncurated) now correctly land on the same
+unscaled bucket mean rather than inflated individually. Sleeper-comparison
+correlation improved overall (0.863 -> 0.888) and specifically for QB
+(0.863 -> 0.912, mean abs delta 2.69 -> 2.16 - better than even the
+pre-rushing-addition baseline of 2.17).
+
+**Residual limitation, not fixed, worth knowing about**: the historical
+UDFA-QB bucket mean itself (~6.2 pts/game half-PPR, before any scaling) is
+likely still too high for a "typical" UDFA QB. `fit_rookie_baselines` only
+includes rookie-seasons with `games_played > 0`, and for a position where
+most UDFA/deep-round QBs get ZERO regular-season snaps in their entire
+career, that filter conditions the average on the rare ones who DID get
+real playing time (a Case Keenum-style outlier) - a survivorship-biased
+sample, not a representative one. This affects the "unscaled bucket mean"
+baseline itself (the thing both fixes above scale relative to), not the
+scaling logic - a genuinely harder fix (would need to model probability of
+even seeing the field, which no current feature captures) and is flagged
+for the user's decision rather than attempted here.
 
 ## Judgment calls and caveats for the user to weigh in on
 
