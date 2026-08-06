@@ -4,21 +4,21 @@ player_id,display_name,team,position,stat,pred_pg,pred_pg_low,pred_pg_high,sourc
 00-0033119,Jacoby Brissett,ARI,QB,interceptions,0.5833257696916223,0.2235112795953566,1.0002472768472856,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0033119,Jacoby Brissett,ARI,QB,passing_tds,1.3165839073114955,0.550679820264184,1.813277871524874,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0033119,Jacoby Brissett,ARI,QB,passing_yards,197.07808632506672,106.18830833751564,260.5828707846184,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
-00-0035289,Gardner Minshew,ARI,QB,attempts,8.806127414025552,0.0,19.332928338574213,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0035289,Gardner Minshew,ARI,QB,completions,7.344985661761185,0.0,12.752935995068515,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0035289,Gardner Minshew,ARI,QB,interceptions,0.36736599123767294,0.007551501141407235,0.7842874983933362,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0035289,Gardner Minshew,ARI,QB,passing_tds,0.4377042361217065,0.0,0.934398200335085,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0035289,Gardner Minshew,ARI,QB,passing_yards,72.53699841208815,0.0,136.0417828716399,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0035289,Gardner Minshew,ARI,QB,attempts,5.694744287862522,0.0,16.221545212411183,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0035289,Gardner Minshew,ARI,QB,completions,4.614212823979971,0.0,10.0221631572873,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0035289,Gardner Minshew,ARI,QB,interceptions,0.19068091282224098,0.0,0.6076024199779042,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0035289,Gardner Minshew,ARI,QB,passing_tds,0.3828649338719585,0.0,0.879558898085337,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0035289,Gardner Minshew,ARI,QB,passing_yards,43.64344546958742,0.0,107.14822992913915,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0039577,Kedon Slovis,ARI,QB,attempts,1.9673873356824314,0.2504336546745121,3.5464074743647305,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039577,Kedon Slovis,ARI,QB,completions,1.025479313091084,0.0,1.8366718630871832,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039577,Kedon Slovis,ARI,QB,interceptions,0.03858271885951926,0.0,0.10112094493286876,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039577,Kedon Slovis,ARI,QB,passing_tds,0.06452520443774817,0.0,0.13902929906975495,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039577,Kedon Slovis,ARI,QB,passing_yards,10.684776624423863,0.0,20.21049429335662,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
-00-0036212,Tua Tagovailoa,ATL,QB,attempts,27.557169199946625,16.110811326560494,38.08397012449528,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0036212,Tua Tagovailoa,ATL,QB,completions,16.65072344773921,9.244172910691791,22.05867378104654,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0036212,Tua Tagovailoa,ATL,QB,interceptions,0.4875960249260592,0.12778153482979349,0.9045175320817225,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0036212,Tua Tagovailoa,ATL,QB,passing_tds,1.0985673809071768,0.33266329385986526,1.5952613451205553,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0036212,Tua Tagovailoa,ATL,QB,passing_yards,185.60495452225243,94.71517653470134,249.10973898180416,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036212,Tua Tagovailoa,ATL,QB,attempts,29.570328584608454,18.123970711222327,40.097129509157114,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036212,Tua Tagovailoa,ATL,QB,completions,17.152706573267384,9.746156036219965,22.560656906574714,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036212,Tua Tagovailoa,ATL,QB,interceptions,0.5357671119268343,0.17595262183056865,0.9526886190824977,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036212,Tua Tagovailoa,ATL,QB,passing_tds,1.1957283902236222,0.4298243031763107,1.6924223544370007,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036212,Tua Tagovailoa,ATL,QB,passing_yards,188.04885878138714,97.15908079383605,251.55364324093887,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0039917,Michael Penix Jr.,ATL,QB,attempts,25.53227469840191,14.085916825015781,36.05907562295057,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0039917,Michael Penix Jr.,ATL,QB,completions,15.627156908865635,8.220606371818214,21.035107242172963,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0039917,Michael Penix Jr.,ATL,QB,interceptions,0.5337103412430138,0.17389585114674805,0.9506318483986771,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -69,11 +69,11 @@ player_id,display_name,team,position,stat,pred_pg,pred_pg_low,pred_pg_high,sourc
 00-0036679,Shane Buechele,BUF,QB,interceptions,0.08966576465462407,0.035693591140184215,0.15220399072797355,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036679,Shane Buechele,BUF,QB,passing_tds,0.08116458545178258,0.0,0.15566868008378937,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036679,Shane Buechele,BUF,QB,passing_yards,14.215837947605312,0.58237124947265,23.741555616538072,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038102,Kenny Pickett,CAR,QB,attempts,2.051777485594911,0.33482380458699185,3.6307976242772098,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038102,Kenny Pickett,CAR,QB,completions,1.1654864756030343,0.05450389504592139,1.9766790255991338,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038102,Kenny Pickett,CAR,QB,interceptions,0.04895311746066882,0.0,0.11149134353401831,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038102,Kenny Pickett,CAR,QB,passing_tds,0.07639021169678382,0.0,0.15089430632879058,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038102,Kenny Pickett,CAR,QB,passing_yards,15.149501770382676,1.5160350722500133,24.675219439315434,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038102,Kenny Pickett,CAR,QB,attempts,2.574680827419803,0.857727146411884,4.153700966102102,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038102,Kenny Pickett,CAR,QB,completions,1.2187531487222176,0.10777056816510462,2.029945698718317,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038102,Kenny Pickett,CAR,QB,interceptions,0.05371007061643897,0.0,0.11624829668978845,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038102,Kenny Pickett,CAR,QB,passing_tds,0.06816431635932164,0.0,0.14266841099132843,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038102,Kenny Pickett,CAR,QB,passing_yards,17.17832377996902,3.544857081836357,26.70404144890178,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0039150,Bryce Young,CAR,QB,attempts,26.48864486773835,15.042286994352223,37.01544579228701,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0039150,Bryce Young,CAR,QB,completions,17.771503516456796,10.364952979409377,23.179453849764126,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0039150,Bryce Young,CAR,QB,interceptions,0.5250906888400817,0.165276198743816,0.942012195995745,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -149,11 +149,11 @@ GRE361852,Taylen Green,CLE,QB,passing_yards,61.88488328407198,10.788031637662142
 00-0039732,Bo Nix,DEN,QB,interceptions,0.5397164940425119,0.17990200394624617,0.9566380011981752,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0039732,Bo Nix,DEN,QB,passing_tds,1.5508465317045372,0.7849424446572257,2.0475404959179158,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0039732,Bo Nix,DEN,QB,passing_yards,216.50243611225005,125.61265812469897,280.0072205718018,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
-00-0031237,Teddy Bridgewater,DET,QB,attempts,1.471538075846414,0.0,3.050558214528713,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0031237,Teddy Bridgewater,DET,QB,completions,1.0026503887339422,0.0,1.8138429387300417,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0031237,Teddy Bridgewater,DET,QB,attempts,1.5798601387588713,0.0,3.1588802774411704,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0031237,Teddy Bridgewater,DET,QB,completions,1.0446044018705323,0.0,1.8557969518666317,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0031237,Teddy Bridgewater,DET,QB,interceptions,0.02852678854972776,0.0,0.09106501462307724,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0031237,Teddy Bridgewater,DET,QB,passing_tds,0.08408522976631727,0.0,0.15858932439832404,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0031237,Teddy Bridgewater,DET,QB,passing_yards,10.688008884081775,0.0,20.213726553014535,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0031237,Teddy Bridgewater,DET,QB,passing_tds,0.09054101210826253,0.0,0.16504510674026932,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0031237,Teddy Bridgewater,DET,QB,passing_yards,10.528535316111325,0.0,20.054252985044087,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0033106,Jared Goff,DET,QB,attempts,26.602706487847506,15.156348614461377,37.129507412396165,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0033106,Jared Goff,DET,QB,completions,15.820096555503158,8.413546018455737,21.22804688881049,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0033106,Jared Goff,DET,QB,interceptions,0.5529160192816326,0.19310152918536688,0.9698375264372958,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -164,11 +164,11 @@ GRE361852,Taylen Green,CLE,QB,passing_yards,61.88488328407198,10.788031637662142
 00-0041453,Luke Altmyer,DET,QB,interceptions,0.3021954318939187,0.0,0.5350345351564463,rookie_rule,True,udfa,True,2026,False,,,,rookie_path
 00-0041453,Luke Altmyer,DET,QB,passing_tds,0.20982353587443192,0.0,0.4409080891567011,rookie_rule,True,udfa,True,2026,False,,,,rookie_path
 00-0041453,Luke Altmyer,DET,QB,passing_yards,47.26540908289177,5.164569471301809,75.67171775562672,rookie_rule,True,udfa,True,2026,False,,,,rookie_path
-00-0028118,Tyrod Taylor,GB,QB,attempts,2.30622106166103,0.5892673806531105,3.8852412003433288,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0028118,Tyrod Taylor,GB,QB,completions,1.4443800405738534,0.3333974600167405,2.255572590569953,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0028118,Tyrod Taylor,GB,QB,interceptions,0.055566053483210524,0.00159387996877067,0.11810427955656,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0028118,Tyrod Taylor,GB,QB,passing_tds,0.11035480431559473,0.0,0.1848588989476015,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0028118,Tyrod Taylor,GB,QB,passing_yards,17.00146398322065,3.3679972850879882,26.52718165215341,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0028118,Tyrod Taylor,GB,QB,attempts,2.387906863854266,0.6709531828463465,3.966927002536565,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0028118,Tyrod Taylor,GB,QB,completions,1.469148545966498,0.358165965409385,2.2803410959625974,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0028118,Tyrod Taylor,GB,QB,interceptions,0.06234438252979172,0.008372209015351866,0.12488260860314121,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0028118,Tyrod Taylor,GB,QB,passing_tds,0.10966929986407008,0.0,0.18417339449607686,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0028118,Tyrod Taylor,GB,QB,passing_yards,17.11905535493421,3.48558865680155,26.64477302386697,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036264,Jordan Love,GB,QB,attempts,23.926108547522073,12.479750674135945,34.45290947207073,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0036264,Jordan Love,GB,QB,completions,15.525286824638535,8.118736287591116,20.933237157945864,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0036264,Jordan Love,GB,QB,interceptions,0.4838491631949164,0.12403467309865068,0.9007706703505797,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -236,8 +236,8 @@ GRE361852,Taylen Green,CLE,QB,passing_yards,61.88488328407198,10.788031637662142
 00-0033873,Patrick Mahomes,KC,QB,passing_yards,223.28923530336309,132.39945731581201,286.7940197629148,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0036945,Justin Fields,KC,QB,attempts,4.120778955027388,2.4038252740194697,5.699799093709688,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036945,Justin Fields,KC,QB,completions,2.77035192545325,1.6593693448961369,3.5815444754493493,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036945,Justin Fields,KC,QB,interceptions,0.06742365666143654,0.013451483146996684,0.12996188273478604,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036945,Justin Fields,KC,QB,passing_tds,0.1490002826775352,0.03411466962043848,0.223504377309542,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036945,Justin Fields,KC,QB,interceptions,0.082142617692181,0.02817044417774114,0.1446808437655305,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036945,Justin Fields,KC,QB,passing_tds,0.1518334201400901,0.036947807082993375,0.22633751477209688,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036945,Justin Fields,KC,QB,passing_yards,28.3953942211867,14.761927523054037,37.921111890119455,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037324,Chris Oladokun,KC,QB,attempts,3.321692154901994,1.6047384738940746,4.900712293584292,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0037324,Chris Oladokun,KC,QB,completions,1.8421499501028151,0.7311673695457023,2.6533425000989146,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -454,11 +454,11 @@ ALL015451,Drew Allar,PIT,QB,passing_yards,151.0779040702493,60.37545632429751,21
 00-0034855,Baker Mayfield,TB,QB,interceptions,0.8201376245809321,0.4603231344846664,1.2370591317365953,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0034855,Baker Mayfield,TB,QB,passing_tds,1.1550705699637527,0.3891664829164412,1.6517645341771312,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0034855,Baker Mayfield,TB,QB,passing_yards,201.22179299345595,110.33201500590486,264.7265774530077,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
-00-0035100,Jake Browning,TB,QB,attempts,3.3446934509735815,1.6277397699656622,4.92371358965588,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035100,Jake Browning,TB,QB,completions,2.0492207945916143,0.9382382140345015,2.8604133445877142,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035100,Jake Browning,TB,QB,interceptions,0.10775647271512857,0.053784299200688716,0.17029469878847805,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035100,Jake Browning,TB,QB,passing_tds,0.134648491968908,0.01976287891181128,0.2091525866009148,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035100,Jake Browning,TB,QB,passing_yards,21.766457653145398,8.132990955012735,31.292175322078158,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035100,Jake Browning,TB,QB,attempts,2.976401623845736,1.259447942837817,4.555421762528035,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035100,Jake Browning,TB,QB,completions,1.7335939505154523,0.6226113699583394,2.544786500511552,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035100,Jake Browning,TB,QB,interceptions,0.10422448297736257,0.050252309462922716,0.16676270905071208,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035100,Jake Browning,TB,QB,passing_tds,0.13234616382405073,0.01746055076695402,0.2068502584560575,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035100,Jake Browning,TB,QB,passing_yards,17.665334960454217,4.031868262321557,27.191052629386977,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0041251,Jalon Daniels,TB,QB,attempts,16.885847918718945,2.6497394796745812,31.610927125942375,rookie_rule,True,udfa,True,2026,False,,,,rookie_path
 00-0041251,Jalon Daniels,TB,QB,completions,9.80351955637886,1.6580241188607034,17.367415256253047,rookie_rule,True,udfa,True,2026,False,,,,rookie_path
 00-0041251,Jalon Daniels,TB,QB,interceptions,0.6301524688504851,0.0,1.1156797809156132,rookie_rule,True,udfa,True,2026,False,,,,rookie_path
@@ -531,20 +531,20 @@ LOV121782,Jeremiyah Love,ARI,RB,receptions,2.730159685600769,0.8216568715724195,
 LOV121782,Jeremiyah Love,ARI,RB,rushing_tds,0.4199818498936098,0.1632937219010657,0.6258170451912811,rookie_rule,True,drafted,True,2026,False,,,,rookie_path
 LOV121782,Jeremiyah Love,ARI,RB,rushing_yards,60.111835337813446,35.669028644824095,78.85033649641636,rookie_rule,True,drafted,True,2026,False,,,,rookie_path
 LOV121782,Jeremiyah Love,ARI,RB,targets,3.6602357431070667,1.1001846246478157,6.115527378370891,rookie_rule,True,drafted,True,2026,False,,,,rookie_path
-00-0037120,Tyler Goodson,ATL,RB,carries,0.4706160910652679,0.0,1.0671103278443854,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037120,Tyler Goodson,ATL,RB,carries,0.49022246083480525,0.0,1.0867166976139226,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037120,Tyler Goodson,ATL,RB,receiving_tds,0.0017042332512979322,0.0,0.018772386573894326,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037120,Tyler Goodson,ATL,RB,receiving_yards,0.5365695707659267,0.0,1.7627856234319514,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037120,Tyler Goodson,ATL,RB,receptions,0.0963954863884343,0.0,0.27721939661756995,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037120,Tyler Goodson,ATL,RB,rushing_tds,0.006779209980819885,0.0,0.03973481013120422,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037120,Tyler Goodson,ATL,RB,rushing_yards,1.4875141789585589,0.0,4.548358627038197,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037120,Tyler Goodson,ATL,RB,receiving_yards,0.5489712791122364,0.0,1.7751873317782612,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037120,Tyler Goodson,ATL,RB,receptions,0.09774660600917516,0.0,0.2785705162383108,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037120,Tyler Goodson,ATL,RB,rushing_tds,0.00737769121884085,0.0,0.04033329136922519,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037120,Tyler Goodson,ATL,RB,rushing_yards,1.5616171682624074,0.0,4.622461616342044,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037120,Tyler Goodson,ATL,RB,targets,0.11541428101788603,0.0,0.29304911326200295,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037746,Brian Robinson,ATL,RB,carries,6.442924171900923,2.577039154975884,10.419552417095039,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037746,Brian Robinson,ATL,RB,receiving_tds,0.052293596452255856,0.0,0.16608128526956517,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037746,Brian Robinson,ATL,RB,receiving_yards,9.715070161203741,2.004732576703301,17.889843845643906,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037746,Brian Robinson,ATL,RB,receptions,1.3118035177582945,0.4362339139101076,2.517296252619199,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037746,Brian Robinson,ATL,RB,rushing_tds,0.18083726686375123,0.0,0.4005412678663135,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037746,Brian Robinson,ATL,RB,rushing_yards,27.996840552067425,11.48073847400287,48.40247020593168,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037746,Brian Robinson,ATL,RB,targets,1.680262750085916,0.6934380181878932,2.8644949650466955,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037746,Brian Robinson,ATL,RB,carries,6.249951111322146,2.3840660943971073,10.226579356516263,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037746,Brian Robinson,ATL,RB,receiving_tds,0.06045838857779529,0.0,0.1742460773951046,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037746,Brian Robinson,ATL,RB,receiving_yards,7.735194197422356,0.024856612921915655,15.90996788186252,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037746,Brian Robinson,ATL,RB,receptions,1.197717456760363,0.32214785291217607,2.4032101916212674,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037746,Brian Robinson,ATL,RB,rushing_tds,0.1273505055393695,0.0,0.3470545065419318,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037746,Brian Robinson,ATL,RB,rushing_yards,20.619148947684405,4.103046869619849,41.02477860154866,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037746,Brian Robinson,ATL,RB,targets,1.4866717239539025,0.4998469920558797,2.670903938914682,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0038542,Bijan Robinson,ATL,RB,carries,15.247306542385493,11.381421525460453,19.22393478757961,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0038542,Bijan Robinson,ATL,RB,receiving_tds,0.14758189121237106,0.08163680454049625,0.26136958002968036,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0038542,Bijan Robinson,ATL,RB,receiving_yards,29.80355857855302,22.09322099405258,37.978332262993185,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -643,13 +643,13 @@ RAN022436,Adam Randall,BAL,RB,targets,0.4830670919919393,0.0,0.9928562644099376,
 00-0041273,Desmond Reid,BUF,RB,rushing_tds,0.04108961581578214,0.0,0.10800000000000011,rookie_rule,True,udfa,False,2026,False,,,,rookie_path
 00-0041273,Desmond Reid,BUF,RB,rushing_yards,5.678555092360873,0.4799999999999999,13.034285714285717,rookie_rule,True,udfa,False,2026,False,,,,rookie_path
 00-0041273,Desmond Reid,BUF,RB,targets,0.36936370424707143,0.0,0.7730769230769234,rookie_rule,True,udfa,False,2026,False,,,,rookie_path
-00-0036265,AJ Dillon,CAR,RB,carries,0.6828705636019751,0.1029878110632192,1.2793648003810925,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036265,AJ Dillon,CAR,RB,receiving_tds,0.00034121306080919783,0.0,0.01740936638340559,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036265,AJ Dillon,CAR,RB,receiving_yards,0.8221833913272683,0.0,2.048399443993293,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036265,AJ Dillon,CAR,RB,receptions,0.10333345797835658,0.0,0.2841573682074922,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036265,AJ Dillon,CAR,RB,rushing_tds,0.0317207532323052,0.0,0.06467635338268954,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036265,AJ Dillon,CAR,RB,rushing_yards,2.773246797665775,0.2958314859560916,5.834091245745412,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036265,AJ Dillon,CAR,RB,targets,0.15798144845129486,0.009957738666591442,0.3356162806954118,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036265,AJ Dillon,CAR,RB,carries,0.6344443931011721,0.05456164056241623,1.2309386298802893,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036265,AJ Dillon,CAR,RB,receiving_tds,0.0012809373080941173,0.0,0.018349090630690512,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036265,AJ Dillon,CAR,RB,receiving_yards,0.682604189147403,0.0,1.9088202418134277,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036265,AJ Dillon,CAR,RB,receptions,0.10204935719638679,0.0,0.28287326742552243,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036265,AJ Dillon,CAR,RB,rushing_tds,0.013543492257151577,0.0,0.04649909240753592,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036265,AJ Dillon,CAR,RB,rushing_yards,2.200986028044132,0.0,5.26183047612377,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036265,AJ Dillon,CAR,RB,targets,0.14128699487080834,0.0,0.3189218271149253,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036555,Chuba Hubbard,CAR,RB,carries,6.860583420649506,2.9946984037244673,10.837211665843622,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0036555,Chuba Hubbard,CAR,RB,receiving_tds,0.04508518099617042,0.0,0.15887286981347973,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0036555,Chuba Hubbard,CAR,RB,receiving_yards,15.790343843129255,8.080006258628815,23.96511752756942,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -881,13 +881,13 @@ COL293648,Jonah Coleman,DEN,RB,targets,0.42146772240663644,0.0,0.866250000000000
 00-0035567,Craig Reynolds,DET,RB,rushing_tds,0.008337181048070352,0.0,0.04129278119845469,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0035567,Craig Reynolds,DET,RB,rushing_yards,2.5734160873003016,0.09600077559061848,5.634260535379939,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0035567,Craig Reynolds,DET,RB,targets,0.11487772350997996,0.0,0.29251255575409685,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
-00-0037197,Isiah Pacheco,DET,RB,carries,15.504888129993429,11.639003113068389,19.481516375187546,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037197,Isiah Pacheco,DET,RB,receiving_tds,0.0699495650814323,0.004004478409557491,0.1837372538987416,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037197,Isiah Pacheco,DET,RB,receiving_yards,15.396380966607893,7.686043382107453,23.571154651048058,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037197,Isiah Pacheco,DET,RB,receptions,1.8042282540243575,0.9286586501761706,3.009720988885262,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037197,Isiah Pacheco,DET,RB,rushing_tds,0.581440194972723,0.35769788764629684,0.8011441959752853,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037197,Isiah Pacheco,DET,RB,rushing_yards,79.85917197768855,63.34306989962399,100.2648016315528,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0037197,Isiah Pacheco,DET,RB,targets,2.3155426797613448,1.328717947863322,3.4997748947221243,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037197,Isiah Pacheco,DET,RB,carries,8.882243457004996,5.016358440079957,12.858871702199112,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037197,Isiah Pacheco,DET,RB,receiving_tds,0.012321880680602146,0.0,0.12610956949791144,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037197,Isiah Pacheco,DET,RB,receiving_yards,8.088789005132858,0.3784514206324179,16.26356268957302,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037197,Isiah Pacheco,DET,RB,receptions,1.375227025228434,0.49965742138024705,2.5807197600893383,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037197,Isiah Pacheco,DET,RB,rushing_tds,0.32176234074340687,0.09802003341698068,0.5414663417459692,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037197,Isiah Pacheco,DET,RB,rushing_yards,37.30207396008787,20.78597188202331,57.70770361395212,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0037197,Isiah Pacheco,DET,RB,targets,1.868158634115048,0.8813339022170252,3.0523908490758274,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0038896,Jacob Saylors,DET,RB,carries,0.6787884928985842,0.09890574035982837,1.2752827296777016,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0038896,Jacob Saylors,DET,RB,receiving_tds,0.002482997369393863,0.0,0.019551150691990257,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0038896,Jacob Saylors,DET,RB,receiving_yards,0.5969036896601586,0.0,1.8231197423261833,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -951,13 +951,13 @@ COL293648,Jonah Coleman,DEN,RB,targets,0.42146772240663644,0.0,0.866250000000000
 00-0035685,David Montgomery,HOU,RB,rushing_tds,0.5013488982820822,0.277606590955656,0.7210528992846444,veteran_model,False,,False,2026,True,ACT,1.0,starter,curated
 00-0035685,David Montgomery,HOU,RB,rushing_yards,43.71362314983709,27.197521071772535,64.11925280370134,veteran_model,False,,False,2026,True,ACT,1.0,starter,curated
 00-0035685,David Montgomery,HOU,RB,targets,2.2862435649872146,1.2994188330891918,3.4704757799479937,veteran_model,False,,False,2026,True,ACT,1.0,starter,curated
-00-0038397,Evan Hull,HOU,RB,carries,0.9961773725498747,0.41629462001111883,1.592671609328992,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038397,Evan Hull,HOU,RB,receiving_tds,0.0023043946241075525,0.0,0.019372547946703945,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038397,Evan Hull,HOU,RB,receiving_yards,0.9711057274768915,0.0,2.1973217801429166,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038397,Evan Hull,HOU,RB,carries,0.9002228246177861,0.3203400720790303,1.4967170613969034,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038397,Evan Hull,HOU,RB,receiving_tds,0.002443968617304971,0.0,0.019512121939901362,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038397,Evan Hull,HOU,RB,receiving_yards,0.9564426272857548,0.0,2.1826586799517793,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0038397,Evan Hull,HOU,RB,receptions,0.1089489301403081,0.0,0.2897728403694438,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038397,Evan Hull,HOU,RB,rushing_tds,0.039932391904788166,0.006371045805824238,0.0728879920551725,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038397,Evan Hull,HOU,RB,rushing_yards,4.278810093573976,1.801394781864293,7.339654541653615,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038397,Evan Hull,HOU,RB,targets,0.16620238252401973,0.018178672739316303,0.3438372147681366,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038397,Evan Hull,HOU,RB,rushing_tds,0.022807314580874097,0.0,0.05576291473125844,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038397,Evan Hull,HOU,RB,rushing_yards,3.528593856594655,1.0511785448849718,6.589438304674293,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038397,Evan Hull,HOU,RB,targets,0.1589127749728947,0.010889065188191271,0.3365476072170116,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0039405,Jawhar Jordan,HOU,RB,carries,1.1858431069172943,0.6059603543785383,1.7823373436964116,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039405,Jawhar Jordan,HOU,RB,receiving_tds,0.002202363237282596,0.0,0.019270516559878992,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039405,Jawhar Jordan,HOU,RB,receiving_yards,0.9725627249105907,0.0,2.1987787775766154,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -1035,13 +1035,13 @@ MCG547540,Seth McGowan,IND,RB,receptions,0.3209810465636257,0.0,0.64650000000000
 MCG547540,Seth McGowan,IND,RB,rushing_tds,0.03899776756677209,0.0,0.09375,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 MCG547540,Seth McGowan,IND,RB,rushing_yards,6.476432339656322,1.0920000000000007,13.856742081447965,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 MCG547540,Seth McGowan,IND,RB,targets,0.42146772240663644,0.0,0.8662500000000003,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
-00-0032104,Ameer Abdullah,JAX,RB,carries,0.8585420904056643,0.27865933786690844,1.4550363271847817,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0032104,Ameer Abdullah,JAX,RB,receiving_tds,0.002886631875744721,0.0,0.019954785198341114,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0032104,Ameer Abdullah,JAX,RB,receiving_yards,0.996987038949418,0.0,2.2232030916154426,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0032104,Ameer Abdullah,JAX,RB,receptions,0.1389436027062532,0.00760816212902517,0.3197675129353888,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0032104,Ameer Abdullah,JAX,RB,rushing_tds,0.028512961240783407,0.0,0.06146856139116774,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0032104,Ameer Abdullah,JAX,RB,rushing_yards,3.491871720610348,1.0144564089006647,6.552716168689987,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0032104,Ameer Abdullah,JAX,RB,targets,0.21614614345853525,0.06812243367383185,0.3937809757026522,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032104,Ameer Abdullah,JAX,RB,carries,0.5483302365874766,0.0,1.144824473366594,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032104,Ameer Abdullah,JAX,RB,receiving_tds,0.0036426391882792364,0.0,0.020710792510875632,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032104,Ameer Abdullah,JAX,RB,receiving_yards,0.8606243870366063,0.0,2.0868404397026312,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032104,Ameer Abdullah,JAX,RB,receptions,0.14625737012989581,0.014921929552667784,0.32708128035903145,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032104,Ameer Abdullah,JAX,RB,rushing_tds,0.015210629122947666,0.0,0.04816622927333201,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032104,Ameer Abdullah,JAX,RB,rushing_yards,2.7897211380113878,0.31230582630170467,5.850565586091026,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032104,Ameer Abdullah,JAX,RB,targets,0.19287977006136378,0.04485606027666036,0.37051460230548067,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036425,DeeJay Dallas,JAX,RB,carries,0.6093636618174477,0.029480909278691823,1.205857898596565,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0036425,DeeJay Dallas,JAX,RB,receiving_tds,0.0038568207372769374,0.0,0.020924974059873334,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0036425,DeeJay Dallas,JAX,RB,receiving_yards,0.7511960003468702,0.0,1.9774120530128947,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -1049,13 +1049,13 @@ MCG547540,Seth McGowan,IND,RB,targets,0.42146772240663644,0.0,0.8662500000000003
 00-0036425,DeeJay Dallas,JAX,RB,rushing_tds,0.0173207126799802,0.0,0.050276312830364545,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0036425,DeeJay Dallas,JAX,RB,rushing_yards,2.7267285984798124,0.24931328677012932,5.78757304655945,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0036425,DeeJay Dallas,JAX,RB,targets,0.1599644341162481,0.011940724331544694,0.337599266360365,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
-00-0038611,Chris Rodriguez Jr.,JAX,RB,carries,14.805731848228271,10.939846831303232,18.782360093422387,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038611,Chris Rodriguez Jr.,JAX,RB,receiving_tds,0.04574529201685463,0.0,0.15953298083416392,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038611,Chris Rodriguez Jr.,JAX,RB,receiving_yards,17.467793444508846,9.757455860008406,25.64256712894901,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038611,Chris Rodriguez Jr.,JAX,RB,receptions,1.8653831643401364,0.9898135604919495,3.0708758992010408,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038611,Chris Rodriguez Jr.,JAX,RB,rushing_tds,0.49373143789518914,0.26998913056876295,0.7134354388977514,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038611,Chris Rodriguez Jr.,JAX,RB,rushing_yards,67.65232305373351,51.136220975668955,88.05795270759776,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038611,Chris Rodriguez Jr.,JAX,RB,targets,2.346658332511406,1.3598336006133833,3.5308905474721852,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038611,Chris Rodriguez Jr.,JAX,RB,carries,7.940375138390507,4.074490121465468,11.917003383584623,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038611,Chris Rodriguez Jr.,JAX,RB,receiving_tds,0.016527760029223584,0.0,0.1303154488465329,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038611,Chris Rodriguez Jr.,JAX,RB,receiving_yards,7.3258523834270335,0.0,15.500626067867199,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038611,Chris Rodriguez Jr.,JAX,RB,receptions,1.0179257280978575,0.1423561242496706,2.2234184629587617,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038611,Chris Rodriguez Jr.,JAX,RB,rushing_tds,0.32572854911036864,0.10198624178394244,0.5454325501129309,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038611,Chris Rodriguez Jr.,JAX,RB,rushing_yards,33.161790722664556,16.6456886446,53.56742037652881,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038611,Chris Rodriguez Jr.,JAX,RB,targets,1.217602099617729,0.23077736771970625,2.401834314578508,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0040238,LeQuint Allen Jr.,JAX,RB,carries,0.6517088240238976,0.07182607148514172,1.248203060803015,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0040238,LeQuint Allen Jr.,JAX,RB,receiving_tds,0.004757145129060235,0.0,0.02182529845165663,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0040238,LeQuint Allen Jr.,JAX,RB,receiving_yards,1.0302026265624904,0.0,2.2564186792285152,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -1191,11 +1191,11 @@ JOH224817,Emmett Johnson,KC,RB,targets,2.6500120897071016,0.0,5.446616314057818,
 00-0037617,Hassan Haskins,LAC,RB,targets,0.13519166392299914,0.0,0.312826496167116,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0038454,Keaton Mitchell,LAC,RB,carries,3.7944004882979554,0.0,7.771028733492072,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0038454,Keaton Mitchell,LAC,RB,receiving_tds,0.034084732645507855,0.0,0.14787242146281715,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038454,Keaton Mitchell,LAC,RB,receiving_yards,5.7817605890254615,0.0,13.956534273465627,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038454,Keaton Mitchell,LAC,RB,receptions,0.7805874867749466,0.0,1.9860802216358509,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038454,Keaton Mitchell,LAC,RB,receiving_yards,4.550540975202915,0.0,12.725314659643079,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038454,Keaton Mitchell,LAC,RB,receptions,0.6947346387101792,0.0,1.9002273735710835,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0038454,Keaton Mitchell,LAC,RB,rushing_tds,0.10433177661262094,0.0,0.3240357776151832,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0038454,Keaton Mitchell,LAC,RB,rushing_yards,17.289919528496444,0.7738174504318884,37.69554918236069,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038454,Keaton Mitchell,LAC,RB,targets,1.2299163958543833,0.2430916639563605,2.414148610815163,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038454,Keaton Mitchell,LAC,RB,targets,1.1044511129676056,0.11762638106958279,2.2886833279283847,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0039391,Kimani Vidal,LAC,RB,carries,1.4599719572554144,0.8800892047166585,2.056466194034532,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039391,Kimani Vidal,LAC,RB,receiving_tds,0.00800974693219108,0.0,0.025077900254787473,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039391,Kimani Vidal,LAC,RB,receiving_yards,2.0998914829034394,0.9433408452283736,3.3261075355694643,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -1362,7 +1362,7 @@ CLA041524,Demond Claiborne,MIN,RB,targets,0.42146772240663644,0.0,0.866250000000
 00-0036187,Reggie Gilliam,NE,RB,receiving_yards,0.5138042374253678,0.0,1.7400202900913926,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036187,Reggie Gilliam,NE,RB,receptions,0.07481394825676185,0.0,0.2556378584858975,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036187,Reggie Gilliam,NE,RB,rushing_tds,0.007197794748697407,0.0,0.040153394899081755,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036187,Reggie Gilliam,NE,RB,rushing_yards,2.256428899130859,0.0,5.317273347210497,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036187,Reggie Gilliam,NE,RB,rushing_yards,2.330531888434706,0.0,5.391376336514344,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036187,Reggie Gilliam,NE,RB,targets,0.06862902628245633,0.0,0.24626385852657323,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036328,Antonio Gibson,NE,RB,carries,0.7084240491118136,0.12854129657305774,1.304918285890931,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0036328,Antonio Gibson,NE,RB,receiving_tds,0.001767223930606549,0.0,0.01883537725320294,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
@@ -1546,20 +1546,20 @@ MIL303300,Jam Miller,NE,RB,targets,0.42146772240663644,0.0,0.8662500000000003,ro
 00-0034844,Saquon Barkley,PHI,RB,rushing_tds,0.4308255229105592,0.207083215584133,0.6505295239131215,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0034844,Saquon Barkley,PHI,RB,rushing_yards,65.54411706021297,49.02801498214841,85.94974671407722,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0034844,Saquon Barkley,PHI,RB,targets,3.3656393041182437,2.3788145722202207,4.549871519079023,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
-00-0036567,Elijah Mitchell,PHI,RB,carries,0.492398800044601,0.0,1.0888930368237184,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036567,Elijah Mitchell,PHI,RB,carries,0.564766718361028,0.0,1.1612609551401454,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036567,Elijah Mitchell,PHI,RB,receiving_tds,0.0014846171703593474,0.0,0.018552770492955742,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036567,Elijah Mitchell,PHI,RB,receiving_yards,0.5257931621011365,0.0,1.7520092147671613,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036567,Elijah Mitchell,PHI,RB,receptions,0.08459539152257492,0.0,0.2654193017517105,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036567,Elijah Mitchell,PHI,RB,rushing_tds,0.008841674301305162,0.0,0.04179727445168951,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036567,Elijah Mitchell,PHI,RB,rushing_yards,2.1001105226654015,0.0,5.160954970745039,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036567,Elijah Mitchell,PHI,RB,targets,0.10509203797387895,0.0,0.28272687021799586,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037258,Dameon Pierce,PHI,RB,carries,0.4608719014268054,0.0,1.0573661382059227,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036567,Elijah Mitchell,PHI,RB,receiving_yards,0.5881817145633664,0.0,1.814397767229391,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036567,Elijah Mitchell,PHI,RB,receptions,0.11070694609116999,0.0,0.2915308563203057,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036567,Elijah Mitchell,PHI,RB,rushing_tds,0.009173934639473321,0.0,0.04212953478985766,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036567,Elijah Mitchell,PHI,RB,rushing_yards,2.2261250112789615,0.0,5.286969459358599,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036567,Elijah Mitchell,PHI,RB,targets,0.13576883389616912,0.0,0.313403666140286,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037258,Dameon Pierce,PHI,RB,carries,0.48622289279642966,0.0,1.082717129575547,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037258,Dameon Pierce,PHI,RB,receiving_tds,0.0014846171703593474,0.0,0.018552770492955742,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037258,Dameon Pierce,PHI,RB,receiving_yards,0.5257931621011365,0.0,1.7520092147671613,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037258,Dameon Pierce,PHI,RB,receptions,0.08459539152257492,0.0,0.2654193017517105,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037258,Dameon Pierce,PHI,RB,rushing_tds,0.008841674301305162,0.0,0.04179727445168951,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037258,Dameon Pierce,PHI,RB,receiving_yards,0.5720148648512565,0.0,1.7982309175172813,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037258,Dameon Pierce,PHI,RB,receptions,0.11070694609116999,0.0,0.2915308563203057,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037258,Dameon Pierce,PHI,RB,rushing_tds,0.009173934639473321,0.0,0.04212953478985766,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037258,Dameon Pierce,PHI,RB,rushing_yards,2.015513514669806,0.0,5.0763579627494435,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037258,Dameon Pierce,PHI,RB,targets,0.10509203797387895,0.0,0.28272687021799586,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037258,Dameon Pierce,PHI,RB,targets,0.13576883389616912,0.0,0.313403666140286,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0038555,Tank Bigsby,PHI,RB,carries,5.1471129246995,1.2812279077744608,9.123741169893616,veteran_model,False,,False,2026,False,ACT,2.0,backup,curated
 00-0038555,Tank Bigsby,PHI,RB,receiving_tds,0.0029349785803081665,0.0,0.11672266739761747,veteran_model,False,,False,2026,False,ACT,2.0,backup,curated
 00-0038555,Tank Bigsby,PHI,RB,receiving_yards,3.83943053838576,0.0,12.014204222825924,veteran_model,False,,False,2026,False,ACT,2.0,backup,curated
@@ -1616,13 +1616,13 @@ MIL303300,Jam Miller,NE,RB,targets,0.42146772240663644,0.0,0.8662500000000003,ro
 00-0038488,Brady Russell,SEA,RB,rushing_tds,0.007212148738117666,0.0,0.04016774888850201,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0038488,Brady Russell,SEA,RB,rushing_yards,2.1688627969276064,0.0,5.229707245007244,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0038488,Brady Russell,SEA,RB,targets,0.08096881736043669,0.0,0.25860364960455356,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
-00-0038797,Emanuel Wilson,SEA,RB,carries,2.21147269313898,1.6315899406002243,2.8079669299180976,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038797,Emanuel Wilson,SEA,RB,receiving_tds,0.0052096284215800105,0.0,0.022277781744176404,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038797,Emanuel Wilson,SEA,RB,receiving_yards,2.0216044946455747,0.8650538569705087,3.2478205473115995,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038797,Emanuel Wilson,SEA,RB,receptions,0.2752771394784286,0.14394169890120057,0.45610104970756427,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038797,Emanuel Wilson,SEA,RB,rushing_tds,0.07828959217740422,0.044728246078440295,0.11124519232778857,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038797,Emanuel Wilson,SEA,RB,rushing_yards,11.13602815791859,8.658612846208907,14.196872605998228,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038797,Emanuel Wilson,SEA,RB,targets,0.3369881891659609,0.18896447938125752,0.5146230214100778,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038797,Emanuel Wilson,SEA,RB,carries,1.0406010655879716,0.4607183130492158,1.637095302367089,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038797,Emanuel Wilson,SEA,RB,receiving_tds,0.0004941372745789191,0.0,0.017562290597175314,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038797,Emanuel Wilson,SEA,RB,receiving_yards,0.851809005772727,0.0,2.078025058438752,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038797,Emanuel Wilson,SEA,RB,receptions,0.1285620366827405,0.0,0.30938594691187615,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038797,Emanuel Wilson,SEA,RB,rushing_tds,0.04319911698238314,0.009637770883419217,0.07615471713276749,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038797,Emanuel Wilson,SEA,RB,rushing_yards,4.599214808933049,2.1217994972233662,7.660059257012687,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038797,Emanuel Wilson,SEA,RB,targets,0.16927599617354766,0.021252286388844244,0.3469108284176646,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0039165,Zach Charbonnet,SEA,RB,carries,10.870062238606685,7.004177221681646,14.846690483800801,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0039165,Zach Charbonnet,SEA,RB,receiving_tds,0.032433988191016734,0.0,0.14622167700832603,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0039165,Zach Charbonnet,SEA,RB,receiving_yards,11.29256624704784,3.5822286625474007,19.467339931488006,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -1665,13 +1665,13 @@ BLA097235,Kaelon Black,SF,RB,receptions,0.8042110112880474,0.09930070403878272,1
 BLA097235,Kaelon Black,SF,RB,rushing_tds,0.13270523291910152,0.0,0.3012493268592283,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 BLA097235,Kaelon Black,SF,RB,rushing_yards,19.70389654452847,6.024986537184566,33.706452460804776,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 BLA097235,Kaelon Black,SF,RB,targets,1.0361588208915566,0.1915636745156119,1.9832247351565868,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
-00-0036919,Kenny Gainwell,TB,RB,carries,16.488577391729816,12.622692374804776,20.465205636923933,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0036919,Kenny Gainwell,TB,RB,receiving_tds,0.12041732825061188,0.05447224157873708,0.23420501706792118,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0036919,Kenny Gainwell,TB,RB,receiving_yards,29.151961096016688,21.441623511516248,37.32673478045685,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0036919,Kenny Gainwell,TB,RB,receptions,3.452050997389826,2.576481393541639,4.657543732250731,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0036919,Kenny Gainwell,TB,RB,rushing_tds,0.47589441733934124,0.25215211001291504,0.6955984183419035,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0036919,Kenny Gainwell,TB,RB,rushing_yards,76.47998303311769,59.963880955053135,96.88561268698194,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0036919,Kenny Gainwell,TB,RB,targets,4.14523835344528,3.1584136215472576,5.32947056840606,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036919,Kenny Gainwell,TB,RB,carries,8.0109330755595,4.14504805863446,11.987561320753615,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036919,Kenny Gainwell,TB,RB,receiving_tds,0.06759221074996978,0.0016471240780949747,0.18137989956727907,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036919,Kenny Gainwell,TB,RB,receiving_yards,19.39033592018202,11.679998335681582,27.565109604622187,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036919,Kenny Gainwell,TB,RB,receptions,2.9115931657059773,2.03602356185779,4.117085900566882,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036919,Kenny Gainwell,TB,RB,rushing_tds,0.28252425343326804,0.05878194610684184,0.5022282544358303,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036919,Kenny Gainwell,TB,RB,rushing_yards,36.39090040633385,19.874798328269293,56.7965300601981,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036919,Kenny Gainwell,TB,RB,targets,3.575962908764748,2.589138176866725,4.760195123725527,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0038458,Owen Wright,TB,RB,carries,0.6785229248176939,0.09864017227893804,1.2750171615968113,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0038458,Owen Wright,TB,RB,receiving_tds,0.00036688908028364666,0.0,0.01743504240288004,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0038458,Owen Wright,TB,RB,receiving_yards,0.7838696745099845,0.0,2.0100857271760093,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
@@ -1714,12 +1714,12 @@ BLA097235,Kaelon Black,SF,RB,targets,1.0361588208915566,0.1915636745156119,1.983
 00-0035261,Tony Pollard,TEN,RB,rushing_tds,0.6476188611726138,0.4238765538461876,0.8673228621751761,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0035261,Tony Pollard,TEN,RB,rushing_yards,80.66541739943379,64.14931532136924,101.07104705329805,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0035261,Tony Pollard,TEN,RB,targets,2.5673915947769164,1.5805668628788936,3.751623809737696,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
-00-0036924,Michael Carter,TEN,RB,carries,0.5307814058625591,0.0,1.1272756426416766,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036924,Michael Carter,TEN,RB,receiving_tds,0.010164769332482239,0.00027300633170101795,0.027232922655078633,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036924,Michael Carter,TEN,RB,receiving_yards,2.2035475559494535,1.0469969182743875,3.4297636086154784,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036924,Michael Carter,TEN,RB,receptions,0.28347279718790575,0.15213735661067773,0.4642967074170414,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036924,Michael Carter,TEN,RB,carries,0.6076049669064361,0.027722214367680232,1.2040992036855536,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036924,Michael Carter,TEN,RB,receiving_tds,0.008715302682937564,0.0,0.025783456005533962,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036924,Michael Carter,TEN,RB,receiving_yards,2.199838591234794,1.0432879535597284,3.426054643900819,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036924,Michael Carter,TEN,RB,receptions,0.2809738782077094,0.14963843763048135,0.461797788436845,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036924,Michael Carter,TEN,RB,rushing_tds,0.015138393800010332,0.0,0.048093993950394674,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036924,Michael Carter,TEN,RB,rushing_yards,2.244690130679044,0.0,5.305534578758682,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036924,Michael Carter,TEN,RB,rushing_yards,2.79333705621383,0.31592174450414684,5.854181504293469,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036924,Michael Carter,TEN,RB,targets,0.3144469329593173,0.1664232231746139,0.4920817652034342,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037594,Julius Chestnut,TEN,RB,carries,0.5642314485457449,0.0,1.1607256853248624,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0037594,Julius Chestnut,TEN,RB,receiving_tds,0.00092714237895209,0.0,0.017995295701548484,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -1763,13 +1763,13 @@ BLA097235,Kaelon Black,SF,RB,targets,1.0361588208915566,0.1915636745156119,1.983
 00-0037256,Rachaad White,WAS,RB,rushing_tds,0.42985069458785785,0.20610838726143166,0.6495546955904201,veteran_model,False,,False,2026,True,ACT,2.0,committee,curated
 00-0037256,Rachaad White,WAS,RB,rushing_yards,62.653865534966336,46.13776345690178,83.0594951888306,veteran_model,False,,False,2026,True,ACT,2.0,committee,curated
 00-0037256,Rachaad White,WAS,RB,targets,4.450066369765197,3.463241637867174,5.634298584725976,veteran_model,False,,False,2026,True,ACT,2.0,committee,curated
-00-0037267,Jerome Ford,WAS,RB,carries,0.7966187677972013,0.21673601525844546,1.3931130045763187,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037267,Jerome Ford,WAS,RB,receiving_tds,0.01370066586980456,0.0038089028690233406,0.03076881919240096,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037267,Jerome Ford,WAS,RB,receiving_yards,2.9282095733306397,1.7716589356555739,4.154425625996664,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037267,Jerome Ford,WAS,RB,receptions,0.39630508188437596,0.2649696413071479,0.5771289921135117,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037267,Jerome Ford,WAS,RB,rushing_tds,0.017418629715437447,0.0,0.05037422986582179,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037267,Jerome Ford,WAS,RB,rushing_yards,3.25142542536033,0.7740101136506465,6.312269873439968,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037267,Jerome Ford,WAS,RB,targets,0.4860955050957696,0.3380717953110662,0.6637303373398865,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037267,Jerome Ford,WAS,RB,carries,0.5004147319565305,0.0,1.096908968735648,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037267,Jerome Ford,WAS,RB,receiving_tds,0.007832749062774596,0.0,0.02490090238537099,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037267,Jerome Ford,WAS,RB,receiving_yards,1.5946455363728047,0.4380948986977387,2.8208615890388296,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037267,Jerome Ford,WAS,RB,receptions,0.2468625693136309,0.11552712873640286,0.4276864795427665,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037267,Jerome Ford,WAS,RB,rushing_tds,0.014409858972176013,0.0,0.047365459122560356,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037267,Jerome Ford,WAS,RB,rushing_yards,2.85812691533341,0.3807116036237264,5.918971363413047,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037267,Jerome Ford,WAS,RB,targets,0.27130787178804194,0.12328416200333851,0.4489427040321588,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0040242,Jacory Croskey-Merritt,WAS,RB,carries,9.634196125030229,5.768311108105189,13.610824370224345,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0040242,Jacory Croskey-Merritt,WAS,RB,receiving_tds,0.012352618170234624,0.0,0.12614030698754392,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0040242,Jacory Croskey-Merritt,WAS,RB,receiving_yards,4.251838252856479,0.0,12.426611937296645,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -1815,10 +1815,10 @@ ALL532376,Kaytron Allen,WAS,RB,targets,1.2258323421402229,0.0,2.519474706901655,
 00-0041366,Jameson Geers,ARI,TE,receiving_yards,5.787744763793213,0.0,11.114667960727573,rookie_rule,True,udfa,False,2026,False,,,,rookie_path
 00-0041366,Jameson Geers,ARI,TE,receptions,0.5630370387151167,0.0,0.9392677149910624,rookie_rule,True,udfa,False,2026,False,,,,rookie_path
 00-0041366,Jameson Geers,ARI,TE,targets,0.963317370202946,0.6261784766607082,1.490901134906448,rookie_rule,True,udfa,False,2026,False,,,,rookie_path
-00-0032392,Austin Hooper,ATL,TE,receiving_tds,0.02542093101553126,0.002094671737677103,0.055514090109432764,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0032392,Austin Hooper,ATL,TE,receiving_yards,2.7678861249781685,1.2646991469067932,4.665542747137898,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0032392,Austin Hooper,ATL,TE,receptions,0.3104090103239511,0.17364307278167282,0.515173537971229,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0032392,Austin Hooper,ATL,TE,targets,0.41783538453277447,0.2586422584015628,0.6443163486573315,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032392,Austin Hooper,ATL,TE,receiving_tds,0.01571938129075839,0.0,0.04581254038465989,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032392,Austin Hooper,ATL,TE,receiving_yards,2.415677309960528,0.9124903318891526,4.313333932120257,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032392,Austin Hooper,ATL,TE,receptions,0.2766276076856551,0.13986167014337683,0.481392135332933,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0032392,Austin Hooper,ATL,TE,targets,0.3722341066046904,0.21304098047347872,0.5987150707292475,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036429,Charlie Woerner,ATL,TE,receiving_tds,0.07617080369844631,0.0,0.27679186432445635,veteran_model,False,,False,2026,False,ACT,2.0,backup,curated
 00-0036429,Charlie Woerner,ATL,TE,receiving_yards,11.064238848052383,1.0429923275765471,23.71528299578391,veteran_model,False,,False,2026,False,ACT,2.0,backup,curated
 00-0036429,Charlie Woerner,ATL,TE,receptions,1.4232521298805647,0.5114792129320431,2.7883489808624176,veteran_model,False,,False,2026,False,ACT,2.0,backup,curated
@@ -1838,7 +1838,7 @@ ALL532376,Kaytron Allen,WAS,RB,targets,1.2258323421402229,0.0,2.519474706901655,
 00-0034798,Durham Smythe,BAL,TE,receiving_tds,0.0707026482018182,0.0,0.2713237088278282,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0034798,Durham Smythe,BAL,TE,receiving_yards,5.9140531617714505,0.0,18.565097309502974,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0034798,Durham Smythe,BAL,TE,receptions,0.9707281697568411,0.05895525280831948,2.335825020738694,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0034798,Durham Smythe,BAL,TE,targets,1.560088177733794,0.49880067019238283,3.0699612718975073,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0034798,Durham Smythe,BAL,TE,targets,1.5210609895833698,0.45977348204195856,3.0309340837470833,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 CUE040912,Josh Cuevas,BAL,TE,receiving_tds,0.09629484976269992,0.0,0.21765493587002246,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 CUE040912,Josh Cuevas,BAL,TE,receiving_yards,13.867539040592295,4.768783963775163,25.840279435585284,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 CUE040912,Josh Cuevas,BAL,TE,receptions,1.321927282117066,0.6219222183958182,2.1654882062215837,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
@@ -1868,7 +1868,7 @@ HIB564972,Matthew Hibner,BAL,TE,targets,1.857763541804623,0.8616994592231215,3.2
 00-0040363,Keleki Latu,BUF,TE,receptions,0.18024893878413376,0.04348300124185551,0.38501346643141166,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0040363,Keleki Latu,BUF,TE,targets,0.24489665253891071,0.08570352640769903,0.4713776166634678,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0036825,Feleipe Franks,CAR,TE,receiving_tds,0.006785158632798374,0.0,0.036878317726699875,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036825,Feleipe Franks,CAR,TE,receiving_yards,1.2367399080101131,0.0,3.1343965301698415,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036825,Feleipe Franks,CAR,TE,receiving_yards,1.351721180505717,0.0,3.2493778026654456,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036825,Feleipe Franks,CAR,TE,receptions,0.17448266877017815,0.03771673122789991,0.3792471964174561,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036825,Feleipe Franks,CAR,TE,targets,0.23418147790467836,0.07498835177346667,0.46066244202923534,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037005,Tommy Tremble,CAR,TE,receiving_tds,0.11023575090576469,0.0,0.3108568115317747,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -2000,9 +2000,9 @@ JOL735174,Justin Joly,DEN,TE,targets,0.7437957806082807,0.34500000000000003,1.28
 00-0034073,Ross Dwelley,DET,TE,receptions,0.18780490406283012,0.051038966520551884,0.39256943171010805,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0034073,Ross Dwelley,DET,TE,targets,0.24989432590059296,0.09070119976938128,0.47637529002515,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0034270,Tyler Conklin,DET,TE,receiving_tds,0.007228679278446445,0.0,0.03732183837234795,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0034270,Tyler Conklin,DET,TE,receiving_yards,1.5294379882585487,0.026251010187173216,3.4270946104182767,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0034270,Tyler Conklin,DET,TE,receptions,0.19122089959203792,0.05445496204975968,0.39598542723931585,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0034270,Tyler Conklin,DET,TE,targets,0.2504977952260709,0.09130466909485925,0.4769787593506279,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0034270,Tyler Conklin,DET,TE,receiving_yards,1.5226916555577226,0.019504677486347165,3.4203482777174514,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0034270,Tyler Conklin,DET,TE,receptions,0.18943977702303502,0.05267383948075679,0.3942043046703129,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0034270,Tyler Conklin,DET,TE,targets,0.24405202631735354,0.08485890018614185,0.47053299044191055,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0035956,Giovanni Ricci,DET,TE,receiving_tds,0.01308426575462973,0.0,0.04317742484853123,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0035956,Giovanni Ricci,DET,TE,receiving_yards,1.4990977908094503,0.0,3.396754412969179,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0035956,Giovanni Ricci,DET,TE,receptions,0.18955318358025808,0.05278724603797985,0.39431771122753606,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
@@ -2151,10 +2151,10 @@ KLA269938,Max Klare,LA,TE,receiving_tds,0.047548517957413224,0.0,0.1125000000000
 KLA269938,Max Klare,LA,TE,receiving_yards,5.715868709243888,1.5999999999999999,10.649999999999999,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 KLA269938,Max Klare,LA,TE,receptions,0.5452903934898196,0.2181818181818182,0.99,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 KLA269938,Max Klare,LA,TE,targets,0.8247112267216283,0.37499999999999994,1.48125,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
-00-0033885,David Njoku,LAC,TE,receiving_tds,0.10474813259043235,0.0,0.30536919321644235,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0033885,David Njoku,LAC,TE,receiving_yards,26.573138755645967,16.55189223517013,39.22418290337749,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0033885,David Njoku,LAC,TE,receptions,3.0046582347622195,2.092885317813698,4.369755085744073,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0033885,David Njoku,LAC,TE,targets,4.384901837637333,3.3236143300959218,5.894774931801047,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0033885,David Njoku,LAC,TE,receiving_tds,0.11683077498545186,0.0,0.31745183561146184,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0033885,David Njoku,LAC,TE,receiving_yards,21.894907552670198,11.873661032194361,34.54595170040172,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0033885,David Njoku,LAC,TE,receptions,2.193898192675826,1.2821252757273043,3.5589950436576787,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0033885,David Njoku,LAC,TE,targets,3.1720152263034787,2.1107277187620674,4.681888320467192,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0034159,Will Dissly,LAC,TE,receiving_tds,0.009151230534913174,0.0,0.03924438962881468,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0034159,Will Dissly,LAC,TE,receiving_yards,1.371473277239239,0.0,3.2691298993989677,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0034159,Will Dissly,LAC,TE,receptions,0.18039746891046457,0.04363153136818635,0.3851619965577425,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
@@ -2163,10 +2163,10 @@ KLA269938,Max Klare,LA,TE,targets,0.8247112267216283,0.37499999999999994,1.48125
 00-0037654,Tucker Fisk,LAC,TE,receiving_yards,1.0912028270434457,0.0,2.9888594492031744,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0037654,Tucker Fisk,LAC,TE,receptions,0.16214781646519508,0.025381878922916854,0.36691234411247303,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0037654,Tucker Fisk,LAC,TE,targets,0.2224157371039094,0.06322261097269774,0.4488967012284664,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
-00-0038046,Charlie Kolar,LAC,TE,receiving_tds,0.013536123318650497,0.0,0.04362928241255199,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038046,Charlie Kolar,LAC,TE,receiving_yards,2.145141468906077,0.6419544908347012,4.042798091065805,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038046,Charlie Kolar,LAC,TE,receptions,0.21690125564029997,0.08013531809802173,0.42166578328757787,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038046,Charlie Kolar,LAC,TE,targets,0.32553353290407133,0.16634040677285966,0.5520144970286284,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038046,Charlie Kolar,LAC,TE,receiving_tds,0.012264872996755456,0.0,0.04235803209065696,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038046,Charlie Kolar,LAC,TE,receiving_yards,1.9444402327053139,0.44125325463393855,3.8420968548650425,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038046,Charlie Kolar,LAC,TE,receptions,0.21671482681518622,0.07994888927290798,0.4214793544624641,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038046,Charlie Kolar,LAC,TE,targets,0.29375956893566946,0.13456644280445776,0.5202405330602264,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0040189,Oronde Gadsden II,LAC,TE,receiving_tds,0.09221254236761504,0.0,0.29283360299362504,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0040189,Oronde Gadsden II,LAC,TE,receiving_yards,29.254232704356056,19.23298618388022,41.90527685208758,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0040189,Oronde Gadsden II,LAC,TE,receptions,2.906140419700375,1.9943675027518535,4.271237270682228,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -2211,10 +2211,10 @@ KLA269938,Max Klare,LA,TE,targets,0.8247112267216283,0.37499999999999994,1.48125
 00-0037252,Greg Dulcich,MIA,TE,receiving_yards,19.47770506593032,9.456458545454483,32.12874921366184,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0037252,Greg Dulcich,MIA,TE,receptions,1.9819115204631976,1.070138603514676,3.3470083714450505,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0037252,Greg Dulcich,MIA,TE,targets,2.7169779223778976,1.6556904148364864,4.226851016541611,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
-00-0038809,Ben Sims,MIA,TE,receiving_tds,0.10934350208569549,0.0,0.30996456271170547,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038809,Ben Sims,MIA,TE,receiving_yards,13.14548218967518,3.1242356691993436,25.796526337406704,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038809,Ben Sims,MIA,TE,receptions,1.2600698242045014,0.34829690725597984,2.625166675186354,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038809,Ben Sims,MIA,TE,targets,1.7335572419321503,0.6722697343907391,3.243430336095864,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038809,Ben Sims,MIA,TE,receiving_tds,0.09391570226819378,0.0,0.2945367628942038,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038809,Ben Sims,MIA,TE,receiving_yards,10.6409656550597,0.619719134583864,23.292009802791224,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038809,Ben Sims,MIA,TE,receptions,1.1640017284762314,0.2522288115277098,2.5290985794580845,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038809,Ben Sims,MIA,TE,targets,1.569472797349655,0.5081852898082437,3.0793458915133685,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 KAC282861,Will Kacmarek,MIA,TE,receiving_tds,0.21622705937892522,0.0,0.5115941616080703,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 KAC282861,Will Kacmarek,MIA,TE,receiving_yards,25.99293386815493,7.276005853981443,48.43091396556398,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 KAC282861,Will Kacmarek,MIA,TE,receptions,2.4797100594698573,0.992182616452015,4.502028622151018,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
@@ -2244,9 +2244,9 @@ BRE060106,Max Bredeson,MIN,TE,targets,0.8840174696740151,0.41004000693324155,1.5
 00-0033090,Hunter Henry,NE,TE,receptions,3.964440626668745,3.0526677097202235,5.329537477650598,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0033090,Hunter Henry,NE,TE,targets,5.318189412351562,4.256901904810151,6.828062506515275,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0038720,Julian Hill,NE,TE,receiving_tds,0.017807335392625984,0.0,0.04790049448652749,veteran_model,True,,False,2026,True,RES,,deep_bench,deep_bench_discounted
-00-0038720,Julian Hill,NE,TE,receiving_yards,2.5322477746160423,1.029060796544667,4.429904396775771,veteran_model,True,,False,2026,True,RES,,deep_bench,deep_bench_discounted
-00-0038720,Julian Hill,NE,TE,receptions,0.24419816823085427,0.10743223068857605,0.44896269587813215,veteran_model,True,,False,2026,True,RES,,deep_bench,deep_bench_discounted
-00-0038720,Julian Hill,NE,TE,targets,0.3504987295874991,0.19130560345628742,0.5769796937120562,veteran_model,True,,False,2026,True,RES,,deep_bench,deep_bench_discounted
+00-0038720,Julian Hill,NE,TE,receiving_yards,2.335692147668131,0.8325051695967556,4.23334876982786,veteran_model,True,,False,2026,True,RES,,deep_bench,deep_bench_discounted
+00-0038720,Julian Hill,NE,TE,receptions,0.23096557706301388,0.09419963952073564,0.4357301047102918,veteran_model,True,,False,2026,True,RES,,deep_bench,deep_bench_discounted
+00-0038720,Julian Hill,NE,TE,targets,0.32619163669518547,0.1669985105639738,0.5526726008197425,veteran_model,True,,False,2026,True,RES,,deep_bench,deep_bench_discounted
 00-0039305,Jack Westover,NE,TE,receiving_tds,0.00810062322041844,0.0,0.03819378231431994,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039305,Jack Westover,NE,TE,receiving_yards,1.2200206774596045,0.0,3.117677299619333,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039305,Jack Westover,NE,TE,receptions,0.17582097407578526,0.03905503653350701,0.38058550172306316,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -2287,10 +2287,10 @@ RAR148318,Eli Raridon,NE,TE,targets,1.9567844052387176,0.8897588976464882,3.5145
 00-0031484,Chris Manhertz,NYG,TE,receiving_yards,1.4595735105733592,0.0,3.357230132733088,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0031484,Chris Manhertz,NYG,TE,receptions,0.18147920546215734,0.044713267919879104,0.38624373310943527,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0031484,Chris Manhertz,NYG,TE,targets,0.25506814029596386,0.09587501416475216,0.48154910442052085,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
-00-0037348,Tanner Conner,NYG,TE,receiving_tds,0.015261645075854147,0.0,0.045354804169755646,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037348,Tanner Conner,NYG,TE,receiving_yards,2.153415799015546,0.6502288209441708,4.051072421175275,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037348,Tanner Conner,NYG,TE,receptions,0.24087213575756294,0.10410619821528472,0.4456366634048408,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037348,Tanner Conner,NYG,TE,targets,0.3574467057227167,0.19825357959150502,0.5839276698472737,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037348,Tanner Conner,NYG,TE,receiving_tds,0.013990394753959101,0.0,0.0440835538478606,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037348,Tanner Conner,NYG,TE,receiving_yards,1.9572803596925092,0.4540933816211339,3.8549369818522377,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037348,Tanner Conner,NYG,TE,receptions,0.2299076484369021,0.09314171089462388,0.4346721760841801,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037348,Tanner Conner,NYG,TE,targets,0.33025645849072943,0.17106333235951773,0.5567374226152865,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037838,Isaiah Likely,NYG,TE,receiving_tds,0.14583255774794715,0.0,0.34645361837395716,veteran_model,False,,False,2026,True,ACT,1.0,starter,curated
 00-0037838,Isaiah Likely,NYG,TE,receiving_yards,30.000040175002525,19.97879365452669,42.65108432273405,veteran_model,False,,False,2026,True,ACT,1.0,starter,curated
 00-0037838,Isaiah Likely,NYG,TE,receptions,3.311663426804173,2.3998905098556516,4.676760277786026,veteran_model,False,,False,2026,True,ACT,1.0,starter,curated
@@ -2319,10 +2319,10 @@ SAD482340,Kenyon Sadiq,NYJ,TE,receiving_tds,0.14468291482175064,0.06635319109314
 SAD482340,Kenyon Sadiq,NYJ,TE,receiving_yards,24.67871493219428,14.406936616099985,36.04149215024343,rookie_rule,True,drafted,True,2026,False,,,,rookie_path
 SAD482340,Kenyon Sadiq,NYJ,TE,receptions,2.0697183648740625,1.194357439676683,2.7246279092624324,rookie_rule,True,drafted,True,2026,False,,,,rookie_path
 SAD482340,Kenyon Sadiq,NYJ,TE,targets,3.2065977963036785,1.7915361595150243,4.578370185427284,rookie_rule,True,drafted,True,2026,False,,,,rookie_path
-00-0033246,Johnny Mundt,PHI,TE,receiving_tds,0.07073278334696416,0.0,0.2713538439729742,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0033246,Johnny Mundt,PHI,TE,receiving_yards,18.579542818767187,8.558296298291351,31.230586966498713,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0033246,Johnny Mundt,PHI,TE,receptions,2.018891621679467,1.1071187047309454,3.38398847266132,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0033246,Johnny Mundt,PHI,TE,targets,2.521533606959264,1.4602460994178528,4.031406701122977,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0033246,Johnny Mundt,PHI,TE,receiving_tds,0.05948926499352622,0.0,0.26011032561953623,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0033246,Johnny Mundt,PHI,TE,receiving_yards,11.14496982000391,1.1237232995280735,23.796013967735433,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0033246,Johnny Mundt,PHI,TE,receptions,1.5515245748816244,0.6397516579331028,2.916621425863477,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0033246,Johnny Mundt,PHI,TE,targets,1.9986124629531814,0.9373249554117702,3.508485557116895,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0034351,Dallas Goedert,PHI,TE,receiving_tds,0.3169420356393787,0.16143364045368433,0.5175630962653888,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0034351,Dallas Goedert,PHI,TE,receiving_yards,42.78679104226883,32.765544521793,55.43783519000036,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0034351,Dallas Goedert,PHI,TE,receptions,4.225560984190906,3.3137880672423847,5.59065783517276,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -2332,9 +2332,9 @@ SAD482340,Kenyon Sadiq,NYJ,TE,targets,3.2065977963036785,1.7915361595150243,4.57
 00-0037086,Grant Calcaterra,PHI,TE,receptions,0.2261334952508376,0.08936755770855936,0.43089802289811546,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0037086,Grant Calcaterra,PHI,TE,targets,0.32370718713455454,0.16451406100334287,0.5501881512591116,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0037475,Stone Smartt,PHI,TE,receiving_tds,0.008103554475221073,0.0,0.038196713569122576,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037475,Stone Smartt,PHI,TE,receiving_yards,1.6610112866415443,0.15782430857016896,3.5586679088012727,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037475,Stone Smartt,PHI,TE,receptions,0.20585166963367882,0.06908573209140058,0.4106161972809567,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037475,Stone Smartt,PHI,TE,targets,0.2903621582596883,0.13116903212847664,0.5168431223842453,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037475,Stone Smartt,PHI,TE,receiving_yards,1.5603228382247118,0.057135860153336354,3.4579794603844403,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037475,Stone Smartt,PHI,TE,receptions,0.1976697077215171,0.060903770179238856,0.40243423536879497,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037475,Stone Smartt,PHI,TE,targets,0.2584536745895294,0.09926054845831772,0.4849346387140864,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0040927,Dae'Quan Wright,PHI,TE,receiving_tds,0.06014677403690731,0.0,0.2366159635689347,rookie_rule,True,udfa,False,2026,False,,,,rookie_path
 00-0040927,Dae'Quan Wright,PHI,TE,receiving_yards,10.35962857654809,0.0,19.894421147440696,rookie_rule,True,udfa,False,2026,False,,,,rookie_path
 00-0040927,Dae'Quan Wright,PHI,TE,receptions,1.0077940258210971,0.0,1.6812186885161153,rookie_rule,True,udfa,False,2026,False,,,,rookie_path
@@ -2343,7 +2343,7 @@ STO806346,Eli Stowers,PHI,TE,receiving_tds,0.1539600440955268,0.0,0.364270133009
 STO806346,Eli Stowers,PHI,TE,receiving_yards,18.50773559982702,5.180730780578136,34.48423925822321,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 STO806346,Eli Stowers,PHI,TE,receptions,1.7656267036914197,0.7064632882606549,3.205577170482721,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 STO806346,Eli Stowers,PHI,TE,targets,2.6703792733531833,1.2142337766980005,4.796223417957102,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
-00-0033757,Robert Tonyan,PIT,TE,receiving_tds,0.0036142567446307483,0.0,0.03370741583853225,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033757,Robert Tonyan,PIT,TE,receiving_tds,0.00400968553158913,0.0,0.03410284462549063,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0033757,Robert Tonyan,PIT,TE,receiving_yards,1.1349931093844683,0.0,3.0326497315441965,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0033757,Robert Tonyan,PIT,TE,receptions,0.16031372218307435,0.02354778464079612,0.36507824983035225,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0033757,Robert Tonyan,PIT,TE,targets,0.2451341868141033,0.0859410606828916,0.47161515093866035,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
@@ -2431,14 +2431,14 @@ SHA375359,Bauer Sharp,TB,TE,receiving_tds,0.1041295809854004,0.0,0.2353637533824
 SHA375359,Bauer Sharp,TB,TE,receiving_yards,14.99582826240519,5.156781252387944,27.942693475341184,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 SHA375359,Bauer Sharp,TB,TE,receptions,1.4294817876473707,0.6725229871239945,2.3416764250461974,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 SHA375359,Bauer Sharp,TB,TE,targets,2.0089146995377676,0.9318089580633658,3.4737374945939887,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
-00-0036876,Kylen Granson,TEN,TE,receiving_tds,0.008638754126546903,0.0,0.03873191322044841,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036876,Kylen Granson,TEN,TE,receiving_yards,1.816267732649215,0.31308075457783957,3.7139243548089436,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036876,Kylen Granson,TEN,TE,receptions,0.18933049179598516,0.05256455425370693,0.39409501944326314,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036876,Kylen Granson,TEN,TE,targets,0.28126565709823886,0.12207253096702719,0.5077466212227959,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038115,Daniel Bellinger,TEN,TE,receiving_tds,0.12689702988474308,0.0,0.3275180905107531,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038115,Daniel Bellinger,TEN,TE,receiving_yards,19.343977838343445,9.322731317867609,31.995021986074967,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038115,Daniel Bellinger,TEN,TE,receptions,2.052417629378683,1.1406447124301615,3.417514480360536,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
-00-0038115,Daniel Bellinger,TEN,TE,targets,2.7746144846620022,1.713326977120591,4.284487578825716,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0036876,Kylen Granson,TEN,TE,receiving_tds,0.009256903095411995,0.0,0.039350062189313494,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036876,Kylen Granson,TEN,TE,receiving_yards,1.6671012121137776,0.16391423404240227,3.564757834273506,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036876,Kylen Granson,TEN,TE,receptions,0.17899214529910554,0.04222620775682729,0.3837566729463835,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036876,Kylen Granson,TEN,TE,targets,0.24935717342807995,0.09016404729686828,0.47583813755263693,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038115,Daniel Bellinger,TEN,TE,receiving_tds,0.1067709736044925,0.0,0.30739203423050254,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038115,Daniel Bellinger,TEN,TE,receiving_yards,18.56364736320466,8.542400842728822,31.214691510936184,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038115,Daniel Bellinger,TEN,TE,receptions,1.8646073293871328,0.9528344124386112,3.2297041803689854,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
+00-0038115,Daniel Bellinger,TEN,TE,targets,2.6586743260314947,1.5973868184900835,4.168547420195209,veteran_model,False,,False,2026,True,ACT,2.0,backup,curated
 00-0039648,David Martin-Robinson,TEN,TE,receiving_tds,0.010077084249136626,0.0,0.04017024334303813,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039648,David Martin-Robinson,TEN,TE,receiving_yards,1.5359643744992437,0.032777396427868234,3.433620996658972,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039648,David Martin-Robinson,TEN,TE,receptions,0.16942380708687252,0.03265786954459427,0.3741883347341504,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -2455,10 +2455,10 @@ KAN023071,Jaren Kanak,TEN,TE,targets,1.8644415689148417,0.8647969752525096,3.223
 00-0030061,Zach Ertz,WAS,TE,receiving_yards,5.071790120555019,3.568603142483644,6.969446742714748,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0030061,Zach Ertz,WAS,TE,receptions,0.4915991866750012,0.35483324913272296,0.6963637143222791,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0030061,Zach Ertz,WAS,TE,targets,0.6849261614658363,0.5257330353346246,0.9114071255903933,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
-00-0033455,Anthony Firkser,WAS,TE,receiving_tds,0.043272147835214755,0.019945888557360594,0.07336530692911625,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0033455,Anthony Firkser,WAS,TE,receiving_yards,3.487710337713901,1.9845233596425256,5.38536695987363,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0033455,Anthony Firkser,WAS,TE,receptions,0.3103182512377574,0.17355231369547922,0.5150827788850354,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0033455,Anthony Firkser,WAS,TE,targets,0.41635890380966495,0.2571657776784532,0.642839867934222,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033455,Anthony Firkser,WAS,TE,receiving_tds,0.012569711528794438,0.0,0.042662870622695935,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033455,Anthony Firkser,WAS,TE,receiving_yards,1.6203786206129853,0.11719164254161,3.5180352427727137,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033455,Anthony Firkser,WAS,TE,receptions,0.18760191527630607,0.050835977734027836,0.39236644292358397,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033455,Anthony Firkser,WAS,TE,targets,0.25821694805215467,0.09902382192094301,0.4846979121767117,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036628,John Bates,WAS,TE,receiving_tds,0.09216775450882086,0.0,0.2927888151348309,veteran_model,False,,False,2026,False,ACT,2.0,backup,curated
 00-0036628,John Bates,WAS,TE,receiving_yards,16.363249208632748,6.342002688156912,29.01429335636427,veteran_model,False,,False,2026,False,ACT,2.0,backup,curated
 00-0036628,John Bates,WAS,TE,receptions,1.828861802130059,0.9170888851815375,3.193958653111912,veteran_model,False,,False,2026,False,ACT,2.0,backup,curated
@@ -2663,9 +2663,9 @@ BEL597603,Skyler Bell,BUF,WR,targets,0.8292919543320613,0.3,1.5496153846153848,r
 00-0034983,Hunter Renfrow,CAR,WR,receiving_yards,2.906487726930936,0.14136837499168084,5.874784553753391,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0034983,Hunter Renfrow,CAR,WR,receptions,0.29273580797949805,0.07580574693825735,0.47174635515625496,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0034983,Hunter Renfrow,CAR,WR,targets,0.4810524334888155,0.21217491785488637,0.7329735992980059,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
-00-0037614,John Metchie III,CAR,WR,receiving_tds,0.019521169136103807,0.0,0.048020855869680364,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037614,John Metchie III,CAR,WR,receiving_yards,2.7274726573027768,0.0,5.695769484125232,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037614,John Metchie III,CAR,WR,receptions,0.26718075724352064,0.050250696202279954,0.44619130442027755,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037614,John Metchie III,CAR,WR,receiving_tds,0.01911906908250281,0.0,0.047618755816079376,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037614,John Metchie III,CAR,WR,receiving_yards,2.858670289147087,0.09355093720783163,5.826967115969542,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037614,John Metchie III,CAR,WR,receptions,0.2639572357394233,0.047027174698182614,0.44296778291618016,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037614,John Metchie III,CAR,WR,targets,0.4052315168968242,0.13635400126289507,0.6571526827060146,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0038840,Brycen Tremayne,CAR,WR,receiving_tds,0.015766781313986105,0.0,0.044266468047562665,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0038840,Brycen Tremayne,CAR,WR,receiving_yards,2.2332291070015162,0.0,5.201525933823972,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -2704,9 +2704,9 @@ BRA836631,Chris Brazzell II,CAR,WR,targets,1.730380193529712,0.7032874515691239,
 00-0032464,Kalif Raymond,CHI,WR,receptions,1.8086288946533156,0.36242848771171077,3.0020325424983616,veteran_model,False,,False,2026,True,ACT,3.0,starter,curated
 00-0032464,Kalif Raymond,CHI,WR,targets,2.812724084025857,1.0202073131329963,4.492198522753793,veteran_model,False,,False,2026,True,ACT,3.0,starter,curated
 00-0035298,Scott Miller,CHI,WR,receiving_tds,0.010962579513109819,0.0,0.03946226624668638,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035298,Scott Miller,CHI,WR,receiving_yards,2.7479456132654385,0.0,5.716242440087894,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035298,Scott Miller,CHI,WR,receptions,0.28875034330805094,0.07182028226681024,0.4677608904848078,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035298,Scott Miller,CHI,WR,targets,0.4153207712890707,0.14644325565514157,0.6672419370982611,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035298,Scott Miller,CHI,WR,receiving_yards,2.6421753361804123,0.0,5.610472163002869,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035298,Scott Miller,CHI,WR,receptions,0.23695243540463612,0.020022374363395424,0.415962982581393,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035298,Scott Miller,CHI,WR,targets,0.3520842227766012,0.08320670714267205,0.6040053885857916,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0039919,Rome Odunze,CHI,WR,receiving_tds,0.33791782192270975,0.16439823379244706,0.5279157334798869,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0039919,Rome Odunze,CHI,WR,receiving_yards,60.958903157840176,42.5247741449118,80.74754866998988,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0039919,Rome Odunze,CHI,WR,receptions,4.274100153735419,2.827899746793814,5.467503801580465,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
@@ -2903,10 +2903,10 @@ SMI038569,Anthony Smith,DAL,WR,targets,0.8292919543320613,0.3,1.5496153846153848
 00-0034418,Cedrick Wilson Jr.,DET,WR,receiving_yards,2.090999570048274,0.0,5.059296396870729,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0034418,Cedrick Wilson Jr.,DET,WR,receptions,0.20378706643598019,0.0,0.38279761361273706,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0034418,Cedrick Wilson Jr.,DET,WR,targets,0.3734298488679182,0.10455233323398906,0.6253510146771085,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035500,Greg Dortch,DET,WR,receiving_tds,0.013050025785977285,0.0,0.041549712519553854,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035500,Greg Dortch,DET,WR,receiving_tds,0.011389303840114344,0.0,0.03988899057369091,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0035500,Greg Dortch,DET,WR,receiving_yards,1.7688584309250894,0.0,4.737155257747545,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035500,Greg Dortch,DET,WR,receptions,0.20703984100536835,0.0,0.3860503881821252,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035500,Greg Dortch,DET,WR,targets,0.3541065662242181,0.08522905059028899,0.6060277320334084,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035500,Greg Dortch,DET,WR,receptions,0.20161485694271716,0.0,0.38062540411947404,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035500,Greg Dortch,DET,WR,targets,0.3484024587277141,0.07952494309378495,0.6003236245369045,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0035544,Tom Kennedy,DET,WR,receiving_tds,0.003155661619885741,0.0,0.03165534835346231,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0035544,Tom Kennedy,DET,WR,receiving_yards,1.9620482116520919,0.0,4.930345038474547,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0035544,Tom Kennedy,DET,WR,receptions,0.18424195440161215,0.0,0.363252501578369,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -2939,7 +2939,7 @@ LAW090280,Kendrick Law,DET,WR,targets,1.2241693553324389,0.44284863090891485,2.2
 00-0037091,Bo Melton,GB,WR,receiving_yards,1.8900401640360767,0.0,4.858336990858532,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0037091,Bo Melton,GB,WR,receptions,0.18628081949896438,0.0,0.36529136667572126,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0037091,Bo Melton,GB,WR,targets,0.28791889801330145,0.019041382379372338,0.5398400638224918,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
-00-0038090,Skyy Moore,GB,WR,receiving_tds,0.006401013570199726,0.0,0.03490070030377629,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038090,Skyy Moore,GB,WR,receiving_tds,0.012333579696591357,0.0,0.04083326643016792,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0038090,Skyy Moore,GB,WR,receiving_yards,2.0637958685473405,0.0,5.032092695369796,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0038090,Skyy Moore,GB,WR,receptions,0.18628081949896438,0.0,0.36529136667572126,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0038090,Skyy Moore,GB,WR,targets,0.28791889801330145,0.019041382379372338,0.5398400638224918,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
@@ -3011,10 +3011,10 @@ BON235618,Lewis Bond,HOU,WR,targets,1.531590263259391,0.5540594920493291,2.86193
 00-0035021,Ashton Dulin,IND,WR,receiving_yards,13.343399567331847,0.0,33.13204507948155,veteran_model,False,,False,2026,False,ACT,3.0,starter,curated
 00-0035021,Ashton Dulin,IND,WR,receptions,1.468212201573191,0.022011794631586312,2.661615849418237,veteran_model,False,,False,2026,False,ACT,3.0,starter,curated
 00-0035021,Ashton Dulin,IND,WR,targets,2.5233203913034656,0.7308036204106048,4.202794830031402,veteran_model,False,,False,2026,False,ACT,3.0,starter,curated
-00-0036182,Nick Westbrook-Ikhine,IND,WR,receiving_tds,0.023284119381979607,0.0,0.05178380611555617,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036182,Nick Westbrook-Ikhine,IND,WR,receiving_tds,0.019354548909233573,0.0,0.04785423564281013,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036182,Nick Westbrook-Ikhine,IND,WR,receiving_yards,2.921218554349935,0.15609920241067954,5.88951538117239,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036182,Nick Westbrook-Ikhine,IND,WR,receptions,0.2763168598357671,0.05938679879452638,0.45532740701252394,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036182,Nick Westbrook-Ikhine,IND,WR,targets,0.4466428100635926,0.17776529442966346,0.698563975872783,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036182,Nick Westbrook-Ikhine,IND,WR,targets,0.4498715647939722,0.18099404916004308,0.7017927306031625,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037664,Alec Pierce,IND,WR,receiving_tds,0.2488585699390904,0.0753389818088277,0.4388564814962675,veteran_model,False,,False,2026,False,ACT,2.0,starter,curated
 00-0037664,Alec Pierce,IND,WR,receiving_yards,35.851850416933026,17.417721404004656,55.64049592908273,veteran_model,False,,False,2026,False,ACT,2.0,starter,curated
 00-0037664,Alec Pierce,IND,WR,receptions,2.6282477735959966,1.1820473666543918,3.821651421441042,veteran_model,False,,False,2026,False,ACT,2.0,starter,curated
@@ -3263,10 +3263,10 @@ BEN601117,Malik Benson,LV,WR,targets,1.387675915372826,0.5019978457974449,2.5930
 00-0036620,Dee Eskridge,MIA,WR,receiving_yards,2.1028376272459806,0.0,5.071134454068436,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0036620,Dee Eskridge,MIA,WR,receptions,0.19923051566749092,0.0,0.3782410628442478,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0036620,Dee Eskridge,MIA,WR,targets,0.34218883165074854,0.07331131601681941,0.594109997459939,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
-00-0036849,Tutu Atwell,MIA,WR,receiving_tds,0.019302180091708834,0.0,0.0478018668252854,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036849,Tutu Atwell,MIA,WR,receiving_yards,3.712805617867768,0.9476862659285126,6.6811024446902225,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036849,Tutu Atwell,MIA,WR,receptions,0.3216519955005311,0.10472193445929037,0.5006625426772879,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036849,Tutu Atwell,MIA,WR,targets,0.5511292470002912,0.2822517313663621,0.8030504128094816,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036849,Tutu Atwell,MIA,WR,receiving_tds,0.008250453996751768,0.0,0.03675014073032833,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036849,Tutu Atwell,MIA,WR,receiving_yards,2.5624910156264185,0.0,5.530787842448874,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036849,Tutu Atwell,MIA,WR,receptions,0.21764294619466715,0.0007128851534264235,0.396653493371424,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036849,Tutu Atwell,MIA,WR,targets,0.36806781092991336,0.09919029529598423,0.6199889767391037,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037666,Jalen Tolbert,MIA,WR,receiving_tds,0.2412772887476979,0.06775770061743522,0.431275200304875,veteran_model,False,,False,2026,True,ACT,3.0,starter,curated
 00-0037666,Jalen Tolbert,MIA,WR,receiving_yards,35.72567969939121,17.291550686462838,55.51432521154091,veteran_model,False,,False,2026,True,ACT,3.0,starter,curated
 00-0037666,Jalen Tolbert,MIA,WR,receptions,2.4281219270637875,0.9819215201221827,3.6215255749088335,veteran_model,False,,False,2026,True,ACT,3.0,starter,curated
@@ -3439,14 +3439,14 @@ TYS405541,Jordyn Tyson,NO,WR,receiving_tds,0.1546566951798724,0.0,0.329511882032
 TYS405541,Jordyn Tyson,NO,WR,receiving_yards,25.981121055473125,9.18925207591815,39.5461451956809,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 TYS405541,Jordyn Tyson,NO,WR,receptions,1.9828879768637169,0.7286101242461042,2.858578782237193,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 TYS405541,Jordyn Tyson,NO,WR,targets,3.3138016267671153,1.7273790586059317,4.540016396128599,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
-00-0033857,JuJu Smith-Schuster,NYG,WR,receiving_tds,0.03674022774469404,0.010712289525154642,0.06523991447827061,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0033857,JuJu Smith-Schuster,NYG,WR,receiving_yards,5.392153979574907,2.6270346276356515,8.360450806397361,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0033857,JuJu Smith-Schuster,NYG,WR,receptions,0.3809153997647138,0.16398533872347307,0.5599259469414706,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0033857,JuJu Smith-Schuster,NYG,WR,targets,0.6448407211291863,0.37596320549525725,0.8967618869383767,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033857,JuJu Smith-Schuster,NYG,WR,receiving_tds,0.02361943470952252,0.0,0.05211912144309908,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033857,JuJu Smith-Schuster,NYG,WR,receiving_yards,4.319333588388629,1.5542142364493736,7.287630415211083,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033857,JuJu Smith-Schuster,NYG,WR,receptions,0.31850475599479905,0.10157469495355836,0.4975153031715559,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033857,JuJu Smith-Schuster,NYG,WR,targets,0.5481488984533481,0.279271382819419,0.8000700642625385,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0034419,Braxton Berrios,NYG,WR,receiving_tds,0.011825086857300817,0.0,0.040324773590877376,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0034419,Braxton Berrios,NYG,WR,receiving_yards,2.836782357736199,0.07166300579694358,5.805079184558655,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0034419,Braxton Berrios,NYG,WR,receptions,0.22632927509986409,0.009399214058623383,0.40533982227662096,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0034419,Braxton Berrios,NYG,WR,targets,0.38451662659532093,0.11563911096139182,0.6364377924045113,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0034419,Braxton Berrios,NYG,WR,receiving_yards,2.378377482899252,0.0,5.346674309721707,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0034419,Braxton Berrios,NYG,WR,receptions,0.20098721207041312,0.0,0.37999775924717,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0034419,Braxton Berrios,NYG,WR,targets,0.3435690267267433,0.07469151109281415,0.5954901925359336,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0035535,Darius Slayton,NYG,WR,receiving_tds,0.21129955845132092,0.03777997032105823,0.401297470008498,veteran_model,False,,False,2026,False,ACT,2.0,starter,curated
 00-0035535,Darius Slayton,NYG,WR,receiving_yards,35.59669214895856,17.16256313603019,55.38533766110827,veteran_model,False,,False,2026,False,ACT,2.0,starter,curated
 00-0035535,Darius Slayton,NYG,WR,receptions,2.2595648057335938,0.813364398791989,3.45296845357864,veteran_model,False,,False,2026,False,ACT,2.0,starter,curated
@@ -3459,10 +3459,10 @@ TYS405541,Jordyn Tyson,NO,WR,targets,3.3138016267671153,1.7273790586059317,4.540
 00-0036165,Isaiah Hodgins,NYG,WR,receiving_yards,4.381619673868331,1.6165003219290754,7.349916500690785,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0036165,Isaiah Hodgins,NYG,WR,receptions,0.3500779661262669,0.1331479050850262,0.5290885133030238,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0036165,Isaiah Hodgins,NYG,WR,targets,0.5623428929952798,0.2934653773613507,0.8142640588044702,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
-00-0036309,Darnell Mooney,NYG,WR,receiving_tds,0.048443569638990575,0.02241563141945117,0.07694325637256715,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036309,Darnell Mooney,NYG,WR,receiving_yards,8.267231985206804,5.50211263326755,11.23552881202926,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036309,Darnell Mooney,NYG,WR,receptions,0.6003631079205504,0.38343304687930957,0.7793736550973073,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036309,Darnell Mooney,NYG,WR,targets,0.9879862534872328,0.7191087378533038,1.2399074192964232,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036309,Darnell Mooney,NYG,WR,receiving_tds,0.03794577163217469,0.011917833412635286,0.06644545836575125,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036309,Darnell Mooney,NYG,WR,receiving_yards,5.726168129480915,2.96104877754166,8.69446495630337,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036309,Darnell Mooney,NYG,WR,receptions,0.4050178520957725,0.18808779105453183,0.5840283992725294,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036309,Darnell Mooney,NYG,WR,targets,0.7167670791655172,0.4478895635315881,0.9686882449747075,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037837,Calvin Austin III,NYG,WR,receiving_tds,0.21006627293744504,0.036546684807182345,0.4000641844946221,veteran_model,False,,False,2026,True,ACT,3.0,starter,curated
 00-0037837,Calvin Austin III,NYG,WR,receiving_yards,36.06832744492903,17.634198432000662,55.85697295707874,veteran_model,False,,False,2026,True,ACT,3.0,starter,curated
 00-0037837,Calvin Austin III,NYG,WR,receptions,2.478624307088573,1.0324239001469684,3.672027954933619,veteran_model,False,,False,2026,True,ACT,3.0,starter,curated
@@ -3470,11 +3470,11 @@ TYS405541,Jordyn Tyson,NO,WR,targets,3.3138016267671153,1.7273790586059317,4.540
 00-0038496,Xavier Gipson,NYG,WR,receiving_tds,0.007041021180068582,0.0,0.03554070791364515,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0038496,Xavier Gipson,NYG,WR,receiving_yards,2.0163464774276516,0.0,4.984643304250107,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0038496,Xavier Gipson,NYG,WR,receptions,0.2019353796720049,0.0,0.3809459268487618,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038496,Xavier Gipson,NYG,WR,targets,0.2987433294433716,0.029865813809442476,0.550664495252562,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038824,Ryan Miller,NYG,WR,receiving_tds,0.008900223637302335,0.0,0.0373999103708789,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038824,Ryan Miller,NYG,WR,receiving_yards,2.145297835823834,0.0,5.11359466264629,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038496,Xavier Gipson,NYG,WR,targets,0.2840342065414045,0.015156690907475366,0.5359553723505949,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038824,Ryan Miller,NYG,WR,receiving_tds,0.006721670866202568,0.0,0.03522135759977913,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038824,Ryan Miller,NYG,WR,receiving_yards,2.0163464774276516,0.0,4.984643304250107,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0038824,Ryan Miller,NYG,WR,receptions,0.2019353796720049,0.0,0.3809459268487618,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038824,Ryan Miller,NYG,WR,targets,0.3185628164052769,0.04968530077134775,0.5704839822144673,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038824,Ryan Miller,NYG,WR,targets,0.29467415617252607,0.025796640538596958,0.5465953219817165,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0038938,Jalin Hyatt,NYG,WR,receiving_tds,0.009719086894396977,0.0,0.03821877362797354,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0038938,Jalin Hyatt,NYG,WR,receiving_yards,2.816728475870955,0.051609123931699405,5.78502530269341,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0038938,Jalin Hyatt,NYG,WR,receptions,0.22632927509986409,0.009399214058623383,0.40533982227662096,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -3491,10 +3491,10 @@ FIE775129,Malachi Fields,NYG,WR,receiving_tds,0.188598611871153,0.0,0.4854180182
 FIE775129,Malachi Fields,NYG,WR,receiving_yards,29.522277685797423,8.563582872301318,54.77295112144958,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 FIE775129,Malachi Fields,NYG,WR,receptions,2.260410270038446,0.894798528781774,3.9508981536970698,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 FIE775129,Malachi Fields,NYG,WR,targets,3.7024248617219735,1.5047958566349031,6.094423219371358,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
-00-0033375,Tim Patrick,NYJ,WR,receiving_tds,0.024847508303976657,0.0,0.053347195037553224,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0033375,Tim Patrick,NYJ,WR,receiving_yards,3.029118002971031,0.2639986510317756,5.9974148297934855,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0033375,Tim Patrick,NYJ,WR,receptions,0.29823892878405445,0.08130886774281376,0.47724947596081135,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0033375,Tim Patrick,NYJ,WR,targets,0.45080253425377426,0.18192501861984514,0.7027237000629647,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033375,Tim Patrick,NYJ,WR,receiving_tds,0.01799721725371861,0.0,0.046496903987295175,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033375,Tim Patrick,NYJ,WR,receiving_yards,2.7751563716543775,0.010037019715122142,5.743453198476833,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033375,Tim Patrick,NYJ,WR,receptions,0.25491333619584067,0.037983275154599934,0.4339238833725975,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0033375,Tim Patrick,NYJ,WR,targets,0.39158859571108307,0.12271108007715395,0.6435097615202734,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0033943,Josh Reynolds,NYJ,WR,receiving_tds,0.021214330546321897,0.0,0.04971401727989846,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0033943,Josh Reynolds,NYJ,WR,receiving_yards,3.8667008678582024,1.1015815159189473,6.834997694680658,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0033943,Josh Reynolds,NYJ,WR,receptions,0.3392192062716735,0.12228914523043283,0.5182297534484305,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
@@ -3543,22 +3543,22 @@ COO816508,Omar Cooper Jr.,NYJ,WR,receiving_tds,0.2208556502008631,0.0,0.47055551
 COO816508,Omar Cooper Jr.,NYJ,WR,receiving_yards,37.10203025468907,13.122601900461794,56.473401296800226,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 COO816508,Omar Cooper Jr.,NYJ,WR,receptions,2.831639541349156,1.0404830036368669,4.082159358617607,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
 COO816508,Omar Cooper Jr.,NYJ,WR,targets,4.732234915954531,2.4667630760379637,6.483316302106359,rookie_rule,True,drafted,False,2026,False,,,,rookie_path
-00-0035662,Marquise Brown,PHI,WR,receiving_tds,0.04264995410064885,0.016622015881109443,0.07114964083422541,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035662,Marquise Brown,PHI,WR,receiving_yards,8.113474552836736,5.348355200897482,11.081771379659193,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035662,Marquise Brown,PHI,WR,receptions,0.6551911169722857,0.438261055931045,0.8342016641490426,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035662,Marquise Brown,PHI,WR,targets,1.0143962975223304,0.7455187818884013,1.2663174633315208,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035662,Marquise Brown,PHI,WR,receiving_tds,0.030959164577735364,0.004931226358195963,0.05945885131131193,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035662,Marquise Brown,PHI,WR,receiving_yards,4.831169612784676,2.066050260845421,7.799466439607131,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035662,Marquise Brown,PHI,WR,receptions,0.399193712018874,0.18226365097763328,0.5782042591956308,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035662,Marquise Brown,PHI,WR,targets,0.6122035318653621,0.34332601623143305,0.8641246976745525,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0036912,DeVonta Smith,PHI,WR,receiving_tds,0.3300192406519138,0.1564996525216511,0.5200171522090908,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0036912,DeVonta Smith,PHI,WR,receiving_yards,59.680435971712576,41.2463069587842,79.46908148386228,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0036912,DeVonta Smith,PHI,WR,receptions,4.862495247202224,3.416294840260619,6.05589889504727,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
 00-0036912,DeVonta Smith,PHI,WR,targets,7.585562408171753,5.793045637278892,9.265036846899688,veteran_model,False,,False,2026,False,ACT,1.0,starter,curated
-00-0036980,Elijah Moore,PHI,WR,receiving_tds,0.019197910496086185,0.0,0.04769759722966275,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036980,Elijah Moore,PHI,WR,receiving_yards,3.085463044607948,0.32034369266869245,6.053759871430404,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036980,Elijah Moore,PHI,WR,receptions,0.27860409091613936,0.061674029874898645,0.4576146380928962,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036980,Elijah Moore,PHI,WR,targets,0.45622719870264605,0.18734968306871697,0.7081483645118364,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037098,Samori Toure,PHI,WR,receiving_tds,0.01028900819514674,0.0,0.0387886949287233,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037098,Samori Toure,PHI,WR,receiving_yards,2.1882416296295824,0.0,5.156538456452038,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037098,Samori Toure,PHI,WR,receptions,0.23359002966155476,0.016659968620314047,0.41260057683831164,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0037098,Samori Toure,PHI,WR,targets,0.3887032853060001,0.119825769672071,0.6406244511151905,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036980,Elijah Moore,PHI,WR,receiving_tds,0.014161947094236498,0.0,0.042661633827813066,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036980,Elijah Moore,PHI,WR,receiving_yards,2.709006360748965,0.0,5.677303187571421,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036980,Elijah Moore,PHI,WR,receptions,0.2530252406004136,0.03609517955917289,0.4320357877771705,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036980,Elijah Moore,PHI,WR,targets,0.4146866445467306,0.14580912891280146,0.6666078103559209,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037098,Samori Toure,PHI,WR,receiving_tds,0.007662023038928304,0.0,0.036161709772504866,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037098,Samori Toure,PHI,WR,receiving_yards,2.107635550164273,0.0,5.075932376986728,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037098,Samori Toure,PHI,WR,receptions,0.21590791404793133,0.0,0.3949184612246882,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0037098,Samori Toure,PHI,WR,targets,0.35987459053215254,0.09099707489822341,0.6117957563413429,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037132,Britain Covey,PHI,WR,receiving_tds,0.014280277076921727,0.0,0.04277996381049829,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0037132,Britain Covey,PHI,WR,receiving_yards,2.107635550164273,0.0,5.075932376986728,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0037132,Britain Covey,PHI,WR,receptions,0.19864788756854793,0.0,0.37765843474530475,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -3675,10 +3675,10 @@ HEN199637,Emmanuel Henderson Jr.,SEA,WR,targets,0.8292919543320613,0.3,1.5496153
 00-0033921,Chris Godwin Jr.,TB,WR,receiving_yards,31.99226473056901,13.558135717640639,51.78091024271871,veteran_model,False,,False,2026,False,ACT,3.0,starter,curated
 00-0033921,Chris Godwin Jr.,TB,WR,receptions,2.397146079629576,0.9509456726879713,3.590549727474622,veteran_model,False,,False,2026,False,ACT,3.0,starter,curated
 00-0033921,Chris Godwin Jr.,TB,WR,targets,4.249056349140573,2.456539578247712,5.9285307878685085,veteran_model,False,,False,2026,False,ACT,3.0,starter,curated
-00-0035359,David Sills,TB,WR,receiving_tds,0.028848320743933797,0.002820382524394395,0.05734800747751036,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035359,David Sills,TB,WR,receiving_yards,4.908939864486992,2.143820512547737,7.877236691309447,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035359,David Sills,TB,WR,receptions,0.396288239496341,0.17935817845510027,0.5752987866730979,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0035359,David Sills,TB,WR,targets,0.6396404608069977,0.37076294517306857,0.891561626616188,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035359,David Sills,TB,WR,receiving_tds,0.026218094724457495,0.0001901565049180917,0.05471778145803406,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035359,David Sills,TB,WR,receiving_yards,3.933603129117958,1.1684837771787022,6.901899955940413,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035359,David Sills,TB,WR,receptions,0.27300540769439363,0.05607534665315293,0.45201595487115054,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0035359,David Sills,TB,WR,targets,0.5190790132972823,0.2502014976633532,0.7710001791064727,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0039589,Kameron Johnson,TB,WR,receiving_tds,0.016297562666017933,0.0,0.0447972493995945,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039589,Kameron Johnson,TB,WR,receiving_yards,2.4049764735049135,0.0,5.3732733003273685,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039589,Kameron Johnson,TB,WR,receptions,0.18341423052437864,0.0,0.3624247777011355,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -3719,10 +3719,10 @@ HUR541377,Ted Hurst,TB,WR,targets,3.328587867439484,1.3528553362831954,5.4790641
 00-0036176,Mason Kinsey,TEN,WR,receiving_yards,2.1796307717299035,0.0,5.147927598552358,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0036176,Mason Kinsey,TEN,WR,receptions,0.18740857116551032,0.0,0.3664191183422672,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0036176,Mason Kinsey,TEN,WR,targets,0.28126183616274375,0.012384320528814618,0.5331830019719341,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
-00-0038117,Wan'Dale Robinson,TEN,WR,receiving_tds,0.0713183423108855,0.04529040409134611,0.09981802904446209,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038117,Wan'Dale Robinson,TEN,WR,receiving_yards,9.426252182821523,6.661132830882267,12.394549009643978,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038117,Wan'Dale Robinson,TEN,WR,receptions,0.7890354092908831,0.5721053482496423,0.96804595646764,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0038117,Wan'Dale Robinson,TEN,WR,targets,1.265026863076239,0.9961493474423098,1.5169480288854293,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038117,Wan'Dale Robinson,TEN,WR,receiving_tds,0.052257369424023384,0.02622943120448398,0.08075705615759994,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038117,Wan'Dale Robinson,TEN,WR,receiving_yards,8.235598832735658,5.470479480796403,11.203895659558114,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038117,Wan'Dale Robinson,TEN,WR,receptions,0.701171223014951,0.48424116197371025,0.880181770191708,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0038117,Wan'Dale Robinson,TEN,WR,targets,1.0930210387656054,0.8241435231316764,1.3449422045747959,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0039650,Bryce Oliver,TEN,WR,receiving_tds,0.009545569854412664,0.0,0.038045256587989226,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039650,Bryce Oliver,TEN,WR,receiving_yards,1.5669460055392157,0.0,4.535242832361671,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
 00-0039650,Bryce Oliver,TEN,WR,receptions,0.11347635854294497,0.0,0.2924869057197018,veteran_model,True,,False,2026,False,ACT,,deep_bench,deep_bench_discounted
@@ -3771,14 +3771,14 @@ TAT143045,Carnell Tate,TEN,WR,targets,5.406128146030013,2.8180421157867435,7.406
 00-0035719,Deebo Samuel Sr.,WAS,WR,receiving_yards,62.08236945353591,43.64824044060754,81.87101496568562,veteran_model,False,,False,2026,False,,1.0,starter,curated
 00-0035719,Deebo Samuel Sr.,WAS,WR,receptions,4.773750832358677,3.327550425417072,5.967154480203723,veteran_model,False,,False,2026,False,,1.0,starter,curated
 00-0035719,Deebo Samuel Sr.,WAS,WR,targets,7.111514015215329,5.3189972443224685,8.790988453943266,veteran_model,False,,False,2026,False,,1.0,starter,curated
-00-0036415,Van Jefferson,WAS,WR,receiving_tds,0.052966617684351146,0.02693867946481174,0.08146630441792771,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036415,Van Jefferson,WAS,WR,receiving_yards,8.118627901186482,5.353508549247225,11.086924728008936,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036415,Van Jefferson,WAS,WR,receptions,0.600961538094107,0.3840314770528663,0.7799720852708639,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036415,Van Jefferson,WAS,WR,targets,0.9917129475079707,0.7228354318740416,1.2436341133171611,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036626,Dyami Brown,WAS,WR,receiving_tds,0.038361779946364034,0.012333841726824635,0.0668614666799406,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036626,Dyami Brown,WAS,WR,receiving_yards,6.4253093545354485,3.660190002596193,9.393606181357903,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036626,Dyami Brown,WAS,WR,receptions,0.5188582683874388,0.301928207346198,0.6978688155641956,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
-00-0036626,Dyami Brown,WAS,WR,targets,0.8721433341812453,0.6032658185473162,1.1240644999904357,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036415,Van Jefferson,WAS,WR,receiving_tds,0.02637633610154691,0.0003483978820075062,0.054876022835123474,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036415,Van Jefferson,WAS,WR,receiving_yards,4.326178231427177,1.5610588794879214,7.294475058249631,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036415,Van Jefferson,WAS,WR,receptions,0.3363678548920921,0.11943779385085136,0.515378402068849,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036415,Van Jefferson,WAS,WR,targets,0.5651133379360853,0.2962358223021562,0.8170345037452758,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036626,Dyami Brown,WAS,WR,receiving_tds,0.023244359525597055,0.0,0.051744046259173615,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036626,Dyami Brown,WAS,WR,receiving_yards,3.416346283982973,0.6512269320437175,6.3846431108054285,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036626,Dyami Brown,WAS,WR,receptions,0.26723095487815246,0.05030089383691174,0.4462415020549093,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
+00-0036626,Dyami Brown,WAS,WR,targets,0.44051729504206555,0.1716397794081364,0.6924384608512558,veteran_model,True,,False,2026,True,ACT,,deep_bench,deep_bench_discounted
 00-0037524,Tay Martin,WAS,WR,receiving_tds,0.009208042103103723,0.0,0.03770772883668029,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0037524,Tay Martin,WAS,WR,receiving_yards,2.0062798047007386,0.0,4.9745766315231945,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted
 00-0037524,Tay Martin,WAS,WR,receptions,0.19319158133436745,0.0,0.37220212851112433,veteran_model,True,,False,2026,False,,,deep_bench,deep_bench_discounted

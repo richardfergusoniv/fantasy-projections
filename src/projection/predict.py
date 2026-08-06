@@ -116,7 +116,17 @@ def load_target_roster_map(conn, target_season):
 TEAM_CONTEXT_COLS = ["ol_pass_protection_score", "ol_run_blocking_score", "ol_confidence_low_churn"] + OC_METRICS
 
 
-def reassign_team_changers(conn, df, target_season):
+# Roles the curated depth chart (Task 2) confirms as genuinely eligible to
+# absorb a NEW team's windfall opportunity (scale > 1.0). A player whose
+# curated role is 'backup', or who isn't in the curated table at all for
+# their new team, still gets the DOWNWARD half of the scale (a worse
+# situation than average should still reduce their projected share) but not
+# the upward half - see the bug this fixes in reassign_team_changers'
+# docstring.
+BOOST_ELIGIBLE_ROLES = {"starter", "committee"}
+
+
+def reassign_team_changers(conn, df, target_season, depth_chart):
     """Task 1 fix. For every player-row (source_season features), resolve
     the player's ACTUAL target_season team from seasonal_rosters and, for
     players who changed teams, re-point every team-dependent feature at the
@@ -164,6 +174,32 @@ def reassign_team_changers(conn, df, target_season):
     how a specific scheme will actually distribute it. That residual is a
     real, unaddressed source of error for every team-changer in this
     output, on top of whatever normal projection error already exists.
+
+    BUG FOUND AND FIXED (post-Phase-6, spot-checked while building fantasy
+    points): the scale above was originally applied uncapped to every
+    team-changer independently, with no check on whether another player
+    (the team's actual new starter) was already the one absorbing that
+    vacated opportunity. Concretely: Kenny Gainwell's own PIT carry_share
+    (0.28, a real committee share) times TB's vacated-carry scale (1.48x,
+    since Bucky Irving's team lost a lot of 2025 carries) produced an
+    implied 0.41 carry_share for a player the curated depth chart correctly
+    lists as TB's RB2 BEHIND Irving - bell-cow volume for a backup, because
+    the team's whole vacancy was being credited to every team-changer at
+    once instead of primarily to whoever the depth chart says is actually
+    stepping into it. Fixed: the UPWARD half of the scale (>1.0, i.e. "this
+    team has more room than average") is only applied to players the
+    curated depth chart (`depth_chart` param, Task 2's
+    src/depth_chart/starters_2026.csv) confirms as `role in {'starter',
+    'committee'}` for their new team+position - see BOOST_ELIGIBLE_ROLES.
+    Everyone else (confirmed 'backup', or not in the curated table for
+    their new team at all) still gets the DOWNWARD half of the scale (a
+    worse-than-average opportunity should still reduce their share) but is
+    capped at 1.0 on the upside, so a windfall at the team level can no
+    longer inflate a confirmed backup past their own established volume.
+    This only applies for target_season=2026 (the only season with a
+    curated table); for any other season, depth_chart is empty and every
+    team-changer gets the ORIGINAL uncapped scale (unchanged pre-fix
+    behavior) - there's no curated role signal to gate on outside 2026.
     snap_pct is scaled by the same carry/target scale as the position's
     primary opportunity type (RB->carry scale, WR/TE->target scale, QB->
     left unchanged, since starter-QB snap_pct is ~100% regardless of new
@@ -215,6 +251,17 @@ def reassign_team_changers(conn, df, target_season):
 
         carry_scale = (df["vacated_carry_share"] / league_avg_carry_vac).clip(*TEAM_CHANGE_SHARE_CLIP).fillna(1.0)
         target_scale = (df["vacated_target_share"] / league_avg_target_vac).clip(*TEAM_CHANGE_SHARE_CLIP).fillna(1.0)
+
+        if not depth_chart.empty:
+            role_lookup = depth_chart[["position", "gsis_id", "role"]].rename(columns={"gsis_id": "player_id"})
+            role_lookup = role_lookup.dropna(subset=["player_id"]).drop_duplicates(subset=["player_id", "position"])
+            df = df.merge(role_lookup, on=["player_id", "position"], how="left")
+        else:
+            df["role"] = None
+        boost_eligible = df["role"].isin(BOOST_ELIGIBLE_ROLES)
+        carry_scale = carry_scale.where(boost_eligible, carry_scale.clip(upper=1.0))
+        target_scale = target_scale.where(boost_eligible, target_scale.clip(upper=1.0))
+        df = df.drop(columns=["role"])
 
         for c in ["carry_share", "rz_carry_share"]:
             df.loc[changed, c] = (df.loc[changed, c] * carry_scale[changed]).clip(upper=1.0)
@@ -339,8 +386,10 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     (see previous paragraph: target_season's real rookies can't appear in
     source_season's features regardless), and was re-verified end-to-end
     after the fix (Jeanty now appears; see PHASE6_REPORT.md's spot-checks)."""
+    depth_chart = load_depth_chart(target_season)
+
     base = feat[(feat["season"] == source_season) & (feat["games_played"] > 0)]
-    base = reassign_team_changers(conn, base, target_season)
+    base = reassign_team_changers(conn, base, target_season, depth_chart)
 
     rows = []
     for position, stats in TARGET_STATS.items():
