@@ -378,18 +378,66 @@ correlation improved overall (0.863 -> 0.888) and specifically for QB
 (0.863 -> 0.912, mean abs delta 2.69 -> 2.16 - better than even the
 pre-rushing-addition baseline of 2.17).
 
-**Residual limitation, not fixed, worth knowing about**: the historical
-UDFA-QB bucket mean itself (~6.2 pts/game half-PPR, before any scaling) is
-likely still too high for a "typical" UDFA QB. `fit_rookie_baselines` only
-includes rookie-seasons with `games_played > 0`, and for a position where
-most UDFA/deep-round QBs get ZERO regular-season snaps in their entire
-career, that filter conditions the average on the rare ones who DID get
-real playing time (a Case Keenum-style outlier) - a survivorship-biased
-sample, not a representative one. This affects the "unscaled bucket mean"
-baseline itself (the thing both fixes above scale relative to), not the
-scaling logic - a genuinely harder fix (would need to model probability of
-even seeing the field, which no current feature captures) and is flagged
-for the user's decision rather than attempted here.
+## Addendum 3: rookie QB survivorship bias fixed via Sleeper play-probability
+
+The residual limitation flagged above (the UDFA-QB bucket mean itself is
+survivorship-biased, since `fit_rookie_baselines` only sees rookie-seasons
+with `games_played > 0`) is now fixed for QB, using the same idea the user
+proposed: borrow Sleeper's own judgment about whether a player will see the
+field at all, since that's real depth-chart/beat-reporter knowledge this
+project has no other free source for.
+
+**First attempt (wrong), corrected before shipping**: Sleeper's `gp`
+(games-played) field looked like the natural "play probability" signal
+(`gp / 17`), but checking the actual distribution showed `gp` is not a
+real per-player estimate - 9370 of 9402 players with a `gp` value have
+EXACTLY `gp=18`, including rookie QBs with zero other projected stats at
+all (Athan Kaliakmanis, Mark Gronowski: `gp=18`, no `pass_att`, no
+`pts_half_ppr`, nothing else). `gp` is a bookkeeping default for anyone
+Sleeper tracks for ADP, not an expected-playing-time estimate - using it
+as designed would have been a no-op (every rookie multiplied by ~1.0).
+
+**What actually works**: whether Sleeper bothers projecting real pass-
+attempt volume for the player at all. `fetch_sleeper_play_probability`
+(`src/comparison/sleeper_compare.py`) now re-reads the raw projections
+JSON directly and checks for the presence of `pass_att` in that player's
+record - present -> `play_prob=1.0`, absent -> `play_prob=0.05` (same
+value/reasoning as the existing no-match default). `predict_rookies`
+(`rookies.py`) multiplies a QB rookie's whole predicted line by this
+factor. Needs the player's real name to join to Sleeper (`identify_
+target_season_rookie_class` now carries a `name` column specifically for
+this - the 2026 draft class's own `gsis_id` is a known-bad placeholder per
+Phase 5, so name is the only usable join key for this year's rookies);
+gracefully no-ops (with a printed warning) if the Sleeper fetch fails, and
+is skipped entirely for `backtest.py`'s historical rookie evaluation
+(that path's `rookie_df` has no `name` column - by design, this is a
+target-season prediction-quality fix, not a training-time change).
+
+The resulting `qb_sleeper_play_prob` is carried into the final output
+(`projections_<year>.csv`) so a reader can see exactly why a given rookie
+QB's number was discounted, rather than a silently blended value.
+
+**Verified**: Kaliakmanis attempts/game 5.67 -> 0.28, Gronowski 18.16 ->
+0.91 - both now realistically near-zero instead of camp-arm-with-a-real-
+shot numbers. Real veterans (Cousins, McCarthy) are untouched (rookie-only
+fix). Sleeper-comparison correlation improved again: overall 0.888 -> 0.894,
+QB specifically 0.912 -> 0.923 (mean abs delta 2.16 -> 1.72). The 2025
+rookie backtest MAE table (re-measured after this fix, replacing the
+addendum-2 numbers which reflected an interim mid-fix state) is now:
+
+| Stat | n | Model MAE |
+|---|---|---|
+| attempts | 9 | 6.85 |
+| completions | 9 | 3.46 |
+| passing_yards | 9 | 42.60 |
+| passing_tds | 9 | 0.25 |
+| interceptions | 9 | 0.30 |
+| carries | 9 | 1.34 |
+| rushing_yards | 9 | 7.62 |
+| rushing_tds | 9 | 0.17 |
+
+All materially better than the original (pre-any-fix) numbers in the first
+addendum's rookie table, not just less embarrassing on inspection.
 
 ## Judgment calls and caveats for the user to weigh in on
 

@@ -95,6 +95,44 @@ def fetch_sleeper_season_projections(season):
     return pd.DataFrame(rows)
 
 
+NO_STATS_PLAY_PROB = 0.05
+HAS_STATS_PLAY_PROB = 1.0
+
+
+def fetch_sleeper_play_probability(season):
+    """player_id (gsis, where resolvable) + name_key/position -> play_prob.
+
+    Data-quality finding that changed this function's design: Sleeper's
+    `gp` (games-played) field is NOT a real per-player play-probability
+    signal - checked the distribution directly, 9370 of 9402 players with a
+    `gp` value have EXACTLY gp=18 (only 32 have gp=1), including players
+    with zero other projected stats at all (e.g. rookie QBs Athan
+    Kaliakmanis / Mark Gronowski have `gp=18` but no `pass_att`,
+    `pts_half_ppr`, or any other field - Sleeper is not projecting them to
+    play a full season, it's just a bookkeeping default for anyone Sleeper
+    tracks for ADP purposes). The real signal is whether Sleeper bothers
+    projecting any actual production for the player at all - that presence/
+    absence is lost by fetch_sleeper_season_projections (which fills
+    missing stat fields with 0), so this function re-reads the raw
+    projections JSON directly rather than reusing that helper.
+
+    play_prob is binary, not a smooth ratio: HAS_STATS_PLAY_PROB (1.0) if
+    Sleeper projects real pass-attempt volume for this player, else
+    NO_STATS_PLAY_PROB (0.05, same reasoning/value as rookies.py's
+    NO_SLEEPER_MATCH_PLAY_PROB for a player absent from Sleeper entirely -
+    "Sleeper won't even project a number" is roughly as strong a signal
+    either way)."""
+    players = fetch_sleeper_players()
+    proj = requests.get(SEASON_PROJ_URL.format(season=season), timeout=60).json()
+    rows = []
+    for sid, stats in proj.items():
+        has_stats = "pass_att" in stats
+        rows.append({"sleeper_id": sid, "play_prob": HAS_STATS_PLAY_PROB if has_stats else NO_STATS_PLAY_PROB})
+    proj_df = pd.DataFrame(rows)
+    merged = players.merge(proj_df, on="sleeper_id", how="inner")
+    return merged[["player_id", "name_key", "position", "play_prob"]]
+
+
 def build_sleeper_comparison_table(season):
     players = fetch_sleeper_players()
     season_proj = fetch_sleeper_season_projections(season)

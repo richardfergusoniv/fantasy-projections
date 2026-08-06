@@ -457,8 +457,8 @@ def project_season(conn, target_season):
 
     pg_cols = [c for c in rookie_preds.columns if c.endswith("_pg")]
     rookie_long = rookie_preds.melt(
-        id_vars=["player_id", "team", "position", "season", "rookie_tier", "round_bucket"], value_vars=pg_cols,
-        var_name="stat", value_name="pred_pg",
+        id_vars=["player_id", "team", "position", "season", "rookie_tier", "round_bucket", "qb_sleeper_play_prob"],
+        value_vars=pg_cols, var_name="stat", value_name="pred_pg",
     )
     rookie_long["stat"] = rookie_long["stat"].str.replace("_pg", "", regex=False)
     rookie_long["source"] = "rookie_rule"
@@ -509,6 +509,7 @@ OUTPUT_COLUMNS = [
     # Phase 6 additions:
     "team_changed", "roster_status",            # Task 1 - team reassignment transparency
     "depth_rank", "role", "depth_chart_status",  # Task 2/3 - curated depth chart + gating
+    "qb_sleeper_play_prob",  # rookie QB survivorship-bias correction - NaN for non-QB/veteran rows
 ]
 
 

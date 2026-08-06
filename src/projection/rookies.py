@@ -29,6 +29,12 @@ import pandas as pd
 
 from src.projection.data_prep import SEASONS, load_weekly_usage, season_aggregate
 from src.projection.features import TARGET_STATS
+from src.comparison.sleeper_compare import fetch_sleeper_play_probability, _normalize_name
+
+# Sleeper doesn't even bother filing a season projection (no `gp` field at
+# all) for a large share of deep-roster players - itself a strong signal
+# of near-zero relevance, not a "no data" case to shrug off as prob=1.0.
+NO_SLEEPER_MATCH_PLAY_PROB = 0.05
 
 ROUND_BUCKETS = {1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7", 5: "round_4_7",
                   6: "round_4_7", 7: "round_4_7"}
@@ -238,7 +244,7 @@ def identify_target_season_rookie_class(conn, target_season):
     draft_picks' own `team` column for a drafted player not found there
     (e.g. a crosswalk/ids gap)."""
     drafted = pd.read_sql(
-        f"select gsis_id as player_id, round, pick, position, team as draft_team "
+        f"select gsis_id as player_id, round, pick, position, team as draft_team, pfr_player_name as name "
         f"from draft_picks where season = {target_season} and gsis_id is not null "
         f"and position in ('QB','RB','WR','TE')", conn,
     )
@@ -247,7 +253,7 @@ def identify_target_season_rookie_class(conn, target_season):
     drafted["rookie_tier"] = "drafted"
 
     roster = pd.read_sql(
-        f"select player_id, team, position, years_exp, draft_number from seasonal_rosters "
+        f"select player_id, team, position, years_exp, draft_number, player_name as name from seasonal_rosters "
         f"where season = {target_season}", conn,
     ).drop_duplicates(subset=["player_id"])
 
@@ -263,8 +269,15 @@ def identify_target_season_rookie_class(conn, target_season):
 
     team_map = roster.set_index("player_id")["team"]
     drafted["team"] = drafted["player_id"].map(team_map).fillna(drafted["draft_team"])
+    # name is needed for predict_rookies' Sleeper play-probability lookup
+    # (QB only) - a drafted player's own gsis_id, if it's one of the
+    # current-draft-class placeholder ids Phase 5 found (not a real gsis_id
+    # yet), won't match anything in Sleeper's data by id, so the name is
+    # the only usable join key for this year's draft class.
+    name_map = roster.set_index("player_id")["name"]
+    drafted["name"] = drafted["player_id"].map(name_map).fillna(drafted["name"])
 
-    cols = ["player_id", "team", "round", "pick", "position", "round_bucket", "rookie_tier"]
+    cols = ["player_id", "team", "round", "pick", "position", "round_bucket", "rookie_tier", "name"]
     combined = pd.concat([drafted[cols], udfa[cols]], ignore_index=True)
     combined["season"] = target_season
     return combined
@@ -327,6 +340,42 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
     if depth_chart is not None and not depth_chart.empty:
         curated_players = set(zip(depth_chart["gsis_id"], depth_chart["position"]))
 
+    # QB-only survivorship-bias correction (see module docstring / caller):
+    # the historical QB bucket mean is itself computed only over rookie
+    # QB-seasons with real snaps (games_played > 0), which for a position
+    # where most backups NEVER play is a biased sample of "the ones who
+    # got lucky," not "the typical camp arm." Rather than build our own
+    # probability-of-playing estimator from scratch, this borrows Sleeper's
+    # own projected games-played (fetch_sleeper_play_probability) as that
+    # signal - it already reflects real depth-chart/beat-reporter judgment
+    # this project has no other free source for. Only applied if `rookie_df`
+    # carries a `name` column (identify_target_season_rookie_class adds one;
+    # the historical identify_rookie_seasons path used for backtest.py does
+    # not, so backtest correctness is unaffected - this is strictly a
+    # target-season prediction-quality fix, not a training-time change).
+    play_prob_by_id, play_prob_by_name = {}, {}
+    has_names = "name" in target.columns and target["position"].eq("QB").any()
+    if has_names:
+        try:
+            for season in target["season"].unique():
+                pp = fetch_sleeper_play_probability(int(season))
+                pp_qb = pp[pp["position"] == "QB"]
+                play_prob_by_id.update(pp_qb.dropna(subset=["player_id"]).set_index("player_id")["play_prob"].to_dict())
+                play_prob_by_name.update(
+                    pp_qb.dropna(subset=["name_key"]).set_index("name_key")["play_prob"].to_dict()
+                )
+        except Exception as e:
+            print(f"WARNING: could not fetch Sleeper play-probability data ({e}) - "
+                  f"QB rookie projections will NOT get the survivorship-bias correction this run.")
+
+    def _qb_play_prob(row):
+        if row["player_id"] in play_prob_by_id:
+            return play_prob_by_id[row["player_id"]]
+        name_key = _normalize_name(row.get("name"))
+        if name_key in play_prob_by_name:
+            return play_prob_by_name[name_key]
+        return NO_SLEEPER_MATCH_PLAY_PROB
+
     def project_row(row):
         key = (row["position"], row["round_bucket"])
         if key not in baselines.index:
@@ -346,6 +395,13 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
             if (row["player_id"], row["position"]) not in curated_players:
                 scale = min(scale, 1.0)
         preds = {c: b[c] * scale for c in pg_cols}
+
+        play_prob = np.nan
+        if row["position"] == "QB" and has_names:
+            play_prob = _qb_play_prob(row)
+            preds = {c: v * play_prob for c, v in preds.items()}
+        preds["qb_sleeper_play_prob"] = play_prob
+
         preds["low_confidence"] = True
         preds["baseline_n"] = b["n_train_rookies"]
         return pd.Series(preds)
