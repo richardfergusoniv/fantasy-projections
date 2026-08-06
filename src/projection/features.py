@@ -34,7 +34,18 @@ from src.projection.data_prep import (
 from src.projection.ol_quality import team_season_ol_quality
 
 TARGET_STATS = {
-    "QB": ["attempts", "completions", "passing_yards", "passing_tds", "interceptions"],
+    # rushing added post-launch: found via a Sleeper-projection comparison
+    # that our QB fantasy points were pure-passing, systematically
+    # underrating every mobile/dual-threat QB (Lamar Jackson, Josh Allen,
+    # Jayden Daniels, Kyler Murray, Caleb Williams all showed the largest
+    # Sleeper-higher deltas). carries/rushing_yards/rushing_tds were
+    # already summed into every QB row's raw totals (STAT_COLS in
+    # data_prep.py is position-agnostic) and carry_share/rz_carry_share
+    # were already computed for QB rows too (build_player_season_features
+    # doesn't filter FEATURE_COLS by position) - this was purely a missing
+    # entry in this dict, not a missing upstream signal.
+    "QB": ["attempts", "completions", "passing_yards", "passing_tds", "interceptions",
+           "carries", "rushing_yards", "rushing_tds"],
     "RB": ["carries", "rushing_yards", "rushing_tds", "targets", "receptions", "receiving_yards", "receiving_tds"],
     "WR": ["targets", "receptions", "receiving_yards", "receiving_tds"],
     "TE": ["targets", "receptions", "receiving_yards", "receiving_tds"],

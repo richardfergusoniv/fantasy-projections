@@ -309,6 +309,45 @@ hyperparameter sweep (even a small grid on `max_depth`/`num_leaves`/
 `learning_rate` via the existing transition pairs as CV folds) is future
 work if the user wants to push backtest performance further.
 
+## Addendum: QB rushing added (post-launch)
+
+A Sleeper-projection comparison (`src/comparison/sleeper_compare.py`) found our
+QB fantasy points were pure-passing - `TARGET_STATS['QB']` never included
+`carries`/`rushing_yards`/`rushing_tds`, despite the raw totals and share
+features already being computed generically for every position. This
+systematically underrated every mobile/dual-threat QB (Lamar Jackson, Josh
+Allen, Jayden Daniels, Kyler Murray, Caleb Williams showed the largest
+Sleeper-higher deltas in the whole dataset). Added the three stats and
+retrained; other positions/stats are bit-for-bit unaffected (verified: their
+backtest MAE numbers are unchanged).
+
+New backtest results (2025 holdout, same train/test split as above):
+
+| Stat | n | Model MAE | Naive MAE | Model wins? |
+|---|---|---|---|---|
+| carries | 61 | 1.29 | 1.50 | **yes** |
+| rushing_yards | 61 | 8.47 | 7.30 | **no** |
+| rushing_tds | 61 | 0.115 | 0.149 | **yes** |
+
+Stated plainly per the project's own rule: **QB rushing_yards loses to the
+naive baseline** (small-sample QB rushing volume is evidently closer to a
+carry-forward-last-year's-rate situation than the model currently captures) -
+the third QB loss alongside the pre-existing RB targets/receptions losses.
+
+Effect on the star QBs that motivated this: the Sleeper-delta roughly halved
+for all five (Allen -8.3 -> -3.9, Lamar -7.9 -> -4.5, Daniels -7.1 -> -3.5,
+Caleb Williams -7.6 -> -3.2 pts/game); Kyler Murray improved less (-7.3 ->
+-6.1) and remains a real residual gap.
+
+**New issue surfaced by this comparison, pre-existing and NOT caused by this
+change**: several deep-bench/late-round rookie QBs (e.g. Athan Kaliakmanis,
+Mark Gronowski, Cole Payton) show implausible starter-level volume (~28
+pass attempts/game) via the `rookie_rule` path, confirmed present in the
+commit BEFORE this addendum's change (`git show HEAD~1:output/projections_2026.csv`
+already had Kaliakmanis at 27.9 attempts/game). This is a bug in the rookie
+QB vacated-opportunity scaling, not something today's rushing-stat addition
+introduced - flagged for the user's decision on priority, not fixed here.
+
 ## Judgment calls and caveats for the user to weigh in on
 
 1. **2021-2025-only training window** (see above) — 3 training transitions
