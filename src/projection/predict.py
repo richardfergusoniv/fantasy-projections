@@ -44,7 +44,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from src.projection.data_prep import get_conn
+from src.projection.data_prep import get_conn, team_season_opponent_strength
 from src.projection.features import build_player_season_features, TARGET_STATS, OC_METRICS
 from src.projection.ol_quality import team_season_ol_quality
 from src.projection.transitions import ALL_FEATURES
@@ -72,6 +72,43 @@ TEAM_CHANGE_SHARE_CLIP = (0.3, 2.5)
 # are NOT in the curated src/depth_chart/starters_2026.csv relevant-depth
 # table for their (new team, position) - see apply_depth_chart_gating.
 DEEP_BENCH_DISCOUNT = 0.15
+
+# Bug found via output/sleeper_comparison_2026.csv (comparing our per-game
+# volume predictions against Sleeper's public projections): a player who IS
+# in the curated depth chart (so DEEP_BENCH_DISCOUNT above never fires) but
+# whose curated `role` is 'committee' or 'backup' was still getting the raw
+# LightGBM veteran model's per-game rate untouched - the curated table was
+# only ever consulted to GATE the upward vacancy boost in
+# reassign_team_changers (BOOST_ELIGIBLE_ROLES), never to shrink the
+# model's own raw rate prediction. The veteran model's features (career
+# rate stats, share features, etc.) reflect the player's OWN historical
+# per-game usage, which for a committee back or a clipboard-holding backup
+# QB can be inflated by a prior season spent as a starter elsewhere, an
+# injury-driven spike week, or simply not knowing this specific team's 2026
+# depth chart at all - the curated table is exactly the correction signal
+# the model itself has no way to see. Concrete evidence (attempts/carries
+# per game, our model vs. Sleeper):
+#   Alvin Kamara (NO, committee):    12.7 vs 2.5
+#   Rachaad White (WAS, committee):  14.7 vs 6.3
+#   Emari Demercado (KC, committee):  8.9 vs 1.6
+#   Tyler Allgeier (ARI, committee): 12.7 vs 5.3
+#   Isiah Pacheco (DET, backup):      9.0 vs 3.7
+#   J.J. McCarthy / Rudolph / Richardson (QB, backup): 28.2 / 16.0 / 11.1
+#     attempts/g vs Sleeper's 1.8 / 1.8 / 1.6 - a real backup NFL QB behind
+#     a healthy starter gets close to zero live-game volume, not
+#     near-starter attempts.
+# ROLE_VOLUME_DISCOUNT below is a stated, un-tuned judgment call (same
+# spirit as DEEP_BENCH_DISCOUNT and TEAM_CHANGE_SHARE_CLIP - considered,
+# not backtested against a held-out season, since there's no historical
+# curated depth chart to validate discount magnitudes against). 'committee'
+# lands well short of 'backup' - a committee player is a confirmed
+# meaningful contributor sharing a real role (Sleeper's numbers above still
+# show it as a fraction, not a rounding error, of a lead back's volume),
+# while a curated 'backup' is functionally the same "gets on the field only
+# if the starter is hurt/blown out" situation DEEP_BENCH_DISCOUNT already
+# describes for a player who is not curated at all - hence the two
+# multipliers land close together (0.15 vs 0.4).
+ROLE_VOLUME_DISCOUNT = {"committee": 0.4, "backup": 0.15}
 
 
 def load_models():
@@ -113,7 +150,17 @@ def load_target_roster_map(conn, target_season):
     return df.set_index("player_id")[["team", "status"]]
 
 
-TEAM_CONTEXT_COLS = ["ol_pass_protection_score", "ol_run_blocking_score", "ol_confidence_low_churn"] + OC_METRICS
+# opp_def_pass_epa_prior/opp_def_rush_epa_prior (added alongside the
+# ceiling/concentration features, see features.py's FEATURE_COLS comment)
+# are team-season schedule-strength context exactly like the OL/OC columns
+# below - a team-changer's opponent slate for the target season depends on
+# their NEW team's schedule, not their old one, so they belong in the same
+# re-pointing list.
+TEAM_CONTEXT_COLS = (
+    ["ol_pass_protection_score", "ol_run_blocking_score", "ol_confidence_low_churn"]
+    + OC_METRICS
+    + ["opp_def_pass_epa_prior", "opp_def_rush_epa_prior"]
+)
 
 
 # Roles the curated depth chart (Task 2) confirms as genuinely eligible to
@@ -230,7 +277,23 @@ def reassign_team_changers(conn, df, target_season, depth_chart):
             f"select season, team, {', '.join(OC_METRICS)} from oc_tendency_profiles where season={source_season}", conn,
         )
         olq = team_season_ol_quality(conn, [source_season])
-        team_ctx = oc.merge(olq, on=["season", "team"], how="left").drop(columns=["season"])
+        # opp_def_pass_epa_prior/opp_def_rush_epa_prior for the NEW team,
+        # same "most recently observed season stands in for the unplayed
+        # target season" logic already used for OC/OL above - the new
+        # team's source_season schedule-strength value is the best proxy
+        # available for their target_season schedule.
+        # Bug found while integrating (Sleeper-comparison investigation):
+        # team_season_opponent_strength internally shifts its defense-EPA
+        # lookup to season-1 to align each opponent's PRIOR-season defense
+        # against the schedule season - calling it with ONLY [source_season]
+        # means that prior season's defense-EPA rows were never fetched at
+        # all, so the shifted join always missed and came back NaN for
+        # every team. Passing [source_season - 1, source_season] gives it
+        # both halves of its own join.
+        opp_strength = team_season_opponent_strength(conn, [source_season - 1, source_season])
+        opp_strength = opp_strength[opp_strength["season"] == source_season]
+        team_ctx = oc.merge(olq, on=["season", "team"], how="left")
+        team_ctx = team_ctx.merge(opp_strength, on=["season", "team"], how="left").drop(columns=["season"])
         team_ctx = team_ctx.rename(columns={"team": "team_target"})
 
         df = df.merge(team_ctx, on="team_target", how="left", suffixes=("", "_new"))
@@ -261,6 +324,29 @@ def reassign_team_changers(conn, df, target_season, depth_chart):
         boost_eligible = df["role"].isin(BOOST_ELIGIBLE_ROLES)
         carry_scale = carry_scale.where(boost_eligible, carry_scale.clip(upper=1.0))
         target_scale = target_scale.where(boost_eligible, target_scale.clip(upper=1.0))
+
+        # Bug found via Sleeper comparison (Waddle MIA->DEN, DJ Moore
+        # CHI->BUF, both curated 'starter' at their new team but crushed to
+        # ~0.06 target_share by the DOWNWARD half of the vacancy scale):
+        # team_vacated_opportunity measures how much volume LEFT a team
+        # (players no longer on the roster) - a trade acquisition into an
+        # already-full room legitimately shows near-zero "vacated" share by
+        # that definition even though the team specifically traded for and
+        # is starting this player. The curated table confirming role=
+        # 'starter' is a stronger, player-specific signal than the
+        # team-level vacancy heuristic, so a confirmed starter's own
+        # established share (their "quality tier" per this function's
+        # class docstring) is never scaled BELOW what they already had -
+        # only the upside (extra room beyond a normal team) still applies.
+        # 'committee'/'backup' deliberately keep the original full
+        # 0.3-2.5 range: a genuine committee/backup landing spot CAN mean
+        # real volume loss, and that case is handled separately (and
+        # correctly) by ROLE_VOLUME_DISCOUNT in apply_depth_chart_gating
+        # rather than needing a floor here too.
+        confirmed_starter = changed & (df["role"] == "starter")
+        carry_scale = carry_scale.where(~confirmed_starter, carry_scale.clip(lower=1.0))
+        target_scale = target_scale.where(~confirmed_starter, target_scale.clip(lower=1.0))
+
         df = df.drop(columns=["role"])
 
         for c in ["carry_share", "rz_carry_share"]:
@@ -328,12 +414,53 @@ def apply_depth_chart_gating(df, depth_chart):
          relevant depth, not merely unresearched.
       - 'not_curated_no_table': target_season has no curated table at all
          (any season other than 2026) - gating is a no-op, not a claim
-         about this player's role."""
+         about this player's role.
+
+    Role-based volume discount (bug found post-Phase-6 via
+    output/sleeper_comparison_2026.csv - see ROLE_VOLUME_DISCOUNT's
+    module-level comment for the evidence): being IN the curated table only
+    ever meant the row kept its full, undiscounted pred_pg - a curated
+    'committee'/'backup' player's raw per-game rate came straight out of
+    the LightGBM model's own read of their historical usage, with nothing
+    correcting it toward what this specific 2026 depth-chart role actually
+    implies (a real backup gets almost no live-game volume regardless of
+    what their feature row says). Fixed here: AFTER the curated/
+    deep_bench_discounted split above, curated rows whose `role` is in
+    ROLE_VOLUME_DISCOUNT get pred_pg/pred_pg_low/pred_pg_high multiplied by
+    that role's factor too, `low_confidence` forced True (same reasoning as
+    deep_bench_discounted - a heavily rescaled number is exactly the kind
+    of row a reader should be able to tell apart from an un-rescaled one),
+    and a NEW `role_discount_applied` boolean column set True so this is
+    auditable without having to cross-reference `role` against a constant
+    buried in this module - per the project's hard rule, a discount must
+    never silently disappear into the number. `depth_chart_status` is left
+    as 'curated' (unchanged) for these rows since they genuinely ARE in the
+    table - `role_discount_applied` is the correct place to see the
+    rescaling, not a new depth_chart_status value that would blur "matched
+    the table" with "how the match was treated."
+
+    Interaction with reassign_team_changers' BOOST_ELIGIBLE_ROLES, checked
+    explicitly: a team-changing 'committee' player can get BOTH the upward
+    vacancy-scale boost there AND this downward role discount here. That is
+    not double-counting - they answer different questions. The boost in
+    reassign_team_changers scales this player's OWN established share
+    (their prior team's carry_share/target_share) by how much MORE
+    opportunity the new team has open overall (a team-level signal, applied
+    before the model even runs). This discount is applied AFTER the model
+    has already produced a prediction from those (possibly boosted)
+    features, and corrects for the fact that a 'committee' role means this
+    player is only expected to capture a FRACTION of whatever volume - big
+    or small - actually materializes at their position on the new team; the
+    model has no feature that tells it "a specific other player is sharing
+    this backfield with you." A big team-level opportunity split three ways
+    should still end up smaller per-player than the same opportunity given
+    to a lone bell-cow, which is exactly what applying both produces."""
     df = df.copy()
     if depth_chart.empty:
         df["depth_rank"] = np.nan
         df["role"] = None
         df["depth_chart_status"] = "not_curated_no_table"
+        df["role_discount_applied"] = False
         return df
 
     dc = depth_chart[["position", "gsis_id", "depth_rank", "role"]].rename(columns={"gsis_id": "player_id"})
@@ -348,6 +475,14 @@ def apply_depth_chart_gating(df, depth_chart):
         df.loc[to_discount, col] = df.loc[to_discount, col] * DEEP_BENCH_DISCOUNT
     df.loc[to_discount, "low_confidence"] = True
     df.loc[to_discount, "role"] = "deep_bench"
+
+    role_factor = df["role"].map(ROLE_VOLUME_DISCOUNT)
+    to_role_discount = matched & role_factor.notna()
+    df["role_discount_applied"] = to_role_discount
+    for col in ["pred_pg", "pred_pg_low", "pred_pg_high"]:
+        df.loc[to_role_discount, col] = df.loc[to_role_discount, col] * role_factor[to_role_discount]
+    df.loc[to_role_discount, "low_confidence"] = True
+
     return df
 
 
@@ -508,6 +643,12 @@ def project_season(conn, target_season):
     else:
         rookie_long["depth_rank"], rookie_long["role"] = np.nan, None
     rookie_long["depth_chart_status"] = "rookie_path"
+    # role_discount_applied is a veteran_model-only concept (see
+    # apply_depth_chart_gating) - rookie_rule rows are already
+    # low_confidence=True by construction and never pass through that
+    # function, so this is always False here, not a claim about the
+    # rookie's actual role.
+    rookie_long["role_discount_applied"] = False
 
     combined = pd.concat([vet, rookie_long], ignore_index=True, sort=False)
     return combined
@@ -522,6 +663,7 @@ OUTPUT_COLUMNS = [
     # Phase 6 additions:
     "team_changed", "roster_status",            # Task 1 - team reassignment transparency
     "depth_rank", "role", "depth_chart_status",  # Task 2/3 - curated depth chart + gating
+    "role_discount_applied",  # curated committee/backup volume discount - see ROLE_VOLUME_DISCOUNT
     "qb_sleeper_play_prob",  # rookie QB survivorship-bias correction - NaN for non-QB/veteran rows
     "athletic_tier",  # Addendum 4 - combine-athleticism scale tier; NaN for veteran_model rows
 ]

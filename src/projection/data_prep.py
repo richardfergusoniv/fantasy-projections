@@ -127,6 +127,107 @@ def team_season_pbp_totals(conn, seasons=SEASONS):
     return out
 
 
+def team_week_pbp_totals(conn, seasons=SEASONS):
+    """Same as team_season_pbp_totals but grouped by week too - the
+    building block for player_active_team_opportunity below, which needs
+    to sum only the weeks a given player was actually active rather than
+    every week the team played."""
+    q = f"""
+        select season, week, posteam as team, pass_attempt, rush_attempt, yardline_100
+        from pbp
+        where season in ({','.join(map(str, seasons))}) and season_type = 'REG'
+          and posteam is not null and (pass_attempt = 1 or rush_attempt = 1)
+    """
+    pbp = pd.read_sql(q, conn)
+    pbp["is_rz"] = pbp["yardline_100"] <= 20
+
+    pass_mask = pbp["pass_attempt"] == 1
+    rush_mask = pbp["rush_attempt"] == 1
+
+    out = pd.DataFrame({
+        "team_pass_attempts": pbp[pass_mask].groupby(["season", "week", "team"]).size(),
+        "team_rush_attempts": pbp[rush_mask].groupby(["season", "week", "team"]).size(),
+        "team_rz_pass_attempts": pbp[pass_mask & pbp["is_rz"]].groupby(["season", "week", "team"]).size(),
+        "team_rz_rush_attempts": pbp[rush_mask & pbp["is_rz"]].groupby(["season", "week", "team"]).size(),
+    }).reset_index()
+    return out
+
+
+def team_week_air_yards(conn, seasons=SEASONS):
+    """Team-week total receiving air yards from pbp - the weekly building
+    block player_active_team_opportunity needs to make team_air_yards
+    games-played-aware the same way it already is for pass/rush attempts.
+    Same air_yards-not-null exclusion as player_season_air_yards (sacks
+    have no target thrown, not a real 0)."""
+    q = f"""
+        select season, week, posteam as team, air_yards
+        from pbp
+        where season in ({','.join(map(str, seasons))}) and season_type = 'REG'
+          and posteam is not null and pass_attempt = 1 and air_yards is not null
+    """
+    pbp = pd.read_sql(q, conn)
+    return pbp.groupby(["season", "week", "team"])["air_yards"].sum().rename("team_air_yards").reset_index()
+
+
+def player_active_team_opportunity(conn, seasons=SEASONS):
+    """Player-season team pass/rush/red-zone attempt totals (+ team air
+    yards), restricted to the WEEKS THIS PLAYER WAS ACTUALLY ACTIVE (same
+    active-week definition as season_aggregate's games_played: attempts>0
+    for QB, carries>0 or targets>0 otherwise) - the correct denominator for
+    a share feature.
+
+    Bug this fixes: carry_share/target_share/rz_*_share/air_yards_share
+    previously divided a player's season totals by the team's FULL 17-game
+    totals regardless of how many games the player actually played. For an
+    injury-shortened season this mechanically dilutes the share by roughly
+    the fraction of the season missed, even though the player commanded a
+    genuinely elite share in the games they DID play - e.g. Malik Nabers'
+    2025 (4 games, torn ACL): target_share against the full-season
+    denominator comes out ~0.061 (looks like a WR3), but restricted to the
+    4 weeks he actually played it's ~0.243 (an unambiguous alpha share).
+    Sam LaPorta and Jayden Reed (both injury-shortened 2025 seasons) show
+    the same pattern. `team_air_yards` (added when air_yards_share was
+    built) had the identical bug, found afterward while validating this
+    fix - still dividing by the team's full-season air yards total, which
+    kept understating air_yards_share for exactly these injury-shortened-
+    season players even after the attempt-share fix above landed. Fixed
+    here in the same function/pass, not as a separate feature. A
+    full-season player's active weeks ARE essentially their full season,
+    so this is a no-op for the large majority of rows - it only changes
+    anything for players who missed games.
+
+    Also correctly handles in-season team changes: each week's team comes
+    from that week's own weekly-usage row (via load_weekly_usage, already
+    trade-aware), not the player's single season-resolved team - a
+    player's denominator during weeks at their OLD team uses that team's
+    attempts for those weeks, not their new team's."""
+    wu = load_weekly_usage(conn)
+    wu = wu[wu["season"].isin(seasons)].copy()
+    wu["_active"] = (
+        ((wu["position"] == "QB") & (wu["attempts"] > 0))
+        | ((wu["position"] != "QB") & ((wu["carries"] > 0) | (wu["targets"] > 0)))
+    )
+    active = wu[wu["_active"]][["player_id", "season", "week", "team"]].drop_duplicates()
+
+    team_wk = team_week_pbp_totals(conn, seasons)
+    team_wk_ay = team_week_air_yards(conn, seasons)
+    joined = active.merge(team_wk, on=["season", "week", "team"], how="left")
+    joined = joined.merge(team_wk_ay, on=["season", "week", "team"], how="left")
+    # A week where the player was active but the team has zero rows in
+    # team_wk/team_wk_ay (bye-week/data artifact) contributes 0, not NaN -
+    # fillna(0) here is a real "no plays that week" value, not a cover for
+    # a failed join, since both are built from the same pbp table
+    # load_weekly_usage ultimately derives from.
+    cols = [
+        "team_pass_attempts", "team_rush_attempts", "team_rz_pass_attempts", "team_rz_rush_attempts",
+        "team_air_yards",
+    ]
+    joined[cols] = joined[cols].fillna(0)
+
+    out = joined.groupby(["player_id", "season"])[cols].sum().reset_index()
+    return out.rename(columns={c: f"{c}_active" for c in cols})
+
+
 def player_rz_usage(conn, seasons=SEASONS):
     """Player-season red-zone carries/targets from pbp (yardline_100<=20)."""
     q = f"""
@@ -270,3 +371,230 @@ def build_player_season_injury_durability(conn, seasons=SEASONS):
         (out["missed_games"] + INJURY_PLAYED_WEIGHT * out["flagged_played_weeks"]) / out["team_games"]
     ).clip(upper=1.0)
     return out[["season", "player_id", "injury_durability_rate"]]
+
+
+def team_season_rz_position_totals(conn, seasons=SEASONS):
+    """Team-season red-zone carries/targets, totaled by the CARRIER/RECEIVER's
+    own position group (not the whole offense), used as the denominator for a
+    red-zone "monopoly" feature (see `add_rz_monopoly_features` in
+    features.py).
+
+    Why this is a different number than the existing `team_rz_pass_attempts`/
+    `team_rz_rush_attempts` (`team_season_pbp_totals`): those totals are
+    denominators for "share of ALL the team's red-zone plays," which mixes a
+    WR's red-zone targets in with RB red-zone targets, etc. A player who gets
+    every single red-zone target their team throws to a wide receiver (the
+    "clear #1 red-zone option at the position") and a player who gets a
+    similar target COUNT but on a team that spreads red-zone work heavily to
+    the backfield can have very similar `rz_target_share` while being in
+    completely different competitive situations. Dividing by only the looks
+    that went to the SAME position group isolates "concentration among your
+    positional peers," which is what actually distinguishes a true red-zone
+    monopoly from a crowded red-zone offense.
+
+    Position is looked up directly from `players.position` (not restricted to
+    this project's QB/RB/WR/TE `POSITIONS` list) so the totals reflect the
+    real full pool of red-zone touches at each position (e.g. FB carries
+    still count toward the RB-adjacent pool correctly get their own bucket,
+    rather than being silently dropped from the RB total or double-counted
+    into it)."""
+    q = f"""
+        select season, posteam as team, rush_attempt, pass_attempt,
+               rusher_player_id, receiver_player_id
+        from pbp
+        where season in ({','.join(map(str, seasons))}) and season_type = 'REG'
+          and posteam is not null and yardline_100 <= 20
+          and (pass_attempt = 1 or rush_attempt = 1)
+    """
+    pbp = pd.read_sql(q, conn)
+    players_pos = pd.read_sql("select gsis_id as player_id, position from players", conn)
+
+    rushes = pbp[pbp["rush_attempt"] == 1][["season", "team", "rusher_player_id"]].rename(
+        columns={"rusher_player_id": "player_id"}
+    )
+    rushes = rushes.merge(players_pos, on="player_id", how="left")
+    rz_carries_pos = (
+        rushes.groupby(["season", "team", "position"]).size().rename("team_rz_carries_pos").reset_index()
+    )
+
+    targets = pbp[pbp["pass_attempt"] == 1][["season", "team", "receiver_player_id"]].rename(
+        columns={"receiver_player_id": "player_id"}
+    )
+    targets = targets.merge(players_pos, on="player_id", how="left")
+    rz_targets_pos = (
+        targets.groupby(["season", "team", "position"]).size().rename("team_rz_targets_pos").reset_index()
+    )
+
+    out = rz_carries_pos.merge(rz_targets_pos, on=["season", "team", "position"], how="outer")
+    out[["team_rz_carries_pos", "team_rz_targets_pos"]] = out[["team_rz_carries_pos", "team_rz_targets_pos"]].fillna(0)
+    return out
+
+
+def player_season_air_yards(conn, seasons=SEASONS):
+    """Player-season receiving air-yards totals + aDOT (average depth of
+    target), and the matching team-season air-yards total, from `pbp.
+    air_yards`.
+
+    Schema check done first (not assumed): `air_yards` is populated on every
+    pass-attempt row except sacks (~7% of pass attempts per season, ball
+    never thrown - a real, expected gap, not a data-quality problem) and is
+    always null on rush-attempt rows (no target exists) - both are excluded
+    here by construction (`pass_attempt = 1 and air_yards is not null`)
+    rather than silently coerced to 0, since "sacked, no target thrown" and
+    "targeted at the goal line, air_yards=0" are not the same thing and
+    conflating them would understate aDOT for high-sack QBs/teams (not that
+    aDOT is computed for QBs here, but the same team-total denominator IS
+    shared, so the exclusion still matters for `team_air_yards`).
+
+    `player_adot`: mean air_yards across the player's own targets with a
+    real (non-null) air_yards value - a checkdown/possession receiver has a
+    low aDOT even with a healthy target COUNT, which is exactly the "true #1
+    receiving option vs. possession/checkdown role" distinction the spec
+    asked for; `target_share`/`rz_target_share` alone can't separate those
+    two roles."""
+    q = f"""
+        select season, posteam as team, receiver_player_id, air_yards
+        from pbp
+        where season in ({','.join(map(str, seasons))}) and season_type = 'REG'
+          and posteam is not null and pass_attempt = 1 and air_yards is not null
+    """
+    pbp = pd.read_sql(q, conn)
+
+    player = (
+        pbp.groupby(["season", "receiver_player_id"])["air_yards"]
+        .agg(player_air_yards="sum", player_adot="mean")
+        .reset_index()
+        .rename(columns={"receiver_player_id": "player_id"})
+    )
+    team = (
+        pbp.groupby(["season", "team"])["air_yards"].sum().rename("team_air_yards").reset_index()
+    )
+    return player, team
+
+
+def player_season_designed_rushes(conn, seasons=SEASONS):
+    """Player-season DESIGNED rush attempts (excludes QB scrambles, per
+    `pbp.qb_scramble`) - a distinct signal from total `rushing_yards`/
+    `carry_share`, which don't separate "the offense calls this player's
+    number to run the ball" from "the QB took off after the pass play broke
+    down." For a QB this is the closer proxy for actual designed run-game
+    usage (RPO keepers, called QB runs, read-option) as opposed to scramble
+    production, which is much less a stable, schemed-for signal.
+
+    Schema check done first: `qb_scramble` is populated (0/1, never null) on
+    every rush-attempt row and is 0 for effectively all non-QB rushers
+    (verified directly: 2024 REG season has exactly 2 non-QB rows flagged
+    `qb_scramble=1`, both WR, presumably trick-play/broken-play
+    mislabeling upstream in nflverse's own charting - not corrected here,
+    left as nflverse ships it). Because of this, `designed_rush_attempts`
+    for a non-QB is effectively just their normal carry count, and this
+    feature is highly collinear with `carry_share` for RB/WR/TE rows - it is
+    included generically (not gated to QB rows only) because
+    `build_player_season_features` doesn't filter `FEATURE_COLS` by
+    position elsewhere either (see `carry_share`/TARGET_STATS handling), but
+    it is really a QB-focused signal and should be read that way."""
+    q = f"""
+        select season, rusher_player_id as player_id, count(*) as designed_rush_attempts
+        from pbp
+        where season in ({','.join(map(str, seasons))}) and season_type = 'REG'
+          and rush_attempt = 1 and qb_scramble = 0 and rusher_player_id is not null
+        group by season, rusher_player_id
+    """
+    return pd.read_sql(q, conn)
+
+
+def team_season_defense_epa(conn, seasons=SEASONS):
+    """Team-season defensive efficiency: mean EPA/play ALLOWED (as `defteam`),
+    split pass vs. rush, from `pbp.epa`. Lower (more negative) = stronger
+    defense (bad plays for the opposing offense). This is the raw ingredient
+    for the opponent/schedule-strength feature below - kept as its own
+    function since it's indexed by the team's OWN season (as a defense), not
+    by who they played."""
+    q = f"""
+        select season, defteam as team, pass_attempt, rush_attempt, epa
+        from pbp
+        where season in ({','.join(map(str, seasons))}) and season_type = 'REG'
+          and defteam is not null and epa is not null
+          and (pass_attempt = 1 or rush_attempt = 1)
+    """
+    pbp = pd.read_sql(q, conn)
+    pass_epa = (
+        pbp[pbp["pass_attempt"] == 1].groupby(["season", "team"])["epa"].mean().rename("def_pass_epa_allowed").reset_index()
+    )
+    rush_epa = (
+        pbp[pbp["rush_attempt"] == 1].groupby(["season", "team"])["epa"].mean().rename("def_rush_epa_allowed").reset_index()
+    )
+    return pass_epa.merge(rush_epa, on=["season", "team"], how="outer")
+
+
+def team_season_opponent_strength(conn, seasons=SEASONS):
+    """Team-season opponent/schedule-strength proxy: for team T in season S,
+    the average of T's actual opponents' PASS/RUSH defensive EPA/play
+    allowed in season S-1 (the most recent observed defensive performance
+    for each opponent at the time season S kicked off - S-1's own defense is
+    the only "known" quality signal a real preseason schedule-strength
+    read could have used, since S's defensive stats don't exist yet at the
+    start of S).
+
+    Built from `schedules` (REG season only) for the actual game-by-game
+    opponent list - NOT derived from `pbp.defteam` directly, since the
+    `schedules` table is the authoritative, one-row-per-game source and
+    avoids any risk of miscounting a team's own bye-week/multi-posteam-per-
+    game pbp artifacts.
+
+    This targets the QB volume over-projection (all QBs run ~18% hot on
+    attempts/passing_yards per the Sleeper comparison, per this task's
+    brief) - a team whose PRIOR-year opponents happened to have weak pass
+    defenses will show inflated observed attempts/completion-driven yardage
+    in the season being used as the feature row, and the model has had no
+    way to discount that until now.
+
+    NaN handling, stated plainly: season S=2016 (this project's earliest
+    season) has no season S-1=2015 in this DB, so `opp_def_pass_epa_prior`/
+    `opp_def_rush_epa_prior` are genuinely NaN for every 2016 team-season -
+    not imputed, not backfilled with a league-average. This does not affect
+    training, since `train.py`/`transitions.py` only use `season_from` in
+    [2021, 2022, 2023, 2024], all of which have a real season-1 (2020-2023)
+    present in this DB's 2016-2025 window."""
+    sched = pd.read_sql(
+        f"select season, home_team, away_team from schedules "
+        f"where season in ({','.join(map(str, seasons))}) and game_type = 'REG'", conn,
+    )
+    # `schedules` uses each franchise's HISTORICAL abbreviation for the
+    # season it was actually played under (OAK through 2019, SD through
+    # 2016), while `pbp.posteam`/`defteam` (which is what `base`'s `team`
+    # column and `team_season_defense_epa` are both built from) ship
+    # relocated franchises' CURRENT code retroactively for every season
+    # (LV, LAC). Checked directly: these are the only two mismatches in this
+    # DB's 2016-2025 window (the Rams' STL->LA move predates 2016, already
+    # consistent as "LA" in both tables). Left unnormalized, every 2016-2019
+    # Raiders/2016 Chargers team-season would silently fail this merge and
+    # come back NaN - normalizing here instead of silently dropping/NaN-ing
+    # those rows, per this project's "never silently fill or drop on a
+    # failed join - report it" rule (reported in this function's own
+    # docstring history / the task report, not just fixed invisibly).
+    _FRANCHISE_CODE_FIX = {"OAK": "LV", "SD": "LAC"}
+    sched["home_team"] = sched["home_team"].replace(_FRANCHISE_CODE_FIX)
+    sched["away_team"] = sched["away_team"].replace(_FRANCHISE_CODE_FIX)
+    home = sched.rename(columns={"home_team": "team", "away_team": "opponent"})[["season", "team", "opponent"]]
+    away = sched.rename(columns={"away_team": "team", "home_team": "opponent"})[["season", "team", "opponent"]]
+    schedule_long = pd.concat([home, away], ignore_index=True)
+
+    def_epa = team_season_defense_epa(conn, seasons)
+    # opponent's PRIOR-season defense: shift the join season forward by 1,
+    # i.e. team T's season-S opponent list joins to def_epa's season S-1 row
+    # for each opponent.
+    def_epa_prior = def_epa.rename(columns={"team": "opponent"})
+    def_epa_prior = def_epa_prior.assign(season=def_epa_prior["season"] + 1)
+
+    merged = schedule_long.merge(def_epa_prior, on=["season", "opponent"], how="left")
+    out = (
+        merged.groupby(["season", "team"])[["def_pass_epa_allowed", "def_rush_epa_allowed"]]
+        .mean()
+        .reset_index()
+        .rename(columns={
+            "def_pass_epa_allowed": "opp_def_pass_epa_prior",
+            "def_rush_epa_allowed": "opp_def_rush_epa_prior",
+        })
+    )
+    return out

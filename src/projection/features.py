@@ -30,6 +30,9 @@ import pandas as pd
 from src.projection.data_prep import (
     SEASONS, load_weekly_usage, season_aggregate, team_season_pbp_totals,
     player_rz_usage, player_season_snap_pct, build_player_season_injury_durability,
+    team_season_rz_position_totals, player_season_air_yards,
+    player_season_designed_rushes, team_season_opponent_strength,
+    player_active_team_opportunity,
 )
 from src.projection.ol_quality import team_season_ol_quality
 
@@ -60,6 +63,20 @@ FEATURE_COLS = [
     "carry_share", "target_share", "rz_carry_share", "rz_target_share", "snap_pct",
     "ol_pass_protection_score", "ol_run_blocking_score", "ol_confidence_low_churn",
     "injury_durability_rate",
+    # Ceiling/concentration features, added to close the bell-cow/alpha
+    # under-projection gap (Malik Nabers, Josh Allen, Lamar Jackson, Sam
+    # LaPorta, etc. - see the task brief this was built for). None of the
+    # existing share features distinguish "the clear #1 option at this
+    # position" from "gets some volume, split among several similar
+    # players" - these do:
+    "rz_carry_monopoly", "rz_target_monopoly",  # concentration within the player's OWN position group's red-zone looks (see data_prep.team_season_rz_position_totals)
+    "air_yards_share", "adot",  # true #1 receiving option vs. possession/checkdown role (pbp.air_yards)
+    "qb_designed_run_rate",  # scheme-called rush usage, distinct from scramble production (pbp.qb_scramble)
+    # Opponent/schedule-strength proxy, added to address the ~18%-high
+    # systematic QB volume over-projection (no opponent-agnostic feature
+    # existed anywhere in the model before this) - see
+    # data_prep.team_season_opponent_strength for the full construction.
+    "opp_def_pass_epa_prior", "opp_def_rush_epa_prior",
 ] + OC_METRICS
 
 
@@ -78,10 +95,23 @@ def build_player_season_features(conn, seasons=SEASONS):
     snaps = player_season_snap_pct(conn, seasons)
     base = base.merge(snaps, on=["season", "player_id"], how="left")
 
-    base["carry_share"] = base["carries"] / base["team_rush_attempts"]
-    base["target_share"] = base["targets"] / base["team_pass_attempts"]
-    base["rz_carry_share"] = base["rz_carries"] / base["team_rz_rush_attempts"]
-    base["rz_target_share"] = base["rz_targets"] / base["team_rz_pass_attempts"]
+    # Share denominators use the team's attempts during the WEEKS THIS
+    # PLAYER WAS ACTIVE, not the team's full-season totals (`team_totals`
+    # above, still used for qb_designed_run_rate's team_plays denominator
+    # and by other callers of team_season_pbp_totals) - see
+    # data_prep.player_active_team_opportunity's docstring for the injury-
+    # season dilution bug this fixes (Nabers/LaPorta/Reed 2025). A rare
+    # player with zero active weeks in a season (shouldn't happen given
+    # `base` is built from active-week aggregation already, but guarded
+    # defensively) would divide by 0 -> NaN, correctly "no real share to
+    # compute," not silently zeroed.
+    active_opp = player_active_team_opportunity(conn, seasons)
+    base = base.merge(active_opp, on=["season", "player_id"], how="left")
+
+    base["carry_share"] = base["carries"] / base["team_rush_attempts_active"]
+    base["target_share"] = base["targets"] / base["team_pass_attempts_active"]
+    base["rz_carry_share"] = base["rz_carries"] / base["team_rz_rush_attempts_active"]
+    base["rz_target_share"] = base["rz_targets"] / base["team_rz_pass_attempts_active"]
 
     oc = pd.read_sql(f"select season, team, {', '.join(OC_METRICS)} from oc_tendency_profiles", conn)
     base = base.merge(oc, on=["season", "team"], how="left")
@@ -101,6 +131,80 @@ def build_player_season_features(conn, seasons=SEASONS):
     base["injury_durability_rate"] = base["injury_durability_rate"].fillna(0)
 
     import numpy as np
+
+    # --- Red-zone MONOPOLY (concentration within the player's own position
+    # group), distinct from rz_carry_share/rz_target_share which divide by
+    # ALL of the team's red-zone plays across every position. See
+    # data_prep.team_season_rz_position_totals's docstring for the full
+    # reasoning.
+    rz_pos_totals = team_season_rz_position_totals(conn, seasons)
+    base = base.merge(rz_pos_totals, on=["season", "team", "position"], how="left")
+    base[["team_rz_carries_pos", "team_rz_targets_pos"]] = base[
+        ["team_rz_carries_pos", "team_rz_targets_pos"]
+    ].fillna(0)
+    base["rz_carry_monopoly"] = (base["rz_carries"] / base["team_rz_carries_pos"]).fillna(0)
+    base["rz_target_monopoly"] = (base["rz_targets"] / base["team_rz_targets_pos"]).fillna(0)
+    # Both ratios are 0/0 -> NaN exactly when the player's own count AND the
+    # position-group total are both 0 (if the group total were 0 the
+    # player's own count logically must be too) - filled to 0 deliberately:
+    # "0 real red-zone looks existed for this position group that
+    # team-season" means there is nothing to be a monopoly over, which is a
+    # real 0, not a missing value.
+
+    # --- Air yards share / aDOT: true #1 receiving option vs. a
+    # possession/checkdown role, which target_share/rz_target_share alone
+    # can't separate (a low-aDOT receiver can still carry a healthy target
+    # share). See data_prep.player_season_air_yards's docstring for the
+    # sack/air_yards-null handling.
+    player_ay, _team_ay_full_season = player_season_air_yards(conn, seasons)
+    base = base.merge(player_ay, on=["season", "player_id"], how="left")
+    # player_air_yards: a player with zero real (non-null-air_yards) targets
+    # that season genuinely accumulated 0 air yards - fillna(0) is a real
+    # value, not a cover for a failed join.
+    base["player_air_yards"] = base["player_air_yards"].fillna(0)
+    # Denominator is team_air_yards_active (from player_active_team_opportunity,
+    # merged above alongside the attempt-share columns) - the same
+    # games-played-aware fix as carry_share/target_share, NOT the
+    # full-season team_air_yards this function also returns (kept unused
+    # here, `_team_ay_full_season` - it has the identical injury-season
+    # dilution bug carry_share/target_share had, found while validating
+    # that fix; see player_active_team_opportunity's docstring).
+    base["air_yards_share"] = (base["player_air_yards"] / base["team_air_yards_active"]).fillna(0)
+    # `adot` (player_adot from player_season_air_yards) is deliberately LEFT
+    # AS NaN when a player has zero targets with a real air_yards value that
+    # season (e.g. a QB, or a RB/WR/TE who genuinely never saw a target) -
+    # filling it to 0 would falsely claim "targeted exclusively behind the
+    # line of scrimmage" for a player who was never targeted at all. This
+    # is a real, reportable gap for non-receiving-relevant rows (QBs will be
+    # essentially all-NaN here, by construction, since air_yards is credited
+    # to the receiver not the passer), not a silent fill.
+    base = base.rename(columns={"player_adot": "adot"})
+
+    # --- QB designed-run-rate: scheme-called rush usage as a fraction of
+    # team offensive plays, distinct from scramble production and from raw
+    # rushing_yards volume. See data_prep.player_season_designed_rushes's
+    # docstring for why this is only cleanly meaningful for QB rows (it's
+    # highly collinear with carry_share for RB/WR/TE, included generically
+    # anyway since FEATURE_COLS isn't filtered by position elsewhere).
+    designed = player_season_designed_rushes(conn, seasons)
+    base = base.merge(designed, on=["season", "player_id"], how="left")
+    base["designed_rush_attempts"] = base["designed_rush_attempts"].fillna(0)
+    team_plays = base["team_pass_attempts"] + base["team_rush_attempts"]
+    base["qb_designed_run_rate"] = (base["designed_rush_attempts"] / team_plays).fillna(0)
+
+    # --- Opponent/schedule-strength: a team-season proxy (not player-
+    # specific) for how tough the team's actual schedule was, built from
+    # each opponent's PRIOR-season pass/rush defensive EPA/play allowed. See
+    # data_prep.team_season_opponent_strength's docstring for the full
+    # construction and the stated NaN behavior for 2016 (no season-2015 data
+    # exists in this DB).
+    opp_strength = team_season_opponent_strength(conn, seasons)
+    base = base.merge(opp_strength, on=["season", "team"], how="left")
+    # Deliberately NOT filled - see team_season_opponent_strength's
+    # docstring. Only 2016 team-seasons are affected, and training
+    # (transitions.py) never uses season_from=2016, so this doesn't reach
+    # the actual production/backtest models, but is left genuinely NaN
+    # rather than silently zeroed for anyone reading `base` directly.
 
     for stat_group in TARGET_STATS.values():
         for stat in stat_group:
