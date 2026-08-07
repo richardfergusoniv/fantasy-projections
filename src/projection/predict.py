@@ -47,7 +47,7 @@ import pandas as pd
 from src.projection.data_prep import get_conn, team_season_opponent_strength
 from src.projection.features import build_player_season_features, TARGET_STATS, OC_METRICS
 from src.projection.ol_quality import team_season_ol_quality
-from src.projection.transitions import ALL_FEATURES
+from src.projection.transitions import ALL_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS
 from src.projection.rookies import (
     build_rookie_dataset, fit_rookie_baselines, predict_rookies,
     identify_target_season_rookie_class,
@@ -117,6 +117,9 @@ def load_models():
         for stat in stats:
             path = os.path.join(MODELS_DIR, f"{position}_{stat}.joblib")
             models[(position, stat)] = joblib.load(path)
+    # Joint/multi-output Phase A team-total model (train.py) - same
+    # ("TEAM", "passing_yards") key backtest.py's own rows use.
+    models[("TEAM", "passing_yards")] = joblib.load(os.path.join(MODELS_DIR, "team_passing_yards.joblib"))
     return models
 
 
@@ -537,26 +540,108 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
             preds = m["model"].predict(X)
             out = pos_df[["player_id", "team", "position", "team_changed", "roster_status"]].copy()
             out["stat"] = stat
-            out["pred_pg"] = np.clip(preds, 0, None)  # a per-game rate can't be negative; LightGBM isn't constrained
             out["source"] = "veteran_model"
             out["low_confidence"] = False
 
-            r = resid[(resid["position"] == position) & (resid["stat"] == stat)]
-            if r.empty:
-                out["pred_pg_low"], out["pred_pg_high"], out["interval_low_n_flag"] = np.nan, np.nan, True
+            if (position, stat) in REFRAMED_SHARE_STATS:
+                # preds here is a SHARE (see train.py's fit_one), not a
+                # rate - composed into a real pred_pg by
+                # _compose_reframed_receiving_predictions AFTER this whole
+                # loop finishes, since normalizing a team's shares needs
+                # ALL THREE reframed positions' predictions at once, and
+                # this loop produces them at different iterations. pred_pg
+                # holds the raw share as a placeholder; low/high are
+                # deferred entirely (computed in rate units, post-compose).
+                out["pred_pg"] = np.clip(preds, 0, None)
+                out["pred_pg_low"], out["pred_pg_high"], out["interval_low_n_flag"] = np.nan, np.nan, False
             else:
-                r = r.iloc[0]
-                out["pred_pg_low"] = (out["pred_pg"] + r["resid_low"]).clip(lower=0)
-                out["pred_pg_high"] = out["pred_pg"] + r["resid_high"]
-                out["interval_low_n_flag"] = bool(r["low_n_flag"])
+                out["pred_pg"] = np.clip(preds, 0, None)  # a per-game rate can't be negative; LightGBM isn't constrained
+                r = resid[(resid["position"] == position) & (resid["stat"] == stat)]
+                if r.empty:
+                    out["pred_pg_low"], out["pred_pg_high"], out["interval_low_n_flag"] = np.nan, np.nan, True
+                else:
+                    r = r.iloc[0]
+                    out["pred_pg_low"] = (out["pred_pg"] + r["resid_low"]).clip(lower=0)
+                    out["pred_pg_high"] = out["pred_pg"] + r["resid_high"]
+                    out["interval_low_n_flag"] = bool(r["low_n_flag"])
             rows.append(out)
     combined = pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
     if combined.empty:
         return combined
 
+    combined = _compose_reframed_receiving_predictions(combined, base, models[("TEAM", "passing_yards")], resid)
+
     depth_chart = load_depth_chart(target_season)
     combined = apply_depth_chart_gating(combined, depth_chart)
     return combined
+
+
+# Cap on a team's summed receiving-share predictions across WR+TE+RB before
+# composing with team_passing_yards_pg (joint/multi-output Phase A). Shares
+# are NOT forced to sum to exactly 1 - practice-squad/emergency production
+# isn't fully in the modeled universe, and the real 2024-2025 held-out
+# receiving/passing ratio (see coherence_ratio_backtest) itself ranges well
+# above 1 for some teams even on ACTUAL outcomes - only scaled down if the
+# RAW predicted sum exceeds this ceiling. A stated, un-tuned judgment call,
+# same spirit as DEEP_BENCH_DISCOUNT/TEAM_CHANGE_SHARE_CLIP elsewhere in
+# this module.
+RECEIVING_SHARE_SUM_CAP = 1.5
+
+
+def _compose_reframed_receiving_predictions(combined, base, team_model, resid):
+    """Joint/multi-output Phase A: turns the raw SHARE predictions the main
+    project_veterans loop produced for REFRAMED_SHARE_STATS rows
+    (WR/TE/RB receiving_yards) into real pred_pg values, by composing them
+    with a team_passing_yards_pg forecast from the dedicated team-total
+    model (train.py's fit_team_total) - see transitions.py's
+    REFRAMED_SHARE_STATS/RECEIVING_SHARE_LABEL for the shared source of
+    truth on which (position, stat) combos are reframed. team_total_pred is
+    drawn from `base`'s own TEAM_FEATURES (already re-pointed to a team-
+    changer's NEW team by reassign_team_changers, called before this
+    function runs), consistent with every other team-context feature in
+    this module.
+
+    Non-reframed rows pass through completely unchanged - this only
+    touches the WR/TE/RB receiving_yards rows the main loop flagged."""
+    reframed_index = pd.MultiIndex.from_tuples(REFRAMED_SHARE_STATS, names=["position", "stat"])
+    mask = combined.set_index(["position", "stat"]).index.isin(reframed_index)
+    if not mask.any():
+        return combined
+    reframed = combined[mask].copy()
+    other = combined[~mask].copy()
+    other["receiving_share_capped"] = np.nan
+
+    team_feat = base.dropna(subset=TEAM_FEATURES).drop_duplicates(subset=["team"])[["team"] + TEAM_FEATURES]
+    team_feat["team_total_pred"] = np.clip(team_model["model"].predict(team_feat[TEAM_FEATURES]), 0, None)
+    reframed = reframed.merge(team_feat[["team", "team_total_pred"]], on="team", how="left")
+    # A team with no resolvable TEAM_FEATURES row (the same rare team=NaN
+    # gap backtest.py's _predict_reframed_receiving already documents) has
+    # no team_total_pred to compose with - falls back to 0 rather than
+    # NaN-propagating a whole player's row into an unusable prediction;
+    # genuinely rare (verified 0 occurrences in the 2026 live run).
+    reframed["team_total_pred"] = reframed["team_total_pred"].fillna(0)
+
+    share_sum = reframed.groupby("team")["pred_pg"].transform("sum")
+    over_cap = share_sum > RECEIVING_SHARE_SUM_CAP
+    scale = pd.Series(1.0, index=reframed.index)
+    scale.loc[over_cap] = RECEIVING_SHARE_SUM_CAP / share_sum[over_cap]
+    reframed["receiving_share_capped"] = over_cap
+    reframed["pred_pg"] = reframed["pred_pg"] * scale * reframed["team_total_pred"]
+    reframed = reframed.drop(columns=["team_total_pred"])
+
+    r = resid[(resid["stat"] == "receiving_yards") & (resid["position"].isin(["WR", "TE", "RB"]))]
+    reframed = reframed.merge(
+        r[["position", "stat", "resid_low", "resid_high", "low_n_flag"]], on=["position", "stat"], how="left",
+    )
+    has_resid = reframed["resid_low"].notna()
+    reframed.loc[has_resid, "pred_pg_low"] = (
+        reframed.loc[has_resid, "pred_pg"] + reframed.loc[has_resid, "resid_low"]
+    ).clip(lower=0)
+    reframed.loc[has_resid, "pred_pg_high"] = reframed.loc[has_resid, "pred_pg"] + reframed.loc[has_resid, "resid_high"]
+    reframed["interval_low_n_flag"] = reframed["low_n_flag"].fillna(True)
+    reframed = reframed.drop(columns=["resid_low", "resid_high", "low_n_flag"])
+
+    return pd.concat([other, reframed], ignore_index=True, sort=False)
 
 
 # Band for team_pass_catch_coherence_flag (see add_team_pass_catch_coherence_flag
@@ -757,6 +842,7 @@ OUTPUT_COLUMNS = [
     "qb_sleeper_play_prob",  # rookie QB survivorship-bias correction - NaN for non-QB/veteran rows
     "athletic_tier",  # Addendum 4 - combine-athleticism scale tier; NaN for veteran_model rows
     "team_pass_catch_ratio", "team_pass_catch_coherence_flag",  # diagnostic-only, see add_team_pass_catch_coherence_flag
+    "receiving_share_capped",  # joint/multi-output Phase A - see _compose_reframed_receiving_predictions
 ]
 
 

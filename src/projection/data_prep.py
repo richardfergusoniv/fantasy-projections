@@ -228,6 +228,82 @@ def player_active_team_opportunity(conn, seasons=SEASONS):
     return out.rename(columns={c: f"{c}_active" for c in cols})
 
 
+def team_season_yardage_totals(conn, seasons=SEASONS):
+    """Team-season total passing yards from pbp (`passing_yards`, 0 on
+    incompletions/non-pass plays, not null - no exclusion needed unlike
+    air_yards/adot which are null on sacks). This single number is BOTH the
+    team's total passing-yards output (the QB-side anchor) AND the team's
+    total receiving-yards output (the WR/TE/RB-side anchor) - every yard
+    gained on a completed pass is credited identically to `passing_yards`
+    and `receiving_yards` in pbp for that same play, so there is no need to
+    separately sum `receiving_yards`; they are the same quantity by
+    construction. Part of the joint/multi-output team-total x player-share
+    decomposition (see the plan this was built from) - `team_passing_yards`
+    is the shared anchor `receiving_yards_share` (below) and any future
+    QB-side reframing would both draw from."""
+    q = f"""
+        select season, posteam as team, passing_yards
+        from pbp
+        where season in ({','.join(map(str, seasons))}) and season_type = 'REG'
+          and posteam is not null and pass_attempt = 1
+    """
+    pbp = pd.read_sql(q, conn)
+    return pbp.groupby(["season", "team"])["passing_yards"].sum().rename("team_passing_yards").reset_index()
+
+
+def team_week_yardage_totals(conn, seasons=SEASONS):
+    """Same as team_season_yardage_totals but grouped by week - the
+    building block for the active-week-aware team_passing_yards_active
+    denominator in receiving_yards_share (mirrors team_week_pbp_totals/
+    team_week_air_yards's pattern)."""
+    q = f"""
+        select season, week, posteam as team, passing_yards
+        from pbp
+        where season in ({','.join(map(str, seasons))}) and season_type = 'REG'
+          and posteam is not null and pass_attempt = 1
+    """
+    pbp = pd.read_sql(q, conn)
+    return pbp.groupby(["season", "week", "team"])["passing_yards"].sum().rename("team_passing_yards").reset_index()
+
+
+def player_season_receiving_yards_share(conn, seasons=SEASONS):
+    """Player-season receiving_yards_share = player's own receiving_yards /
+    the team's total passing_yards DURING THE WEEKS THIS PLAYER WAS ACTIVE
+    (same games-played-aware denominator fix as player_active_team_opportunity
+    - reused here rather than duplicated, since a receiving-yards share has
+    the identical injury-season-dilution risk target_share/air_yards_share
+    already had). This is a LABEL for the team-total x player-share
+    decomposition (Phase A of the joint/multi-output plan), not an input
+    feature - WR_receiving_yards/TE_receiving_yards/RB_receiving_yards are
+    trained to predict this share, then multiplied by a separately-trained
+    team_passing_yards_pg forecast at prediction time, rather than
+    predicting receiving_yards_pg directly."""
+    wu = load_weekly_usage(conn)
+    wu = wu[wu["season"].isin(seasons)].copy()
+    wu["_active"] = (
+        ((wu["position"] == "QB") & (wu["attempts"] > 0))
+        | ((wu["position"] != "QB") & ((wu["carries"] > 0) | (wu["targets"] > 0)))
+    )
+    active = wu[wu["_active"]][["player_id", "season", "week", "team", "receiving_yards"]].drop_duplicates(
+        subset=["player_id", "season", "week", "team"]
+    )
+
+    team_wk_yds = team_week_yardage_totals(conn, seasons)
+    joined = active.merge(team_wk_yds, on=["season", "week", "team"], how="left")
+    joined["team_passing_yards"] = joined["team_passing_yards"].fillna(0)
+
+    out = joined.groupby(["player_id", "season"]).agg(
+        player_receiving_yards=("receiving_yards", "sum"),
+        team_passing_yards_active=("team_passing_yards", "sum"),
+    ).reset_index()
+    # 0/0 (a player active only in weeks the team had 0 real passing_yards -
+    # vanishingly rare, but possible for e.g. a single garbage-time week) ->
+    # NaN, left as NaN rather than filled: "no real team passing volume
+    # existed to have a share of" is not the same as "confirmed 0 share."
+    out["receiving_yards_share"] = out["player_receiving_yards"] / out["team_passing_yards_active"]
+    return out[["player_id", "season", "receiving_yards_share"]]
+
+
 def player_rz_usage(conn, seasons=SEASONS):
     """Player-season red-zone carries/targets from pbp (yardline_100<=20)."""
     q = f"""

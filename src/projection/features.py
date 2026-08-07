@@ -32,7 +32,8 @@ from src.projection.data_prep import (
     player_rz_usage, player_season_snap_pct, build_player_season_injury_durability,
     team_season_rz_position_totals, player_season_air_yards,
     player_season_designed_rushes, team_season_opponent_strength,
-    player_active_team_opportunity,
+    player_active_team_opportunity, team_season_yardage_totals,
+    player_season_receiving_yards_share, _team_season_game_count,
 )
 from src.projection.ol_quality import team_season_ol_quality
 
@@ -205,6 +206,26 @@ def build_player_season_features(conn, seasons=SEASONS):
     # (transitions.py) never uses season_from=2016, so this doesn't reach
     # the actual production/backtest models, but is left genuinely NaN
     # rather than silently zeroed for anyone reading `base` directly.
+
+    # --- Joint/multi-output Phase A additions (team-total x player-share
+    # decomposition - see the plan this was built from). Both are LABELS,
+    # not input FEATURE_COLS: `receiving_yards_share` is what
+    # WR_receiving_yards/TE_receiving_yards/RB_receiving_yards are trained
+    # to predict instead of receiving_yards_pg directly;
+    # `team_passing_yards_pg` is what the new team-season
+    # team_passing_yards model (train.py) is trained to predict. Neither
+    # belongs in FEATURE_COLS - a model can't be trained to predict its own
+    # input.
+    recv_share = player_season_receiving_yards_share(conn, seasons)
+    base = base.merge(recv_share, on=["season", "player_id"], how="left")
+    # `team_totals` (team_season_pbp_totals, merged earlier) covers attempt
+    # counts only, not yardage - team_season_yardage_totals is a separate
+    # merge, normalized by the team's schedule length (same
+    # _team_season_game_count helper injury_durability_rate already uses)
+    # to get a per-game rate, consistent with every other `_pg` label.
+    team_yds = team_season_yardage_totals(conn, seasons)
+    base = base.merge(team_yds, on=["season", "team"], how="left")
+    base["team_passing_yards_pg"] = base["team_passing_yards"] / base["season"].apply(_team_season_game_count)
 
     for stat_group in TARGET_STATS.values():
         for stat in stat_group:
