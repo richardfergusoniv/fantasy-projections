@@ -34,6 +34,7 @@ from src.projection.data_prep import (
     player_season_designed_rushes, team_season_opponent_strength,
     player_active_team_opportunity, team_season_yardage_totals,
     player_season_receiving_yards_share, _team_season_game_count,
+    player_season_age,
 )
 from src.projection.ol_quality import team_season_ol_quality
 
@@ -63,7 +64,7 @@ OC_METRICS = [
 FEATURE_COLS = [
     "carry_share", "target_share", "rz_carry_share", "rz_target_share", "snap_pct",
     "ol_pass_protection_score", "ol_run_blocking_score", "ol_confidence_low_churn",
-    "injury_durability_rate",
+    "injury_durability_rate", "age",  # see data_prep.player_season_age for the age x injury investigation this came from
     # Ceiling/concentration features, added to close the bell-cow/alpha
     # under-projection gap (Malik Nabers, Josh Allen, Lamar Jackson, Sam
     # LaPorta, etc. - see the task brief this was built for). None of the
@@ -130,6 +131,11 @@ def build_player_season_features(conn, seasons=SEASONS):
     # gap - if this ever actually fires it means the two functions'
     # universes have diverged and is worth investigating.
     base["injury_durability_rate"] = base["injury_durability_rate"].fillna(0)
+
+    age = player_season_age(conn, seasons)
+    base = base.merge(age, on=["season", "player_id"], how="left")
+    # NOT filled - see player_season_age's docstring. A missing age is a
+    # real, if uncommon, roster-data gap, not "age 0."
 
     import numpy as np
 

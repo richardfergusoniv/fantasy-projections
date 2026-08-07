@@ -342,6 +342,45 @@ def player_season_snap_pct(conn, seasons=SEASONS):
     return out.rename(columns={"gsis_id": "player_id", "offense_pct": "snap_pct"})
 
 
+def player_season_age(conn, seasons=SEASONS):
+    """Player-season age, from `seasonal_rosters.age` - added to
+    investigate whether injury_durability_rate's effect on next-season
+    output should vary by age (the user's specific hypothesis: a young
+    player like Malik Nabers should be expected to bounce back from a
+    severe injury more than an older player like Christian McCaffrey).
+
+    Investigated on real historical transitions before adding this as a
+    feature (not assumed): for severe-injury player-seasons
+    (injury_durability_rate > 0.35), under-27 players recovered to a median
+    96% of their pre-injury per-game rate the following season vs ~80% for
+    27+ - a real, meaningful gap. A formal OLS regression found age has a
+    significant main effect on next-season decline on its own (p<0.001),
+    but the specific age x injury INTERACTION term was NOT significant
+    (p=0.35, n=1638, though the severe-injury/older-player cell is thin at
+    n=79 so this could be underpowered rather than a true null). Given
+    that, `age` is added here as a plain input feature rather than a
+    hand-built age x injury interaction term - LightGBM captures feature
+    interactions natively, so it can discover whatever real age/injury
+    interaction exists in the data instead of this code assuming a
+    specific (and, per the regression, not clearly supported) linear form.
+
+    `seasonal_rosters` has multiple rows per player-season (roster
+    snapshots through the season, not one row) - `max(age)` per
+    (player_id, season) is used deliberately, since age only increases
+    within a season (birthdays), so the max is the player's age by
+    season's end, not an average across snapshots that would be
+    meaningless to average. ~2-15%/season of rows have a null age
+    (see Phase 0-era roster data caveats) - left as genuine NaN, not
+    imputed; LightGBM handles it natively like every other FEATURE_COLS
+    column with real gaps (e.g. OL quality pre-2021)."""
+    q = f"""
+        select player_id, season, max(age) as age from seasonal_rosters
+        where season in ({','.join(map(str, seasons))})
+        group by player_id, season
+    """
+    return pd.read_sql(q, conn)
+
+
 # NFL expanded to a 17-game regular season starting 2021 - used below as the
 # denominator for "how many of the team's scheduled games did this player
 # miss," a well-known structural fact (not derived from a query) in the same
