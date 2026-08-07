@@ -32,6 +32,10 @@ from src.projection.transitions import (
 )
 from src.projection.rookies import build_rookie_dataset, fit_rookie_baselines, predict_rookies
 from src.projection.train import LGBM_PARAMS
+from src.projection.corrections import (
+    compute_loo_receiving_residuals, fit_elite_shrinkage, elite_shrinkage_adjustment,
+    injury_cohort_gate, load_suspension_weeks,
+)
 
 TRAIN_PAIRS = [(2021, 2022), (2022, 2023), (2023, 2024)]
 TEST_PAIR = (2024, 2025)
@@ -123,6 +127,23 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
     scale, _ = receiving_share_scale(allf[["team", "share"]])
     allf["uncapped"] = allf["share"] * allf["team_total_pred"]
     allf["capped"] = allf["share"] * scale * allf["team_total_pred"]
+
+    # Phase-7 elite-shrinkage correction, refit HERE on an inner
+    # leave-one-out over train_pairs ONLY - never train.py's production
+    # parameters, which saw the held-out pair. Without this the MAE table
+    # and the interval residuals below would be scored against a
+    # correction that had already seen their answers.
+    corr_params = fit_elite_shrinkage(compute_loo_receiving_residuals(feat, train_pairs))
+    if corr_params:
+        for (position, stat), test in per_combo.items():
+            m = (allf["position"] == position) & (allf["stat"] == stat)
+            rows_idx = allf.loc[m, "row"].to_numpy()
+            adj = elite_shrinkage_adjustment(
+                pd.Series([position] * int(m.sum())),
+                test.loc[rows_idx, "naive_pred"].to_numpy(),
+                corr_params,
+            )
+            allf.loc[m, "capped"] = allf.loc[m, "capped"].to_numpy() + adj
 
     out = {}
     for (position, stat), test in per_combo.items():
@@ -366,6 +387,22 @@ def main():
         print(f"\nMean |ratio - actual_ratio| across teams: "
               f"old={coh['old_ratio'].sub(coh['actual_ratio']).abs().mean():.3f}, "
               f"new={coh['new_ratio'].sub(coh['actual_ratio']).abs().mean():.3f}")
+
+    print("\n=== Injury-cohort gate (Phase 6 diagnostic - see corrections.py) ===")
+    print("(WR, season-N active games <= 8, season-N >= 50 rec ypg, no suspension-coded weeks;")
+    print(" a correction gets built only at mean resid > +3 ypg AND >= 65% positive)")
+    gate = injury_cohort_gate(
+        compute_loo_receiving_residuals(feat, TRAIN_PAIRS + [TEST_PAIR]),
+        suspension_weeks=load_suspension_weeks(conn),
+    )
+    if gate.get("n"):
+        print(f"  n={gate['n']}  mean resid {gate['mean_resid']:+.2f}  median {gate['median_resid']:+.2f}  "
+              f"positive {gate['frac_positive']:.0%}")
+        print(f"  implied retention: model {gate['model_retention']:.2f} vs actual {gate['actual_retention']:.2f}")
+        tripped = gate["mean_resid"] > 3.0 and gate["frac_positive"] >= 0.65
+        print(f"  GATE {'TRIPPED - a retention correction is warranted' if tripped else 'NOT tripped - no correction needed'}")
+    else:
+        print("  (no cohort rows found)")
 
     conn.close()
     return vet, rook, resid, coh

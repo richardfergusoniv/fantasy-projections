@@ -123,6 +123,31 @@ def main():
             note = " (reframed: predicts receiving_yards_share, composed with team_passing_yards at predict time)" if reframed else ""
             print(f"{position} {stat}: trained on {n} rows -> {path}{note}")
 
+    # Post-hoc correction parameters (Phase 7 of the consensus-gap work).
+    # Imported HERE rather than at module scope because corrections.py
+    # imports LGBM_PARAMS/fit_team_total from this module - a local import
+    # is the simplest honest way to break that cycle without duplicating
+    # the fitting code into both files.
+    #
+    # Fit on leave-one-transition-out residuals across ALL_PAIRS: these
+    # are the PRODUCTION parameters predict.py consumes. backtest.py
+    # deliberately refits its own version over its training pairs only, so
+    # nothing fit with knowledge of the 2025 holdout ever scores against
+    # it.
+    from src.projection.corrections import compute_loo_receiving_residuals, fit_elite_shrinkage
+
+    loo_resid = compute_loo_receiving_residuals(feat, ALL_PAIRS)
+    corr_params = fit_elite_shrinkage(loo_resid)
+    corr_path = os.path.join(MODELS_DIR, "corrections.joblib")
+    joblib.dump(corr_params, corr_path)
+    if corr_params:
+        for position, p in sorted(corr_params.items()):
+            print(f"{position} elite-shrinkage correction: beta={p['beta']:.4f} "
+                  f"knot={p['knot']:.0f} ypg cap=+{p['cap']:.0f} (fit on {p['n_above']} rows above knot, "
+                  f"season-consistency {p['season_consistency']:.1f}) -> {corr_path}")
+    else:
+        print(f"No elite-shrinkage correction fit (no position cleared the evidence gate) -> {corr_path}")
+
     joblib.dump(manifest, os.path.join(MODELS_DIR, "manifest.joblib"))
     print("Done.")
 

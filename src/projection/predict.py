@@ -52,6 +52,7 @@ from src.projection.transitions import (
     ALL_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS,
     RECEIVING_SHARE_SUM_CAP, receiving_share_scale,
 )
+from src.projection.corrections import elite_shrinkage_adjustment
 from src.projection.rookies import (
     build_rookie_dataset, fit_rookie_baselines, predict_rookies,
     identify_target_season_rookie_class,
@@ -61,6 +62,7 @@ from src.projection.rookies import (
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MODELS_DIR = os.path.join(REPO_ROOT, "models")
 INTERVAL_RESIDUALS_PATH = os.path.join(MODELS_DIR, "interval_residuals.csv")
+CORRECTIONS_PATH = os.path.join(MODELS_DIR, "corrections.joblib")
 DEPTH_CHART_PATH = os.path.join(REPO_ROOT, "src", "depth_chart", "starters_2026.csv")
 # Rookie ratio fallback if a bucket/stat combo has too few historical rows
 # for its own empirical ratio (rookie_interval_ratios drops any with <3
@@ -134,6 +136,16 @@ def load_interval_residuals():
             "once (after train.py) to build it before calling project_season."
         )
     return pd.read_csv(INTERVAL_RESIDUALS_PATH)
+
+
+def load_corrections():
+    """Elite-shrinkage correction parameters fit by train.py (see
+    corrections.py). Returns {} - a real "no correction is applied" state,
+    not an error - when the file predates this feature, so an older
+    models/ directory still predicts rather than failing."""
+    if not os.path.exists(CORRECTIONS_PATH):
+        return {}
+    return joblib.load(CORRECTIONS_PATH)
 
 
 def load_target_roster_map(conn, target_season):
@@ -477,11 +489,21 @@ def apply_depth_chart_gating(df, depth_chart):
     matched = df["depth_rank"].notna()
     df["depth_chart_status"] = np.where(matched, "curated", "deep_bench_discounted")
 
+    # The net multiplier this row received, recorded as it is applied.
+    # Consumed by _compose_reframed_receiving_predictions so the Phase-7
+    # elite-shrinkage correction (an ADDITIVE yards/game term, fit on
+    # undiscounted out-of-sample residuals) can be scaled by the same
+    # factor the rest of the row was: without it, a discounted player with
+    # an elite season-N rate would have a full-size bonus added on top of
+    # a 0.15x-ed prediction, quietly undoing the discount.
+    df["_role_discount_factor"] = 1.0
+
     to_discount = ~matched
     for col in ["pred_pg", "pred_pg_low", "pred_pg_high"]:
         df.loc[to_discount, col] = df.loc[to_discount, col] * DEEP_BENCH_DISCOUNT
     df.loc[to_discount, "low_confidence"] = True
     df.loc[to_discount, "role"] = "deep_bench"
+    df.loc[to_discount, "_role_discount_factor"] = DEEP_BENCH_DISCOUNT
 
     role_factor = df["role"].map(ROLE_VOLUME_DISCOUNT)
     to_role_discount = matched & role_factor.notna()
@@ -489,6 +511,7 @@ def apply_depth_chart_gating(df, depth_chart):
     for col in ["pred_pg", "pred_pg_low", "pred_pg_high"]:
         df.loc[to_role_discount, col] = df.loc[to_role_discount, col] * role_factor[to_role_discount]
     df.loc[to_role_discount, "low_confidence"] = True
+    df.loc[to_role_discount, "_role_discount_factor"] = role_factor[to_role_discount]
 
     return df
 
@@ -661,6 +684,12 @@ def _attach_team_total_pred(combined, base, team_model):
     team_feat = base.dropna(subset=TEAM_FEATURES).drop_duplicates(subset=["team"])[["team"] + TEAM_FEATURES]
     team_feat["team_total_pred"] = np.clip(team_model["model"].predict(team_feat[TEAM_FEATURES]), 0, None)
     combined = combined.merge(team_feat[["team", "team_total_pred"]], on="team", how="left")
+    # The player's OWN observed season-N receiving rate, carried alongside
+    # so the Phase-7 elite-shrinkage correction can key on it (see
+    # corrections.py for why the observed rate and not the predicted one).
+    observed = base[["player_id", "receiving_yards_pg"]].rename(
+        columns={"receiving_yards_pg": "_observed_recv_pg"})
+    combined = combined.merge(observed.drop_duplicates("player_id"), on="player_id", how="left")
     # A team with no resolvable TEAM_FEATURES row (the same rare team=NaN
     # gap backtest.py's reframed path already documents) has no
     # team_total_pred to compose with - falls back to 0 rather than
@@ -670,7 +699,10 @@ def _attach_team_total_pred(combined, base, team_model):
     return combined
 
 
-def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=None):
+_HELPER_COLS = ["team_total_pred", "_observed_recv_pg", "_role_discount_factor"]
+
+
+def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=None, corrections=None):
     """Joint/multi-output Phase A: turns the SHARE predictions the main
     project_veterans loop produced for REFRAMED_SHARE_STATS rows
     (WR/TE/RB receiving_yards) into real pred_pg values, by composing them
@@ -702,9 +734,9 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
     reframed_index = pd.MultiIndex.from_tuples(REFRAMED_SHARE_STATS, names=["position", "stat"])
     mask = combined.set_index(["position", "stat"]).index.isin(reframed_index)
     if not mask.any():
-        return combined.drop(columns=["team_total_pred"], errors="ignore")
+        return combined.drop(columns=_HELPER_COLS, errors="ignore")
     reframed = combined[mask].copy()
-    other = combined[~mask].drop(columns=["team_total_pred"], errors="ignore").copy()
+    other = combined[~mask].drop(columns=_HELPER_COLS, errors="ignore").copy()
     other["receiving_share_capped"] = np.nan
 
     extra_team_share = None
@@ -722,7 +754,21 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
     scale, over_cap = receiving_share_scale(share_df, extra_team_share=extra_team_share)
     reframed["receiving_share_capped"] = over_cap
     reframed["pred_pg"] = reframed["pred_pg"] * scale * reframed["team_total_pred"]
-    reframed = reframed.drop(columns=["team_total_pred"])
+
+    # Phase 7: additive elite-shrinkage correction, applied AFTER
+    # composition (it is fit in rate units on composed out-of-sample
+    # residuals) and scaled by the row's own role discount so a
+    # discounted player can't be handed an undiscounted bonus. Rows with
+    # no observed season-N rate, or a position with no fitted parameters,
+    # get exactly 0.0 - see corrections.elite_shrinkage_adjustment.
+    reframed["elite_correction_pg"] = 0.0
+    if corrections:
+        adj = elite_shrinkage_adjustment(
+            reframed["position"], reframed["_observed_recv_pg"], corrections)
+        adj = adj * reframed["_role_discount_factor"].fillna(1.0).to_numpy()
+        reframed["elite_correction_pg"] = adj
+        reframed["pred_pg"] = reframed["pred_pg"] + adj
+    reframed = reframed.drop(columns=_HELPER_COLS, errors="ignore")
 
     r = resid[(resid["stat"] == "receiving_yards") & (resid["position"].isin(["WR", "TE", "RB"]))]
     reframed = reframed.merge(
@@ -925,7 +971,8 @@ def project_season(conn, target_season):
     # consensus-gap work - the user-diagnosed Robinson/Tate case, where a
     # 1st-round rookie's incoming target share must squeeze the veterans).
     rookie_receiving = rookie_long[rookie_long["stat"] == "receiving_yards"][["team", "pred_pg"]]
-    vet = _compose_reframed_receiving_predictions(vet, resid, rookie_receiving=rookie_receiving)
+    vet = _compose_reframed_receiving_predictions(
+        vet, resid, rookie_receiving=rookie_receiving, corrections=load_corrections())
 
     combined = pd.concat([vet, rookie_long], ignore_index=True, sort=False)
     combined = add_team_pass_catch_coherence_flag(combined, depth_chart)
@@ -946,6 +993,7 @@ OUTPUT_COLUMNS = [
     "athletic_tier",  # Addendum 4 - combine-athleticism scale tier; NaN for veteran_model rows
     "team_pass_catch_ratio", "team_pass_catch_coherence_flag",  # diagnostic-only, see add_team_pass_catch_coherence_flag
     "receiving_share_capped",  # joint/multi-output Phase A - see _compose_reframed_receiving_predictions
+    "elite_correction_pg",  # Phase 7 additive elite-shrinkage correction, in yards/game - see corrections.py
 ]
 
 
