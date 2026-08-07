@@ -61,13 +61,24 @@ TEAM_TOTAL_LABEL = "team_passing_yards_pg"
 # isn't fully in the modeled universe, and the real 2024-2025 held-out
 # receiving/passing ratio (see backtest.py's coherence_ratio_backtest)
 # itself ranges well above 1 for some teams even on ACTUAL outcomes - only
-# scaled down if the predicted sum exceeds this ceiling. A stated, un-tuned
-# judgment call, same spirit as predict.py's DEEP_BENCH_DISCOUNT/
-# TEAM_CHANGE_SHARE_CLIP. Lives here (not predict.py) since Phase 2 of the
-# consensus-gap work: backtest.py applies the identical cap via
-# receiving_share_scale below, so the MAE/interval calibration and the
-# shipped composition cannot drift apart.
-RECEIVING_SHARE_SUM_CAP = 1.5
+# scaled down if the predicted sum exceeds this ceiling. Lives here (not
+# predict.py) since Phase 2 of the consensus-gap work: backtest.py applies
+# the identical cap via receiving_share_scale below, so the MAE/interval
+# calibration and the shipped composition cannot drift apart.
+#
+# Value history: 1.5 originally (a stated, un-tuned judgment call, and -
+# found in Phase 2 - effectively a bug amplifier: computed on raw
+# pre-discount shares it squeezed real starters for bench players' phantom
+# volume, and once fixed it never bound at all). Tightened 1.5 -> 1.2 at
+# the Phase-2 gate (user decision, 2026-08-07) on held-out evidence:
+# capping the correctly-measured share sum improves 2024->2025 MAE
+# monotonically down to ~1.1 (reframed overall 8.70 -> 8.47; 1.2 captures
+# most of it at 8.53) and reverses at 1.0. 1.2 rather than the 1.1
+# optimum deliberately: the backtest denominator population (test-pair
+# players, no discounts/rookies) is not identical to the live one (full
+# rosters, discounted, rookie-implied shares included), so a margin is
+# left for that asymmetry rather than tuning to the holdout's edge.
+RECEIVING_SHARE_SUM_CAP = 1.2
 
 
 def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_SUM_CAP):
