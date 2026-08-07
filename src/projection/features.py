@@ -83,6 +83,29 @@ FEATURE_COLS = [
     "opp_def_pass_epa_prior", "opp_def_rush_epa_prior",
 ] + OC_METRICS
 
+# Player-grain rate/share/monopoly features stabilized by the
+# games-weighted two-season blending at the end of
+# build_player_season_features (Phase 4 of the consensus-gap work - see
+# the long comment there for the mechanism and what deliberately stays
+# raw). Everything here is "how was this player USED per unit of
+# opportunity" - the feature family a 4-game sample measures correctly
+# but noisily.
+BLEND_FEATURES = [
+    "carry_share", "target_share", "rz_carry_share", "rz_target_share", "snap_pct",
+    "rz_carry_monopoly", "rz_target_monopoly", "air_yards_share", "adot",
+    "qb_designed_run_rate",
+]
+
+# Games at which a season counts as fully self-evident: w = min(1,
+# games_played / BLEND_GAMES_T). T=8 chosen from the Phase-4 gate's
+# sensitivity backtest over {no-blend, 8, 12, 15}, not tuned silently: 8
+# touches the fewest rows (only sub-8-game seasons change at all), gave
+# the best injury-shortened-WR cohort MAE (9.36 -> 9.14 on gp<=8 WR
+# holdout rows) and the best WR-targets/TE-receiving numbers, at a small
+# stated cost to headline WR receiving MAE (10.27 -> 10.39) that TE/RB
+# receiving gains offset in aggregate.
+BLEND_GAMES_T = 8
+
 
 def build_player_season_features(conn, seasons=SEASONS):
     wu = load_weekly_usage(conn)
@@ -283,6 +306,54 @@ def build_player_season_features(conn, seasons=SEASONS):
     team_yds = team_season_yardage_totals(conn, seasons)
     base = base.merge(team_yds, on=["season", "team"], how="left")
     base["team_passing_yards_pg"] = base["team_passing_yards"] / base["season"].apply(_team_season_game_count)
+
+    # --- Games-weighted two-season feature blending (Phase 4 of the
+    # consensus-gap work): for a season with few active games, the
+    # rate/share/monopoly features above are correct but computed on a tiny
+    # sample - Phase 3 made Nabers' 4-game red-zone monopoly RIGHT (4 of
+    # 10, not 4 of 36) at the cost of making it noisy. One mechanism
+    # stabilizes all of them at once: blend each rate-shaped feature with
+    # the player's own PRIOR season, weighted by how much evidence the
+    # current season actually contains - w = min(1, games_played / T),
+    # blended = w*f_N + (1-w)*f_{N-1}. Continuous (no threshold cliff),
+    # and exactly 1 for any season with >= BLEND_GAMES_T games, so the
+    # healthy majority of rows are bit-identical to their raw features.
+    # Chosen over a credibility form g/(g+k) (never reaches 1, shifts
+    # EVERY row's distribution) and over universal two-season pooling
+    # (dilutes genuine role changes - actively harmful for sophomore
+    # breakouts).
+    #
+    # Applied identically in train/backtest/predict by construction (this
+    # is the shared feature builder), BEFORE the label loop below - labels
+    # (`*_pg`, receiving_yards_share, team_passing_yards_pg) and
+    # `naive_pred` are NEVER blended. Deliberately raw: games_played and
+    # injury_durability_rate (they ARE the evidence-quantity signal the
+    # model should still see), age, peak_receiving_yards_share (already a
+    # max-with-prior construct), and every team-grain column (the team
+    # played its full season regardless of this player's health). A player
+    # with no prior-season row (rookie season, gap year) keeps raw values -
+    # nothing is fabricated; per-column, a NaN on either side keeps the
+    # current season's raw value (blending needs two real numbers).
+    # QB rows are deliberately EXCLUDED from blending: a low-games QB
+    # season is usually a benching or a lost QB competition, not an injury
+    # - for that archetype the prior season's usage shape is anti-signal
+    # (the depth chart decided, not health), and measured directly: with
+    # QB rows blended, held-out QB attempts FLIPPED to a naive-baseline
+    # loss (7.81 vs 7.43) and QB passing_yards degraded 49.8 -> 55.1;
+    # models are strictly per-position, so excluding QB rows reverts the
+    # QB models to their pre-blending state exactly while keeping the
+    # RB/WR/TE gains.
+    prior = base[["player_id", "season"] + BLEND_FEATURES].copy()
+    prior["season"] = prior["season"] + 1
+    prior = prior.rename(columns={c: f"_prior_{c}" for c in BLEND_FEATURES})
+    base = base.merge(prior, on=["player_id", "season"], how="left")
+    blend_w = np.minimum(1.0, base["games_played"] / BLEND_GAMES_T)
+    blendable = base["position"].isin(["RB", "WR", "TE"])
+    for c in BLEND_FEATURES:
+        pc = f"_prior_{c}"
+        both = blendable & base[c].notna() & base[pc].notna()
+        base.loc[both, c] = blend_w[both] * base.loc[both, c] + (1 - blend_w[both]) * base.loc[both, pc]
+    base = base.drop(columns=[f"_prior_{c}" for c in BLEND_FEATURES])
 
     for stat_group in TARGET_STATS.values():
         for stat in stat_group:
