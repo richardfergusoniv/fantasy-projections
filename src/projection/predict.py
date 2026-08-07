@@ -191,6 +191,163 @@ TEAM_CONTEXT_COLS = (
 # docstring.
 BOOST_ELIGIBLE_ROLES = {"starter", "committee"}
 
+# Damping on the incumbent vacancy boost (see
+# apply_incumbent_vacancy_boost), per opportunity type: the fraction of a
+# team's NET vacated opportunity that its returning players actually
+# absorb. Both values are MEASURED, not assumed - fit by grid search over
+# every 2017->2025 transition against what returning players' shares
+# actually did the following season:
+#   targets alpha=0.5  (MAE -1.85% vs carry-forward, consistency 2.06,
+#                       6/9 seasons positive, all 5 most recent positive)
+#   carries alpha=1.0  (MAE -13.6%, consistency 6.33, 9/9 positive)
+# Full proportional redistribution (alpha=1.0) is what the carry data
+# wants and clearly OVERSHOOTS for targets - a departing back's carries
+# have almost nowhere else to go, while vacated targets are far more
+# readily absorbed by rookies, practice-squad callups, and scheme change.
+# Calibration at the target value is close to exact in the buckets that
+# matter: modelled 1.057/1.122/1.242x growth vs actual 1.042/1.131/1.247x
+# across rising net-vacancy buckets.
+#
+# CARRIES ARE NEVERTHELESS SHIPPED AT 0.0 - disabled, not deleted. The
+# historical evidence above is the strongest in this whole module, but
+# applying it live made two of three RB metrics WORSE (vs-consensus
+# correlation 0.848 -> 0.833, mean abs delta 2.367 -> 2.444; bias did
+# improve, -1.01 -> -0.75) and split the boosted backs 11-closer/9-further
+# essentially at random. The reason is visible in who moved: Jacobs, Hall,
+# Judkins and McCaffrey were ALREADY projected well above consensus, so a
+# correctly-measured share boost stacks on top of a separate, pre-existing
+# RB level bias and amplifies it. Both things are true at once - the
+# vacancy signal is real AND our lead-back level is too high - and the
+# second has to be fixed before the first can be turned on without doing
+# net harm. Flip this to 1.0 once that RB level bias is addressed; the
+# code path is otherwise identical and already exercised by the target
+# side.
+INCUMBENT_VACANCY_ALPHA = {"target": 0.5, "carry": 0.0}
+# Net vacancy is clipped before use, and the resulting scale capped, so a
+# freak roster teardown can't produce an unbounded multiplier out of a
+# region with no supporting data (observed net vacancy essentially never
+# exceeds ~0.5).
+INCUMBENT_VACANCY_NET_CLIP = 0.75
+INCUMBENT_VACANCY_SCALE_CAP = 2.0
+
+
+def apply_incumbent_vacancy_boost(conn, df, target_season, depth_chart, changed):
+    """Credit a team's RETURNING players with the opportunity its departed
+    players left behind.
+
+    The gap this closes (found by the project owner asking who absorbs
+    Green Bay's work after Romeo Doubs and Dontayvion Wicks left):
+    reassign_team_changers' vacated-opportunity scaling only ever fires
+    for players who CHANGED TEAMS. A player who stays put has his share
+    features read straight off the source season - a season in which the
+    now-departed teammates were still there taking their cut - so the
+    model gives their vacated volume to nobody at all.
+
+    League-wide this hides, because most teams replace departures from
+    outside and those arrivals DO get boosted: across the 2026 slate, a
+    team's vacated target share correlates POSITIVELY (+0.48) with how
+    much of its passing offense we allocate. It only surfaces on a team
+    that replaces from within. Green Bay lost 132 of 462 targets (28.6%)
+    and re-signed nobody of note, and ended up allocating 93.1% of its
+    projected team passing yards - second-lowest in the league against a
+    111.5% mean - with three of the five worst remaining WR consensus
+    gaps (Reed, Golden, Watson) all on that one roster.
+
+    Mechanism, with each piece measured rather than assumed:
+
+    1. NET vacancy, not gross. `team_vacated_opportunity` measures volume
+       that LEFT; from it we subtract the volume walking IN (the
+       source-season carries/targets of players joining this team, over
+       the team's own source-season total - the same raw-count basis
+       vacated_* uses, so the two are subtractable). Without this a team
+       that lost three starters and signed three would boost its
+       incumbents AND its arrivals for the same opening, double-counting
+       the room.
+    2. Proportional redistribution, damped: scale = 1 + alpha * v_net /
+       (1 - v_net), with alpha per opportunity type - see
+       INCUMBENT_VACANCY_ALPHA for the fitted values and the evidence.
+    3. Depth-chart gated, upward only. Only curated `starter`/`committee`
+       incumbents receive it (BOOST_ELIGIBLE_ROLES - the same guard that
+       stopped a confirmed backup from out-projecting his own starter in
+       the Phase-6 Gainwell bug); everyone else keeps their share
+       untouched. The boost never reduces a share, so a low-vacancy team
+       is a strict no-op rather than a penalty - incumbent shares DO decay
+       on stable teams (observed 0.907x median), but that is ordinary
+       regression the models already learn, and re-applying it here would
+       double-count it.
+
+    LIMITATIONS, stated: (a) incoming ROOKIES are not subtracted in step
+    1 - they have no prior NFL volume to measure and their predictions
+    don't exist yet at this point in the pipeline; the share-sum cap at
+    composition time is the backstop, and the team-allocation diagnostic
+    is how it gets checked. (b) Requires a curated depth chart, so this
+    is a no-op for any season other than 2026 - deliberately, since
+    without role gating it would inflate every bench player on a
+    high-turnover team. (c) Like every other adjustment in this function,
+    it is applied at PREDICT time only and so is not exercised by
+    backtest.py; its evidence is the historical validation above, not the
+    2025 holdout."""
+    if depth_chart.empty:
+        return df
+
+    incumbent = ~changed
+    if not incumbent.any():
+        return df
+
+    vacated = team_vacated_opportunity(conn, [target_season])
+    vacated = vacated[vacated["season"] == target_season].set_index("team")
+    if vacated.empty:
+        return df
+
+    # Source-season team totals, and the volume arriving from elsewhere,
+    # both on team_vacated_opportunity's own raw-count basis.
+    prev_team = df.groupby("team")[["carries", "targets"]].sum()
+    incoming = df[changed].groupby("team_target")[["carries", "targets"]].sum()
+    incoming_carry = (incoming["carries"] / prev_team["carries"]).replace([np.inf, -np.inf], np.nan)
+    incoming_target = (incoming["targets"] / prev_team["targets"]).replace([np.inf, -np.inf], np.nan)
+
+    role_lookup = depth_chart[["position", "gsis_id", "role"]].rename(columns={"gsis_id": "player_id"})
+    role_lookup = role_lookup.dropna(subset=["player_id"]).drop_duplicates(subset=["player_id", "position"])
+    roles = df[["player_id", "position"]].merge(role_lookup, on=["player_id", "position"], how="left")["role"]
+    # QB rows are excluded, for the same reason predict_rookies needs
+    # vacated_attempts_share rather than vacated_target_share: receiving-
+    # corps and backfield turnover say nothing about a QB's own workload,
+    # and scaling a quarterback's carry_share by how many RB carries left
+    # the building is a category error, not a small one. It is also
+    # simply unvalidated - the historical fit behind
+    # INCUMBENT_VACANCY_ALPHA covers RB/WR/TE only.
+    boostable_position = df["position"].isin(["RB", "WR", "TE"]).to_numpy()
+    eligible = incumbent & roles.isin(BOOST_ELIGIBLE_ROLES).to_numpy() & boostable_position
+    if not eligible.any():
+        return df
+
+    def _scale(vac_col, incoming_share, kind):
+        gross = df["team_target"].map(vacated[vac_col])
+        absorbed = df["team_target"].map(incoming_share).fillna(0.0)
+        v_net = (gross - absorbed).fillna(0.0).clip(lower=0.0, upper=INCUMBENT_VACANCY_NET_CLIP)
+        lever = v_net / (1.0 - v_net)
+        s = 1.0 + INCUMBENT_VACANCY_ALPHA[kind] * lever
+        return s.clip(upper=INCUMBENT_VACANCY_SCALE_CAP)
+
+    carry_scale = _scale("vacated_carry_share", incoming_carry, "carry")
+    target_scale = _scale("vacated_target_share", incoming_target, "target")
+
+    for c in ["carry_share", "rz_carry_share"]:
+        df.loc[eligible, c] = (df.loc[eligible, c] * carry_scale[eligible]).clip(upper=1.0)
+    for c in ["target_share", "rz_target_share"]:
+        df.loc[eligible, c] = (df.loc[eligible, c] * target_scale[eligible]).clip(upper=1.0)
+
+    # snap_pct follows the position's primary opportunity type, matching
+    # reassign_team_changers' own treatment.
+    snap_scale = pd.Series(1.0, index=df.index)
+    is_rb = df["position"] == "RB"
+    is_recv = df["position"].isin(["WR", "TE"])
+    snap_scale[is_rb] = carry_scale[is_rb]
+    snap_scale[is_recv] = target_scale[is_recv]
+    df.loc[eligible, "snap_pct"] = (df.loc[eligible, "snap_pct"] * snap_scale[eligible]).clip(upper=1.0)
+
+    return df
+
 
 def reassign_team_changers(conn, df, target_season, depth_chart):
     """Task 1 fix. For every player-row (source_season features), resolve
@@ -379,6 +536,12 @@ def reassign_team_changers(conn, df, target_season, depth_chart):
         df.loc[changed, "snap_pct"] = (df.loc[changed, "snap_pct"] * snap_scale[changed]).clip(upper=1.0)
 
         df = df.drop(columns=["vacated_carry_share", "vacated_target_share"])
+
+    # Incumbents (everyone the block above did NOT touch) get the other
+    # half of the same idea: credit for the opportunity their departing
+    # teammates left behind. Runs here, while df["team"] is still the
+    # source-season team and `changed` is available to net out arrivals.
+    df = apply_incumbent_vacancy_boost(conn, df, target_season, depth_chart, changed)
 
     df["team"] = df["team_target"]
     df = df.drop(columns=["team_target"])
