@@ -81,6 +81,13 @@ FEATURE_COLS = [
     # existed anywhere in the model before this) - see
     # data_prep.team_season_opponent_strength for the full construction.
     "opp_def_pass_epa_prior", "opp_def_rush_epa_prior",
+    # Draft capital + experience (Phase 5 of the consensus-gap work):
+    # draft-capital signal previously died at the rookie/veteran boundary,
+    # leaving year-2 breakouts invisible. Validated on the extended
+    # 2016-2024 leave-one-transition-out window before adding - see the
+    # Phase-5 commit for numbers. NaN round/pick = undrafted (real
+    # information, LightGBM-native).
+    "draft_round", "draft_pick", "career_year",
 ] + OC_METRICS
 
 # Player-grain rate/share/monopoly features stabilized by the
@@ -161,6 +168,26 @@ def build_player_season_features(conn, seasons=SEASONS):
     base = base.merge(age, on=["season", "player_id"], how="left")
     # NOT filled - see player_season_age's docstring. A missing age is a
     # real, if uncommon, roster-data gap, not "age 0."
+
+    # --- Draft capital + experience (Phase 5 of the consensus-gap work):
+    # the rookie path uses draft round/pick heavily, then the signal
+    # vanishes the moment a player enters the veteran models - so a
+    # 1st/2nd-round WR coming off a quiet rookie year (Luther Burden,
+    # Matthew Golden, Jayden Higgins in 2025) is projected purely off that
+    # quiet season, while consensus correctly prices the year-2 leap that
+    # high draft capital still predicts. Sourced from `players` (not
+    # draft_picks - players covers pre-2016 draftees too). UDFA rows are
+    # genuinely NaN for round/pick (LightGBM handles natively - "went
+    # undrafted" is real information, not a missing value to fill).
+    # career_year = season - rookie_season (0 = rookie year, 1 =
+    # sophomore); NaN when rookie_season itself is unknown. Static
+    # per-player facts - deliberately NOT in BLEND_FEATURES.
+    draft = pd.read_sql(
+        "select gsis_id as player_id, draft_round, draft_pick, rookie_season from players", conn
+    )
+    base = base.merge(draft, on="player_id", how="left")
+    base["career_year"] = base["season"] - base["rookie_season"]
+    base = base.drop(columns=["rookie_season"])
 
     import numpy as np
 
