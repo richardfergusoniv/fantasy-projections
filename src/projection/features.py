@@ -30,7 +30,8 @@ import pandas as pd
 from src.projection.data_prep import (
     SEASONS, load_weekly_usage, season_aggregate, team_season_pbp_totals,
     player_rz_usage, player_season_snap_pct, build_player_season_injury_durability,
-    team_season_rz_position_totals, player_season_air_yards,
+    team_season_rz_position_totals, player_active_rz_position_opportunity,
+    player_season_air_yards,
     player_season_designed_rushes, team_season_opponent_strength,
     player_active_team_opportunity, team_season_yardage_totals,
     player_season_receiving_yards_share, _team_season_game_count,
@@ -144,20 +145,34 @@ def build_player_season_features(conn, seasons=SEASONS):
     # group), distinct from rz_carry_share/rz_target_share which divide by
     # ALL of the team's red-zone plays across every position. See
     # data_prep.team_season_rz_position_totals's docstring for the full
-    # reasoning.
+    # reasoning. Denominators are ACTIVE-WEEKS position-group totals
+    # (player_active_rz_position_opportunity - Phase 3 of the consensus-gap
+    # work): the original full-season denominators diluted injury-shortened
+    # alpha seasons exactly the way carry_share/target_share used to before
+    # player_active_team_opportunity, and this diluted monopoly was
+    # measured as the single largest driver of Malik Nabers' 2026
+    # under-projection. The full-season totals (team_season_rz_position_
+    # totals) are still merged for `base` readers/diagnostics, just no
+    # longer the feature denominator.
     rz_pos_totals = team_season_rz_position_totals(conn, seasons)
     base = base.merge(rz_pos_totals, on=["season", "team", "position"], how="left")
     base[["team_rz_carries_pos", "team_rz_targets_pos"]] = base[
         ["team_rz_carries_pos", "team_rz_targets_pos"]
     ].fillna(0)
-    base["rz_carry_monopoly"] = (base["rz_carries"] / base["team_rz_carries_pos"]).fillna(0)
-    base["rz_target_monopoly"] = (base["rz_targets"] / base["team_rz_targets_pos"]).fillna(0)
+    rz_pos_active = player_active_rz_position_opportunity(conn, seasons)
+    base = base.merge(rz_pos_active, on=["player_id", "season"], how="left")
+    base[["team_rz_carries_pos_active", "team_rz_targets_pos_active"]] = base[
+        ["team_rz_carries_pos_active", "team_rz_targets_pos_active"]
+    ].fillna(0)
+    base["rz_carry_monopoly"] = (base["rz_carries"] / base["team_rz_carries_pos_active"]).fillna(0)
+    base["rz_target_monopoly"] = (base["rz_targets"] / base["team_rz_targets_pos_active"]).fillna(0)
     # Both ratios are 0/0 -> NaN exactly when the player's own count AND the
-    # position-group total are both 0 (if the group total were 0 the
-    # player's own count logically must be too) - filled to 0 deliberately:
-    # "0 real red-zone looks existed for this position group that
-    # team-season" means there is nothing to be a monopoly over, which is a
-    # real 0, not a missing value.
+    # active-weeks position-group total are both 0 (a player's own red-zone
+    # touch can only happen in a week they were active, so the denominator
+    # is >= the numerator by construction) - filled to 0 deliberately:
+    # "0 real red-zone looks existed for this position group in the weeks
+    # this player was on the field" means there is nothing to be a monopoly
+    # over, which is a real 0, not a missing value.
 
     # --- Air yards share / aDOT: true #1 receiving option vs. a
     # possession/checkdown role, which target_share/rz_target_share alone
@@ -197,8 +212,14 @@ def build_player_season_features(conn, seasons=SEASONS):
     designed = player_season_designed_rushes(conn, seasons)
     base = base.merge(designed, on=["season", "player_id"], how="left")
     base["designed_rush_attempts"] = base["designed_rush_attempts"].fillna(0)
-    team_plays = base["team_pass_attempts"] + base["team_rush_attempts"]
-    base["qb_designed_run_rate"] = (base["designed_rush_attempts"] / team_plays).fillna(0)
+    # Denominator is the ACTIVE-WEEKS team play count (from
+    # player_active_team_opportunity, merged above) - the full-season
+    # team_pass_attempts + team_rush_attempts denominator had the same
+    # injury-season dilution bug as the monopoly features (Phase 3 of the
+    # consensus-gap work): an injury-shortened rushing QB's design-run rate
+    # was diluted by team plays from weeks they never took a snap.
+    team_plays_active = base["team_pass_attempts_active"] + base["team_rush_attempts_active"]
+    base["qb_designed_run_rate"] = (base["designed_rush_attempts"] / team_plays_active).fillna(0)
 
     # --- Opponent/schedule-strength: a team-season proxy (not player-
     # specific) for how tough the team's actual schedule was, built from

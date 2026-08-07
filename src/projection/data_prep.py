@@ -545,6 +545,93 @@ def team_season_rz_position_totals(conn, seasons=SEASONS):
     return out
 
 
+def team_week_rz_position_totals(conn, seasons=SEASONS):
+    """Week-grain sibling of team_season_rz_position_totals: red-zone
+    carries/targets per (season, week, team, carrier/receiver position
+    group). Exists solely as the building block for
+    player_active_rz_position_opportunity below - the active-weeks
+    denominator fix for the monopoly features (Phase 3 of the
+    consensus-gap work)."""
+    q = f"""
+        select season, week, posteam as team, rush_attempt, pass_attempt,
+               rusher_player_id, receiver_player_id
+        from pbp
+        where season in ({','.join(map(str, seasons))}) and season_type = 'REG'
+          and posteam is not null and yardline_100 <= 20
+          and (pass_attempt = 1 or rush_attempt = 1)
+    """
+    pbp = pd.read_sql(q, conn)
+    players_pos = pd.read_sql("select gsis_id as player_id, position from players", conn)
+
+    rushes = pbp[pbp["rush_attempt"] == 1][["season", "week", "team", "rusher_player_id"]].rename(
+        columns={"rusher_player_id": "player_id"}
+    )
+    rushes = rushes.merge(players_pos, on="player_id", how="left")
+    rz_carries_pos = (
+        rushes.groupby(["season", "week", "team", "position"]).size().rename("team_rz_carries_pos").reset_index()
+    )
+
+    targets = pbp[pbp["pass_attempt"] == 1][["season", "week", "team", "receiver_player_id"]].rename(
+        columns={"receiver_player_id": "player_id"}
+    )
+    targets = targets.merge(players_pos, on="player_id", how="left")
+    rz_targets_pos = (
+        targets.groupby(["season", "week", "team", "position"]).size().rename("team_rz_targets_pos").reset_index()
+    )
+
+    out = rz_carries_pos.merge(rz_targets_pos, on=["season", "week", "team", "position"], how="outer")
+    out[["team_rz_carries_pos", "team_rz_targets_pos"]] = out[["team_rz_carries_pos", "team_rz_targets_pos"]].fillna(0)
+    return out
+
+
+def player_active_rz_position_opportunity(conn, seasons=SEASONS):
+    """Player-season position-group red-zone carry/target totals restricted
+    to the WEEKS THIS PLAYER WAS ACTUALLY ACTIVE - the position-keyed
+    sibling of player_active_team_opportunity, and the Phase-3 fix for the
+    last denominator the original active-weeks pass missed.
+
+    Bug this fixes: rz_carry_monopoly/rz_target_monopoly divided a
+    player's season red-zone touch counts by the team position group's
+    FULL-SEASON totals regardless of games missed. For an injury-shortened
+    season this mechanically dilutes the monopoly toward zero even when
+    the player owned the position group's red-zone looks every week they
+    played - Malik Nabers' 2025 (4 games): 4 of NYG's 36 full-season WR
+    red-zone targets reads as monopoly 0.111 (bench-level) when the
+    active-weeks truth is 4 of the 9 thrown while he was on the field
+    (0.444, an unambiguous alpha number). Sensitivity analysis found this
+    single diluted feature was the LARGEST driver of his under-projection
+    (+45% predicted share if corrected) - larger than the injury features
+    themselves. A separate function rather than more columns on
+    player_active_team_opportunity because the join is position-keyed
+    (each player's denominator is their OWN position group's weekly
+    totals), not team-wide.
+
+    Same trade-aware weekly-team handling as player_active_team_opportunity
+    (each active week's team comes from that week's own usage row). The
+    accepted trade, stated: a 4-active-week denominator is noisier than a
+    17-week one (4/9 vs 4/36) - correct-but-noisy beats wrong-but-stable,
+    and the games-weighted feature blending planned as Phase 4 is the
+    stabilizer for exactly this."""
+    wu = load_weekly_usage(conn)
+    wu = wu[wu["season"].isin(seasons)].copy()
+    wu["_active"] = (
+        ((wu["position"] == "QB") & (wu["attempts"] > 0))
+        | ((wu["position"] != "QB") & ((wu["carries"] > 0) | (wu["targets"] > 0)))
+    )
+    active = wu[wu["_active"]][["player_id", "season", "week", "team", "position"]].drop_duplicates()
+
+    team_wk_rz_pos = team_week_rz_position_totals(conn, seasons)
+    joined = active.merge(team_wk_rz_pos, on=["season", "week", "team", "position"], how="left")
+    # An active week with no red-zone plays for this position group is a
+    # real 0 (nothing to be a monopoly over that week), not a failed join -
+    # both sides derive from the same pbp table.
+    cols = ["team_rz_carries_pos", "team_rz_targets_pos"]
+    joined[cols] = joined[cols].fillna(0)
+
+    out = joined.groupby(["player_id", "season"])[cols].sum().reset_index()
+    return out.rename(columns={c: f"{c}_active" for c in cols})
+
+
 def player_season_air_yards(conn, seasons=SEASONS):
     """Player-season receiving air-yards totals + aDOT (average depth of
     target), and the matching team-season air-yards total, from `pbp.
