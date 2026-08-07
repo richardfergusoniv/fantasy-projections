@@ -39,6 +39,7 @@ only what's already computed in the DB for completed seasons.
 """
 import argparse
 import os
+import sys
 
 import joblib
 import numpy as np
@@ -573,7 +574,68 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
 
     depth_chart = load_depth_chart(target_season)
     combined = apply_depth_chart_gating(combined, depth_chart)
+    _warn_discounted_high_usage(conn, combined, base, source_season)
     return combined
+
+
+# Curation-tripwire thresholds: season-N usage above ANY of these makes a
+# discounted projection suspicious enough to warrant a human second look at
+# the curated depth chart. Calibrated on the two known misses these would
+# have caught (Parker Washington: 97 targets/56.5 rec ypg; Wan'Dale
+# Robinson: 141 targets/63.4 rec ypg, both absent from starters_2026.csv
+# and silently auto-discounted 0.15x) while sitting above genuine
+# deep-bench usage levels.
+TRIPWIRE_SEASON_TARGETS = 70
+TRIPWIRE_TARGETS_PG = 5.0
+TRIPWIRE_REC_YPG = 40.0
+
+
+def _warn_discounted_high_usage(conn, combined, base, source_season):
+    """Warn (stderr only - curation stays a human decision, this NEVER
+    changes a number) when a player whose projection was discounted by
+    depth-chart gating had clearly fantasy-relevant usage in the source
+    season. A high-usage player falling through to a 0.15x/0.4x discount is
+    far more likely a curation gap in the depth-chart table than a real
+    role collapse."""
+    discounted = combined[
+        (combined["depth_chart_status"] == "deep_bench_discounted")
+        | combined["role_discount_applied"]
+    ]
+    if discounted.empty:
+        return
+    usage = base[["player_id", "targets", "targets_pg", "receiving_yards_pg", "games_played"]]
+    flagged = (
+        discounted[["player_id", "team", "position", "role"]]
+        .drop_duplicates("player_id")
+        .merge(usage, on="player_id")
+    )
+    # Per-game thresholds need a minimum sample (>= 4 games) so a 1-3 game
+    # blip (e.g. 5 targets in a single spot appearance) doesn't fire; the
+    # season-total threshold needs no such guard by construction. 4 keeps
+    # genuinely relevant injury-shortened seasons (Tyreek Hill's 4-game
+    # 66-ypg 2025) inside the net.
+    enough_games = flagged["games_played"] >= 4
+    flagged = flagged[
+        (flagged["targets"] >= TRIPWIRE_SEASON_TARGETS)
+        | (enough_games & (flagged["targets_pg"] >= TRIPWIRE_TARGETS_PG))
+        | (enough_games & (flagged["receiving_yards_pg"] >= TRIPWIRE_REC_YPG))
+    ]
+    if flagged.empty:
+        return
+    names = pd.read_sql("SELECT gsis_id AS player_id, display_name FROM players", conn)
+    flagged = flagged.merge(names, on="player_id", how="left")
+    print(
+        f"CURATION TRIPWIRE: {len(flagged)} discounted player(s) had fantasy-relevant "
+        f"season-{source_season} usage - verify their rows in the curated depth chart:",
+        file=sys.stderr,
+    )
+    for _, r in flagged.sort_values("targets", ascending=False).iterrows():
+        print(
+            f"  {r['display_name']} ({r['team']} {r['position']}, role={r['role']}): "
+            f"{r['targets']:.0f} targets, {r['targets_pg']:.1f} tgt/g, "
+            f"{r['receiving_yards_pg']:.1f} rec ypg in {r['games_played']:.0f} games",
+            file=sys.stderr,
+        )
 
 
 # Cap on a team's summed receiving-share predictions across WR+TE+RB before

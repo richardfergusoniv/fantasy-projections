@@ -121,6 +121,7 @@ season,team,position,depth_rank,player_name,gsis_id,role,confidence,notes
 2026,JAX,WR,1,Brian Thomas Jr.,00-0039893,starter,high,"Established ascending WR1, entrenched target leader."
 2026,JAX,WR,2,Travis Hunter,00-0040718,starter,medium,2025 1st-round two-way rookie now playing WR (ourlads lists him in the slot); real but unproven target share as a full-time receiver.
 2026,JAX,WR,3,Jakobi Meyers,00-0034960,starter,medium,"Free-agent addition; ourlads 'right' WR1 label, established possession-receiver role."
+2026,JAX,WR,4,Parker Washington,00-0038606,starter,high,"Starting slot WR per ourlads (fetched 2026-08-07), listed AHEAD of Travis Hunter (who plays mostly CB in 2026 per camp snap counts); ESPN/Draft Sharks camp reports call him Lawrence's top target; 97 targets in 15 games in 2025. Was previously absent from this table and auto-discounted 0.15x - the single worst WR gap vs Sleeper consensus."
 2026,JAX,TE,1,Brenton Strange,00-0038935,starter,medium,"Ourlads TE1, ascending but not yet a proven high-volume target."
 2026,JAX,TE,2,Nate Boerkircher,00-0041503,backup,low,Limited established role behind Strange.
 2026,KC,QB,1,Patrick Mahomes,00-0033873,starter,high,Entrenched franchise/MVP-caliber starter.
@@ -251,6 +252,7 @@ season,team,position,depth_rank,player_name,gsis_id,role,confidence,notes
 2026,TEN,WR,1,Calvin Ridley,00-0034837,starter,medium,"Ourlads 'right' WR1 label, established incumbent target leader."
 2026,TEN,WR,2,Carnell Tate,00-0041438,starter,low,"2026 1st-round rookie, ourlads 'left' WR1 label; real uncertainty on rookie target share."
 2026,TEN,WR,3,Elic Ayomanor,00-0040170,starter,medium,"2025 4th-round rookie, ourlads WR2 (left)/ascending depth role."
+2026,TEN,WR,4,Wan'Dale Robinson,00-0038117,starter,high,"FA addition (4yr/$70M), starting slot WR per ourlads + camp reports (Daboll reunion; Ward beat quote 'my slot receiver'); 141 targets in 16 games w/NYG 2025. Was previously absent from this table and auto-discounted 0.15x despite full-time-slot 2025 volume."
 2026,TEN,TE,1,Gunnar Helm,00-0040584,starter,low,"2025 4th-round rookie, ourlads TE1; minimal established track record."
 2026,TEN,TE,2,Daniel Bellinger,00-0038115,backup,medium,"Free-agent addition (ex-NYG); ourlads TE2, real receiving-snap competition with Helm."
 2026,WAS,QB,1,Jayden Daniels,00-0039910,starter,high,Entrenched 2024 OROY-caliber starter.
