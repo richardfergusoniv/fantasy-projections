@@ -28,7 +28,7 @@ from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, ALL_FEATURES, TEAM_FEATURES,
-    REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL,
+    REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, receiving_share_scale,
 )
 from src.projection.rookies import build_rookie_dataset, fit_rookie_baselines, predict_rookies
 from src.projection.train import LGBM_PARAMS
@@ -55,42 +55,88 @@ def _fit_team_total_model(feat, train_pairs):
     return model
 
 
-def _predict_reframed_receiving(feat, position, stat, train_pairs, test_pairs):
-    """Joint/multi-output Phase A: for a REFRAMED_SHARE_STATS (position,
-    stat), fit the share model on train_pairs, fit a team_passing_yards
-    model on the SAME train_pairs, predict both on test_pairs, and
-    reconstruct receiving_yards_pg = team_total_pred x share_pred. The
-    team-total prediction is drawn from the test row's OWN TEAM_FEATURES
-    (already the player's season_from team context, part of ALL_FEATURES)
-    - the same "season_from's observed team context stands in for
-    season_to" framing every other feature in this pipeline already uses,
-    not a separate join.
+_REFRAMED_CACHE = {}
 
-    Returns (test_df, reconstructed_pred_array) in RATE units (comparable
-    to the test df's own `{stat}_pg` column, which build_transition_pairs
-    always keeps even when label_col reframes the training label) - or
-    None if any of the three required datasets (share train/test, team
-    train) is empty."""
-    train = build_transition_pairs(feat, position, stat, train_pairs, label_col=RECEIVING_SHARE_LABEL)
-    test = build_transition_pairs(feat, position, stat, test_pairs, label_col=RECEIVING_SHARE_LABEL)
-    # A player with no resolved season_from team (team=NaN - rare, a
-    # pre-existing residual gap this project already documents elsewhere,
-    # not something Phase A introduces) has NaN across every TEAM_FEATURES
-    # column via the merge-on-team that built them - can't get a team-total
-    # composed prediction at all, so dropped here rather than fed to the
-    # RidgeCV team model, which errors on any NaN input (unlike LightGBM,
-    # used for the share model, which handles NaN natively).
-    test = test.dropna(subset=TEAM_FEATURES)
+
+def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
+    """Joint/multi-output Phase A, Phase-2-of-the-consensus-gap-work form:
+    fit share models for EVERY REFRAMED_SHARE_STATS combo plus one
+    team_passing_yards model on train_pairs, predict all of them on
+    test_pairs, and compose reconstructed rates through the SAME capped
+    per-team share-sum renormalization predict.py ships
+    (transitions.receiving_share_scale). The cap is a cross-position
+    quantity - a team's WR+TE+RB share sum - so it structurally cannot be
+    computed inside a single-(position, stat) fit; that is exactly why the
+    pre-Phase-2 backtest never applied it, leaving the MAE table and the
+    interval residuals calibrated on uncapped reconstructions while 6 of
+    32 live 2026 teams shipped capped ones.
+
+    Parity limits vs predict.py's live composition, stated plainly rather
+    than papered over: (1) shares here carry NO role/depth-chart discount
+    (d_i=1) - no historical curated depth chart exists for held-out
+    seasons; (2) no rookie-path implied shares enter the denominator - the
+    veteran backtest frame has no rookie predictions for the held-out
+    season. Achieved parity is "identical composition code path, empty
+    discount/rookie inputs," not a byte-for-byte replica of the live run.
+
+    Team-total predictions are drawn from each test row's OWN
+    TEAM_FEATURES (already the player's season_from team context), the
+    same "season_from's observed team context stands in for season_to"
+    framing every other feature in this pipeline uses. Rows with team=NaN
+    (rare, documented elsewhere) are dropped: the RidgeCV team model
+    errors on NaN input, unlike LightGBM.
+
+    Returns {(position, stat): (test_df, capped_pred, uncapped_pred)} with
+    predictions in RATE units, aligned to test_df row order. Both variants
+    are returned so the MAE table can report capped (what ships) alongside
+    uncapped (the pre-Phase-2 basis) - whether capping helps on the
+    held-out year is a real question the table should answer, not bury.
+    Memoized on (train_pairs, test_pairs) since three separate consumers
+    (MAE table, interval residuals, coherence backtest) need the same
+    fits."""
+    key = (id(feat), tuple(map(tuple, train_pairs)), tuple(map(tuple, test_pairs)))
+    if key in _REFRAMED_CACHE:
+        return _REFRAMED_CACHE[key]
+
     team_model = _fit_team_total_model(feat, train_pairs)
-    if train.empty or test.empty or team_model is None:
-        return None
+    per_combo, frames = {}, []
+    for position, stat in sorted(REFRAMED_SHARE_STATS):
+        train = build_transition_pairs(feat, position, stat, train_pairs, label_col=RECEIVING_SHARE_LABEL)
+        test = build_transition_pairs(feat, position, stat, test_pairs, label_col=RECEIVING_SHARE_LABEL)
+        test = test.dropna(subset=TEAM_FEATURES).reset_index(drop=True)
+        if train.empty or test.empty or team_model is None:
+            continue
+        share_model = LGBMRegressor(**LGBM_PARAMS)
+        share_model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
+        f = test[["team"]].copy()
+        f["share"] = np.clip(share_model.predict(test[ALL_FEATURES]), 0, None)
+        f["team_total_pred"] = np.clip(team_model.predict(test[TEAM_FEATURES]), 0, None)
+        f["position"], f["stat"], f["row"] = position, stat, test.index
+        per_combo[(position, stat)] = test
+        frames.append(f)
 
-    share_model = LGBMRegressor(**LGBM_PARAMS)
-    share_model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
-    share_pred = share_model.predict(test[ALL_FEATURES])
-    team_total_pred = team_model.predict(test[TEAM_FEATURES])
-    reconstructed = team_total_pred * share_pred
-    return test, reconstructed
+    if not frames:
+        _REFRAMED_CACHE[key] = {}
+        return {}
+
+    allf = pd.concat(frames, ignore_index=True)
+    scale, _ = receiving_share_scale(allf[["team", "share"]])
+    allf["uncapped"] = allf["share"] * allf["team_total_pred"]
+    allf["capped"] = allf["share"] * scale * allf["team_total_pred"]
+
+    out = {}
+    for (position, stat), test in per_combo.items():
+        sub = allf[(allf["position"] == position) & (allf["stat"] == stat)].sort_values("row")
+        out[(position, stat)] = (test, sub["capped"].to_numpy(), sub["uncapped"].to_numpy())
+    _REFRAMED_CACHE[key] = out
+    return out
+
+
+def _predict_reframed_receiving(feat, position, stat, train_pairs, test_pairs):
+    """Single-(position, stat) accessor over _predict_all_reframed_receiving
+    (which holds the real logic + parity notes). Returns
+    (test_df, capped_pred, uncapped_pred) or None."""
+    return _predict_all_reframed_receiving(feat, train_pairs, test_pairs).get((position, stat))
 
 
 def backtest_position_stat(feat, position, stat):
@@ -100,7 +146,7 @@ def backtest_position_stat(feat, position, stat):
         result = _predict_reframed_receiving(feat, position, stat, TRAIN_PAIRS, [TEST_PAIR])
         if result is None:
             return None
-        test, pred = result
+        test, pred, pred_uncapped = result
     else:
         train = build_transition_pairs(feat, position, stat, TRAIN_PAIRS)
         test = build_transition_pairs(feat, position, stat, [TEST_PAIR])
@@ -109,15 +155,23 @@ def backtest_position_stat(feat, position, stat):
         model = LGBMRegressor(**LGBM_PARAMS)
         model.fit(train[ALL_FEATURES], train[y_col])
         pred = model.predict(test[ALL_FEATURES])
+        pred_uncapped = None
 
     naive = test["naive_pred"]  # season_from's own pg rate, carried forward unchanged
     actual = test[y_col]
 
-    return {
+    row = {
         "position": position, "stat": stat, "n_test": len(test),
         "model_mae": mae(pred, actual), "naive_mae": mae(naive, actual),
         "model_wins": mae(pred, actual) < mae(naive, actual),
     }
+    if pred_uncapped is not None:
+        # Reframed stats: headline model_mae is the CAPPED composition
+        # (what predict.py ships, Phase 2 parity); the uncapped MAE is
+        # reported alongside so "does capping even help on held-out data"
+        # stays a visible, answerable question.
+        row["model_mae_uncapped"] = mae(pred_uncapped, actual)
+    return row
 
 
 def backtest_team_total(feat):
@@ -174,7 +228,7 @@ def coherence_ratio_backtest(feat):
         result = _predict_reframed_receiving(feat, position, stat, TRAIN_PAIRS, [TEST_PAIR])
         if result is None:
             continue
-        new_test, new_reconstructed = result
+        new_test, new_reconstructed, _ = result
         new_test = new_test.copy()
         new_test["new_pred"] = new_reconstructed
         new_pred.append(new_test[["team", "new_pred"]])
@@ -225,7 +279,7 @@ def residual_quantiles(feat, quantiles=INTERVAL_QUANTILES):
                 result = _predict_reframed_receiving(feat, position, stat, TRAIN_PAIRS, [TEST_PAIR])
                 if result is None:
                     continue
-                test, pred = result
+                test, pred, _ = result
             else:
                 train = build_transition_pairs(feat, position, stat, TRAIN_PAIRS)
                 test = build_transition_pairs(feat, position, stat, [TEST_PAIR])

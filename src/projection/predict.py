@@ -48,7 +48,10 @@ import pandas as pd
 from src.projection.data_prep import get_conn, team_season_opponent_strength
 from src.projection.features import build_player_season_features, TARGET_STATS, OC_METRICS
 from src.projection.ol_quality import team_season_ol_quality
-from src.projection.transitions import ALL_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS
+from src.projection.transitions import (
+    ALL_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS,
+    RECEIVING_SHARE_SUM_CAP, receiving_share_scale,
+)
 from src.projection.rookies import (
     build_rookie_dataset, fit_rookie_baselines, predict_rookies,
     identify_target_season_rookie_class,
@@ -570,7 +573,14 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     if combined.empty:
         return combined
 
-    combined = _compose_reframed_receiving_predictions(combined, base, models[("TEAM", "passing_yards")], resid)
+    # Phase 2 of the consensus-gap work: the reframed receiving rows leave
+    # this function with pred_pg still in (now role-discounted) SHARE
+    # units plus a team_total_pred helper column - project_season composes
+    # them into real rates only after the rookie path has produced the
+    # incoming rookies' implied shares for the same denominator. Gating
+    # multiplying a share by its role discount here is exactly what lets
+    # the later renormalization see discounted shares.
+    combined = _attach_team_total_pred(combined, base, models[("TEAM", "passing_yards")])
 
     depth_chart = load_depth_chart(target_season)
     combined = apply_depth_chart_gating(combined, depth_chart)
@@ -638,55 +648,78 @@ def _warn_discounted_high_usage(conn, combined, base, source_season):
         )
 
 
-# Cap on a team's summed receiving-share predictions across WR+TE+RB before
-# composing with team_passing_yards_pg (joint/multi-output Phase A). Shares
-# are NOT forced to sum to exactly 1 - practice-squad/emergency production
-# isn't fully in the modeled universe, and the real 2024-2025 held-out
-# receiving/passing ratio (see coherence_ratio_backtest) itself ranges well
-# above 1 for some teams even on ACTUAL outcomes - only scaled down if the
-# RAW predicted sum exceeds this ceiling. A stated, un-tuned judgment call,
-# same spirit as DEEP_BENCH_DISCOUNT/TEAM_CHANGE_SHARE_CLIP elsewhere in
-# this module.
-RECEIVING_SHARE_SUM_CAP = 1.5
+def _attach_team_total_pred(combined, base, team_model):
+    """Attach the team_passing_yards_pg forecast (joint/multi-output Phase
+    A's shared anchor) as a helper column, drawn from `base`'s own
+    TEAM_FEATURES (already re-pointed to a team-changer's NEW team by
+    reassign_team_changers). Attached BEFORE depth-chart gating so the
+    composition itself can run AFTER gating - Phase 2 of the consensus-gap
+    work moved it there, so the share-sum renormalization sees discounted
+    shares (a 0.15x bench player consumes 0.15x of the budget) and, at the
+    project_season level, the rookie path's implied shares.
+    _compose_reframed_receiving_predictions drops the column when done."""
+    team_feat = base.dropna(subset=TEAM_FEATURES).drop_duplicates(subset=["team"])[["team"] + TEAM_FEATURES]
+    team_feat["team_total_pred"] = np.clip(team_model["model"].predict(team_feat[TEAM_FEATURES]), 0, None)
+    combined = combined.merge(team_feat[["team", "team_total_pred"]], on="team", how="left")
+    # A team with no resolvable TEAM_FEATURES row (the same rare team=NaN
+    # gap backtest.py's reframed path already documents) has no
+    # team_total_pred to compose with - falls back to 0 rather than
+    # NaN-propagating a whole player's row into an unusable prediction;
+    # genuinely rare (verified 0 occurrences in the 2026 live run).
+    combined["team_total_pred"] = combined["team_total_pred"].fillna(0)
+    return combined
 
 
-def _compose_reframed_receiving_predictions(combined, base, team_model, resid):
-    """Joint/multi-output Phase A: turns the raw SHARE predictions the main
+def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=None):
+    """Joint/multi-output Phase A: turns the SHARE predictions the main
     project_veterans loop produced for REFRAMED_SHARE_STATS rows
     (WR/TE/RB receiving_yards) into real pred_pg values, by composing them
-    with a team_passing_yards_pg forecast from the dedicated team-total
-    model (train.py's fit_team_total) - see transitions.py's
-    REFRAMED_SHARE_STATS/RECEIVING_SHARE_LABEL for the shared source of
-    truth on which (position, stat) combos are reframed. team_total_pred is
-    drawn from `base`'s own TEAM_FEATURES (already re-pointed to a team-
-    changer's NEW team by reassign_team_changers, called before this
-    function runs), consistent with every other team-context feature in
-    this module.
+    with the team_passing_yards_pg forecast _attach_team_total_pred left on
+    the frame - see transitions.py's REFRAMED_SHARE_STATS/
+    RECEIVING_SHARE_LABEL for the shared source of truth on which
+    (position, stat) combos are reframed.
 
-    Non-reframed rows pass through completely unchanged - this only
-    touches the WR/TE/RB receiving_yards rows the main loop flagged."""
+    Phase 2 of the consensus-gap work: this now runs AFTER depth-chart
+    gating (project_season calls it once the rookie path has run too), so
+    the shares arriving here are already role-discounted, and the share-sum
+    renormalization (transitions.receiving_share_scale, shared with
+    backtest.py) therefore charges each player their SHIPPED share of the
+    team budget, not their raw one. Previously the cap ran on raw shares:
+    63.6% of NYG's 1.86 "over-budget" share sum came from players about to
+    be multiplied 0.15x/0.4x, and the renormalization squeezed Malik Nabers
+    19% for it. `rookie_receiving` (per-team rookie-path receiving_yards
+    pred_pg rows) enters the denominator as implied shares - the
+    user-diagnosed Robinson/Tate case: an incoming 1st-round WR consumes
+    real target share the veteran share models can't see.
+
+    Interval note: pred_pg_low/high = composed pred +/- empirical residual,
+    with the residual in absolute rate units NOT scaled by any role
+    discount (pre-Phase-2, gating ran after compose and scaled the whole
+    interval; the residuals were calibrated on undiscounted backtest
+    predictions, so keeping them absolute is the more faithful reading).
+
+    Non-reframed rows pass through unchanged (minus the helper column)."""
     reframed_index = pd.MultiIndex.from_tuples(REFRAMED_SHARE_STATS, names=["position", "stat"])
     mask = combined.set_index(["position", "stat"]).index.isin(reframed_index)
     if not mask.any():
-        return combined
+        return combined.drop(columns=["team_total_pred"], errors="ignore")
     reframed = combined[mask].copy()
-    other = combined[~mask].copy()
+    other = combined[~mask].drop(columns=["team_total_pred"], errors="ignore").copy()
     other["receiving_share_capped"] = np.nan
 
-    team_feat = base.dropna(subset=TEAM_FEATURES).drop_duplicates(subset=["team"])[["team"] + TEAM_FEATURES]
-    team_feat["team_total_pred"] = np.clip(team_model["model"].predict(team_feat[TEAM_FEATURES]), 0, None)
-    reframed = reframed.merge(team_feat[["team", "team_total_pred"]], on="team", how="left")
-    # A team with no resolvable TEAM_FEATURES row (the same rare team=NaN
-    # gap backtest.py's _predict_reframed_receiving already documents) has
-    # no team_total_pred to compose with - falls back to 0 rather than
-    # NaN-propagating a whole player's row into an unusable prediction;
-    # genuinely rare (verified 0 occurrences in the 2026 live run).
-    reframed["team_total_pred"] = reframed["team_total_pred"].fillna(0)
+    extra_team_share = None
+    if rookie_receiving is not None and not rookie_receiving.empty:
+        team_totals = reframed.drop_duplicates("team").set_index("team")["team_total_pred"]
+        rr = rookie_receiving.copy()
+        rr["team_total_pred"] = rr["team"].map(team_totals)
+        # A rookie on a team with no composable veteran total (or a 0
+        # fallback total) contributes nothing rather than dividing by 0.
+        rr = rr[rr["team_total_pred"] > 0]
+        extra_team_share = (rr["pred_pg"] / rr["team_total_pred"]).groupby(rr["team"]).sum()
 
-    share_sum = reframed.groupby("team")["pred_pg"].transform("sum")
-    over_cap = share_sum > RECEIVING_SHARE_SUM_CAP
-    scale = pd.Series(1.0, index=reframed.index)
-    scale.loc[over_cap] = RECEIVING_SHARE_SUM_CAP / share_sum[over_cap]
+    share_df = reframed[["team"]].copy()
+    share_df["share"] = reframed["pred_pg"]
+    scale, over_cap = receiving_share_scale(share_df, extra_team_share=extra_team_share)
     reframed["receiving_share_capped"] = over_cap
     reframed["pred_pg"] = reframed["pred_pg"] * scale * reframed["team_total_pred"]
     reframed = reframed.drop(columns=["team_total_pred"])
@@ -885,6 +918,14 @@ def project_season(conn, target_season):
     # function, so this is always False here, not a claim about the
     # rookie's actual role.
     rookie_long["role_discount_applied"] = False
+
+    # Compose the veteran reframed receiving shares into real per-game
+    # rates now that the rookie path exists: rookie receiving predictions
+    # enter the share-sum denominator as implied shares (Phase 2 of the
+    # consensus-gap work - the user-diagnosed Robinson/Tate case, where a
+    # 1st-round rookie's incoming target share must squeeze the veterans).
+    rookie_receiving = rookie_long[rookie_long["stat"] == "receiving_yards"][["team", "pred_pg"]]
+    vet = _compose_reframed_receiving_predictions(vet, resid, rookie_receiving=rookie_receiving)
 
     combined = pd.concat([vet, rookie_long], ignore_index=True, sort=False)
     combined = add_team_pass_catch_coherence_flag(combined, depth_chart)

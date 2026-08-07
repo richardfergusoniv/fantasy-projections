@@ -55,6 +55,50 @@ REFRAMED_SHARE_STATS = {("WR", "receiving_yards"), ("TE", "receiving_yards"), ("
 RECEIVING_SHARE_LABEL = "receiving_yards_share"
 TEAM_TOTAL_LABEL = "team_passing_yards_pg"
 
+# Cap on a team's summed receiving-share predictions across WR+TE+RB before
+# composing with team_passing_yards_pg (joint/multi-output Phase A). Shares
+# are NOT forced to sum to exactly 1 - practice-squad/emergency production
+# isn't fully in the modeled universe, and the real 2024-2025 held-out
+# receiving/passing ratio (see backtest.py's coherence_ratio_backtest)
+# itself ranges well above 1 for some teams even on ACTUAL outcomes - only
+# scaled down if the predicted sum exceeds this ceiling. A stated, un-tuned
+# judgment call, same spirit as predict.py's DEEP_BENCH_DISCOUNT/
+# TEAM_CHANGE_SHARE_CLIP. Lives here (not predict.py) since Phase 2 of the
+# consensus-gap work: backtest.py applies the identical cap via
+# receiving_share_scale below, so the MAE/interval calibration and the
+# shipped composition cannot drift apart.
+RECEIVING_SHARE_SUM_CAP = 1.5
+
+
+def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_SUM_CAP):
+    """Per-team renormalization scale for reframed receiving-share
+    predictions, shared by predict.py (live composition) and backtest.py
+    (MAE + interval calibration) so the two cannot diverge.
+
+    share_df: columns ['team', 'share'], one row per (player, reframed
+    stat) prediction. 'share' must already carry any role/depth-chart
+    discount the caller ships (predict.py) - the consensus-gap
+    investigation found the cap was being computed on RAW shares, letting
+    a team's about-to-be-0.15x'd bench players consume 63.6% of NYG's
+    share budget and squeeze Malik Nabers by 19% for nothing. backtest.py
+    passes undiscounted shares (d=1): no historical curated depth chart
+    exists, a stated parity limit, not an oversight.
+
+    extra_team_share: optional Series indexed by team, added to that
+    team's denominator only. predict.py passes rookie-path implied shares
+    here (an incoming 1st-round WR like TEN's Carnell Tate consumes real
+    target share, but is predicted outside the share models - without
+    this, a veteran room's shares never feel rookie competition at all).
+
+    Returns (scale, over_cap), both aligned to share_df.index."""
+    denom = share_df.groupby("team")["share"].transform("sum")
+    if extra_team_share is not None:
+        denom = denom + share_df["team"].map(extra_team_share).fillna(0.0)
+    over_cap = denom > cap
+    scale = pd.Series(1.0, index=share_df.index)
+    scale.loc[over_cap] = cap / denom[over_cap]
+    return scale, over_cap
+
 
 def build_transition_pairs(feat, position, stat, season_pairs, label_col=None):
     """Stack (X, y) rows across the given list of (season_from, season_to)
