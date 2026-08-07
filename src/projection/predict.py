@@ -559,6 +559,95 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     return combined
 
 
+# Band for team_pass_catch_coherence_flag (see add_team_pass_catch_coherence_flag
+# below): a stated, un-tuned judgment call, not fit to any target - real
+# historical team-seasons show this ratio can legitimately range far wider
+# than this band (up to ~10x, driven by in-season QB injuries/changes) per
+# the research that motivated this flag, so this is deliberately loose
+# (flag clearly incoherent cases like CHI/NYG/MIA's 2026 projections, not
+# every team that's merely off-center) rather than tight.
+PASS_CATCH_COHERENCE_BAND = (0.8, 1.35)
+
+
+def add_team_pass_catch_coherence_flag(df, depth_chart):
+    """Diagnostic-only column, added post-Phase-6 after two prototyped fixes
+    (a team-volume input feature for the WR/TE/RB models, and a hard
+    post-hoc rescale of receiver predictions to match the team's QB
+    prediction) both backtested as a wash-to-negative - see the research
+    behind this addition. Neither fix is safe to apply automatically: the
+    rescale in particular was found to propagate the QB model's OWN
+    prediction error onto every receiver on a team (a low-confidence new
+    starter like Malik Willis dragging Tyreek Hill's prediction down with
+    him), which is exactly the kind of silent-error-propagation this
+    project's other gating mechanisms (ROLE_VOLUME_DISCOUNT,
+    apply_depth_chart_gating) are built to avoid, not reproduce.
+
+    Instead: this computes, per team, the ratio of (sum of ALL WR/TE/RB
+    predicted receiving_yards_pg, every row regardless of source/
+    low_confidence - a bench player's garbage-time catches still count
+    against the team's real passing total) to (the curated depth chart's
+    confirmed role='starter' QB's predicted passing_yards_pg for that
+    team), and flags team-season rows where that ratio falls outside
+    PASS_CATCH_COHERENCE_BAND. This is purely informational - no pred_pg
+    value is touched - surfacing exactly the kind of internal-inconsistency
+    signal that first raised the Nabers/Reed/Burden question (their teams'
+    receiving corps totals didn't add up against their own QB's projected
+    volume) so a reader can judge for themselves which teams' predictions
+    to treat with extra skepticism, the same "never silently hide, always
+    flag" principle as low_confidence/deep_bench_discounted elsewhere in
+    this module.
+
+    Only meaningful for a target_season with a curated depth chart (2026
+    currently - see load_depth_chart) since it needs a confirmed, singular
+    starter to anchor against; every row gets
+    team_pass_catch_coherence_flag=NaN (not False - "not computable", not
+    "confirmed coherent") for any other season, or for a team where the
+    curated table doesn't resolve to exactly one starter QB."""
+    df = df.copy()
+    if depth_chart.empty:
+        df["team_pass_catch_ratio"] = np.nan
+        df["team_pass_catch_coherence_flag"] = np.nan
+        return df
+
+    qb_rows = df[(df["position"] == "QB") & (df["stat"] == "passing_yards")]
+    starters = depth_chart[(depth_chart["position"] == "QB") & (depth_chart["role"] == "starter")]
+    starters = starters[["team", "gsis_id"]].rename(columns={"gsis_id": "player_id"})
+    anchor = qb_rows.merge(starters, on=["team", "player_id"], how="inner")
+    # Exactly one curated starter per team is the expected case (verified
+    # true for every 2026 team) - a team with 0 or >1 resolved starter rows
+    # (e.g. a future season's curated table drawn up differently) falls
+    # back to the mean of whatever resolves rather than erroring, but is
+    # real, rare, and would show up as an odd-looking anchor if it ever
+    # happens - not silently special-cased away.
+    anchor = anchor.groupby("team")["pred_pg"].mean().rename("qb_anchor_pg")
+
+    recv = df[(df["position"].isin(["WR", "TE", "RB"])) & (df["stat"] == "receiving_yards")]
+    recv_sum = recv.groupby("team")["pred_pg"].sum().rename("team_receiving_sum_pg")
+
+    team_ratio = pd.concat([anchor, recv_sum], axis=1)
+    team_ratio["team_pass_catch_ratio"] = team_ratio["team_receiving_sum_pg"] / team_ratio["qb_anchor_pg"]
+    low, high = PASS_CATCH_COHERENCE_BAND
+    # object dtype (not bool) so the NaN assigned below for an unresolved
+    # ratio is representable - a plain bool column can't hold NaN and
+    # .between() on a NaN input silently evaluates to False, which would
+    # otherwise misrepresent "not computable" as "confirmed coherent."
+    team_ratio["team_pass_catch_coherence_flag"] = (
+        ~team_ratio["team_pass_catch_ratio"].between(low, high)
+    ).astype(object)
+    # NaN (not False) when either side of the ratio isn't resolvable (no
+    # curated starter found for this team, or no WR/TE/RB rows at all) -
+    # "not computable" is a distinct, honestly-reported state from
+    # "confirmed coherent."
+    team_ratio.loc[team_ratio["team_pass_catch_ratio"].isna(), "team_pass_catch_coherence_flag"] = np.nan
+    team_ratio = team_ratio.reset_index().rename(columns={"index": "team"})
+
+    df = df.merge(
+        team_ratio[["team", "team_pass_catch_ratio", "team_pass_catch_coherence_flag"]],
+        on="team", how="left",
+    )
+    return df
+
+
 def project_season(conn, target_season):
     """Project `target_season` per-game rates using `target_season - 1`
     features for veterans, and the rookie rule-based path for
@@ -651,6 +740,7 @@ def project_season(conn, target_season):
     rookie_long["role_discount_applied"] = False
 
     combined = pd.concat([vet, rookie_long], ignore_index=True, sort=False)
+    combined = add_team_pass_catch_coherence_flag(combined, depth_chart)
     return combined
 
 
@@ -666,6 +756,7 @@ OUTPUT_COLUMNS = [
     "role_discount_applied",  # curated committee/backup volume discount - see ROLE_VOLUME_DISCOUNT
     "qb_sleeper_play_prob",  # rookie QB survivorship-bias correction - NaN for non-QB/veteran rows
     "athletic_tier",  # Addendum 4 - combine-athleticism scale tier; NaN for veteran_model rows
+    "team_pass_catch_ratio", "team_pass_catch_coherence_flag",  # diagnostic-only, see add_team_pass_catch_coherence_flag
 ]
 
 
