@@ -240,7 +240,7 @@ season,team,position,depth_rank,player_name,gsis_id,role,confidence,notes
 2026,SF,TE,2,Jake Tonges,00-0037112,backup,low,Minimal established role behind Kittle.
 2026,TB,QB,1,Baker Mayfield,00-0034855,starter,medium,"Free-agent addition (ex-LAR, per ourlads note) - genuinely unusual (Mayfield was TB's incumbent through 2025); flagged medium given the roster-move ambiguity in the source, but he is the clear QB1 either way."
 2026,TB,RB,1,Bucky Irving,00-0039361,starter,high,Established ascending lead back.
-2026,TB,RB,2,Kenneth Gainwell,00-0036919,backup,medium,Ourlads RB2/passing-down role behind Irving (ourlads short name 'Kenny Gainwell').
+2026,TB,RB,2,Kenneth Gainwell,00-0036919,committee,medium,"Ourlads RB2/passing-down role behind Irving (ourlads short name 'Kenny Gainwell'). Upgraded backup -> committee 2026-08-07 (user decision at Phase-1 gate of the consensus-gap work): 85 targets/5.0 tgt-per-game in 2025 is a real passing-down committee role, and the backup grade left him -5.6 fpts/g under Sleeper."
 2026,TB,WR,1,Emeka Egbuka,00-0040129,starter,medium,"2025 1st-round rookie, ourlads WR1 (left) - ascending but not yet a full proven season."
 2026,TB,WR,2,Jalen McMillan,00-0039855,starter,medium,"Ourlads 'right' WR1 label, established incumbent target."
 2026,TB,WR,3,Chris Godwin Jr.,00-0033921,starter,medium,Ourlads slot starter; established veteran but recent injury history keeps this medium not high.
