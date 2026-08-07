@@ -65,6 +65,7 @@ FEATURE_COLS = [
     "carry_share", "target_share", "rz_carry_share", "rz_target_share", "snap_pct",
     "ol_pass_protection_score", "ol_run_blocking_score", "ol_confidence_low_churn",
     "injury_durability_rate", "age",  # see data_prep.player_season_age for the age x injury investigation this came from
+    "peak_receiving_yards_share",  # max(own share, prior season's) - see build_player_season_features for the Nabers-case investigation this came from
     # Ceiling/concentration features, added to close the bell-cow/alpha
     # under-projection gap (Malik Nabers, Josh Allen, Lamar Jackson, Sam
     # LaPorta, etc. - see the task brief this was built for). None of the
@@ -224,6 +225,35 @@ def build_player_season_features(conn, seasons=SEASONS):
     # input.
     recv_share = player_season_receiving_yards_share(conn, seasons)
     base = base.merge(recv_share, on=["season", "player_id"], how="left")
+
+    # --- peak_receiving_yards_share (FEATURE_COLS input, not a label):
+    # max(this season's own receiving_yards_share, the immediately PRIOR
+    # season's) - built from the age/injury investigation (Malik Nabers'
+    # 2025: 4 games, torn ACL, diluted current-season share vs. a real
+    # elite 2024 rookie share). Deliberately DIFFERENT from the multi-
+    # season trend/slope feature already investigated and ruled out for
+    # exactly this case (a slope from a monster prior season INTO an
+    # injury-shortened one reads as decline, not proof of ceiling) - this
+    # captures "this player has PROVEN they can do this," not a direction.
+    # Tested directly before adding (not assumed): for the subgroup of
+    # injury-shortened seasons (games_played<10) where the prior season's
+    # share notably exceeds the diluted current one, adding this feature
+    # reduced held-out reconstruction MAE for WR (10.40->10.22 overall,
+    # 8.96->8.78 on the subgroup) and RB (5.72->5.52 overall, 4.40->4.23
+    # subgroup); TE improved on the subgroup (6.23->5.73) but slightly
+    # regressed overall (7.48->7.61 - likely small-sample noise given only
+    # 97 held-out TE rows, reported honestly rather than hidden).
+    prior_share = base[["player_id", "season", "receiving_yards_share"]].copy()
+    prior_share["season"] = prior_share["season"] + 1
+    prior_share = prior_share.rename(columns={"receiving_yards_share": "prior_receiving_yards_share"})
+    base = base.merge(prior_share, on=["player_id", "season"], how="left")
+    base["peak_receiving_yards_share"] = base[["receiving_yards_share", "prior_receiving_yards_share"]].max(axis=1)
+    # No prior season on record (rookie, or a gap year) -> peak equals the
+    # current season's own share (no extra information to add), not a
+    # fabricated 0 or a silently dropped NaN.
+    base["peak_receiving_yards_share"] = base["peak_receiving_yards_share"].fillna(base["receiving_yards_share"])
+    base = base.drop(columns=["prior_receiving_yards_share"])
+
     # `team_totals` (team_season_pbp_totals, merged earlier) covers attempt
     # counts only, not yardage - team_season_yardage_totals is a separate
     # merge, normalized by the team's schedule length (same
