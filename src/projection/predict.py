@@ -231,6 +231,85 @@ INCUMBENT_VACANCY_NET_CLIP = 0.75
 INCUMBENT_VACANCY_SCALE_CAP = 2.0
 
 
+def drop_players_absent_from_target_season(conn, df, depth_chart, target_season):
+    """Drop players who have NO target_season roster row at all AND are
+    not vouched for by the curated depth chart - players who have left the
+    league, not players having a quiet season.
+
+    The case that surfaced this: Philip Rivers, five years retired, came
+    out of retirement for Indianapolis in weeks 15-17 of 2025 (28/37/32
+    attempts, 544 yards, 4 TDs) during a QB emergency. That is a real
+    event and the data recording it is correct - an earlier pass through
+    this project wrongly wrote it off as an upstream nflverse ID
+    mislabeling, which it is not. But a genuine 3-game emergency stint at
+    age 44 is one of the great outliers in league history, not the basis
+    for a 2026 projection, and he duly showed up in the deliverable with
+    a 37.3 passing-yards-per-game line on a team he is not on.
+
+    The leak is structural, not Rivers-specific, and this fixes the
+    class: reassign_team_changers' `no_info` branch keeps a player's OLD
+    team when they cannot be found in target_season's roster, which is
+    the right call for a crosswalk gap but silently converts "out of the
+    league" into "still on last year's team." 65 players reached the 2026
+    output that way.
+
+    Two guards keep this from becoming its own silent-deletion bug - the
+    failure mode this project has already been burned by once (see
+    project_veterans' docstring on the rookie-filter bug):
+
+    1. The curated depth chart WINS over a missing roster row. A player
+       our own hand research affirmatively places on a 2026 roster is
+       kept even with no roster row, because the human signal is stronger
+       than the absence of a machine one - the same precedence already
+       used when a curated starter overrides the vacancy heuristic. This
+       is load-bearing: Deebo Samuel and Stefon Diggs are both curated
+       starters with no 2026 roster row, and a blanket rule would have
+       deleted two legitimate starter projections.
+    2. Every dropped player is PRINTED, with the count and the most
+       significant names. A drop that is announced is auditable; a drop
+       that is silent is the bug.
+
+    Runs before the models, not as an output filter, so a departed player
+    also stops consuming his old team's receiving-share budget."""
+    if "roster_status" not in df.columns:
+        return df
+    absent = df["roster_status"].isna()
+    if not absent.any():
+        return df
+
+    curated_ids = set()
+    if not depth_chart.empty:
+        curated_ids = set(depth_chart["gsis_id"].dropna())
+    to_drop = absent & ~df["player_id"].isin(curated_ids)
+    if not to_drop.any():
+        return df
+
+    names = pd.read_sql("select gsis_id as player_id, display_name from players", conn)
+    names = names.drop_duplicates("player_id").set_index("player_id")["display_name"]
+
+    dropped = df[to_drop].copy()
+    dropped["display_name"] = dropped["player_id"].map(names).fillna(dropped["player_id"])
+    kept_anyway = df[absent & df["player_id"].isin(curated_ids)].copy()
+    kept_anyway["display_name"] = kept_anyway["player_id"].map(names).fillna(kept_anyway["player_id"])
+
+    print(
+        f"Dropped {len(dropped)} player(s) with no {target_season} roster row and no curated "
+        f"depth-chart entry (out of the league, not merely low-usage):"
+    )
+    # Ranked by prior-season receiving/rushing volume, not games - the
+    # ones worth a human second look are the ones who were PRODUCTIVE.
+    dropped["_vol"] = dropped[["receiving_yards", "rushing_yards", "passing_yards"]].fillna(0).max(axis=1)
+    for _, r in dropped.nlargest(min(10, len(dropped)), "_vol").iterrows():
+        print(f"    {r['display_name']} ({r['position']}, last seen {r['team']}, "
+              f"{r['games_played']:.0f} games in {target_season - 1})")
+    if len(dropped) > 10:
+        print(f"    ... and {len(dropped) - 10} more")
+    if not kept_anyway.empty:
+        print(f"  KEPT {len(kept_anyway)} player(s) with no roster row but a curated depth-chart entry "
+              f"(human research outranks a missing roster row): {', '.join(sorted(kept_anyway['display_name']))}")
+    return df[~to_drop]
+
+
 def apply_incumbent_vacancy_boost(conn, df, target_season, depth_chart, changed):
     """Credit a team's RETURNING players with the opportunity its departed
     players left behind.
@@ -718,6 +797,7 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
 
     base = feat[(feat["season"] == source_season) & (feat["games_played"] > 0)]
     base = reassign_team_changers(conn, base, target_season, depth_chart)
+    base = drop_players_absent_from_target_season(conn, base, depth_chart, target_season)
 
     rows = []
     for position, stats in TARGET_STATS.items():
