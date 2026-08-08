@@ -233,8 +233,8 @@ season,team,position,depth_rank,player_name,gsis_id,role,confidence,notes
 2026,SF,QB,1,Brock Purdy,00-0037834,starter,high,"Entrenched starter, no real competition."
 2026,SF,RB,1,Christian McCaffrey,00-0033280,starter,high,Elite entrenched bell-cow lead back when healthy.
 2026,SF,RB,2,Jordan James,00-0040177,backup,low,"2025 rookie, minimal established role."
-2026,SF,WR,1,Deebo Samuel Sr.,00-0035719,starter,medium,"Traded/claimed in role note: seasonal_rosters/ourlads list him on SF still (see MIA note on Waddle for a parallel caveat) - ourlads 'right' WR1 label, established but injury-prone."
-2026,SF,WR,2,Mike Evans,00-0031408,starter,low,"Free-agent addition (ex-TB); ourlads 'left' WR1 label - established veteran target volume in prior offense, new-team fit uncertain."
+2026,SF,WR,1,Mike Evans,00-0031408,starter,low,"Free-agent addition (ex-TB); ourlads 'left' WR1 label - established veteran target volume in prior offense, new-team fit uncertain."
+2026,SF,WR,2,Deebo Samuel Sr.,00-0035719,starter,high,"Re-signed with SF as WR2 (confirmed 2026-08-07); played 2025 for WAS. Not yet in the cached seasonal_rosters 2026 snapshot, so this row is the authoritative source for his team - see reassign_team_changers' curated-team override."
 2026,SF,WR,3,Christian Kirk,00-0034775,starter,low,"Free-agent addition (ex-HOU); ourlads slot starter, limited established target volume in a new offense."
 2026,SF,TE,1,George Kittle,00-0033288,starter,high,Established elite top-target TE.
 2026,SF,TE,2,Jake Tonges,00-0037112,backup,low,Minimal established role behind Kittle.
@@ -259,7 +259,7 @@ season,team,position,depth_rank,player_name,gsis_id,role,confidence,notes
 2026,WAS,RB,1,Jacory Croskey-Merritt,00-0040242,starter,low,2025 rookie who emerged late in 2025; ourlads RB1 over veteran addition Rachaad White - real uncertainty on whether this holds through camp.
 2026,WAS,RB,2,Rachaad White,00-0037256,committee,medium,"Free-agent addition (ex-TB); real committee/lead-back competition with Croskey-Merritt, not a clean backup."
 2026,WAS,WR,1,Terry McLaurin,00-0035659,starter,high,"Established elite WR1, entrenched target leader."
-2026,WAS,WR,2,Stefon Diggs,00-0031588,starter,medium,"Free-agent addition (ex-NE); ourlads 'right' WR1 label, established target volume in prior offenses but age/injury and new-team fit uncertainty."
+2026,WAS,WR,2,Stefon Diggs,00-0031588,starter,high,"Signed with WAS as WR2 (confirmed 2026-08-07); played 2025 for NE. Not yet in the cached seasonal_rosters 2026 snapshot, so this row is the authoritative source for his team - see reassign_team_changers' curated-team override."
 2026,WAS,WR,3,Luke McCaffrey,00-0039355,starter,medium,"Ourlads slot starter, ascending incumbent role."
 2026,WAS,TE,1,Chig Okonkwo,00-0037809,starter,medium,"Free-agent addition (ex-TEN); ourlads TE1, established but new-team fit uncertain."
 2026,WAS,TE,2,John Bates,00-0036628,backup,medium,Incumbent WAS TE now TE2/blocking role per ourlads.

@@ -516,11 +516,55 @@ def reassign_team_changers(conn, df, target_season, depth_chart):
     df = df.copy().reset_index(drop=True)
     df["team_target"] = df["player_id"].map(roster_map["team"])
     df["roster_status"] = df["player_id"].map(roster_map["status"])
+
+    # The curated depth chart OVERRIDES seasonal_rosters for team
+    # assignment, and every disagreement is printed.
+    #
+    # Why curated wins: seasonal_rosters is a cached upstream snapshot
+    # that lags real transactions by days-to-weeks in the preseason, and
+    # nothing in this pipeline can tell "the roster is right and the CSV
+    # is stale" from "the CSV is right and the roster hasn't caught up."
+    # The curated table is the surface a human actually edits, so if it
+    # were silently outranked by a stale snapshot, correcting a player's
+    # team by hand would appear to do nothing - the worst possible
+    # failure mode for a manually-maintained override. Deebo Samuel
+    # (re-signed SF) and Stefon Diggs (signed WAS) were both being
+    # projected on their 2025 teams for exactly this reason.
+    #
+    # The safety valve is the printed reconciliation below: a stale
+    # CURATED row is now the thing that can go wrong, so every case where
+    # the two sources disagree is surfaced by name for review rather than
+    # resolved silently in either direction.
+    if not depth_chart.empty:
+        curated_team = (
+            depth_chart.dropna(subset=["gsis_id"])
+            .drop_duplicates(subset=["gsis_id"])
+            .set_index("gsis_id")["team"]
+        )
+        curated = df["player_id"].map(curated_team)
+        disagree = curated.notna() & df["team_target"].notna() & (curated != df["team_target"])
+        filled = curated.notna() & df["team_target"].isna()
+        if disagree.any() or filled.any():
+            names = pd.read_sql("select gsis_id as player_id, display_name from players", conn)
+            names = names.drop_duplicates("player_id").set_index("player_id")["display_name"]
+            if disagree.any():
+                print(f"Curated depth chart OVERRODE seasonal_rosters on team for "
+                      f"{int(disagree.sum())} player(s) - verify the CSV is not the stale side:")
+                for _, r in df[disagree].iterrows():
+                    print(f"    {names.get(r['player_id'], r['player_id'])}: curated "
+                          f"{curated[r.name]} vs roster {r['team_target']}")
+            if filled.any():
+                print(f"Curated depth chart SUPPLIED a team for {int(filled.sum())} player(s) absent "
+                      f"from the {target_season} roster snapshot: "
+                      f"{', '.join(sorted(names.get(p, p) for p in df.loc[filled, 'player_id']))}")
+        df.loc[curated.notna(), "team_target"] = curated[curated.notna()]
+
     no_info = df["team_target"].isna()
     if no_info.any():
-        # Not found in target_season's roster at all (retired, out of
-        # league, or a crosswalk gap) - keep the old team rather than
-        # inventing one; this is a real, if rare, residual gap.
+        # Not found in target_season's roster at all and not curated
+        # (retired, out of league, or a crosswalk gap) - keep the old team
+        # rather than inventing one. drop_players_absent_from_target_season
+        # is what decides whether such a player stays in the output.
         df.loc[no_info, "team_target"] = df.loc[no_info, "team"]
     changed = (df["team_target"] != df["team"]) & ~no_info
     df["team_changed"] = changed
