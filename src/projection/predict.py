@@ -50,7 +50,7 @@ from src.projection.features import build_player_season_features, TARGET_STATS, 
 from src.projection.ol_quality import team_season_ol_quality
 from src.projection.transitions import (
     ALL_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS,
-    RECEIVING_SHARE_SUM_CAP, receiving_share_scale,
+    RECEIVING_SHARE_SUM_CAP, receiving_share_scale, SEASON_GAMES,
 )
 from src.projection.corrections import elite_shrinkage_adjustment
 from src.projection.rookies import (
@@ -115,6 +115,19 @@ DEEP_BENCH_DISCOUNT = 0.15
 # describes for a player who is not curated at all - hence the two
 # multipliers land close together (0.15 vs 0.4).
 ROLE_VOLUME_DISCOUNT = {"committee": 0.4, "backup": 0.15}
+
+
+def load_availability_models():
+    """Per-position games-played models (Phase 11). Returns {} - a real
+    "no availability estimate is produced" state, not an error - when the
+    files predate this feature, so an older models/ directory still
+    predicts rather than failing."""
+    out = {}
+    for position in TARGET_STATS:
+        path = os.path.join(MODELS_DIR, f"{position}_games.joblib")
+        if os.path.exists(path):
+            out[position] = joblib.load(path)
+    return out
 
 
 def load_models():
@@ -911,6 +924,25 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     base = reassign_team_changers(conn, base, target_season, depth_chart)
     base = drop_players_absent_from_target_season(conn, base, depth_chart, target_season)
 
+    # Availability (Phase 11): a per-game rate alone can't express season
+    # value - two players at the same rate are worth very different
+    # amounts if one plays 8 games and the other 16, which is exactly the
+    # Mike Evans / Deebo Samuel case. Measured directly: predicting rate
+    # and multiplying by a fixed 17 games is WORSE than a naive
+    # carry-forward at predicting season totals (WR 296.2 vs 252.2 yards
+    # MAE, TE 213.3 vs 182.8); rate x predicted games beats both (WR
+    # 227.3, TE 163.3). Attached per player here, carried through to the
+    # output so the split stays visible rather than being folded into the
+    # rate.
+    avail_models = load_availability_models()
+    base = base.copy()
+    base["projected_games"] = np.nan
+    for position, am in avail_models.items():
+        mask = base["position"] == position
+        if mask.any():
+            base.loc[mask, "projected_games"] = np.clip(
+                am["model"].predict(base.loc[mask, ALL_FEATURES]), 0, SEASON_GAMES)
+
     rows = []
     for position, stats in TARGET_STATS.items():
         pos_df = base[base["position"] == position]
@@ -920,7 +952,8 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
         for stat in stats:
             m = models[(position, stat)]
             preds = m["model"].predict(X)
-            out = pos_df[["player_id", "team", "position", "team_changed", "roster_status"]].copy()
+            out = pos_df[["player_id", "team", "position", "team_changed",
+                          "roster_status", "projected_games"]].copy()
             out["stat"] = stat
             out["source"] = "veteran_model"
             out["low_confidence"] = False
@@ -1313,6 +1346,21 @@ def project_season(conn, target_season):
     else:
         rookie_long["depth_rank"], rookie_long["role"] = np.nan, None
     rookie_long["depth_chart_status"] = "rookie_path"
+    # Rookie availability (Phase 11): the veteran games model needs a
+    # season-N feature row, which an incoming rookie by definition does
+    # not have. Uses the historical mean games played by first-year
+    # players at the same position instead (career_year == 0 rows, added
+    # in Phase 5) - the same "bucket average" spirit as the rest of the
+    # rookie path, and a real estimate rather than a blank or a silently
+    # assumed full season. Deliberately NOT differentiated by draft round:
+    # the veteran model's own availability signal is weak enough
+    # (+5-6% over carry-forward) that slicing a rookie prior further
+    # would be inventing precision.
+    rookie_games = (
+        feat[feat["career_year"] == 0].groupby("position")["games_played"].mean()
+        if "career_year" in feat.columns else pd.Series(dtype=float)
+    )
+    rookie_long["projected_games"] = rookie_long["position"].map(rookie_games)
     # role_discount_applied is a veteran_model-only concept (see
     # apply_depth_chart_gating) - rookie_rule rows are already
     # low_confidence=True by construction and never pass through that
@@ -1349,6 +1397,7 @@ OUTPUT_COLUMNS = [
     "team_pass_catch_ratio", "team_pass_catch_coherence_flag",  # diagnostic-only, see add_team_pass_catch_coherence_flag
     "receiving_share_capped",  # joint/multi-output Phase A - see _compose_reframed_receiving_predictions
     "elite_correction_pg",  # Phase 7 additive elite-shrinkage correction, in yards/game - see corrections.py
+    "projected_games",  # Phase 11 availability estimate; season value = pred_pg x this. See train.fit_availability.
 ]
 
 

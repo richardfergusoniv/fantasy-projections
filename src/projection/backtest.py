@@ -27,8 +27,9 @@ from sklearn.linear_model import RidgeCV
 from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.transitions import (
-    build_transition_pairs, build_team_transition_pairs, ALL_FEATURES, TEAM_FEATURES,
-    REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, receiving_share_scale,
+    build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
+    ALL_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL,
+    TEAM_TOTAL_LABEL, AVAILABILITY_LABEL, SEASON_GAMES, receiving_share_scale,
 )
 from src.projection.rookies import build_rookie_dataset, fit_rookie_baselines, predict_rookies
 from src.projection.train import LGBM_PARAMS
@@ -319,6 +320,70 @@ def residual_quantiles(feat, quantiles=INTERVAL_QUANTILES):
     return pd.DataFrame(rows)
 
 
+def backtest_availability(feat):
+    """Held-out games-played MAE per position vs carrying season-N games
+    forward (Phase 11). Scored on ALL season-N players including those who
+    never played again - the rows build_transition_pairs drops and which
+    every other table here is therefore blind to."""
+    rows = []
+    for position in TARGET_STATS:
+        train = build_availability_pairs(feat, position, TRAIN_PAIRS)
+        test = build_availability_pairs(feat, position, [TEST_PAIR])
+        if train.empty or test.empty:
+            continue
+        model = LGBMRegressor(**LGBM_PARAMS)
+        model.fit(train[ALL_FEATURES], train[AVAILABILITY_LABEL])
+        pred = np.clip(model.predict(test[ALL_FEATURES]), 0, SEASON_GAMES)
+        actual, naive = test[AVAILABILITY_LABEL], test["naive_pred"]
+        rows.append({
+            "position": position, "stat": "games", "n_test": len(test),
+            "n_never_played_again": int((~test["played_again"]).sum()),
+            "model_mae": mae(pred, actual), "naive_mae": mae(naive, actual),
+            "model_wins": mae(pred, actual) < mae(naive, actual),
+        })
+    return pd.DataFrame(rows)
+
+
+def backtest_season_totals(feat):
+    """The question Phase 11 exists to answer: which framing best predicts
+    SEASON value? Compares, on the held-out year and scored against actual
+    season-N+1 totals for every season-N player (0 for those who never
+    played again):
+      rate x17          - what a per-game-only deliverable forces a reader
+                          to do, and the pre-Phase-11 status quo
+      rate x pred games - the shipped decomposition
+      naive             - carry season-N's actual total forward
+    """
+    rows = []
+    for position, stat in [("WR", "receiving_yards"), ("RB", "rushing_yards"),
+                           ("TE", "receiving_yards"), ("QB", "passing_yards")]:
+        av_train = build_availability_pairs(feat, position, TRAIN_PAIRS)
+        av_test = build_availability_pairs(feat, position, [TEST_PAIR])
+        rate_train = build_transition_pairs(feat, position, stat, TRAIN_PAIRS)
+        if av_train.empty or av_test.empty or rate_train.empty:
+            continue
+        gm = LGBMRegressor(**LGBM_PARAMS).fit(av_train[ALL_FEATURES], av_train[AVAILABILITY_LABEL])
+        rm = LGBMRegressor(**LGBM_PARAMS).fit(rate_train[ALL_FEATURES], rate_train[f"{stat}_pg"])
+        games_hat = np.clip(gm.predict(av_test[ALL_FEATURES]), 0, SEASON_GAMES)
+        rate_hat = np.clip(rm.predict(av_test[ALL_FEATURES]), 0, None)
+
+        # Actual season-N+1 total, and season-N's own total as the naive
+        # carry-forward. Both looked up off the feature frame directly:
+        # av_test keeps players who vanished, whose total is a real 0.
+        st = TEST_PAIR[1]
+        actual_tot = feat[(feat.position == position) & (feat.season == st)].set_index("player_id")[stat]
+        prior_tot = feat[(feat.position == position) & (feat.season == TEST_PAIR[0])].set_index("player_id")[stat]
+        actual = av_test["player_id"].map(actual_tot).fillna(0.0).to_numpy()
+        naive = av_test["player_id"].map(prior_tot).fillna(0.0).to_numpy()
+        rows.append({
+            "position": position, "stat": stat, "n_test": len(av_test),
+            "rate_x17_mae": mae(rate_hat * SEASON_GAMES, actual),
+            "rate_x_games_mae": mae(rate_hat * games_hat, actual),
+            "naive_mae": mae(naive, actual),
+        })
+    return pd.DataFrame(rows)
+
+
 def run_veteran_backtest(feat):
     rows = []
     for position, stats in TARGET_STATS.items():
@@ -387,6 +452,15 @@ def main():
         print(f"\nMean |ratio - actual_ratio| across teams: "
               f"old={coh['old_ratio'].sub(coh['actual_ratio']).abs().mean():.3f}, "
               f"new={coh['new_ratio'].sub(coh['actual_ratio']).abs().mean():.3f}")
+
+    print("\n=== Availability backtest (Phase 11): games played, vs carrying season-N games forward ===")
+    av = backtest_availability(feat)
+    print(av.to_string(index=False) if not av.empty else "(no availability rows)")
+
+    print("\n=== Season-TOTAL framing (Phase 11): which produces the best season value? ===")
+    print("(scored on actual season totals incl. 0 for players who never played again)")
+    st = backtest_season_totals(feat)
+    print(st.to_string(index=False) if not st.empty else "(no season-total rows)")
 
     print("\n=== Injury-cohort gate (Phase 6 diagnostic - see corrections.py) ===")
     print("(WR, season-N active games <= 8, season-N >= 50 rec ypg, no suspension-coded weeks;")

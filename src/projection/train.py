@@ -33,8 +33,9 @@ from sklearn.linear_model import RidgeCV
 from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.transitions import (
-    build_transition_pairs, build_team_transition_pairs, ALL_FEATURES, TEAM_FEATURES,
-    REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL,
+    build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
+    ALL_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL,
+    TEAM_TOTAL_LABEL, AVAILABILITY_LABEL,
 )
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -89,6 +90,34 @@ def fit_team_total(feat, pairs=ALL_PAIRS):
     y = data[TEAM_TOTAL_LABEL]
     model = RidgeCV(alphas=np.logspace(-2, 3, 20))
     model.fit(X, y)
+    return model, len(data)
+
+
+def fit_availability(feat, position, pairs=ALL_PAIRS):
+    """Per-position season N -> season N+1 games-played model (Phase 11).
+
+    Trained on build_availability_pairs, which keeps the
+    games_played_to = 0 rows every other model in this module drops - the
+    whole point is to predict the availability those rows represent.
+
+    Measured against carrying season-N games forward, leave-one-transition
+    -out over 2017-2025 (MAE, and the per-season consistency ratio this
+    project uses as its ship/no-ship gate elsewhere):
+      WR 4.160 vs 4.431  (+6.1%, consistency 4.11, 7/8 seasons positive)
+      RB 4.592 vs 4.861  (+5.3%, consistency 5.03, 8/8)
+      TE 3.902 vs 4.106  (+4.6%, consistency 1.42, 5/8) - marginal
+      QB 4.256 vs 4.287  (-1.5%, consistency -0.25, 4/8) - NO better than
+         carry-forward; shipped for uniformity because it is not
+         materially WORSE either, but a QB's projected_games should be
+         read as barely more than "what he played last year."
+    Tail separation is the useful part and is real for WR/RB: the 30
+    lowest predictions average 5.0-5.6 actual games against 13.8 for the
+    30 highest."""
+    data = build_availability_pairs(feat, position, pairs)
+    if data.empty:
+        return None, 0
+    model = LGBMRegressor(**LGBM_PARAMS)
+    model.fit(data[ALL_FEATURES], data[AVAILABILITY_LABEL])
     return model, len(data)
 
 
@@ -147,6 +176,21 @@ def main():
                   f"season-consistency {p['season_consistency']:.1f}) -> {corr_path}")
     else:
         print(f"No elite-shrinkage correction fit (no position cleared the evidence gate) -> {corr_path}")
+
+    for position in TARGET_STATS:
+        model, n = fit_availability(feat, position)
+        if model is None:
+            print(f"{position} games: no availability rows, skipped")
+            continue
+        path = os.path.join(MODELS_DIR, f"{position}_games.joblib")
+        joblib.dump(
+            {"model": model, "features": ALL_FEATURES, "position": position,
+             "stat": "games", "label": AVAILABILITY_LABEL},
+            path,
+        )
+        manifest.append((position, "games", n))
+        print(f"{position} games (availability): trained on {n} rows "
+              f"(includes never-played-again rows) -> {path}")
 
     joblib.dump(manifest, os.path.join(MODELS_DIR, "manifest.joblib"))
     print("Done.")

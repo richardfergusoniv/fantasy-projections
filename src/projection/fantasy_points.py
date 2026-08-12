@@ -40,6 +40,7 @@ KEY_COLS = ["player_id", "position", "season"]
 DESCRIPTIVE_COLS = [
     "display_name", "team", "source", "low_confidence", "rookie_tier",
     "team_changed", "roster_status", "depth_rank", "role", "depth_chart_status",
+    "projected_games",  # Phase 11 - the multiplier behind fantasy_pts_season
 ]
 
 
@@ -69,6 +70,20 @@ def compute_fantasy_points(long_df):
 
     descriptive = long_df.drop_duplicates(subset=KEY_COLS)[KEY_COLS + DESCRIPTIVE_COLS]
     out = out.merge(descriptive, on=KEY_COLS, how="left")
+
+    # Season-long value (Phase 11) = per-game points x projected games.
+    # Kept as a SEPARATE column rather than replacing fantasy_pts, because
+    # the two answer different questions: fantasy_pts is the start/sit
+    # number ("how good is he in a game he plays"), fantasy_pts_season is
+    # the draft number ("what is he worth over a season"). Shipping only
+    # the per-game figure made an 8-game player look identical to a
+    # 16-game player at the same rate. NaN where no availability estimate
+    # exists (an older models/ directory) rather than silently assuming a
+    # full season - see predict.load_availability_models.
+    if "projected_games" in out.columns:
+        out["fantasy_pts_season"] = out["fantasy_pts"] * out["projected_games"]
+        out["fantasy_pts_season_low"] = out["fantasy_pts_low"] * out["projected_games"]
+        out["fantasy_pts_season_high"] = out["fantasy_pts_high"] * out["projected_games"]
     return out.sort_values("fantasy_pts", ascending=False)
 
 
@@ -87,8 +102,12 @@ def main():
     out.to_csv(out_path, index=False)
 
     pd.set_option("display.width", 200)
-    cols = ["display_name", "team", "position", "fantasy_pts", "fantasy_pts_low", "fantasy_pts_high", "low_confidence"]
-    print(out[cols].head(30).to_string(index=False))
+    sort_col = "fantasy_pts_season" if "fantasy_pts_season" in out.columns else "fantasy_pts"
+    cols = [c for c in ["display_name", "team", "position", "fantasy_pts",
+                        "projected_games", "fantasy_pts_season", "low_confidence"]
+            if c in out.columns]
+    print(f"--- Top 30 by {sort_col} ---")
+    print(out.sort_values(sort_col, ascending=False)[cols].head(30).to_string(index=False))
     print(f"\n{len(out)} player-position rows scored (half-PPR, 4pt passing TD) -> {out_path}")
 
 

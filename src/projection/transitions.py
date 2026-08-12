@@ -147,6 +147,53 @@ def build_transition_pairs(feat, position, stat, season_pairs, label_col=None):
     return out
 
 
+# Games in a modern NFL regular season - the ceiling on any availability
+# prediction. (Pre-2021 seasons were 16; predicting a 17th game for a
+# 2019 row is a rounding-level concern next to the +/-4 game MAE of the
+# availability model itself, so a single constant is used rather than a
+# per-season lookup.)
+SEASON_GAMES = 17
+
+AVAILABILITY_LABEL = "games_played_to"
+
+
+def build_availability_pairs(feat, position, season_pairs):
+    """Season N features -> season N+1 GAMES PLAYED, for the availability
+    model (Phase 11).
+
+    Differs from build_transition_pairs in the one way that matters: it
+    LEFT joins and keeps `games_played_to = 0`, rather than inner-joining
+    and filtering to `games_played_to > 0`. That filter is correct for a
+    per-game RATE label - a player who never played has no rate to learn -
+    but it makes the single worst outcome in the data structurally
+    invisible: 21% of the elite injury cohort studied in Phase 6 missed
+    their entire following season, and neither training nor the backtest
+    could see or be charged for it. Availability is precisely the target
+    those rows belong to.
+
+    A player absent from season N+1's feature frame genuinely played 0
+    games: build_player_season_features aggregates from weekly usage, so
+    only players with real active weeks appear at all. The fillna(0) here
+    is a real value, not a cover for a failed join."""
+    pos_df = feat[feat["position"] == position]
+    rows = []
+    for season_from, season_to in season_pairs:
+        a = pos_df[pos_df["season"] == season_from][["player_id", "team"] + ALL_FEATURES]
+        b = pos_df[pos_df["season"] == season_to][["player_id", "games_played"]].rename(
+            columns={"games_played": AVAILABILITY_LABEL})
+        merged = a.merge(b, on="player_id", how="left")
+        merged["played_again"] = merged[AVAILABILITY_LABEL].notna()
+        merged[AVAILABILITY_LABEL] = merged[AVAILABILITY_LABEL].fillna(0.0)
+        # season_from's own games count = the carry-forward baseline this
+        # model has to beat, kept under the same `naive_pred` name every
+        # other pair-builder here uses.
+        merged["naive_pred"] = merged["games_played"]
+        merged["season_from"] = season_from
+        merged["season_to"] = season_to
+        rows.append(merged)
+    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
+
+
 def build_team_transition_pairs(feat, season_pairs):
     """Team-grain sibling of build_transition_pairs, for the joint/
     multi-output Phase A `team_passing_yards` model (train.py). One row per
