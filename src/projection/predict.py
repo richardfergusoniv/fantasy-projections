@@ -223,12 +223,51 @@ BOOST_ELIGIBLE_ROLES = {"starter", "committee"}
 # code path is otherwise identical and already exercised by the target
 # side.
 INCUMBENT_VACANCY_ALPHA = {"target": 0.5, "carry": 0.0}
+
+# Damping on the TEAM-CHANGER vacancy scale, the arrival-side sibling of
+# INCUMBENT_VACANCY_ALPHA. Also measured over every 2017->2025 transition,
+# scored on what arrivals' shares actually did at their new team:
+#   targets alpha=0.35 (MAE 0.05460 vs 0.05868 carrying the old share
+#                       forward, -6.75%, consistency 6.13, 9/9 positive)
+#   carries alpha=0.25 (0.19082 vs 0.19864, -4.19%, consistency 2.33, 6/9)
+# The un-damped, un-netted scale this replaces was measurably WORSE than
+# doing nothing at all - 0.07758 vs 0.05868 for targets (+32%) and
+# 0.32697 vs 0.19864 for carries (+65%). Both halves of the fix are load
+# bearing and neither works alone: netting at full strength is still
+# worse than naive (0.06476), and damping the un-netted scale never beats
+# naive at any alpha. Net first, then shrink toward carrying the share
+# forward.
+TEAM_CHANGE_VACANCY_ALPHA = {"target": 0.35, "carry": 0.25}
 # Net vacancy is clipped before use, and the resulting scale capped, so a
 # freak roster teardown can't produce an unbounded multiplier out of a
 # region with no supporting data (observed net vacancy essentially never
 # exceeds ~0.5).
 INCUMBENT_VACANCY_NET_CLIP = 0.75
 INCUMBENT_VACANCY_SCALE_CAP = 2.0
+
+
+def _incoming_volume_share(df, changed):
+    """Per destination team, the source-season carry/target volume walking
+    IN, expressed on team_vacated_opportunity's own raw-count basis (the
+    arrivals' prior totals over the destination team's prior total) so the
+    two are directly subtractable.
+
+    Shared by both vacancy adjustments so they cannot drift apart: the
+    incumbent boost subtracts this whole quantity (arrivals absorb the
+    room, so returners shouldn't be credited with it), while the
+    team-changer scale subtracts it MINUS the player's own contribution
+    (each arrival should see the room net of its COMPETITORS, never net
+    of itself). Assumes df["team"] is still the source-season team, i.e.
+    it must be called before the team reassignment at the end of
+    reassign_team_changers."""
+    prev_team = df.groupby("team")[["carries", "targets"]].sum()
+    incoming = df[changed].groupby("team_target")[["carries", "targets"]].sum()
+    out = {}
+    for col in ["carries", "targets"]:
+        share = (incoming[col] / prev_team[col]).replace([np.inf, -np.inf], np.nan)
+        own = df[col] / df["team_target"].map(prev_team[col]).replace(0, np.nan)
+        out[col] = (share.fillna(0.0), own.fillna(0.0))
+    return out
 
 
 def drop_players_absent_from_target_season(conn, df, depth_chart, target_season):
@@ -378,12 +417,15 @@ def apply_incumbent_vacancy_boost(conn, df, target_season, depth_chart, changed)
     if vacated.empty:
         return df
 
-    # Source-season team totals, and the volume arriving from elsewhere,
-    # both on team_vacated_opportunity's own raw-count basis.
-    prev_team = df.groupby("team")[["carries", "targets"]].sum()
-    incoming = df[changed].groupby("team_target")[["carries", "targets"]].sum()
-    incoming_carry = (incoming["carries"] / prev_team["carries"]).replace([np.inf, -np.inf], np.nan)
-    incoming_target = (incoming["targets"] / prev_team["targets"]).replace([np.inf, -np.inf], np.nan)
+    # Volume arriving from elsewhere, on team_vacated_opportunity's own
+    # raw-count basis. Shared with the team-changer scale via
+    # _incoming_volume_share so the two vacancy adjustments can never
+    # disagree about how much room the arrivals are taking; the incumbent
+    # side subtracts the WHOLE incoming share (arrivals absorb the room),
+    # the arrival side subtracts it net of the player's own contribution.
+    incoming = _incoming_volume_share(df, changed)
+    incoming_carry = incoming["carries"][0]
+    incoming_target = incoming["targets"][0]
 
     role_lookup = depth_chart[["position", "gsis_id", "role"]].rename(columns={"gsis_id": "player_id"})
     role_lookup = role_lookup.dropna(subset=["player_id"]).drop_duplicates(subset=["player_id", "position"])
@@ -611,8 +653,34 @@ def reassign_team_changers(conn, df, target_season, depth_chart):
         ]
         df = df.merge(vacated, on="team_target", how="left")
 
-        carry_scale = (df["vacated_carry_share"] / league_avg_carry_vac).clip(*TEAM_CHANGE_SHARE_CLIP).fillna(1.0)
-        target_scale = (df["vacated_target_share"] / league_avg_target_vac).clip(*TEAM_CHANGE_SHARE_CLIP).fillna(1.0)
+        # Net the vacancy across COMPETING ARRIVALS, then damp toward
+        # carrying the player's own share forward. Before this, every
+        # arrival was handed the team's ENTIRE vacancy independently -
+        # Washington vacated 52.3% of its targets and so awarded a 2.18x
+        # share boost to Stefon Diggs, Chig Okonkwo AND Rachaad White at
+        # once, inflating Diggs (0.185 -> 0.403) past the incumbent
+        # McLaurin and inverting the team's pecking order. It is the same
+        # bug this function's own docstring already describes for the
+        # Gainwell case - "no check on whether another player was already
+        # absorbing that vacated opportunity" - which the role gate below
+        # only partly contained, since a curated starter passes it.
+        #
+        # `others_incoming` deliberately excludes the player's own volume:
+        # an arrival should see the room net of its competitors, never net
+        # of itself. See TEAM_CHANGE_VACANCY_ALPHA for the measured
+        # damping and for how badly the un-netted version scored.
+        incoming = _incoming_volume_share(df, changed)
+        scales = {}
+        for col, vac_col, kind, league_avg in [
+            ("carries", "vacated_carry_share", "carry", league_avg_carry_vac),
+            ("targets", "vacated_target_share", "target", league_avg_target_vac),
+        ]:
+            share_by_team, own = incoming[col]
+            others = (df["team_target"].map(share_by_team).fillna(0.0) - own).clip(lower=0.0)
+            v_net = (df[vac_col] - others).clip(lower=0.0)
+            raw = (v_net / league_avg).clip(*TEAM_CHANGE_SHARE_CLIP).fillna(1.0)
+            scales[kind] = 1.0 + TEAM_CHANGE_VACANCY_ALPHA[kind] * (raw - 1.0)
+        carry_scale, target_scale = scales["carry"], scales["target"]
 
         if not depth_chart.empty:
             role_lookup = depth_chart[["position", "gsis_id", "role"]].rename(columns={"gsis_id": "player_id"})
