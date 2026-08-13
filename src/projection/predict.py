@@ -46,6 +46,7 @@ import numpy as np
 import pandas as pd
 
 from src.projection.data_prep import get_conn, team_season_opponent_strength
+from src.projection.depth_history import attach_availability_depth_rank
 from src.projection.features import build_player_season_features, TARGET_STATS, OC_METRICS
 from src.projection.ol_quality import team_season_ol_quality
 from src.projection.transitions import (
@@ -927,21 +928,43 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     # Availability (Phase 11): a per-game rate alone can't express season
     # value - two players at the same rate are worth very different
     # amounts if one plays 8 games and the other 16, which is exactly the
-    # Mike Evans / Deebo Samuel case. Measured directly: predicting rate
-    # and multiplying by a fixed 17 games is WORSE than a naive
-    # carry-forward at predicting season totals (WR 296.2 vs 252.2 yards
-    # MAE, TE 213.3 vs 182.8); rate x predicted games beats both (WR
-    # 227.3, TE 163.3). Attached per player here, carried through to the
-    # output so the split stays visible rather than being folded into the
-    # rate.
+    # Mike Evans / Deebo Samuel case. Measured directly on the 2024->2025
+    # holdout (backtest_season_totals, re-measured after Gate A): rate x a
+    # fixed 17 games is WORSE than naive carry-forward at predicting season
+    # totals (WR 252.3 vs 170.5 yards MAE, TE 152.8 vs 110.9, RB 295.1 vs
+    # 191.3, QB 1420.4 vs 780.0); rate x predicted games beats both (WR
+    # 151.8, TE 90.7, RB 172.7, QB 615.3). Attached per player here,
+    # carried through to the output so the split stays visible rather than
+    # being folded into the rate.
+    #
+    # The model reads target_season's preseason depth chart (Gate A) - see
+    # depth_history.py and train.fit_availability. Attached here, on the
+    # post-reassign_team_changers frame, so a player who changed teams is
+    # looked up on his NEW team's chart, which is the whole point: Deebo at
+    # SF WR-something and Deebo off WAS's chart are different availability
+    # predictions.
+    #
+    # Note this is the nflverse chart, NOT the curated
+    # src/depth_chart/starters_2026.csv one used for gating below. The two
+    # are deliberately separate: the curated file is hand-verified and
+    # authoritative for membership/team/role, but exists only for 2026, so
+    # it can never be a trained-on feature. The nflverse chart exists for
+    # every season, which is the only reason the availability model can be
+    # honestly held out on it.
     avail_models = load_availability_models()
     base = base.copy()
+    base = attach_availability_depth_rank(base, target_season, conn=conn)
     base["projected_games"] = np.nan
     for position, am in avail_models.items():
         mask = base["position"] == position
         if mask.any():
+            # am["features"], not ALL_FEATURES: the availability models
+            # carry a wider schema than the rate models (AVAILABILITY_
+            # FEATURES), and an older models/ directory predating Gate A
+            # still carries the narrower one and must keep working.
             base.loc[mask, "projected_games"] = np.clip(
-                am["model"].predict(base.loc[mask, ALL_FEATURES]), 0, SEASON_GAMES)
+                am["model"].predict(base.loc[mask, am["features"]]), 0, SEASON_GAMES)
+    _warn_availability_chart_disagreement(base, depth_chart)
 
     rows = []
     for position, stats in TARGET_STATS.items():
@@ -1009,6 +1032,57 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
 TRIPWIRE_SEASON_TARGETS = 70
 TRIPWIRE_TARGETS_PG = 5.0
 TRIPWIRE_REC_YPG = 40.0
+
+
+def _warn_availability_chart_disagreement(base, depth_chart):
+    """Warn (stderr only, never changes a number - same contract as
+    _warn_discounted_high_usage below) when the hand-curated depth chart
+    lists a player that the nflverse preseason chart does not carry at
+    availability depth.
+
+    The two charts are independent and normally agree closely (2026:
+    182/183 curated starters, 27/27 committee, 50/54 backups). Where they
+    disagree, the nflverse absence is what the availability model sees, and
+    it is a genuine signal - a player on nobody's published chart in early
+    August really does play fewer games. But a curator who deliberately
+    placed a player on a team (Diggs -> WAS, Deebo -> SF; see
+    reassign_team_changers) deserves to be told that the games model
+    disagrees, rather than discovering a halved projected_games by
+    accident. Resolving it is a human call about which chart is right.
+
+    Covers EVERY curated role, not just the ones where a games error costs
+    the most fantasy points. A curated backup absent from the nflverse
+    chart is the cheaper case in isolation, but it is the same underlying
+    event - the two sources disagree about whether this player has a job -
+    and suppressing the cheap half would make the warning's silence mean
+    "no disagreement above a threshold I chose" instead of "no
+    disagreement." Listed worst-role-first so triage is still ordered."""
+    if depth_chart.empty:
+        return
+    curated = depth_chart[depth_chart["role"].notna()]
+    off = base[base["player_id"].isin(curated["gsis_id"])
+               & base["target_depth_rank"].isna()]
+    if off.empty:
+        return
+    # `base` is the feature frame and carries no display_name; the curated
+    # chart does, and is the table a reader would go fix.
+    by_id = curated.drop_duplicates("gsis_id").set_index("gsis_id")
+    name_of, role_of = by_id["player_name"], by_id["role"]
+    order = {"starter": 0, "committee": 1, "backup": 2}
+    listed = sorted(
+        ((order.get(role_of.get(r.player_id), 9), name_of.get(r.player_id, r.player_id),
+          r.team, r.position, role_of.get(r.player_id), r.projected_games)
+         for r in off.itertuples()),
+        key=lambda x: (x[0], -x[5]))
+    names = ", ".join(f"{n} ({t} {p}, curated {role}, {g:.1f} g)"
+                      for _, n, t, p, role, g in listed)
+    counts = ", ".join(f"{c} {r}" for r, c in
+                       sorted(((r, sum(1 for x in listed if x[4] == r))
+                               for r in set(x[4] for x in listed)),
+                              key=lambda kv: order.get(kv[0], 9)))
+    print(f"AVAILABILITY CHART DISAGREEMENT: {len(off)} curated player(s) ({counts}) "
+          f"are absent from the nflverse preseason chart, so the games model treated "
+          f"them as off-chart: {names}", file=sys.stderr)
 
 
 def _warn_discounted_high_usage(conn, combined, base, source_season):
@@ -1352,10 +1426,18 @@ def project_season(conn, target_season):
     # players at the same position instead (career_year == 0 rows, added
     # in Phase 5) - the same "bucket average" spirit as the rest of the
     # rookie path, and a real estimate rather than a blank or a silently
-    # assumed full season. Deliberately NOT differentiated by draft round:
-    # the veteran model's own availability signal is weak enough
-    # (+5-6% over carry-forward) that slicing a rookie prior further
-    # would be inventing precision.
+    # assumed full season. Deliberately NOT differentiated by draft round.
+    #
+    # Left unchanged by Gate A, and this is a known gap rather than a
+    # judgment that it doesn't matter: the reason given for the flat prior
+    # used to be that the veteran availability signal was itself weak
+    # (+5-6% over carry-forward), and that is no longer true (+25-28%, see
+    # train.fit_availability). Rookies DO appear on the target season's
+    # preseason chart, so the same feature is available to them - but they
+    # have no season-N feature row, so it cannot simply be routed through
+    # the veteran model, and a rookie-specific games model is its own
+    # modeling step with its own validation. Flagged, not silently folded
+    # into this change.
     rookie_games = (
         feat[feat["career_year"] == 0].groupby("position")["games_played"].mean()
         if "career_year" in feat.columns else pd.Series(dtype=float)

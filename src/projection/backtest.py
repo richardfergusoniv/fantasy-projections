@@ -28,8 +28,9 @@ from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
-    ALL_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL,
-    TEAM_TOTAL_LABEL, AVAILABILITY_LABEL, SEASON_GAMES, receiving_share_scale,
+    ALL_FEATURES, AVAILABILITY_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS,
+    RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, AVAILABILITY_LABEL, SEASON_GAMES,
+    receiving_share_scale,
 )
 from src.projection.rookies import build_rookie_dataset, fit_rookie_baselines, predict_rookies
 from src.projection.train import LGBM_PARAMS
@@ -78,11 +79,19 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
 
     Parity limits vs predict.py's live composition, stated plainly rather
     than papered over: (1) shares here carry NO role/depth-chart discount
-    (d_i=1) - no historical curated depth chart exists for held-out
+    (d_i=1) - no historical CURATED depth chart exists for held-out
     seasons; (2) no rookie-path implied shares enter the denominator - the
     veteran backtest frame has no rookie predictions for the held-out
     season. Achieved parity is "identical composition code path, empty
     discount/rookie inputs," not a byte-for-byte replica of the live run.
+
+    Limit (1) is narrower than it used to be. Gate A added
+    depth_history.py, which reconstructs a preseason depth chart for EVERY
+    season from nflverse; what is still missing is only the curated file's
+    hand-verified ROLE tier (starter/committee/backup), which is what
+    ROLE_VOLUME_DISCOUNT keys on. Deriving those tiers from the historical
+    ranks - so the discount constants can be fit against outcomes instead
+    of asserted - is the next step, and is deliberately not done here.
 
     Team-total predictions are drawn from each test row's OWN
     TEAM_FEATURES (already the player's season_from team context), the
@@ -324,7 +333,15 @@ def backtest_availability(feat):
     """Held-out games-played MAE per position vs carrying season-N games
     forward (Phase 11). Scored on ALL season-N players including those who
     never played again - the rows build_transition_pairs drops and which
-    every other table here is therefore blind to."""
+    every other table here is therefore blind to.
+
+    Fits on AVAILABILITY_FEATURES (Gate A), which includes the TEST year's
+    preseason depth chart. That is not leakage: a week-1/early-August chart
+    is public before the season it describes is played, so it is available
+    to a genuine preseason projection - the same standing the live 2026 run
+    gives src/depth_chart/starters_2026.csv. What the chart cannot see is
+    the outcome being scored (games actually played), which is what would
+    make it leakage."""
     rows = []
     for position in TARGET_STATS:
         train = build_availability_pairs(feat, position, TRAIN_PAIRS)
@@ -332,8 +349,8 @@ def backtest_availability(feat):
         if train.empty or test.empty:
             continue
         model = LGBMRegressor(**LGBM_PARAMS)
-        model.fit(train[ALL_FEATURES], train[AVAILABILITY_LABEL])
-        pred = np.clip(model.predict(test[ALL_FEATURES]), 0, SEASON_GAMES)
+        model.fit(train[AVAILABILITY_FEATURES], train[AVAILABILITY_LABEL])
+        pred = np.clip(model.predict(test[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
         actual, naive = test[AVAILABILITY_LABEL], test["naive_pred"]
         rows.append({
             "position": position, "stat": "games", "n_test": len(test),
@@ -362,9 +379,9 @@ def backtest_season_totals(feat):
         rate_train = build_transition_pairs(feat, position, stat, TRAIN_PAIRS)
         if av_train.empty or av_test.empty or rate_train.empty:
             continue
-        gm = LGBMRegressor(**LGBM_PARAMS).fit(av_train[ALL_FEATURES], av_train[AVAILABILITY_LABEL])
+        gm = LGBMRegressor(**LGBM_PARAMS).fit(av_train[AVAILABILITY_FEATURES], av_train[AVAILABILITY_LABEL])
         rm = LGBMRegressor(**LGBM_PARAMS).fit(rate_train[ALL_FEATURES], rate_train[f"{stat}_pg"])
-        games_hat = np.clip(gm.predict(av_test[ALL_FEATURES]), 0, SEASON_GAMES)
+        games_hat = np.clip(gm.predict(av_test[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
         rate_hat = np.clip(rm.predict(av_test[ALL_FEATURES]), 0, None)
 
         # Actual season-N+1 total, and season-N's own total as the naive

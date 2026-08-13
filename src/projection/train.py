@@ -34,8 +34,8 @@ from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
-    ALL_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL,
-    TEAM_TOTAL_LABEL, AVAILABILITY_LABEL,
+    ALL_FEATURES, AVAILABILITY_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS,
+    RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, AVAILABILITY_LABEL,
 )
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -98,26 +98,40 @@ def fit_availability(feat, position, pairs=ALL_PAIRS):
 
     Trained on build_availability_pairs, which keeps the
     games_played_to = 0 rows every other model in this module drops - the
-    whole point is to predict the availability those rows represent.
+    whole point is to predict the availability those rows represent, and on
+    AVAILABILITY_FEATURES rather than ALL_FEATURES (see transitions.py):
+    the target season's preseason depth chart is an input here and nowhere
+    else in this module.
 
     Measured against carrying season-N games forward, leave-one-transition
     -out over 2017-2025 (MAE, and the per-season consistency ratio this
     project uses as its ship/no-ship gate elsewhere):
-      WR 4.160 vs 4.431  (+6.1%, consistency 4.11, 7/8 seasons positive)
-      RB 4.592 vs 4.861  (+5.3%, consistency 5.03, 8/8)
-      TE 3.902 vs 4.106  (+4.6%, consistency 1.42, 5/8) - marginal
-      QB 4.256 vs 4.287  (-1.5%, consistency -0.25, 4/8) - NO better than
-         carry-forward; shipped for uniformity because it is not
-         materially WORSE either, but a QB's projected_games should be
-         read as barely more than "what he played last year."
-    Tail separation is the useful part and is real for WR/RB: the 30
-    lowest predictions average 5.0-5.6 actual games against 13.8 for the
-    30 highest."""
+      QB 2.553 vs 3.571 carry-forward (+28.5%, consistency 5.90, 8/8 seasons)
+      RB 3.262 vs 4.407 (+26.0%, consistency 3.75, 8/8)
+      WR 3.166 vs 4.256 (+25.6%, consistency 2.97, 8/8)
+      TE 3.055 vs 4.061 (+24.8%, consistency 2.91, 8/8)
+
+    History, because the previous numbers were the reason a downstream
+    workaround exists: without the depth-chart feature this model scored
+    WR 4.160 / RB 4.592 / TE 3.902 / QB 4.256, i.e. +5-6% over carry-
+    forward for WR and RB, marginal for TE (consistency 1.42, 5/8), and
+    for QB no better than carry-forward at all (-1.5%, consistency -0.25,
+    4/8). Adding the chart improves every position on 8/8 folds and every
+    depth tier (rank-1 starters 16-23%, off-chart rows 28-50%).
+
+    The specific error it removes is the one that matters downstream:
+    players absent from their team's preseason chart actually play 1.2-2.5
+    games, and the pre-depth-chart model predicted 3.9-5.2 for them. That
+    over-prediction was being absorbed by the post-model volume discounts
+    in predict.py (DEEP_BENCH_DISCOUNT / ROLE_VOLUME_DISCOUNT), which is
+    why those constants sit near a SEASON-scale ratio despite multiplying a
+    per-game RATE. Recalibrating them is a separate step and depends on
+    this one having landed."""
     data = build_availability_pairs(feat, position, pairs)
     if data.empty:
         return None, 0
     model = LGBMRegressor(**LGBM_PARAMS)
-    model.fit(data[ALL_FEATURES], data[AVAILABILITY_LABEL])
+    model.fit(data[AVAILABILITY_FEATURES], data[AVAILABILITY_LABEL])
     return model, len(data)
 
 
@@ -184,7 +198,7 @@ def main():
             continue
         path = os.path.join(MODELS_DIR, f"{position}_games.joblib")
         joblib.dump(
-            {"model": model, "features": ALL_FEATURES, "position": position,
+            {"model": model, "features": AVAILABILITY_FEATURES, "position": position,
              "stat": "games", "label": AVAILABILITY_LABEL},
             path,
         )

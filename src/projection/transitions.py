@@ -21,10 +21,36 @@ season's row to feed the trained model here), not this module's.
 import numpy as np
 import pandas as pd
 
+from src.projection.depth_history import (
+    AVAILABILITY_DEPTH_FEATURE, attach_availability_depth_rank,
+)
 from src.projection.features import FEATURE_COLS, TARGET_STATS, OC_METRICS
 
 EXTRA_FEATURES = ["games_played"]
 ALL_FEATURES = FEATURE_COLS + EXTRA_FEATURES
+
+# The availability model gets ONE feature the rate models deliberately do
+# not: where the player sits on his team's depth chart entering the season
+# being predicted (see depth_history.py). It is kept as a separate list,
+# rather than appended to ALL_FEATURES, because the two model families need
+# different things from it:
+#
+#   - Availability is exactly the question a depth chart answers. A
+#     preseason chart is public before week 1, so using the TARGET season's
+#     chart is a real preseason input, not leakage - it is the same
+#     information the live 2026 run already reads off
+#     src/depth_chart/starters_2026.csv, just supplied for every historical
+#     season too so the model can be trained and held out on it.
+#   - The per-game RATE models are trained only on players who actually
+#     played (build_transition_pairs filters games_played_to > 0), which is
+#     the population where the chart has least to say, and their input
+#     schema is frozen across every saved model in models/. Widening
+#     ALL_FEATURES would silently invalidate all of them.
+#
+# Every saved model carries its own `features` list in its joblib, so
+# predict.py and backtest.py read the schema off the model rather than
+# assuming ALL_FEATURES for both families.
+AVAILABILITY_FEATURES = ALL_FEATURES + [AVAILABILITY_DEPTH_FEATURE]
 
 # Team-season-grain columns within FEATURE_COLS (identical for every player
 # on the same team-season, since none of these are player-specific - see
@@ -174,7 +200,14 @@ def build_availability_pairs(feat, position, season_pairs):
     A player absent from season N+1's feature frame genuinely played 0
     games: build_player_season_features aggregates from weekly usage, so
     only players with real active weeks appear at all. The fillna(0) here
-    is a real value, not a cover for a failed join."""
+    is a real value, not a cover for a failed join.
+
+    Each row also carries `target_depth_rank` - the player's position on
+    his team's depth chart entering season_to, the one feature that
+    separates "returning veteran who will start" from "returning veteran
+    nobody has a role for." See AVAILABILITY_FEATURES above and
+    depth_history.py. Joined per season_to, since the whole point is that
+    it is the TARGET season's chart."""
     pos_df = feat[feat["position"] == position]
     rows = []
     for season_from, season_to in season_pairs:
@@ -182,6 +215,8 @@ def build_availability_pairs(feat, position, season_pairs):
         b = pos_df[pos_df["season"] == season_to][["player_id", "games_played"]].rename(
             columns={"games_played": AVAILABILITY_LABEL})
         merged = a.merge(b, on="player_id", how="left")
+        merged["position"] = position
+        merged = attach_availability_depth_rank(merged, season_to)
         merged["played_again"] = merged[AVAILABILITY_LABEL].notna()
         merged[AVAILABILITY_LABEL] = merged[AVAILABILITY_LABEL].fillna(0.0)
         # season_from's own games count = the carry-forward baseline this
