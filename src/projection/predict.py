@@ -864,14 +864,14 @@ def apply_depth_chart_gating(df, depth_chart):
     # factor the rest of the row was: without it, a discounted player with
     # an elite season-N rate would have a full-size bonus added on top of
     # a 0.15x-ed prediction, quietly undoing the discount.
-    df["_role_discount_factor"] = 1.0
+    df["role_discount_factor"] = 1.0
 
     to_discount = ~matched
     for col in ["pred_pg", "pred_pg_low", "pred_pg_high"]:
         df.loc[to_discount, col] = df.loc[to_discount, col] * DEEP_BENCH_DISCOUNT
     df.loc[to_discount, "low_confidence"] = True
     df.loc[to_discount, "role"] = "deep_bench"
-    df.loc[to_discount, "_role_discount_factor"] = DEEP_BENCH_DISCOUNT
+    df.loc[to_discount, "role_discount_factor"] = DEEP_BENCH_DISCOUNT
 
     role_factor = df["role"].map(ROLE_VOLUME_DISCOUNT)
     to_role_discount = matched & role_factor.notna()
@@ -879,7 +879,7 @@ def apply_depth_chart_gating(df, depth_chart):
     for col in ["pred_pg", "pred_pg_low", "pred_pg_high"]:
         df.loc[to_role_discount, col] = df.loc[to_role_discount, col] * role_factor[to_role_discount]
     df.loc[to_role_discount, "low_confidence"] = True
-    df.loc[to_role_discount, "_role_discount_factor"] = role_factor[to_role_discount]
+    df.loc[to_role_discount, "role_discount_factor"] = role_factor[to_role_discount]
 
     return df
 
@@ -1033,6 +1033,39 @@ TRIPWIRE_SEASON_TARGETS = 70
 TRIPWIRE_TARGETS_PG = 5.0
 TRIPWIRE_REC_YPG = 40.0
 
+# Passing and rushing equivalents. Their absence was a real hole, not a
+# judgment that QB/RB curation matters less: the criteria above key on
+# targets and receiving yards only, so a discounted QB or RB could not fire
+# this tripwire at ALL regardless of volume. 2026 had 26 discounted rows
+# with >=150 attempts or >=100 carries in 2025 - Flacco (436 att), Tua
+# (417), Dowdle (237 car), Henderson (180) - none of which could be
+# surfaced.
+#
+# These apply only where the discount asserts IRRELEVANCE (net factor
+# <= TRIPWIRE_SEVERE_FACTOR, i.e. the 0.15x deep-bench/backup path), not to
+# the 0.4x 'committee' path. That exclusion is the whole reason these
+# thresholds are usable: at carries >= 100, 14 of 17 discounted RBs are
+# curated 'committee', and a committee back carrying 100+ times is not a
+# curation error - it is precisely what 'committee' claims. Firing on them
+# would bury the real misses under correct curations and train a reader to
+# ignore the warning. A 'deep_bench' RB with 155 carries (Kimani Vidal)
+# contradicts his own label, and that is the case worth surfacing.
+TRIPWIRE_SEASON_ATTEMPTS = 200
+TRIPWIRE_ATTEMPTS_PG = 25.0
+TRIPWIRE_SEASON_CARRIES = 100
+TRIPWIRE_CARRIES_PG = 8.0
+TRIPWIRE_SEVERE_FACTOR = 0.2
+
+# The >= 4 game guard the receiving criteria use is too loose for a rushing
+# RATE, and the reason is specific to the stat rather than general caution:
+# carries per game over a 4-5 game sample is dominated by whether the
+# player happened to start those weeks, so it reads as a starter's rate by
+# construction and says nothing about his next-season role (Audric Estime,
+# 46 carries in 5 games, rates 9.2/g). Half a season is the point where the
+# rate reflects a role. Passing keeps the 4-game guard: a QB who threw 189
+# times in 5 games was unambiguously starting them, and that IS the signal.
+TRIPWIRE_RUSH_MIN_GAMES = 8
+
 
 def _warn_availability_chart_disagreement(base, depth_chart):
     """Warn (stderr only, never changes a number - same contract as
@@ -1098,9 +1131,10 @@ def _warn_discounted_high_usage(conn, combined, base, source_season):
     ]
     if discounted.empty:
         return
-    usage = base[["player_id", "targets", "targets_pg", "receiving_yards_pg", "games_played"]]
+    usage = base[["player_id", "targets", "targets_pg", "receiving_yards_pg",
+                  "attempts", "attempts_pg", "carries", "carries_pg", "games_played"]]
     flagged = (
-        discounted[["player_id", "team", "position", "role"]]
+        discounted[["player_id", "team", "position", "role", "role_discount_factor"]]
         .drop_duplicates("player_id")
         .merge(usage, on="player_id")
     )
@@ -1110,13 +1144,36 @@ def _warn_discounted_high_usage(conn, combined, base, source_season):
     # genuinely relevant injury-shortened seasons (Tyreek Hill's 4-game
     # 66-ypg 2025) inside the net.
     enough_games = flagged["games_played"] >= 4
-    flagged = flagged[
+    receiving = (
         (flagged["targets"] >= TRIPWIRE_SEASON_TARGETS)
         | (enough_games & (flagged["targets_pg"] >= TRIPWIRE_TARGETS_PG))
         | (enough_games & (flagged["receiving_yards_pg"] >= TRIPWIRE_REC_YPG))
-    ]
+    )
+    # Keyed on the net multiplier actually applied, not on role names, so a
+    # future role tier is covered by its severity rather than by having
+    # been added to a list here.
+    severe = flagged["role_discount_factor"] <= TRIPWIRE_SEVERE_FACTOR
+    enough_rush_games = flagged["games_played"] >= TRIPWIRE_RUSH_MIN_GAMES
+    passing = severe & (
+        (flagged["attempts"] >= TRIPWIRE_SEASON_ATTEMPTS)
+        | (enough_games & (flagged["attempts_pg"] >= TRIPWIRE_ATTEMPTS_PG))
+    )
+    rushing = severe & (
+        (flagged["carries"] >= TRIPWIRE_SEASON_CARRIES)
+        | (enough_rush_games & (flagged["carries_pg"] >= TRIPWIRE_CARRIES_PG))
+    )
+    flagged = flagged[receiving | passing | rushing].copy()
     if flagged.empty:
         return
+    # Which criterion fired, so a reader can tell a 400-attempt QB2 from a
+    # 70-target WR without reading the thresholds out of this file.
+    flagged["_why"] = np.select(
+        [passing.reindex(flagged.index, fill_value=False),
+         rushing.reindex(flagged.index, fill_value=False)],
+        ["passing", "rushing"], default="receiving")
+    flagged["_sort"] = np.where(
+        flagged["_why"] == "passing", flagged["attempts"],
+        np.where(flagged["_why"] == "rushing", flagged["carries"], flagged["targets"]))
     names = pd.read_sql("SELECT gsis_id AS player_id, display_name FROM players", conn)
     flagged = flagged.merge(names, on="player_id", how="left")
     print(
@@ -1124,11 +1181,17 @@ def _warn_discounted_high_usage(conn, combined, base, source_season):
         f"season-{source_season} usage - verify their rows in the curated depth chart:",
         file=sys.stderr,
     )
-    for _, r in flagged.sort_values("targets", ascending=False).iterrows():
+    for _, r in flagged.sort_values(["_why", "_sort"], ascending=[True, False]).iterrows():
+        if r["_why"] == "passing":
+            detail = f"{r['attempts']:.0f} attempts, {r['attempts_pg']:.1f} att/g"
+        elif r["_why"] == "rushing":
+            detail = f"{r['carries']:.0f} carries, {r['carries_pg']:.1f} car/g"
+        else:
+            detail = (f"{r['targets']:.0f} targets, {r['targets_pg']:.1f} tgt/g, "
+                      f"{r['receiving_yards_pg']:.1f} rec ypg")
         print(
-            f"  {r['display_name']} ({r['team']} {r['position']}, role={r['role']}): "
-            f"{r['targets']:.0f} targets, {r['targets_pg']:.1f} tgt/g, "
-            f"{r['receiving_yards_pg']:.1f} rec ypg in {r['games_played']:.0f} games",
+            f"  {r['display_name']} ({r['team']} {r['position']}, role={r['role']}, "
+            f"{r['role_discount_factor']:.2f}x): {detail} in {r['games_played']:.0f} games",
             file=sys.stderr,
         )
 
@@ -1161,7 +1224,15 @@ def _attach_team_total_pred(combined, base, team_model):
     return combined
 
 
-_HELPER_COLS = ["team_total_pred", "_observed_recv_pg", "_role_discount_factor"]
+# Intermediate columns dropped once composition is done. `role_discount_
+# factor` is deliberately NOT among them any more: it is the actual
+# multiplier applied to the row, and this project's rule is that a discount
+# must be visible in the output table rather than buried in a module. The
+# two flags that used to be the only evidence are each partial - `role_
+# discount_applied` is False for deep-bench rows despite their 0.15x, and
+# `depth_chart_status` says which path fired but not how hard - so a reader
+# had to consult two columns and still could not see the magnitude.
+_HELPER_COLS = ["team_total_pred", "_observed_recv_pg"]
 
 
 def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=None, corrections=None):
@@ -1227,7 +1298,7 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
     if corrections:
         adj = elite_shrinkage_adjustment(
             reframed["position"], reframed["_observed_recv_pg"], corrections)
-        adj = adj * reframed["_role_discount_factor"].fillna(1.0).to_numpy()
+        adj = adj * reframed["role_discount_factor"].fillna(1.0).to_numpy()
         reframed["elite_correction_pg"] = adj
         reframed["pred_pg"] = reframed["pred_pg"] + adj
     reframed = reframed.drop(columns=_HELPER_COLS, errors="ignore")
@@ -1449,6 +1520,12 @@ def project_season(conn, target_season):
     # function, so this is always False here, not a claim about the
     # rookie's actual role.
     rookie_long["role_discount_applied"] = False
+    # Likewise 1.0 = "no discount was applied to this row," which is true,
+    # rather than a claim that the rookie was evaluated and found
+    # undiscountable. Set explicitly so the column is never NaN for a whole
+    # source, which would read as "unknown" and invite a fillna somewhere
+    # downstream.
+    rookie_long["role_discount_factor"] = 1.0
 
     # Compose the veteran reframed receiving shares into real per-game
     # rates now that the rookie path exists: rookie receiving predictions
@@ -1474,6 +1551,9 @@ OUTPUT_COLUMNS = [
     "team_changed", "roster_status",            # Task 1 - team reassignment transparency
     "depth_rank", "role", "depth_chart_status",  # Task 2/3 - curated depth chart + gating
     "role_discount_applied",  # curated committee/backup volume discount - see ROLE_VOLUME_DISCOUNT
+    "role_discount_factor",   # the multiplier actually applied (1.0 = none); covers BOTH the
+                              # deep-bench and committee/backup paths, which the two flags above
+                              # only cover between them - see _HELPER_COLS
     "qb_sleeper_play_prob",  # rookie QB survivorship-bias correction - NaN for non-QB/veteran rows
     "athletic_tier",  # Addendum 4 - combine-athleticism scale tier; NaN for veteran_model rows
     "team_pass_catch_ratio", "team_pass_catch_coherence_flag",  # diagnostic-only, see add_team_pass_catch_coherence_flag

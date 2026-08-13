@@ -41,6 +41,19 @@ DESCRIPTIVE_COLS = [
     "display_name", "team", "source", "low_confidence", "rookie_tier",
     "team_changed", "roster_status", "depth_rank", "role", "depth_chart_status",
     "projected_games",  # Phase 11 - the multiplier behind fantasy_pts_season
+    # The volume discount, carried through so it is visible in the two
+    # deliverables a reader actually opens. Both were computed upstream and
+    # then dropped here, which meant a 0.15x-ed number arrived in
+    # fantasy_points_<season>.csv and sleeper_comparison_<season>.csv with
+    # nothing on the row saying it had been scaled at all - the project's
+    # rule is that a discount must be visible in the output table, and this
+    # was a live violation of it. `role_discount_factor` is the honest
+    # single column (the multiplier applied, 1.0 = none);
+    # `role_discount_applied` is kept beside it because it distinguishes
+    # the curated committee/backup path from the deep-bench one, which the
+    # factor alone cannot (both DEEP_BENCH_DISCOUNT and
+    # ROLE_VOLUME_DISCOUNT['backup'] are 0.15).
+    "role_discount_factor", "role_discount_applied",
 ]
 
 
