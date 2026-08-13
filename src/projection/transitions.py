@@ -113,13 +113,7 @@ def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_S
     (MAE + interval calibration) so the two cannot diverge.
 
     share_df: columns ['team', 'share'], one row per (player, reframed
-    stat) prediction. 'share' must already carry any role/depth-chart
-    discount the caller ships (predict.py) - the consensus-gap
-    investigation found the cap was being computed on RAW shares, letting
-    a team's about-to-be-0.15x'd bench players consume 63.6% of NYG's
-    share budget and squeeze Malik Nabers by 19% for nothing. backtest.py
-    passes undiscounted shares (d=1): no historical curated depth chart
-    exists, a stated parity limit, not an oversight.
+    stat) prediction, plus an OPTIONAL 'weight' column (see below).
 
     extra_team_share: optional Series indexed by team, added to that
     team's denominator only. predict.py passes rookie-path implied shares
@@ -127,8 +121,40 @@ def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_S
     target share, but is predicted outside the share models - without
     this, a veteran room's shares never feel rookie competition at all).
 
+    THE DENOMINATOR IS PARTICIPATION-WEIGHTED (Gate B). 'weight' is the
+    fraction of the season the player is expected to be active
+    (projected_games / SEASON_GAMES); absent, it defaults to 1.0 and this
+    function behaves exactly as before, which is what keeps backtest.py's
+    calibration comparable.
+
+    Why weighting is the right denominator, and not a tuning knob: a share
+    here is a per-game share CONDITIONAL ON PLAYING, so summing raw shares
+    across a 40-man roster counts players who will never dress. Weighting
+    each by participation measures the quantity that is physically bounded
+    - and it really is bounded. Summed over a team's actual receivers and
+    weighted by games played, the historical share sum is 0.99 in every
+    season 2021-2025 (0.99/0.99/0.99/0.99/0.99), because in any single game
+    the active receivers' shares of team passing yards sum to 1. The
+    unweighted sum over the same players is 1.31-1.41 and drifts with how
+    many bodies a roster carries, which is not a property of football.
+    RECEIVING_SHARE_SUM_CAP = 1.2 therefore now sits ~20% above a known
+    invariant rather than above a number whose meaning moved.
+
+    This replaces the previous contract, where 'share' was expected to
+    arrive pre-multiplied by the caller's role/depth-chart discount. That
+    worked only because the old 0.15/0.4 discounts happened to be small
+    enough to stand in for participation. Gate B fit those multipliers
+    against outcomes and they are near 1.0, so the proxy is gone: with
+    fitted rates and an unweighted denominator, 17 of 32 teams breach the
+    cap and starters get scaled to 0.716. With participation weighting,
+    none do. The two jobs the old discount was doing - scale the rate,
+    weight the denominator - are now done by the two quantities that
+    actually answer them.
+
     Returns (scale, over_cap), both aligned to share_df.index."""
-    denom = share_df.groupby("team")["share"].transform("sum")
+    weight = share_df["weight"] if "weight" in share_df.columns else 1.0
+    weighted = share_df["share"] * weight
+    denom = weighted.groupby(share_df["team"]).transform("sum")
     if extra_team_share is not None:
         denom = denom + share_df["team"].map(extra_team_share).fillna(0.0)
     over_cap = denom > cap

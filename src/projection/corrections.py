@@ -41,10 +41,12 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMRegressor
 
-from src.projection.train import LGBM_PARAMS, fit_team_total
+from src.projection.depth_history import attach_availability_depth_rank
+from src.projection.train import LGBM_PARAMS, fit_team_total, fit_availability
 from src.projection.transitions import (
-    build_transition_pairs, ALL_FEATURES, TEAM_FEATURES,
+    build_transition_pairs, ALL_FEATURES, TEAM_FEATURES, AVAILABILITY_FEATURES,
     REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL, receiving_share_scale,
+    SEASON_GAMES,
 )
 
 # Per-position "elite" thresholds for the shrinkage correction, in
@@ -101,6 +103,38 @@ MIN_TRANSITIONS_FOR_CONSISTENCY = 3
 SUSPENSION_CODES = {"R40"}
 
 
+def _participation_weight(feat, test, position, train_pairs, held):
+    """Out-of-sample projected_games / SEASON_GAMES for the held-out fold's
+    players, so the share-sum cap here uses the same participation-weighted
+    denominator predict.py now ships (transitions.receiving_share_scale).
+
+    Without it this function composed differently from production: on the
+    2024->2025 fold the unweighted denominator tripped the cap on 10 of 32
+    teams and scaled 128 of 360 rows down to as low as 0.700, while the
+    weighted production denominator trips it on none. The residuals beta is
+    fit on were therefore inflated by suppression that the shipped
+    composition no longer applies - a silent drift between what is fit and
+    what is shipped, worth ~3% on TE's beta (0.4903 -> 0.4747).
+
+    The availability model is refit on `train_pairs` only, never on `held`,
+    for the same reason every other model in this function is: a residual
+    used to fit a correction has to be genuinely out-of-sample. Using the
+    held-out season's ACTUAL games would be leakage - it is the outcome
+    being predicted.
+
+    Falls back to 1.0 (the pre-Gate-A behaviour) if the availability model
+    cannot be fit for this position, rather than to 0, which would empty
+    the team's denominator and disable the cap without saying so."""
+    model, n = fit_availability(feat, position, train_pairs)
+    if model is None or n == 0:
+        return 1.0
+    x = attach_availability_depth_rank(
+        test[["player_id"]].assign(position=position), held[1])
+    x = test.join(x[[AVAILABILITY_FEATURES[-1]]])
+    games = np.clip(model.predict(x[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
+    return np.clip(games / SEASON_GAMES, 0, 1)
+
+
 def compute_loo_receiving_residuals(feat, pairs):
     """Leave-one-transition-out out-of-sample residuals for the reframed
     receiving models, composed exactly the way predict.py ships them
@@ -137,13 +171,14 @@ def compute_loo_receiving_residuals(feat, pairs):
             f = test[["team"]].copy()
             f["share"] = np.clip(model.predict(test[ALL_FEATURES]), 0, None)
             f["total"] = np.clip(team_model.predict(test[TEAM_FEATURES]), 0, None)
+            f["weight"] = _participation_weight(feat, test, position, train_pairs, held)
             f["position"], f["row"] = position, test.index
             frames.append(f)
             tests[position] = test
         if not frames:
             continue
         allf = pd.concat(frames, ignore_index=True)
-        scale, _ = receiving_share_scale(allf[["team", "share"]])
+        scale, _ = receiving_share_scale(allf[["team", "share", "weight"]])
         allf["pred"] = allf["share"] * scale * allf["total"]
         for position, test in tests.items():
             sub = allf[allf["position"] == position].sort_values("row")

@@ -54,6 +54,10 @@ DESCRIPTIVE_COLS = [
     # factor alone cannot (both DEEP_BENCH_DISCOUNT and
     # ROLE_VOLUME_DISCOUNT['backup'] are 0.15).
     "role_discount_factor", "role_discount_applied",
+    # The ladder's input (Gate B). Without it role_discount_factor is an
+    # unexplainable number on the row - rank is what determines it, and the
+    # curated `depth_rank` beside it is a different, shallower chart.
+    "nfl_depth_rank",
 ]
 
 

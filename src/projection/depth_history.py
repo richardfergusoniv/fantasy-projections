@@ -167,6 +167,27 @@ def load_preseason_depth_chart(season, conn=None):
     return df.copy()
 
 
+def attach_depth_rank(df, season, conn=None):
+    """Add `nfl_depth_rank` to `df` (needs `player_id` and `position`): the
+    player's UNtruncated ordinal on the chart entering `season`, NaN when he
+    is not on it at all.
+
+    Distinct from attach_availability_depth_rank, and the difference is the
+    point: availability needs the two chart eras to mean the same thing and
+    therefore truncates, while the volume discount needs to tell a WR4 from
+    a WR8 and therefore must not. Both are the same underlying chart.
+    """
+    chart = load_preseason_depth_chart(season, conn=conn)
+    out = df.copy()
+    if chart.empty:
+        out["nfl_depth_rank"] = float("nan")
+        return out
+    ranks = chart.set_index(["player_id", "position"])["depth_rank"]
+    idx = pd.MultiIndex.from_arrays([out["player_id"], out["position"]])
+    out["nfl_depth_rank"] = ranks.reindex(idx).to_numpy(dtype=float)
+    return out
+
+
 def attach_availability_depth_rank(df, season, conn=None):
     """Add `target_depth_rank` to `df` (needs `player_id` and `position`):
     the player's rank on the chart entering `season`, truncated per
