@@ -70,6 +70,13 @@ TEAM_FEATURES = [
     "ol_pass_protection_score", "ol_run_blocking_score", "ol_confidence_low_churn",
     "opp_def_pass_epa_prior", "opp_def_rush_epa_prior",
 ] + [c for c in OC_METRICS if c != "play_action_rate"]
+# The team model's own lag feature (the team's prior-season passing volume)
+# carries a team-grain-only name deliberately - see
+# build_team_transition_pairs. Anything that tries to score this model on a
+# player-grain frame now fails loudly instead of reading the player's own
+# prior rate out of a same-named column. Use `team_model_inputs` below to
+# score it for player rows.
+TEAM_MODEL_FEATURES = TEAM_FEATURES + ["team_naive_pred"]
 
 # (position, stat) pairs reframed under the joint/multi-output Phase A
 # decomposition to predict a share of `TEAM_TOTAL_LABEL` instead of an
@@ -80,6 +87,7 @@ TEAM_FEATURES = [
 REFRAMED_SHARE_STATS = {("WR", "receiving_yards"), ("TE", "receiving_yards"), ("RB", "receiving_yards")}
 RECEIVING_SHARE_LABEL = "receiving_yards_share"
 TEAM_TOTAL_LABEL = "team_passing_yards_pg"
+TEAM_ATTEMPTS_LABEL = "team_pass_attempts_pg"
 
 # Cap on a team's summed receiving-share predictions across WR+TE+RB before
 # composing with team_passing_yards_pg (joint/multi-output Phase A). Shares
@@ -108,7 +116,7 @@ RECEIVING_SHARE_SUM_CAP = 1.2
 
 
 def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_SUM_CAP):
-    """Per-team renormalization scale for reframed receiving-share
+    """Per-team normalization scale for reframed receiving-share
     predictions, shared by predict.py (live composition) and backtest.py
     (MAE + interval calibration) so the two cannot diverge.
 
@@ -121,24 +129,21 @@ def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_S
     target share, but is predicted outside the share models - without
     this, a veteran room's shares never feel rookie competition at all).
 
-    THE DENOMINATOR IS PARTICIPATION-WEIGHTED (Gate B). 'weight' is the
-    fraction of the season the player is expected to be active
-    (projected_games / SEASON_GAMES); absent, it defaults to 1.0 and this
-    function behaves exactly as before, which is what keeps backtest.py's
-    calibration comparable.
+    THE DENOMINATOR IS EXPOSURE-WEIGHTED (Gate B). ``share`` is defined over
+    offensive-appearance weeks, so live callers pass ``weight`` as
+    projected_games / SEASON_GAMES. Historical validation must use the same
+    games_played / scheduled_games weight. Absent, weight defaults to 1.0
+    for compatibility with older callers, but production should always pass
+    the explicit exposure.
 
     Why weighting is the right denominator, and not a tuning knob: a share
     here is a per-game share CONDITIONAL ON PLAYING, so summing raw shares
     across a 40-man roster counts players who will never dress. Weighting
-    each by participation measures the quantity that is physically bounded
-    - and it really is bounded. Summed over a team's actual receivers and
-    weighted by games played, the historical share sum is 0.99 in every
-    season 2021-2025 (0.99/0.99/0.99/0.99/0.99), because in any single game
-    the active receivers' shares of team passing yards sum to 1. The
-    unweighted sum over the same players is 1.31-1.41 and drifts with how
-    many bodies a roster carries, which is not a property of football.
-    RECEIVING_SHARE_SUM_CAP = 1.2 therefore now sits ~20% above a known
-    invariant rather than above a number whose meaning moved.
+    each by participation measures the quantity that is physically bounded.
+    After redefining the label over offensive-appearance weeks, the historical
+    team-season mean is 0.989/0.985/0.992/0.992/0.991 for 2021-2025, with zero
+    team-seasons above 1.2 (maximum 1.140). Thus the cap once again sits above
+    an invariant measured with the same denominator production uses.
 
     This replaces the previous contract, where 'share' was expected to
     arrive pre-multiplied by the caller's role/depth-chart discount. That
@@ -151,7 +156,10 @@ def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_S
     weight the denominator - are now done by the two quantities that
     actually answer them.
 
-    Returns (scale, over_cap), both aligned to share_df.index."""
+    This model-stage guard is downward-only. Final production accounting uses
+    normalize_team_passing_volume after veterans and rookies are combined;
+    that later step is where receiving and passing yards are made exactly
+    equal. Returns (scale, over_cap), both aligned to share_df.index."""
     weight = share_df["weight"] if "weight" in share_df.columns else 1.0
     weighted = share_df["share"] * weight
     denom = weighted.groupby(share_df["team"]).transform("sum")
@@ -255,7 +263,32 @@ def build_availability_pairs(feat, position, season_pairs):
     return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
 
 
-def build_team_transition_pairs(feat, season_pairs):
+def team_model_inputs(feat, season_pairs, season_from, teams):
+    """TEAM_MODEL_FEATURES rows aligned to player-grain (`season_from`,
+    `teams`) columns, so a team-grain model can be scored for player rows.
+
+    The team model is fit at team-season grain. Scoring it directly on a
+    player frame used to "work" because the frames shared a `naive_pred`
+    column with incompatible meanings; that produced team-total forecasts
+    ~40% low and, through the multiplicative share composition, biased
+    every reframed receiving residual upward. Going through this function
+    (or through an explicitly-built team frame) is the only supported way.
+
+    Returns a frame positionally aligned to the inputs, with NaN for a
+    (season_from, team) the team frame has no row for - the caller decides
+    whether that is droppable, rather than this silently substituting.
+    """
+    pairs = build_team_transition_pairs(feat, season_pairs)
+    if pairs.empty:
+        return pd.DataFrame(np.nan, index=pd.RangeIndex(len(teams)), columns=TEAM_MODEL_FEATURES)
+    lookup = pairs.drop_duplicates(["season_from", "team"]).set_index(
+        ["season_from", "team"])[TEAM_MODEL_FEATURES]
+    key = pd.MultiIndex.from_arrays([
+        pd.Series(season_from).to_numpy(), pd.Series(teams).to_numpy()])
+    return lookup.reindex(key).reset_index(drop=True)
+
+
+def build_team_transition_pairs(feat, season_pairs, label_col=TEAM_TOTAL_LABEL):
     """Team-grain sibling of build_transition_pairs, for the joint/
     multi-output Phase A `team_passing_yards` model (train.py). One row per
     (season, team) - taken via drop_duplicates rather than aggregation,
@@ -267,14 +300,25 @@ def build_team_transition_pairs(feat, season_pairs):
     # drop_duplicates would otherwise keep as its own spurious "33rd team"
     # group per season.
     team_df = feat.dropna(subset=["team"]).drop_duplicates(subset=["season", "team"])[
-        ["season", "team", "team_passing_yards_pg"] + TEAM_FEATURES
+        ["season", "team", label_col] + TEAM_FEATURES
     ]
 
     rows = []
     for season_from, season_to in season_pairs:
-        a = team_df[team_df["season"] == season_from][["team"] + TEAM_FEATURES + ["team_passing_yards_pg"]]
-        a = a.rename(columns={"team_passing_yards_pg": "naive_pred"})
-        b = team_df[team_df["season"] == season_to][["team", "team_passing_yards_pg"]]
+        a = team_df[team_df["season"] == season_from][["team"] + TEAM_FEATURES + [label_col]]
+        a = a.rename(columns={label_col: "naive_pred"})
+        # Same value under a team-grain-only name. `naive_pred` is kept
+        # because every pair-builder in this module uses that name for its
+        # carry-forward baseline and backtest_team_total scores against it.
+        # But it ALSO used to be the team model's lag FEATURE, and that is
+        # a name the player-grain frames already use for something else
+        # entirely (the player's own prior rate). Predicting the team model
+        # on a player frame therefore silently fed it ~30 yd/g where it
+        # expected ~230 - no error, no NaN, just wrong numbers, which is
+        # exactly how it survived two review rounds. TEAM_MODEL_FEATURES
+        # now names this column, so the same mistake raises KeyError.
+        a["team_naive_pred"] = a["naive_pred"]
+        b = team_df[team_df["season"] == season_to][["team", label_col]]
         merged = a.merge(b, on="team", how="inner")
         merged["season_from"] = season_from
         merged["season_to"] = season_to

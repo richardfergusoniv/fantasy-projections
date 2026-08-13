@@ -18,13 +18,14 @@ Feature groups per player-season:
   build a second copy of those columns.
 - targets = per-game rate for each position's counting stats (see TARGET_STATS).
 
-2021-2025-only scope decision: OL quality (`ol_coefficients_pooled`, keyed
+2021-2025-only scope decision: OL quality (exact-season `ol_coefficients`, keyed
 2021-2025) has no equivalent for 2016-2020, so this table is built across
 the full 2016-2025 window (rows exist, OL columns are simply NaN pre-2021)
 but `src/projection/train.py` restricts the actual train/predict pairs to
 2021-2025 for consistency across ALL stat models, not just the OL-conditioned
 ones - see PHASE4_REPORT.md for the reasoning and the alternative considered.
 """
+import numpy as np
 import pandas as pd
 
 from src.projection.data_prep import (
@@ -57,6 +58,17 @@ TARGET_STATS = {
     "TE": ["targets", "receptions", "receiving_yards", "receiving_tds"],
 }
 
+# Season-N observed rates are among the strongest honest predictors of the
+# same player's season-N+1 rate.  They previously existed only as the naive
+# benchmark in transitions.py and were withheld from every fitted model.
+# Keep one column per stat (rather than a target-dependent placeholder) so
+# every saved model has a stable schema that predict.py can construct before
+# entering its per-stat loop.
+LAG_RATE_FEATURES = [
+    f"prior_{stat}_pg"
+    for stat in sorted({stat for stats in TARGET_STATS.values() for stat in stats})
+]
+
 OC_METRICS = [
     "pass_oe", "pass_oe_neutral", "neutral_sec_per_play", "play_action_rate",
     "personnel_11_rate", "personnel_12_rate", "personnel_21_rate", "personnel_other_rate",
@@ -88,7 +100,7 @@ FEATURE_COLS = [
     # Phase-5 commit for numbers. NaN round/pick = undrafted (real
     # information, LightGBM-native).
     "draft_round", "draft_pick", "career_year",
-] + OC_METRICS
+] + OC_METRICS + LAG_RATE_FEATURES
 
 # Player-grain rate/share/monopoly features stabilized by the
 # games-weighted two-season blending at the end of
@@ -117,6 +129,19 @@ BLEND_GAMES_T = 8
 def build_player_season_features(conn, seasons=SEASONS):
     wu = load_weekly_usage(conn)
     wu = wu[wu["season"].isin(seasons)]
+    # The team-attempt model must predict the same official QB-attempt
+    # quantity that the player projections emit. nflverse's PBP
+    # ``pass_attempt`` flag is a play-family denominator and includes plays
+    # that are not charged as an official quarterback attempt (most notably
+    # sacks). Sum QB box-score attempts at the WEEK/TEAM grain before the
+    # player-season aggregation: a traded QB's full-season attempts must not
+    # all be assigned to the team on which he finished the year.
+    team_qb_attempts = (
+        wu[wu["position"].eq("QB")]
+        .groupby(["season", "team"], as_index=False)["attempts"]
+        .sum()
+        .rename(columns={"attempts": "team_qb_attempts"})
+    )
     base = season_aggregate(wu)
 
     team_totals = team_season_pbp_totals(conn, seasons)
@@ -130,22 +155,22 @@ def build_player_season_features(conn, seasons=SEASONS):
     base = base.merge(snaps, on=["season", "player_id"], how="left")
 
     # Share denominators use the team's attempts during the WEEKS THIS
-    # PLAYER WAS ACTIVE, not the team's full-season totals (`team_totals`
+    # PLAYER APPEARED ON OFFENSE, not the team's full-season totals (`team_totals`
     # above, still used for qb_designed_run_rate's team_plays denominator
     # and by other callers of team_season_pbp_totals) - see
     # data_prep.player_active_team_opportunity's docstring for the injury-
     # season dilution bug this fixes (Nabers/LaPorta/Reed 2025). A rare
-    # player with zero active weeks in a season (shouldn't happen given
-    # `base` is built from active-week aggregation already, but guarded
+    # player with zero appearance weeks in a season (shouldn't happen given
+    # `base` is built from appearance-week aggregation already, but guarded
     # defensively) would divide by 0 -> NaN, correctly "no real share to
     # compute," not silently zeroed.
     active_opp = player_active_team_opportunity(conn, seasons)
     base = base.merge(active_opp, on=["season", "player_id"], how="left")
 
-    base["carry_share"] = base["carries"] / base["team_rush_attempts_active"]
-    base["target_share"] = base["targets"] / base["team_pass_attempts_active"]
-    base["rz_carry_share"] = base["rz_carries"] / base["team_rz_rush_attempts_active"]
-    base["rz_target_share"] = base["rz_targets"] / base["team_rz_pass_attempts_active"]
+    base["carry_share"] = base["carries"] / base["team_rush_attempts_active"].replace(0, np.nan)
+    base["target_share"] = base["targets"] / base["team_pass_attempts_active"].replace(0, np.nan)
+    base["rz_carry_share"] = base["rz_carries"] / base["team_rz_rush_attempts_active"].replace(0, np.nan)
+    base["rz_target_share"] = base["rz_targets"] / base["team_rz_pass_attempts_active"].replace(0, np.nan)
 
     oc = pd.read_sql(f"select season, team, {', '.join(OC_METRICS)} from oc_tendency_profiles", conn)
     base = base.merge(oc, on=["season", "team"], how="left")
@@ -189,13 +214,11 @@ def build_player_season_features(conn, seasons=SEASONS):
     base["career_year"] = base["season"] - base["rookie_season"]
     base = base.drop(columns=["rookie_season"])
 
-    import numpy as np
-
     # --- Red-zone MONOPOLY (concentration within the player's own position
     # group), distinct from rz_carry_share/rz_target_share which divide by
     # ALL of the team's red-zone plays across every position. See
     # data_prep.team_season_rz_position_totals's docstring for the full
-    # reasoning. Denominators are ACTIVE-WEEKS position-group totals
+    # reasoning. Denominators are APPEARANCE-WEEK position-group totals
     # (player_active_rz_position_opportunity - Phase 3 of the consensus-gap
     # work): the original full-season denominators diluted injury-shortened
     # alpha seasons exactly the way carry_share/target_share used to before
@@ -214,8 +237,12 @@ def build_player_season_features(conn, seasons=SEASONS):
     base[["team_rz_carries_pos_active", "team_rz_targets_pos_active"]] = base[
         ["team_rz_carries_pos_active", "team_rz_targets_pos_active"]
     ].fillna(0)
-    base["rz_carry_monopoly"] = (base["rz_carries"] / base["team_rz_carries_pos_active"]).fillna(0)
-    base["rz_target_monopoly"] = (base["rz_targets"] / base["team_rz_targets_pos_active"]).fillna(0)
+    base["rz_carry_monopoly"] = (
+        base["rz_carries"] / base["team_rz_carries_pos_active"].replace(0, np.nan)
+    ).fillna(0)
+    base["rz_target_monopoly"] = (
+        base["rz_targets"] / base["team_rz_targets_pos_active"].replace(0, np.nan)
+    ).fillna(0)
     # Both ratios are 0/0 -> NaN exactly when the player's own count AND the
     # active-weeks position-group total are both 0 (a player's own red-zone
     # touch can only happen in a week they were active, so the denominator
@@ -262,7 +289,7 @@ def build_player_season_features(conn, seasons=SEASONS):
     designed = player_season_designed_rushes(conn, seasons)
     base = base.merge(designed, on=["season", "player_id"], how="left")
     base["designed_rush_attempts"] = base["designed_rush_attempts"].fillna(0)
-    # Denominator is the ACTIVE-WEEKS team play count (from
+    # Denominator is the APPEARANCE-WEEK team play count (from
     # player_active_team_opportunity, merged above) - the full-season
     # team_pass_attempts + team_rush_attempts denominator had the same
     # injury-season dilution bug as the monopoly features (Phase 3 of the
@@ -333,6 +360,8 @@ def build_player_season_features(conn, seasons=SEASONS):
     team_yds = team_season_yardage_totals(conn, seasons)
     base = base.merge(team_yds, on=["season", "team"], how="left")
     base["team_passing_yards_pg"] = base["team_passing_yards"] / base["season"].apply(_team_season_game_count)
+    base = base.merge(team_qb_attempts, on=["season", "team"], how="left")
+    base["team_pass_attempts_pg"] = base["team_qb_attempts"] / base["season"].apply(_team_season_game_count)
 
     # --- Games-weighted two-season feature blending (Phase 4 of the
     # consensus-gap work): for a season with few active games, the
@@ -385,5 +414,12 @@ def build_player_season_features(conn, seasons=SEASONS):
     for stat_group in TARGET_STATS.values():
         for stat in stat_group:
             base[f"{stat}_pg"] = base[stat] / base["games_played"].replace(0, np.nan)
+
+    # These are named ``prior_*`` from the perspective of the target season:
+    # a season-N feature row is paired with a season-N+1 label downstream.
+    # Creating them here also guarantees live prediction gets the identical
+    # columns without any special saved-model or predict-time code path.
+    for stat in sorted({stat for stats in TARGET_STATS.values() for stat in stats}):
+        base[f"prior_{stat}_pg"] = base[f"{stat}_pg"]
 
     return base

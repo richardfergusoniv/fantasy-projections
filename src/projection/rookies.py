@@ -24,21 +24,24 @@ position/draft-round bucket are averaged, then scaled by the ratio of this
 player's team's vacated opportunity to the bucket's historical average
 vacated opportunity (clipped to avoid small-sample blowups).
 """
+import warnings
+
 import numpy as np
 import pandas as pd
 
 from src.projection.data_prep import SEASONS, load_weekly_usage, season_aggregate
+from src.projection.depth_history import attach_availability_depth_rank, attach_depth_rank
 from src.projection.features import TARGET_STATS
-from src.comparison.sleeper_compare import fetch_sleeper_play_probability, _normalize_name
-
-# Sleeper doesn't even bother filing a season projection (no `gp` field at
-# all) for a large share of deep-roster players - itself a strong signal
-# of near-zero relevance, not a "no data" case to shrug off as prob=1.0.
-NO_SLEEPER_MATCH_PLAY_PROB = 0.05
 
 ROUND_BUCKETS = {1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7", 5: "round_4_7",
                   6: "round_4_7", 7: "round_4_7"}
 VACATED_CLIP = (0.3, 2.5)
+# A curated listing alone does not make a rookie the player who absorbs an
+# opening. Match the veteran vacancy rule: backups can be scaled down by a
+# poor landing spot, but only confirmed starters/committee players may be
+# scaled above their historical draft-bucket baseline.
+ROOKIE_BOOST_ELIGIBLE_ROLES = frozenset({"starter", "committee"})
+ROOKIE_AVAILABILITY_MIN_CELL = 5
 
 # Modest multiplicative scale applied to a rookie's whole projected line
 # based on a discrete combine-athleticism tier (Addendum 4, Part 3) - see
@@ -81,9 +84,11 @@ def _round_bucket(rnd):
 
 def load_draft_capital(conn):
     dp = pd.read_sql(
-        "select season as draft_season, gsis_id as player_id, round, pick, position "
+        "select season as draft_season, gsis_id as player_id, round, pick, position, "
+        "team, pfr_player_id as pfr_id, pfr_player_name as name "
         "from draft_picks where gsis_id is not null and position in ('QB','RB','WR','TE')", conn,
     )
+    dp["team"] = dp["team"].replace(TEAM_ABBR_FIX)
     dp["round_bucket"] = dp["round"].apply(_round_bucket)
     return dp
 
@@ -92,16 +97,9 @@ def identify_rookie_seasons(conn, seasons=SEASONS):
     """(player_id, season) pairs where `season` is the player's first
     season with any active week in `weekly` (2016-2025 window) AND matches
     their draft season - i.e. no prior-NFL-season row exists at all."""
-    wu = load_weekly_usage(conn)
-    agg = season_aggregate(wu)
-    active = agg[agg["games_played"] > 0]
-    first_season = active.groupby("player_id")["season"].min().rename("first_active_season").reset_index()
-
     draft = load_draft_capital(conn)
-    rookies = draft.merge(first_season, on="player_id", how="inner")
-    rookies = rookies[rookies["draft_season"] == rookies["first_active_season"]]
-    rookies = rookies[rookies["draft_season"].isin(seasons)]
-    rookies = rookies[["player_id", "draft_season", "round", "pick", "round_bucket", "position"]].rename(
+    rookies = draft[draft["draft_season"].isin(seasons)].copy()
+    rookies = rookies[["player_id", "draft_season", "round", "pick", "round_bucket", "position", "team", "pfr_id", "name"]].rename(
         columns={"draft_season": "season"}
     )
     rookies["rookie_tier"] = "drafted"
@@ -123,28 +121,18 @@ def identify_udfa_rookie_seasons(conn, seasons=SEASONS):
     Drew Brees - not real UDFA rookies). `players.rookie_season` and
     `draft_round` are nflverse master-roster fields, not windowed by this
     project's ingestion range, so they don't have this problem."""
-    wu = load_weekly_usage(conn)
-    agg = season_aggregate(wu)
-    active = agg[agg["games_played"] > 0]
-    first_season = active.groupby("player_id")["season"].min().rename("first_active_season").reset_index()
-
-    players = pd.read_sql(
-        "select gsis_id as player_id, rookie_season, draft_round from players where draft_round is null", conn,
-    )
-    udfa = players.merge(first_season, on="player_id", how="inner")
-    udfa = udfa[udfa["rookie_season"] == udfa["first_active_season"]]
-    udfa = udfa[udfa["first_active_season"].isin(seasons)]
-
-    pos_lookup = active[["player_id", "season", "position"]].drop_duplicates(subset=["player_id", "season"])
-    udfa = udfa.merge(
-        pos_lookup, left_on=["player_id", "first_active_season"], right_on=["player_id", "season"], how="inner",
+    udfa = pd.read_sql(
+        f"select player_id, season, team, position, player_name as name, pfr_id "
+        f"from seasonal_rosters where season in ({','.join(map(str, seasons))}) "
+        f"and years_exp = 0 and draft_number is null", conn,
     )
     udfa = udfa[udfa["position"].isin(["QB", "RB", "WR", "TE"])].copy()
+    udfa = udfa.drop_duplicates(subset=["player_id", "season", "position"])
     udfa["round"] = np.nan
     udfa["pick"] = np.nan
     udfa["round_bucket"] = "undrafted"
     udfa["rookie_tier"] = "udfa"
-    return udfa[["player_id", "season", "round", "pick", "round_bucket", "position", "rookie_tier"]]
+    return udfa[["player_id", "season", "round", "pick", "round_bucket", "position", "rookie_tier", "team", "pfr_id", "name"]]
 
 
 def load_combine_athletic_tier(conn):
@@ -174,8 +162,8 @@ def load_combine_athletic_tier(conn):
     population is EVERY combine tester at that position in the table, not
     just the subset who made an NFL roster - using only "players who made
     it" as the reference population would bias the percentile scale itself
-    (the same kind of survivorship-bias trap Addendum 3 already found and
-    fixed for the QB play-probability rookie signal), so the wider raw
+    (the same kind of survivorship-bias trap the full-cohort availability
+    path now avoids), so the wider raw
     combine-invitee population is used instead. A player missing one of the
     two metrics still gets a score from whichever one they have (mean with
     skipna); missing both (or no combine_data row/pfr_id join at all)
@@ -241,27 +229,37 @@ def team_vacated_opportunity(conn, seasons=SEASONS):
     opportunity for every rookie in the target season, which is worse."""
     wu = load_weekly_usage(conn)
     agg = season_aggregate(wu)
-    agg = agg[agg["games_played"] > 0]
-    seasons_with_games = set(agg["season"].unique())
+    agg = agg[agg["opportunity_games"] > 0]
 
-    roster_fallback_seasons = [s for s in seasons if s not in seasons_with_games]
-    roster_team = pd.DataFrame(columns=["player_id", "season", "team"])
-    if roster_fallback_seasons:
-        q = (
-            "select player_id, season, team from seasonal_rosters where season in "
-            f"({','.join(map(str, roster_fallback_seasons))})"
-        )
-        roster_team = pd.read_sql(q, conn).drop_duplicates(subset=["player_id", "season"])
+    # Use a preseason roster snapshot for every season. The former branch
+    # used realized season-N participation whenever games existed, leaking
+    # benching/injury outcomes into historical rookie features while live
+    # forecasts used roster membership. Earliest weekly_rosters is the
+    # closest common preseason proxy; seasonal_rosters is only the fallback
+    # for a future season whose weekly snapshot is not published yet.
+    roster_team = pd.read_sql(
+        f"select player_id, season, week, team from weekly_rosters where season in "
+        f"({','.join(map(str, seasons))})", conn,
+    )
+    if not roster_team.empty:
+        first_week = roster_team.groupby("season")["week"].transform("min")
+        roster_team = roster_team[roster_team["week"] == first_week]
+        roster_team = roster_team.drop_duplicates(subset=["player_id", "season"])
+    covered = set(roster_team["season"].unique()) if not roster_team.empty else set()
+    missing = [s for s in seasons if s not in covered]
+    if missing:
+        fallback = pd.read_sql(
+            f"select player_id, season, team from seasonal_rosters where season in "
+            f"({','.join(map(str, missing))})", conn,
+        ).drop_duplicates(subset=["player_id", "season"])
+        roster_team = pd.concat([roster_team, fallback], ignore_index=True, sort=False)
 
     rows = []
     for season in seasons:
         prev = agg[agg["season"] == season - 1]
         if prev.empty:
             continue
-        if season in seasons_with_games:
-            curr_team_of_player = agg[agg["season"] == season].set_index("player_id")["team"]
-        else:
-            curr_team_of_player = roster_team[roster_team["season"] == season].set_index("player_id")["team"]
+        curr_team_of_player = roster_team[roster_team["season"] == season].set_index("player_id")["team"]
         prev = prev.copy()
         prev["returning_same_team"] = prev["player_id"].map(curr_team_of_player) == prev["team"]
 
@@ -316,30 +314,57 @@ def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
     rookies = identify_rookie_seasons(conn, seasons)
     udfa = identify_udfa_rookie_seasons(conn, seasons)
     rookies = pd.concat([rookies, udfa], ignore_index=True, sort=False)
+    rookies["_tier_priority"] = rookies["rookie_tier"].map({"drafted": 0, "udfa": 1})
+    rookies = (
+        rookies.sort_values("_tier_priority")
+        .drop_duplicates(["player_id", "season"], keep="first")
+        .drop(columns="_tier_priority")
+    )
     vacated = team_vacated_opportunity(conn, seasons)
     athletic = load_combine_athletic_tier(conn)
 
     stat_cols = sorted({s for stats in TARGET_STATS.values() for s in stats})
     pg_cols = [f"{s}_pg" for s in stat_cols]
-    actuals = feature_table[["player_id", "season", "team", "games_played"] + pg_cols]
+    actual_cols = ["player_id", "season", "team", "games_played"] + pg_cols
+    if "opportunity_games" in feature_table.columns:
+        actual_cols.append("opportunity_games")
+    actuals = feature_table[actual_cols].rename(columns={"team": "actual_team"})
 
-    df = rookies.merge(actuals, on=["player_id", "season"], how="inner")
+    # LEFT join keeps the full preseason rookie cohort, including drafted
+    # players and camp UDFAs who never record an opportunity. Their rates are
+    # undefined (NaN), but games_played is a real zero and must inform the
+    # availability estimate.
+    df = rookies.merge(actuals, on=["player_id", "season"], how="left")
+    df["team"] = df["actual_team"].fillna(df["team"])
+    df = df.drop(columns=["actual_team"])
+    df["games_played"] = df["games_played"].fillna(0.0)
+    if "opportunity_games" not in df.columns:
+        df["opportunity_games"] = df["games_played"]
+    else:
+        df["opportunity_games"] = df["opportunity_games"].fillna(0.0)
     df = df.merge(vacated, on=["season", "team"], how="left")
     df = df.merge(athletic, on="player_id", how="left")
     df["athletic_tier"] = df["athletic_tier"].fillna("no_data")
+    ranked = []
+    for season, grp in df.groupby("season", sort=False):
+        # Keep both meanings explicit. target_depth_rank is harmonized across
+        # nflverse's old/new schemas and is the availability input;
+        # nfl_depth_rank remains untruncated for the conditional-rate ladder.
+        with_availability_rank = attach_availability_depth_rank(
+            grp, int(season), conn=conn)
+        ranked.append(attach_depth_rank(
+            with_availability_rank, int(season), conn=conn))
+    if ranked:
+        df = pd.concat(ranked, ignore_index=True, sort=False)
     return df
 
 
 def identify_target_season_rookie_class(conn, target_season):
     """Drafted + UDFA rookie class for `target_season`, built WITHOUT
-    requiring any played game in that season - unlike
-    identify_rookie_seasons/identify_udfa_rookie_seasons (both require
-    confirmed active-week production and are only appropriate for fitting
-    HISTORICAL baselines). A genuinely future target_season has no `weekly`
-    rows at all, so "first active season" can't be computed - the target
-    season's rookie class has to be read directly off draft_picks (drafted)
-    and seasonal_rosters (UDFA: years_exp==0, draft_number null - both
-    fields already populated pre-season) instead.
+    requiring any played game in that season. Historical and target cohorts
+    are both defined from preseason draft/roster records so zero-game
+    rookies remain represented; a genuinely future season simply has no
+    outcomes to attach yet.
 
     Team is resolved from `seasonal_rosters[target_season]` (the most
     current post-draft/free-agency snapshot) with a fallback to
@@ -378,6 +403,20 @@ def identify_target_season_rookie_class(conn, target_season):
         f"from seasonal_rosters where season = {target_season}", conn,
     ).drop_duplicates(subset=["player_id"])
 
+    # Canonicalize draft-pick placeholder IDs through the stable PFR key.
+    # Prefer the target roster (it also supplies the current team/name), then
+    # the general players master for a drafted player not yet rostered.
+    roster_by_pfr = roster.dropna(subset=["pfr_id"]).drop_duplicates("pfr_id").set_index("pfr_id")
+    players = pd.read_sql(
+        "select gsis_id as canonical_player_id, pfr_id from players "
+        "where gsis_id is not null and pfr_id is not null", conn,
+    ).drop_duplicates("pfr_id").set_index("pfr_id")
+    drafted["canonical_player_id"] = drafted["pfr_id"].map(roster_by_pfr["player_id"])
+    drafted["canonical_player_id"] = drafted["canonical_player_id"].fillna(
+        drafted["pfr_id"].map(players["canonical_player_id"]))
+    drafted["player_id"] = drafted["canonical_player_id"].fillna(drafted["player_id"])
+    drafted = drafted.drop(columns=["canonical_player_id"])
+
     udfa = roster[
         (roster["years_exp"] == 0) & (roster["draft_number"].isna())
         & (roster["position"].isin(["QB", "RB", "WR", "TE"]))
@@ -390,17 +429,24 @@ def identify_target_season_rookie_class(conn, target_season):
 
     team_map = roster.set_index("player_id")["team"]
     drafted["team"] = drafted["player_id"].map(team_map).fillna(drafted["draft_team"])
-    # name is needed for predict_rookies' Sleeper play-probability lookup
-    # (QB only) - a drafted player's own gsis_id, if it's one of the
-    # current-draft-class placeholder ids Phase 5 found (not a real gsis_id
-    # yet), won't match anything in Sleeper's data by id, so the name is
-    # the only usable join key for this year's draft class.
+    # Prefer the current roster name after canonicalization, while retaining
+    # the draft feed's name as a fallback for players not rostered yet.
     name_map = roster.set_index("player_id")["name"]
     drafted["name"] = drafted["player_id"].map(name_map).fillna(drafted["name"])
 
     cols = ["player_id", "team", "round", "pick", "position", "round_bucket", "rookie_tier", "name", "pfr_id"]
     combined = pd.concat([drafted[cols], udfa[cols]], ignore_index=True)
     combined["season"] = target_season
+    combined["rookie_id_unresolved"] = ~combined["player_id"].astype(str).str.match(r"^00-\d{7}$")
+    unresolved = combined[combined["rookie_id_unresolved"]]
+    if not unresolved.empty:
+        detail = ", ".join(
+            f"{row.name} ({row.player_id})" for row in unresolved.itertuples(index=False)
+        )
+        warnings.warn(
+            f"{len(unresolved)} target rookies retain unresolved placeholder IDs: {detail}",
+            RuntimeWarning,
+        )
     return combined
 
 
@@ -408,12 +454,32 @@ def fit_rookie_baselines(rookie_df, train_seasons):
     """Historical (position, round_bucket) -> mean per-game rate + mean
     vacated_carry/target_share, fit ONLY on train_seasons (so the backtest
     holdout season's own rookies never inform their own baseline)."""
-    train = rookie_df[rookie_df["season"].isin(train_seasons) & (rookie_df["games_played"] > 0)]
+    train = rookie_df[rookie_df["season"].isin(train_seasons)].copy()
     pg_cols = [c for c in rookie_df.columns if c.endswith("_pg")]
     vacated_cols = ["vacated_carry_share", "vacated_target_share", "vacated_attempts_share"]
-    baselines = train.groupby(["position", "round_bucket"])[pg_cols + vacated_cols].mean()
+    # Pandas means skip NaN, so per-game rates remain conditional on recording
+    # an opportunity while games_played is averaged over the full cohort,
+    # including never-played rookies. This separates rate from availability
+    # instead of shrinking rate with an external consensus probability.
+    baselines = train.groupby(["position", "round_bucket"])[pg_cols + vacated_cols + ["games_played"]].mean()
+    baselines = baselines.rename(columns={"games_played": "mean_games_played"})
     counts = train.groupby(["position", "round_bucket"]).size().rename("n_train_rookies")
-    return baselines.join(counts)
+    rate_counts = train[train["opportunity_games"] > 0].groupby(
+        ["position", "round_bucket"]).size().rename("n_rate_rookies")
+
+    if "target_depth_rank" in train.columns:
+        train["_depth_band"] = train["target_depth_rank"].apply(
+            lambda x: "off_chart" if pd.isna(x) else ("rank_1" if x <= 1 else ("rank_2" if x <= 2 else "rank_3_plus")))
+        depth_games = train.pivot_table(
+            index=["position", "round_bucket"], columns="_depth_band",
+            values="games_played", aggfunc="mean")
+        depth_games = depth_games.add_prefix("mean_games_")
+        baselines = baselines.join(depth_games, how="left")
+        depth_counts = train.pivot_table(
+            index=["position", "round_bucket"], columns="_depth_band",
+            values="games_played", aggfunc="count")
+        baselines = baselines.join(depth_counts.add_prefix("n_games_"), how="left")
+    return baselines.join(counts).join(rate_counts)
 
 
 def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
@@ -457,45 +523,12 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
     """
     pg_cols = [c for c in baselines.columns if c.endswith("_pg")]
     target = rookie_df[rookie_df["season"].isin(target_seasons)].copy()
-    curated_players = set()
+    boost_eligible_players = set()
     if depth_chart is not None and not depth_chart.empty:
-        curated_players = set(zip(depth_chart["gsis_id"], depth_chart["position"]))
-
-    # QB-only survivorship-bias correction (see module docstring / caller):
-    # the historical QB bucket mean is itself computed only over rookie
-    # QB-seasons with real snaps (games_played > 0), which for a position
-    # where most backups NEVER play is a biased sample of "the ones who
-    # got lucky," not "the typical camp arm." Rather than build our own
-    # probability-of-playing estimator from scratch, this borrows Sleeper's
-    # own projected games-played (fetch_sleeper_play_probability) as that
-    # signal - it already reflects real depth-chart/beat-reporter judgment
-    # this project has no other free source for. Only applied if `rookie_df`
-    # carries a `name` column (identify_target_season_rookie_class adds one;
-    # the historical identify_rookie_seasons path used for backtest.py does
-    # not, so backtest correctness is unaffected - this is strictly a
-    # target-season prediction-quality fix, not a training-time change).
-    play_prob_by_id, play_prob_by_name = {}, {}
-    has_names = "name" in target.columns and target["position"].eq("QB").any()
-    if has_names:
-        try:
-            for season in target["season"].unique():
-                pp = fetch_sleeper_play_probability(int(season))
-                pp_qb = pp[pp["position"] == "QB"]
-                play_prob_by_id.update(pp_qb.dropna(subset=["player_id"]).set_index("player_id")["play_prob"].to_dict())
-                play_prob_by_name.update(
-                    pp_qb.dropna(subset=["name_key"]).set_index("name_key")["play_prob"].to_dict()
-                )
-        except Exception as e:
-            print(f"WARNING: could not fetch Sleeper play-probability data ({e}) - "
-                  f"QB rookie projections will NOT get the survivorship-bias correction this run.")
-
-    def _qb_play_prob(row):
-        if row["player_id"] in play_prob_by_id:
-            return play_prob_by_id[row["player_id"]]
-        name_key = _normalize_name(row.get("name"))
-        if name_key in play_prob_by_name:
-            return play_prob_by_name[name_key]
-        return NO_SLEEPER_MATCH_PLAY_PROB
+        eligible_chart = depth_chart[
+            depth_chart["role"].isin(ROOKIE_BOOST_ELIGIBLE_ROLES)]
+        boost_eligible_players = set(zip(
+            eligible_chart["gsis_id"], eligible_chart["position"]))
 
     def project_row(row):
         key = (row["position"], row["round_bucket"])
@@ -513,9 +546,10 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
             scale = 1.0
         else:
             scale = np.clip(player_vac / hist_vac, *VACATED_CLIP)
-            if (row["player_id"], row["position"]) not in curated_players:
+            if (row["player_id"], row["position"]) not in boost_eligible_players:
                 scale = min(scale, 1.0)
         preds = {c: b[c] * scale for c in pg_cols}
+        preds["rookie_vacancy_scale"] = scale
 
         # Combine-athleticism scale (Addendum 4, Part 3) - a modest,
         # discrete-tier multiplier on top of the vacated-opportunity scale
@@ -529,13 +563,34 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
         if pd.isna(athletic_tier):
             athletic_tier = "no_data"
         athletic_scale = ATHLETIC_SCALE.get(athletic_tier, 1.0)
-        preds = {c: v * athletic_scale for c, v in preds.items()}
+        for c in pg_cols:
+            preds[c] = preds[c] * athletic_scale
 
-        play_prob = np.nan
-        if row["position"] == "QB" and has_names:
-            play_prob = _qb_play_prob(row)
-            preds = {c: v * play_prob for c, v in preds.items()}
-        preds["qb_sleeper_play_prob"] = play_prob
+        # Availability comes entirely from the internal full rookie cohort.
+        # Draft bucket supplies the prior and preseason depth rank refines it.
+        # target_depth_rank is the schema-harmonized availability feature.
+        # Fall back only for older direct callers that predate the dedicated
+        # column; when the column exists and is NaN, NaN correctly means
+        # off-chart and must not fall through to the untruncated rank.
+        rank = (
+            row["target_depth_rank"]
+            if "target_depth_rank" in row.index
+            else row.get("nfl_depth_rank")
+        )
+        depth_band = "off_chart" if pd.isna(rank) else ("rank_1" if rank <= 1 else ("rank_2" if rank <= 2 else "rank_3_plus"))
+        depth_col = f"mean_games_{depth_band}"
+        depth_n = b.get(f"n_games_{depth_band}", 0)
+        projected_games = b.get(depth_col, np.nan)
+        fallback_used = (
+            pd.isna(projected_games) or pd.isna(depth_n)
+            or depth_n < ROOKIE_AVAILABILITY_MIN_CELL
+        )
+        if fallback_used:
+            projected_games = b.get("mean_games_played", np.nan)
+        preds["projected_games"] = np.clip(projected_games, 0, 17) if pd.notna(projected_games) else np.nan
+        preds["rookie_depth_band"] = depth_band
+        preds["rookie_availability_cell_n"] = depth_n
+        preds["rookie_availability_fallback_used"] = fallback_used
         preds["athletic_tier"] = athletic_tier
 
         preds["low_confidence"] = True
@@ -543,9 +598,15 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
         return pd.Series(preds)
 
     preds = target.apply(project_row, axis=1)
-    out = pd.concat(
-        [target[["player_id", "season", "team", "position", "round_bucket", "pick", "rookie_tier"]], preds], axis=1
-    )
+    identity_cols = [
+        "player_id", "season", "team", "position", "round_bucket", "pick",
+        "rookie_tier",
+    ]
+    identity_cols += [
+        c for c in ["target_depth_rank", "nfl_depth_rank", "rookie_id_unresolved"]
+        if c in target.columns
+    ]
+    out = pd.concat([target[identity_cols], preds], axis=1)
     return out
 
 

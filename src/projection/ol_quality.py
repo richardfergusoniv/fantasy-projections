@@ -1,10 +1,10 @@
-"""Team-season OL quality feature, built by weighting Phase 2's pooled
-lineman coefficients by how many offensive snaps each lineman actually took
+"""Team-season OL quality feature, built by weighting leakage-safe,
+season-specific lineman coefficients by how many offensive snaps each lineman actually took
 for that team-season (via `snap_counts`), not a league-wide average.
 
 Confidence-flag handling (judgment call, per the Phase 4 spec's explicit
-ask to document reasoning either way): `ol_coefficients_pooled.confidence_flag`
-flags players whose *individual* credit within a low-churn (fixed starting
+ask to document reasoning either way): low-churn team seasons contain
+players whose *individual* credit within a fixed starting
 five) team-season block is not statistically identified - ridge has no
 information to separate them from their linemates for those plays. But a
 team-season's *aggregate* OL quality is a sum over that team's linemen
@@ -49,25 +49,31 @@ def team_season_ol_snap_shares(conn, seasons=SEASONS):
 
 def team_season_ol_quality(conn, seasons=SEASONS):
     """One row per (season, team): weighted-average pass-pro and run-block
-    OL quality score (player coef + season fixed effect, snap-share
+    OL quality score (exact-season player coefficient, snap-share
     weighted), plus n_ol_with_coef (how many of the team's OL snap-takers
-    actually resolved to a pooled coefficient) and the team-season churn
-    confidence flag. Only meaningful for 2021-2025 (ol_coefficients_pooled's
+    actually resolved to an exact-season coefficient) and the team-season churn
+    confidence flag. Only meaningful for 2021-2025 (`ol_coefficients`'s
     window) - seasons outside that range are simply absent from the output.
     """
     seasons = [s for s in seasons if s >= 2021]
     shares = team_season_ol_snap_shares(conn, seasons)
 
-    coefs = pd.read_sql("select gsis_id, coef, submodel, confidence_flag from ol_coefficients_pooled", conn)
-    season_fx = pd.read_sql("select season, coef as season_coef, submodel from ol_season_effects_pooled", conn)
+    # IMPORTANT: do not use ``ol_coefficients_pooled`` here.  That table is
+    # estimated from the complete 2021-2025 play window, so attaching it to a
+    # 2021-2024 feature row lets future plays influence a historical
+    # transition/backtest.  ``ol_coefficients`` is fit independently within
+    # each season and is therefore available as-of the end of that season.
+    # Production and historical rows now use the same exact-season contract.
+    coefs = pd.read_sql(
+        "select season, gsis_id, coef, submodel from ol_coefficients", conn
+    )
     churn = pd.read_sql("select season, team, confidence_flag as team_churn_flag from ol_team_season_churn", conn)
 
     frames = []
     for submodel in SUBMODELS:
-        sub_coefs = coefs[coefs.submodel == submodel][["gsis_id", "coef"]]
-        merged = shares.merge(sub_coefs, on="gsis_id", how="left")
-        merged = merged.merge(season_fx[season_fx.submodel == submodel][["season", "season_coef"]], on="season", how="left")
-        merged["fitted"] = merged["coef"] + merged["season_coef"]
+        sub_coefs = coefs[coefs.submodel == submodel][["season", "gsis_id", "coef"]]
+        merged = shares.merge(sub_coefs, on=["season", "gsis_id"], how="left")
+        merged["fitted"] = merged["coef"]
 
         resolved = merged.dropna(subset=["fitted"]).copy()
         resolved["renorm_weight"] = resolved.groupby(["season", "team"])["snap_share"].transform(lambda s: s / s.sum())

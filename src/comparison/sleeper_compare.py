@@ -1,4 +1,4 @@
-"""Compare our per-game projections against Sleeper's free, public,
+"""Compare our season-total projections against Sleeper's free, public,
 no-auth projections API - the only free service found with a clean,
 bulk-fetchable, per-player structured projection endpoint (FantasyPros/ESPN
 don't expose one; their numbers are only available via their own web UI,
@@ -9,8 +9,9 @@ Sleeper endpoints used:
   https://api.sleeper.app/v1/players/nfl                    - player master
       (includes gsis_id directly - trivial join key onto our own data)
   https://api.sleeper.app/v1/projections/nfl/regular/<year>  - full-season
-      TOTALS per player (not per-week), including `gp` (games played) -
-      dividing by gp gives a per-game rate directly comparable to ours.
+      TOTALS per player (not per-week). Sleeper's `gp` is retained for
+      diagnostics, but is not assumed to be a player-level games forecast:
+      in the 2026 feed it is an almost-universal bookkeeping value of 18.
 
 Usage: `python -m src.comparison.sleeper_compare --season 2026`
 """
@@ -65,7 +66,11 @@ def fetch_sleeper_players():
     Joining on gsis_id alone matched only ~14% of our players - too low to
     be a useful comparison. `build_join_key()` below adds a normalized-name
     fallback for exactly this gap."""
-    players = requests.get(PLAYERS_URL, timeout=60).json()
+    response = requests.get(PLAYERS_URL, timeout=60)
+    response.raise_for_status()
+    players = response.json()
+    if not isinstance(players, dict):
+        raise ValueError("Sleeper players response was not a player-id mapping")
     rows = []
     for sid, p in players.items():
         rows.append({
@@ -79,20 +84,57 @@ def fetch_sleeper_players():
 
 
 def fetch_sleeper_season_projections(season):
-    """sleeper_player_id -> season-total projected stats + gp (games
-    played). Returns per-game rates (total / gp), not raw totals - that's
-    the comparable unit our own pred_pg is in."""
-    proj = requests.get(SEASON_PROJ_URL.format(season=season), timeout=60).json()
+    """Return Sleeper's season totals without inventing a rate denominator.
+
+    `gp` is carried as `reported_gp` for auditability.  Conditional-rate
+    columns are populated only when the feed's denominator is credible:
+    positive, no larger than the NFL schedule, and not an almost-universal
+    constant across the player pool.  This deliberately leaves the 2026
+    rate columns null; 18 is the number of regular-season *weeks*, not a
+    player-specific projection of games played.
+    """
+    response = requests.get(SEASON_PROJ_URL.format(season=season), timeout=60)
+    response.raise_for_status()
+    proj = response.json()
+    if not isinstance(proj, dict):
+        raise ValueError("Sleeper projections response was not a player-id mapping")
     rows = []
     for sid, stats in proj.items():
         gp = stats.get("gp")
-        if not gp:  # no games-played projection at all -> not a real season projection for this player
+        # A projection can have season totals even when no usable `gp`
+        # denominator exists. Do not drop that valid season-level signal.
+        if not isinstance(stats, dict):
             continue
-        row = {"sleeper_id": sid, "gp": gp, "pts_half_ppr_pg": stats.get("pts_half_ppr", 0) / gp}
+        row = {
+            "sleeper_id": sid,
+            "reported_gp": gp,
+            "pts_half_ppr_season": stats.get("pts_half_ppr", 0),
+        }
         for sleeper_field, our_stat in STAT_MAP.items():
-            row[our_stat] = stats.get(sleeper_field, 0) / gp
+            row[f"{our_stat}_season"] = stats.get(sleeper_field, 0)
         rows.append(row)
-    return pd.DataFrame(rows)
+    out = pd.DataFrame(rows)
+    if out.empty:
+        return out
+
+    gp = pd.to_numeric(out["reported_gp"], errors="coerce")
+    valid_numeric = gp.gt(0) & gp.le(17)
+    non_null = gp.dropna()
+    dominant_share = non_null.value_counts(normalize=True).iloc[0] if len(non_null) else 1.0
+    feed_has_player_specific_gp = dominant_share < 0.95
+    out["rate_denominator_valid"] = valid_numeric & feed_has_player_specific_gp
+
+    out["pts_half_ppr_pg"] = float("nan")
+    for our_stat in STAT_MAP.values():
+        out[our_stat] = float("nan")
+    valid = out["rate_denominator_valid"]
+    if valid.any():
+        out.loc[valid, "pts_half_ppr_pg"] = (
+            out.loc[valid, "pts_half_ppr_season"] / gp[valid]
+        )
+        for our_stat in STAT_MAP.values():
+            out.loc[valid, our_stat] = out.loc[valid, f"{our_stat}_season"] / gp[valid]
+    return out
 
 
 NO_STATS_PLAY_PROB = 0.05
@@ -142,19 +184,41 @@ def build_sleeper_comparison_table(season):
 
 def compare(our_fantasy_points_path, season):
     ours = pd.read_csv(our_fantasy_points_path)
+    if "fantasy_pts_season" not in ours.columns:
+        if {"fantasy_pts", "projected_games"}.issubset(ours.columns):
+            exposure = (
+                ours["projected_volume_games"].fillna(ours["projected_games"])
+                if "projected_volume_games" in ours.columns else ours["projected_games"]
+            )
+            ours["fantasy_pts_season"] = ours["fantasy_pts"] * exposure
+        else:
+            raise ValueError(
+                "Season-total comparison requires fantasy_pts_season or both "
+                "fantasy_pts and projected_games"
+            )
     ours["name_key"] = ours["display_name"].apply(_normalize_name)
     sleeper = build_sleeper_comparison_table(season)
 
     stat_cols = list(STAT_MAP.values())
+    season_stat_cols = [f"{c}_season" for c in stat_cols]
     rename = {c: f"sleeper_{c}" for c in stat_cols}
-    rename.update({"pts_half_ppr_pg": "sleeper_fantasy_pts", "gp": "sleeper_gp"})
+    rename.update({c: f"sleeper_{c}" for c in season_stat_cols})
+    rename.update({
+        "pts_half_ppr_pg": "sleeper_fantasy_pts",
+        "pts_half_ppr_season": "sleeper_fantasy_pts_season",
+        "reported_gp": "sleeper_gp",
+        "rate_denominator_valid": "sleeper_rate_denominator_valid",
+    })
     sleeper_stats = sleeper.rename(columns=rename)
-    sleeper_cols = ["sleeper_fantasy_pts", "sleeper_gp"] + [f"sleeper_{c}" for c in stat_cols]
+    sleeper_cols = [
+        "sleeper_fantasy_pts_season", "sleeper_fantasy_pts", "sleeper_gp",
+        "sleeper_rate_denominator_valid",
+    ] + [f"sleeper_{c}_season" for c in stat_cols] + [f"sleeper_{c}" for c in stat_cols]
 
     # Tier 1: join on gsis_id (player_id) - exact, unambiguous, preferred.
     by_id = sleeper_stats.dropna(subset=["player_id"]).drop_duplicates(subset=["player_id", "position"])
     merged = ours.merge(by_id[["player_id", "position"] + sleeper_cols], on=["player_id", "position"], how="left")
-    matched_by_id = merged["sleeper_fantasy_pts"].notna()
+    matched_by_id = merged["sleeper_fantasy_pts_season"].notna()
 
     # Tier 2: for rows gsis_id couldn't resolve, fall back to normalized
     # name + position - the exact gap load_players() found (many real
@@ -168,11 +232,36 @@ def compare(our_fantasy_points_path, season):
 
     merged["match_method"] = "unmatched"
     merged.loc[matched_by_id, "match_method"] = "gsis_id"
-    matched_by_name = (~matched_by_id) & merged["sleeper_fantasy_pts"].notna()
+    matched_by_name = (~matched_by_id) & merged["sleeper_fantasy_pts_season"].notna()
     merged.loc[matched_by_name, "match_method"] = "name"
 
+    merged["fantasy_pts_season_delta"] = (
+        merged["fantasy_pts_season"] - merged["sleeper_fantasy_pts_season"]
+    )
+    # Raw-stat season totals use the same availability decomposition as
+    # fantasy_pts_season. Keep explicit `our_`/`sleeper_` names and deltas
+    # so the proxy can diagnose *which* component is misweighted without
+    # falling back to the invalid gp=18 rate conversion.
+    exposure = (
+        merged["projected_volume_games"].fillna(merged["projected_games"])
+        if "projected_volume_games" in merged.columns else merged["projected_games"]
+    )
+    for stat in stat_cols:
+        pg_col = f"pg_{stat}"
+        our_total = f"our_{stat}_season"
+        sleeper_total = f"sleeper_{stat}_season"
+        delta = f"{stat}_season_delta"
+        if pg_col in merged.columns:
+            merged[our_total] = merged[pg_col] * exposure
+            merged[delta] = merged[our_total] - merged[sleeper_total]
+    # Backward-compatible conditional-rate delta, but only when Sleeper has
+    # a valid player-specific denominator. In the current feed this is NaN,
+    # preventing a season-total/18 number from masquerading as a comparable
+    # conditional rate.
     merged["fantasy_pts_delta"] = merged["fantasy_pts"] - merged["sleeper_fantasy_pts"]
-    merged["matched_sleeper"] = merged["sleeper_fantasy_pts"].notna()
+    invalid_rate = ~merged["sleeper_rate_denominator_valid"].fillna(False).astype(bool)
+    merged.loc[invalid_rate, "fantasy_pts_delta"] = float("nan")
+    merged["matched_sleeper"] = merged["sleeper_fantasy_pts_season"].notna()
     return merged.drop(columns=["name_key"]).sort_values("fantasy_pts", ascending=False)
 
 
@@ -194,16 +283,26 @@ def main():
           f"({len(matched) / len(merged):.0%}) - "
           f"{(merged.match_method == 'gsis_id').sum()} by gsis_id, "
           f"{(merged.match_method == 'name').sum()} by name fallback")
-    print(f"\nOverall: our mean={merged['fantasy_pts'].mean():.2f}, "
-          f"Sleeper mean (matched only)={matched['sleeper_fantasy_pts'].mean():.2f}")
-    print(f"Correlation (matched only): {matched['fantasy_pts'].corr(matched['sleeper_fantasy_pts']):.3f}")
-    print(f"Mean absolute delta (matched only): {matched['fantasy_pts_delta'].abs().mean():.2f}")
+    print(f"\nSeason totals: our mean={matched['fantasy_pts_season'].mean():.2f}, "
+          f"Sleeper mean={matched['sleeper_fantasy_pts_season'].mean():.2f}")
+    print(f"Correlation (matched only): "
+          f"{matched['fantasy_pts_season'].corr(matched['sleeper_fantasy_pts_season']):.3f}")
+    print(f"Mean absolute season-total delta (matched only): "
+          f"{matched['fantasy_pts_season_delta'].abs().mean():.2f}")
+    valid_rates = matched[matched["sleeper_rate_denominator_valid"].fillna(False).astype(bool)]
+    if valid_rates.empty:
+        print("Conditional-rate comparison: unavailable (Sleeper did not provide a credible player-level games denominator)")
+    else:
+        print(f"Conditional-rate correlation (n={len(valid_rates)}): "
+              f"{valid_rates['fantasy_pts'].corr(valid_rates['sleeper_fantasy_pts']):.3f}")
     for pos in ["QB", "RB", "WR", "TE"]:
         p = matched[matched.position == pos]
         if len(p):
-            print(f"  {pos}: n={len(p)}, corr={p['fantasy_pts'].corr(p['sleeper_fantasy_pts']):.3f}, "
-                  f"mean_abs_delta={p['fantasy_pts_delta'].abs().mean():.2f}, "
-                  f"our_mean={p['fantasy_pts'].mean():.2f}, sleeper_mean={p['sleeper_fantasy_pts'].mean():.2f}")
+            print(f"  {pos}: n={len(p)}, "
+                  f"season_corr={p['fantasy_pts_season'].corr(p['sleeper_fantasy_pts_season']):.3f}, "
+                  f"season_mean_abs_delta={p['fantasy_pts_season_delta'].abs().mean():.2f}, "
+                  f"our_season_mean={p['fantasy_pts_season'].mean():.2f}, "
+                  f"sleeper_season_mean={p['sleeper_fantasy_pts_season'].mean():.2f}")
     print(f"\nWritten -> {out_path}")
 
 

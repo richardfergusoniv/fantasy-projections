@@ -44,7 +44,8 @@ from lightgbm import LGBMRegressor
 from src.projection.depth_history import attach_availability_depth_rank
 from src.projection.train import LGBM_PARAMS, fit_team_total, fit_availability
 from src.projection.transitions import (
-    build_transition_pairs, ALL_FEATURES, TEAM_FEATURES, AVAILABILITY_FEATURES,
+    build_transition_pairs, ALL_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
+    AVAILABILITY_FEATURES,
     REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL, receiving_share_scale,
     SEASON_GAMES,
 )
@@ -170,7 +171,11 @@ def compute_loo_receiving_residuals(feat, pairs):
             model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
             f = test[["team"]].copy()
             f["share"] = np.clip(model.predict(test[ALL_FEATURES]), 0, None)
-            f["total"] = np.clip(team_model.predict(test[TEAM_FEATURES]), 0, None)
+            # Team-grain inputs - see transitions.team_model_inputs. Fitting
+            # the elite-shrinkage correction on a composition built from
+            # ~40%-low team totals inflated its residuals and therefore beta.
+            f["total"] = np.clip(team_model.predict(
+                team_model_inputs(feat, [held], test["season_from"], test["team"])), 0, None)
             f["weight"] = _participation_weight(feat, test, position, train_pairs, held)
             f["position"], f["row"] = position, test.index
             frames.append(f)
@@ -217,6 +222,12 @@ def fit_elite_shrinkage(residuals):
     actually bites in practice; see its constant for the WR-vs-TE case
     that motivated it."""
     params = {}
+    # A one-transition expanding-window fold has no leave-one-transition-out
+    # residuals. Treat that as "no evidence for a correction" instead of
+    # indexing a columnless empty frame and aborting the entire backtest.
+    required = {"position", "naive_pred", "season_from", "resid"}
+    if residuals is None or residuals.empty or not required.issubset(residuals.columns):
+        return params
     for position, knot in sorted(ELITE_KNOTS.items()):
         sub = residuals[residuals["position"] == position]
         if sub.empty:

@@ -34,8 +34,9 @@ from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
-    ALL_FEATURES, AVAILABILITY_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS,
+    ALL_FEATURES, AVAILABILITY_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, REFRAMED_SHARE_STATS,
     RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, AVAILABILITY_LABEL,
+    TEAM_ATTEMPTS_LABEL,
 )
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -50,7 +51,7 @@ ALL_PAIRS = [(s, s + 1) for s in TRAIN_SEASONS[:-1]]  # (2021,22),(22,23),(23,24
 # than for any measured performance reason. Documented as un-tuned.
 LGBM_PARAMS = dict(
     n_estimators=100, learning_rate=0.05, max_depth=3, num_leaves=8,
-    min_child_samples=10, subsample=0.8, colsample_bytree=0.8,
+    min_child_samples=10, subsample=0.8, subsample_freq=1, colsample_bytree=0.8,
     reg_alpha=0.1, reg_lambda=0.1, verbosity=-1, random_state=0,
 )
 
@@ -71,7 +72,7 @@ def fit_one(feat, position, stat, pairs=ALL_PAIRS):
     return model, len(data)
 
 
-def fit_team_total(feat, pairs=ALL_PAIRS):
+def fit_team_total(feat, pairs=ALL_PAIRS, label_col=TEAM_TOTAL_LABEL):
     """Team-season-grain model for TEAM_TOTAL_LABEL - deliberately a
     RidgeCV linear model, not LightGBM: build_team_transition_pairs
     produces only ~96-128 rows (32 teams x 3-4 transitions), smaller than
@@ -85,9 +86,9 @@ def fit_team_total(feat, pairs=ALL_PAIRS):
     hand-picked value - RidgeCV selects the regularization strength via
     efficient leave-one-out CV rather than this being another stated-but-
     untuned constant."""
-    data = build_team_transition_pairs(feat, pairs)
-    X = data[TEAM_FEATURES]
-    y = data[TEAM_TOTAL_LABEL]
+    data = build_team_transition_pairs(feat, pairs, label_col=label_col)
+    X = data[TEAM_MODEL_FEATURES]
+    y = data[label_col]
     model = RidgeCV(alphas=np.logspace(-2, 3, 20))
     model.fit(X, y)
     return model, len(data)
@@ -103,30 +104,15 @@ def fit_availability(feat, position, pairs=ALL_PAIRS):
     the target season's preseason depth chart is an input here and nowhere
     else in this module.
 
-    Measured against carrying season-N games forward, leave-one-transition
-    -out over 2017-2025 (MAE, and the per-season consistency ratio this
-    project uses as its ship/no-ship gate elsewhere):
-      QB 2.553 vs 3.571 carry-forward (+28.5%, consistency 5.90, 8/8 seasons)
-      RB 3.262 vs 4.407 (+26.0%, consistency 3.75, 8/8)
-      WR 3.166 vs 4.256 (+25.6%, consistency 2.97, 8/8)
-      TE 3.055 vs 4.061 (+24.8%, consistency 2.91, 8/8)
+    Metrics are intentionally not hard-coded here. Run
+    ``python -m src.projection.backtest`` after any change to games-played
+    semantics, depth harmonization, or model features.
 
-    History, because the previous numbers were the reason a downstream
-    workaround exists: without the depth-chart feature this model scored
-    WR 4.160 / RB 4.592 / TE 3.902 / QB 4.256, i.e. +5-6% over carry-
-    forward for WR and RB, marginal for TE (consistency 1.42, 5/8), and
-    for QB no better than carry-forward at all (-1.5%, consistency -0.25,
-    4/8). Adding the chart improves every position on 8/8 folds and every
-    depth tier (rank-1 starters 16-23%, off-chart rows 28-50%).
-
-    The specific error it removes is the one that matters downstream:
-    players absent from their team's preseason chart actually play 1.2-2.5
-    games, and the pre-depth-chart model predicted 3.9-5.2 for them. That
-    over-prediction was being absorbed by the post-model volume discounts
-    in predict.py (DEEP_BENCH_DISCOUNT / ROLE_VOLUME_DISCOUNT), which is
-    why those constants sit near a SEASON-scale ratio despite multiplying a
-    per-game RATE. Recalibrating them is a separate step and depends on
-    this one having landed."""
+    Availability owns the probability-of-playing question; the separate
+    veteran depth ladder is calibrated only on conditional rate error. Exact
+    MAE values live in backtest output rather than this docstring so a change
+    to games semantics cannot leave authoritative-looking stale numbers in
+    source."""
     data = build_availability_pairs(feat, position, pairs)
     if data.empty:
         return None, 0
@@ -146,11 +132,20 @@ def main():
     team_model, team_n = fit_team_total(feat)
     team_path = os.path.join(MODELS_DIR, "team_passing_yards.joblib")
     joblib.dump(
-        {"model": team_model, "features": TEAM_FEATURES, "label": TEAM_TOTAL_LABEL},
+        {"model": team_model, "features": TEAM_MODEL_FEATURES, "label": TEAM_TOTAL_LABEL},
         team_path,
     )
     manifest.append(("TEAM", "passing_yards", team_n))
     print(f"TEAM passing_yards: trained on {team_n} rows -> {team_path}")
+
+    attempts_model, attempts_n = fit_team_total(feat, label_col=TEAM_ATTEMPTS_LABEL)
+    attempts_path = os.path.join(MODELS_DIR, "team_pass_attempts.joblib")
+    joblib.dump(
+        {"model": attempts_model, "features": TEAM_MODEL_FEATURES, "label": TEAM_ATTEMPTS_LABEL},
+        attempts_path,
+    )
+    manifest.append(("TEAM", "pass_attempts", attempts_n))
+    print(f"TEAM pass_attempts: trained on {attempts_n} rows -> {attempts_path}")
 
     for position, stats in TARGET_STATS.items():
         for stat in stats:

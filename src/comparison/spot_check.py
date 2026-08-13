@@ -67,11 +67,13 @@ def spot_check_table(df, entries):
             "player": name,
             "team": r["team"],
             "role": r["role"],
-            "ours_fpts": round(r["fantasy_pts"], 2),
-            "sleeper_fpts": round(r["sleeper_fantasy_pts"], 2),
-            "delta": round(r["fantasy_pts_delta"], 2),
-            "ours_rec_ypg": round(r["pg_receiving_yards"], 1) if pd.notna(r["pg_receiving_yards"]) else None,
-            "sleeper_rec_ypg": round(r["sleeper_receiving_yards"], 1) if pd.notna(r["sleeper_receiving_yards"]) else None,
+            "ours_fpts_season": round(r["fantasy_pts_season"], 1),
+            "sleeper_fpts_season": round(r["sleeper_fantasy_pts_season"], 1),
+            "season_delta": round(r["fantasy_pts_season_delta"], 1),
+            "ours_rec_yards": round(r["our_receiving_yards_season"], 0)
+            if pd.notna(r.get("our_receiving_yards_season")) else None,
+            "sleeper_rec_yards": round(r["sleeper_receiving_yards_season"], 0)
+            if pd.notna(r.get("sleeper_receiving_yards_season")) else None,
             "why": why,
         })
     return pd.DataFrame(rows)
@@ -80,12 +82,12 @@ def spot_check_table(df, entries):
 def position_bias(df):
     rows = []
     for pos, n in POSITION_TOP_N.items():
-        sub = df[df["position"] == pos].nlargest(n, "sleeper_fantasy_pts")
+        sub = df[df["position"] == pos].nlargest(n, "sleeper_fantasy_pts_season")
         rows.append({
             "position": pos,
             "n": len(sub),
-            "mean_delta": round(sub["fantasy_pts_delta"].mean(), 2),
-            "median_delta": round(sub["fantasy_pts_delta"].median(), 2),
+            "mean_season_delta": round(sub["fantasy_pts_season_delta"].mean(), 1),
+            "median_season_delta": round(sub["fantasy_pts_season_delta"].median(), 1),
         })
     return pd.DataFrame(rows)
 
@@ -104,7 +106,7 @@ def main():
     print(watch.to_string(index=False))
     print(f"\n=== Controls (must NOT move materially) ===")
     print(controls.to_string(index=False))
-    print(f"\n=== Position bias, fantasy-relevant players (ours - Sleeper, fpts/g) ===")
+    print(f"\n=== Position bias, fantasy-relevant players (ours - Sleeper, season points) ===")
     print(position_bias(df).to_string(index=False))
 
     missing = [r["player"] for _, r in pd.concat([watch, controls]).iterrows() if r.get("MISSING")]

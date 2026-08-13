@@ -13,20 +13,15 @@ only depth signal in the pipeline was src/depth_chart/starters_2026.csv,
 which covers exactly one season and therefore cannot be a training feature.
 
 That blocker was false. `depth_charts` in the project DB carries 2016-2026,
-and a player's preseason position on his team's chart is the single
-strongest available predictor of how many games he will actually play.
-Measured, leave-one-transition-out over 2017-2025 (mean games MAE, the same
-protocol and ship gate fit_availability already used):
+and a player's preseason position on his team's chart is a strong available
+predictor of how many games he will actually play. Availability metrics must
+be regenerated whenever games-played semantics or feed harmonization changes;
+the canonical current values are printed by ``src.projection.backtest``.
 
-  QB  3.514 -> 2.553  (+27.3%, consistency 5.90, 8/8 seasons)
-  RB  4.172 -> 3.262  (+21.8%, consistency 3.75, 8/8)
-  WR  3.907 -> 3.166  (+19.0%, consistency 2.97, 8/8)
-  TE  3.787 -> 3.055  (+19.3%, consistency 2.91, 8/8)
-
-The gain is broad, not a tail artifact - every depth tier improves (rank-1
-starters 16-23%, off-chart rows 28-50%). The largest error it removes is
-the one Gate A was opened to fix: off-chart players actually play 1.2-2.5
-games while the pre-existing model predicted 3.9-5.2.
+The depth signal improves the availability model across the rolling folds,
+but absolute metrics are deliberately not copied into this module: they move
+when appearance semantics or feed harmonization changes. The canonical
+current values are emitted by the backtest.
 
 Two schemas, one meaning
 ------------------------
@@ -197,9 +192,8 @@ def attach_availability_depth_rank(df, season, conn=None):
     LightGBM splits on it natively, and "not on his team's chart" is
     precisely the state that predicts ~1-2 games played. Leaving it NaN
     rather than encoding a sentinel is why no separate on-chart boolean is
-    carried: measured, the boolean adds nothing on top of the ranks
-    (LOTO MAE, rank-only vs rank+boolean: QB 2.557/2.553, RB 3.280/3.262,
-    WR 3.165/3.166, TE 3.057/3.055).
+    carried. Its incremental value must be remeasured with the current
+    appearance-based target before changing this schema.
     """
     chart = load_preseason_depth_chart(season, conn=conn)
     out = df.copy()

@@ -76,11 +76,9 @@ ROOKIE_RATIO_FALLBACK = (0.2, 3.0)
 # vacated-opportunity ratio (see reassign_team_changers docstring below).
 TEAM_CHANGE_SHARE_CLIP = (0.3, 2.5)
 # ---------------------------------------------------------------------
-# Volume discount (Gate B). Replaces DEEP_BENCH_DISCOUNT = 0.15 and
-# ROLE_VOLUME_DISCOUNT = {'committee': 0.4, 'backup': 0.15}, both of which
-# were stated, un-tuned judgment calls made when no historical depth chart
-# existed to validate against. depth_history.py now supplies one for every
-# season, so these are FIT against outcomes rather than asserted.
+# Veteran conditional-rate adjustment (Gate B). depth_history.py supplies a
+# comparable preseason rank for every historical season, so these factors
+# are fit against outcomes rather than inferred from curated role labels.
 #
 # What was actually wrong with 0.15/0.40: they were season-scale numbers
 # multiplying a per-game RATE. The old constants absorbed the availability
@@ -93,35 +91,34 @@ TEAM_CHANGE_SHARE_CLIP = (0.3, 2.5)
 # sum(actual_pg) / sum(pred_pg) among players at that depth rank WHO
 # PLAYED. Availability is a separate question, already answered separately.
 #
-# Fit leave-one-transition-out, 2021-2025 (4 folds; QB/RB confirmed on the
-# wide 2017-2025 window, 8 folds, which the reframed receiving path cannot
-# use because its RidgeCV team model has no OL features before 2021):
+# Refit leave-one-transition-out on the appearance-based rate labels via
+# backtest.depth_rate_calibration (2021-2025, four folds). The raw calibration
+# is saved to models/depth_rate_calibration.csv on every backtest run.
 #
-#   QB   rank 1  1.10   rank 2  0.84/0.82   rank 3+ 0.80/0.67   off 1.08
-#   RB   rank 1  1.09   rank 2  1.04/1.04   rank 3  0.85/0.84   rank 4-5 0.66/0.76   off 0.83
-#   WR   rank 1-3  1.10/1.09/1.01   rank 4  1.11   rank 5  0.89   rank 6+ 0.85   off 0.78
-#   TE   rank 1  1.06   rank 2  0.94   rank 3  0.94   rank 4-5 0.91   off 0.84
+#   QB   rank 1 1.13, rank 2 .74, rank 3 .86, off 1.23
+#   RB   rank 1 1.06, rank 2 1.01, rank 3 .80, rank 4+ .65, off .82
+#   WR   rank 1-5 1.03-1.15, rank 6+ .89, off .80
+#   TE   rank 1 1.04, rank 2 .96, rank 3 .76, rank 4+ .93, off .78
 #
 # The headline: conditional on playing, the rate needs almost no discount.
 # Nothing fits below 0.66, against shipped values of 0.15. A WR4 (Troy
-# Franklin's bucket) fits at 1.11 - the model was UNDER-predicting him
-# while he was being multiplied by 0.15. An off-chart QB fits at ~1.08,
+# Franklin's bucket) fits above 1.0 - the model was UNDER-predicting him
+# while he was being multiplied by 0.15. An off-chart QB fits above 1.0,
 # which is not a paradox: an off-chart QB who plays is playing precisely
 # because he became the starter, so his rate is a starter's rate. All of
 # the suppression those players need is availability, and projected_games
 # now carries it.
 #
-# Two deliberate departures from the raw fit:
-#   1. CAPPED AT 1.0. Every position fits rank 1 at ~1.06-1.12, i.e. the
+# One deliberate departure from the raw fit: factors are capped at 1.0.
+# Every position fits rank 1 above 1.0, i.e. the
 #      model under-predicts starters by ~10%. That is a real finding, but
 #      it is a model-calibration issue, not a depth-chart one, and
 #      silently inflating every starter by 10% inside a function called
 #      "depth chart gating" is exactly the kind of hidden change this
 #      project's conventions forbid. A discount discounts. Reported as a
-#      follow-up instead - corrections.py is where a bias term belongs.
-#   2. Shaded toward MORE discount where the per-fold spread is wide or
-#      n < 30 (QB off: point estimate ~1.05 but per-fold 0.80-1.68 on
-#      n=29, so 0.85; QB 3+: 0.67-0.80 on n=14-28, so 0.70).
+# follow-up instead - corrections.py is where a bias term belongs. Values
+# below 1.0 are rounded directly from the current saved calibration; the
+# constants below, not an obsolete prose-only shading rule, are authoritative.
 #
 # Keyed on the nflverse preseason rank rather than the curated `role`
 # because that is what was fit, and because rank resolves the gradient the
@@ -129,15 +126,15 @@ TEAM_CHANGE_SHARE_CLIP = (0.3, 2.5)
 # and gave both 0.15. The curated chart remains authoritative for
 # membership, team assignment, and the displayed `role`.
 DEPTH_RATE_LADDER = {
-    "QB": {1: 1.00, 2: 0.85},
-    "RB": {1: 1.00, 2: 1.00, 3: 0.85},
-    "WR": {1: 1.00, 2: 1.00, 3: 1.00, 4: 1.00, 5: 0.90},
-    "TE": {1: 1.00, 2: 0.95, 3: 0.95},
+    "QB": {1: 1.00, 2: 0.75},
+    "RB": {1: 1.00, 2: 1.00, 3: 0.80},
+    "WR": {1: 1.00, 2: 1.00, 3: 1.00, 4: 1.00, 5: 1.00},
+    "TE": {1: 1.00, 2: 0.95, 3: 0.75},
 }
 # Applied to a player on the chart but deeper than the ladder's last rung.
-DEPTH_RATE_DEEP = {"QB": 0.70, "RB": 0.70, "WR": 0.85, "TE": 0.90}
+DEPTH_RATE_DEEP = {"QB": 0.85, "RB": 0.65, "WR": 0.90, "TE": 0.90}
 # Applied to a player absent from the preseason chart entirely.
-DEPTH_RATE_OFF_CHART = {"QB": 0.85, "RB": 0.80, "WR": 0.80, "TE": 0.85}
+DEPTH_RATE_OFF_CHART = {"QB": 1.00, "RB": 0.80, "WR": 0.80, "TE": 0.80}
 
 
 def depth_rate_factor(position, rank):
@@ -151,51 +148,6 @@ def depth_rate_factor(position, rank):
         return DEPTH_RATE_OFF_CHART[position]
     rung = DEPTH_RATE_LADDER[position]
     return rung.get(int(rank), DEPTH_RATE_DEEP[position])
-
-
-# Retained only so an external reader of this module still finds the old
-# names next to an explanation of what replaced them. Nothing reads these.
-DEEP_BENCH_DISCOUNT = 0.15  # superseded by DEPTH_RATE_OFF_CHART
-
-# Bug found via output/sleeper_comparison_2026.csv (comparing our per-game
-# volume predictions against Sleeper's public projections): a player who IS
-# in the curated depth chart (so DEEP_BENCH_DISCOUNT above never fires) but
-# whose curated `role` is 'committee' or 'backup' was still getting the raw
-# LightGBM veteran model's per-game rate untouched - the curated table was
-# only ever consulted to GATE the upward vacancy boost in
-# reassign_team_changers (BOOST_ELIGIBLE_ROLES), never to shrink the
-# model's own raw rate prediction. The veteran model's features (career
-# rate stats, share features, etc.) reflect the player's OWN historical
-# per-game usage, which for a committee back or a clipboard-holding backup
-# QB can be inflated by a prior season spent as a starter elsewhere, an
-# injury-driven spike week, or simply not knowing this specific team's 2026
-# depth chart at all - the curated table is exactly the correction signal
-# the model itself has no way to see. Concrete evidence (attempts/carries
-# per game, our model vs. Sleeper):
-#   Alvin Kamara (NO, committee):    12.7 vs 2.5
-#   Rachaad White (WAS, committee):  14.7 vs 6.3
-#   Emari Demercado (KC, committee):  8.9 vs 1.6
-#   Tyler Allgeier (ARI, committee): 12.7 vs 5.3
-#   Isiah Pacheco (DET, backup):      9.0 vs 3.7
-#   J.J. McCarthy / Rudolph / Richardson (QB, backup): 28.2 / 16.0 / 11.1
-#     attempts/g vs Sleeper's 1.8 / 1.8 / 1.6 - a real backup NFL QB behind
-#     a healthy starter gets close to zero live-game volume, not
-#     near-starter attempts.
-# The reasoning above was sound about the DIRECTION and wrong about the
-# magnitude, and Gate B's fit shows exactly why. The Sleeper comparisons
-# quoted here are per-game on our side but season-total/18 on Sleeper's
-# (sleeper_gp is 18.0 for all 712 matched rows - a bookkeeping default, see
-# sleeper_compare.py), so every one of those gaps is inflated by the ratio
-# of the player's real games to 18. Reading "28.2 vs 1.8 attempts/g" off
-# that mismatch and picking 0.15 put a season-scale correction on a
-# per-game rate. Fit against outcomes, a curated 'committee' RB needs 1.04
-# (no discount at all) and a 'backup' TE 0.94, not 0.40 and 0.15.
-#
-# The observation that a clipboard QB gets near-zero live volume is still
-# true - it is just a statement about GAMES, not about his rate in a game
-# he plays, and projected_games is where it now lives (Gate A: off-chart
-# players actually play 1.2-2.5 games; the old model said 3.9-5.2).
-ROLE_VOLUME_DISCOUNT = {"committee": 0.4, "backup": 0.15}  # superseded by DEPTH_RATE_LADDER
 
 
 def load_availability_models():
@@ -220,6 +172,7 @@ def load_models():
     # Joint/multi-output Phase A team-total model (train.py) - same
     # ("TEAM", "passing_yards") key backtest.py's own rows use.
     models[("TEAM", "passing_yards")] = joblib.load(os.path.join(MODELS_DIR, "team_passing_yards.joblib"))
+    models[("TEAM", "pass_attempts")] = joblib.load(os.path.join(MODELS_DIR, "team_pass_attempts.joblib"))
     return models
 
 
@@ -801,9 +754,8 @@ def reassign_team_changers(conn, df, target_season, depth_chart):
         # only the upside (extra room beyond a normal team) still applies.
         # 'committee'/'backup' deliberately keep the original full
         # 0.3-2.5 range: a genuine committee/backup landing spot CAN mean
-        # real volume loss, and that case is handled separately (and
-        # correctly) by ROLE_VOLUME_DISCOUNT in apply_depth_chart_gating
-        # rather than needing a floor here too.
+        # real volume loss; the availability and calibrated depth signals
+        # handle that downstream rather than an asserted role multiplier.
         confirmed_starter = changed & (df["role"] == "starter")
         carry_scale = carry_scale.where(~confirmed_starter, carry_scale.clip(lower=1.0))
         target_scale = target_scale.where(~confirmed_starter, target_scale.clip(lower=1.0))
@@ -847,25 +799,13 @@ def load_depth_chart(target_season):
 
 
 def apply_depth_chart_gating(df, depth_chart):
-    """Task 3. Gate veteran-model output using the curated depth chart:
-    a player who is NOT within the curated relevant-depth table for their
-    (new team, position) is discounted, not presented as an equally-weighted
-    full projection alongside the team's actual starters/committee members.
-    This is the direct fix for the Arizona-3-QB problem (Brissett/Minshew
-    are BOTH in the curated table as a real competitive QB1/QB2 situation;
-    Slovis is not, and gets discounted instead of standing shoulder to
-    shoulder with the other two at full confidence).
+    """Apply the historically calibrated veteran depth-rate factor.
 
-    Mechanism chosen: keep the row (do not silently drop it - the project's
-    hard rule is never silently disappear an entity), but multiply
-    pred_pg/pred_pg_low/pred_pg_high by DEEP_BENCH_DISCOUNT and flag
-    low_confidence=True + depth_chart_status='deep_bench_discounted'. Full
-    exclusion was considered and rejected: this project has already been
-    burned once (PHASE5_REPORT.md's rookie-filter bug) by code that made a
-    real player silently vanish from the output; a heavily-discounted,
-    clearly-flagged row is auditable in a way a missing row is not, and a
-    reader who wants a "starters only" view can trivially filter on
-    depth_chart_status themselves.
+    The curated chart supplies team, membership, and displayed role. The
+    separate nflverse preseason rank selects ``depth_rate_factor`` because
+    that is the signal calibrated in historical folds. Rows are retained and
+    expose the exact multiplier in ``role_discount_factor``; rows outside the
+    curated table remain low-confidence rather than silently disappearing.
 
     Coverage note: src/depth_chart/starters_2026.csv covers QB/RB/WR/TE at
     every one of the 32 teams down to the depths specified in
@@ -883,45 +823,9 @@ def apply_depth_chart_gating(df, depth_chart):
          (any season other than 2026) - gating is a no-op, not a claim
          about this player's role.
 
-    Role-based volume discount (bug found post-Phase-6 via
-    output/sleeper_comparison_2026.csv - see ROLE_VOLUME_DISCOUNT's
-    module-level comment for the evidence): being IN the curated table only
-    ever meant the row kept its full, undiscounted pred_pg - a curated
-    'committee'/'backup' player's raw per-game rate came straight out of
-    the LightGBM model's own read of their historical usage, with nothing
-    correcting it toward what this specific 2026 depth-chart role actually
-    implies (a real backup gets almost no live-game volume regardless of
-    what their feature row says). Fixed here: AFTER the curated/
-    deep_bench_discounted split above, curated rows whose `role` is in
-    ROLE_VOLUME_DISCOUNT get pred_pg/pred_pg_low/pred_pg_high multiplied by
-    that role's factor too, `low_confidence` forced True (same reasoning as
-    deep_bench_discounted - a heavily rescaled number is exactly the kind
-    of row a reader should be able to tell apart from an un-rescaled one),
-    and a NEW `role_discount_applied` boolean column set True so this is
-    auditable without having to cross-reference `role` against a constant
-    buried in this module - per the project's hard rule, a discount must
-    never silently disappear into the number. `depth_chart_status` is left
-    as 'curated' (unchanged) for these rows since they genuinely ARE in the
-    table - `role_discount_applied` is the correct place to see the
-    rescaling, not a new depth_chart_status value that would blur "matched
-    the table" with "how the match was treated."
-
-    Interaction with reassign_team_changers' BOOST_ELIGIBLE_ROLES, checked
-    explicitly: a team-changing 'committee' player can get BOTH the upward
-    vacancy-scale boost there AND this downward role discount here. That is
-    not double-counting - they answer different questions. The boost in
-    reassign_team_changers scales this player's OWN established share
-    (their prior team's carry_share/target_share) by how much MORE
-    opportunity the new team has open overall (a team-level signal, applied
-    before the model even runs). This discount is applied AFTER the model
-    has already produced a prediction from those (possibly boosted)
-    features, and corrects for the fact that a 'committee' role means this
-    player is only expected to capture a FRACTION of whatever volume - big
-    or small - actually materializes at their position on the new team; the
-    model has no feature that tells it "a specific other player is sharing
-    this backfield with you." A big team-level opportunity split three ways
-    should still end up smaller per-player than the same opportunity given
-    to a lone bell-cow, which is exactly what applying both produces."""
+    Rookie rows do not call this function: the veteran-only ladder was
+    harmful in the dedicated rookie test, so rookie conditional rates remain
+    neutral and depth affects their availability only."""
     df = df.copy()
     if depth_chart.empty:
         df["depth_rank"] = np.nan
@@ -949,14 +853,12 @@ def apply_depth_chart_gating(df, depth_chart):
     # undiscounted out-of-sample residuals) can be scaled by the same
     # factor the rest of the row was: without it, a discounted player with
     # an elite season-N rate would have a full-size bonus added on top of
-    # a 0.15x-ed prediction, quietly undoing the discount.
+    # a depth-discounted prediction, quietly undoing the discount.
     #
     # Gate B: the factor comes from the nflverse preseason rank via
     # DEPTH_RATE_LADDER, not from the curated `role`. One lookup now covers
-    # what used to be two separate mechanisms (DEEP_BENCH_DISCOUNT for rows
-    # off the curated table, ROLE_VOLUME_DISCOUNT for curated
-    # committee/backup rows), which is why `role_discount_applied` could
-    # previously be False on a row that had just been multiplied by 0.15.
+    # the calibrated ladder is authoritative; curated role does not select a
+    # second, asserted multiplier.
     df["role_discount_factor"] = [
         depth_rate_factor(p, r) for p, r in zip(df["position"], df["nfl_depth_rank"])
     ]
@@ -1113,7 +1015,10 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     # incoming rookies' implied shares for the same denominator. Gating
     # multiplying a share by its role discount here is exactly what lets
     # the later renormalization see discounted shares.
-    combined = _attach_team_total_pred(combined, base, models[("TEAM", "passing_yards")])
+    combined = _attach_team_total_pred(
+        combined, base, models[("TEAM", "passing_yards")],
+        models[("TEAM", "pass_attempts")],
+    )
 
     depth_chart = load_depth_chart(target_season)
     combined = apply_depth_chart_gating(combined, depth_chart)
@@ -1126,7 +1031,7 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
 # the curated depth chart. Calibrated on the two known misses these would
 # have caught (Parker Washington: 97 targets/56.5 rec ypg; Wan'Dale
 # Robinson: 141 targets/63.4 rec ypg, both absent from starters_2026.csv
-# and silently auto-discounted 0.15x) while sitting above genuine
+# and silently treated as deep bench) while sitting above genuine
 # deep-bench usage levels.
 TRIPWIRE_SEASON_TARGETS = 70
 TRIPWIRE_TARGETS_PG = 5.0
@@ -1140,15 +1045,8 @@ TRIPWIRE_REC_YPG = 40.0
 # (417), Dowdle (237 car), Henderson (180) - none of which could be
 # surfaced.
 #
-# These apply only where the discount asserts IRRELEVANCE (net factor
-# <= TRIPWIRE_SEVERE_FACTOR, i.e. the 0.15x deep-bench/backup path), not to
-# the 0.4x 'committee' path. That exclusion is the whole reason these
-# thresholds are usable: at carries >= 100, 14 of 17 discounted RBs are
-# curated 'committee', and a committee back carrying 100+ times is not a
-# curation error - it is precisely what 'committee' claims. Firing on them
-# would bury the real misses under correct curations and train a reader to
-# ignore the warning. A 'deep_bench' RB with 155 carries (Kimani Vidal)
-# contradicts his own label, and that is the case worth surfacing.
+# Passing/rushing criteria are additionally gated on a severe net factor so
+# ordinary calibrated depth shading does not bury real curation misses.
 TRIPWIRE_SEASON_ATTEMPTS = 200
 TRIPWIRE_ATTEMPTS_PG = 25.0
 TRIPWIRE_SEASON_CARRIES = 100
@@ -1221,9 +1119,8 @@ def _warn_discounted_high_usage(conn, combined, base, source_season):
     """Warn (stderr only - curation stays a human decision, this NEVER
     changes a number) when a player whose projection was discounted by
     depth-chart gating had clearly fantasy-relevant usage in the source
-    season. A high-usage player falling through to a 0.15x/0.4x discount is
-    far more likely a curation gap in the depth-chart table than a real
-    role collapse."""
+    season. A high-usage player marked outside relevant depth is more likely
+    a curation gap than a real role collapse."""
     discounted = combined[
         (combined["depth_chart_status"] == "deep_bench_discounted")
         | combined["role_discount_applied"]
@@ -1295,19 +1192,32 @@ def _warn_discounted_high_usage(conn, combined, base, source_season):
         )
 
 
-def _attach_team_total_pred(combined, base, team_model):
+def _attach_team_total_pred(combined, base, yards_model, attempts_model):
     """Attach the team_passing_yards_pg forecast (joint/multi-output Phase
     A's shared anchor) as a helper column, drawn from `base`'s own
     TEAM_FEATURES (already re-pointed to a team-changer's NEW team by
     reassign_team_changers). Attached BEFORE depth-chart gating so the
-    composition itself can run AFTER gating - Phase 2 of the consensus-gap
-    work moved it there, so the share-sum renormalization sees discounted
-    shares (a 0.15x bench player consumes 0.15x of the budget) and, at the
-    project_season level, the rookie path's implied shares.
+    composition itself can run AFTER gating, so its guard sees calibrated
+    veteran shares and the rookie path's implied shares.
     _compose_reframed_receiving_predictions drops the column when done."""
-    team_feat = base.dropna(subset=TEAM_FEATURES).drop_duplicates(subset=["team"])[["team"] + TEAM_FEATURES]
-    team_feat["team_total_pred"] = np.clip(team_model["model"].predict(team_feat[TEAM_FEATURES]), 0, None)
-    combined = combined.merge(team_feat[["team", "team_total_pred"]], on="team", how="left")
+    team_feat = base.dropna(subset=TEAM_FEATURES).drop_duplicates(subset=["team"])[
+        ["team"] + TEAM_FEATURES + ["team_passing_yards_pg", "team_pass_attempts_pg"]]
+    yards_x = team_feat[TEAM_FEATURES].copy()
+    # Team-grain name (see transitions.TEAM_MODEL_FEATURES). This path was
+    # already correct; the rename is what makes the two broken call sites
+    # in backtest.py/corrections.py fail loudly rather than silently read a
+    # player's own prior rate out of a same-named column.
+    yards_x["team_naive_pred"] = team_feat["team_passing_yards_pg"]
+    attempts_x = team_feat[TEAM_FEATURES].copy()
+    attempts_x["team_naive_pred"] = team_feat["team_pass_attempts_pg"]
+    team_feat["team_passing_yards_pg_pred"] = np.clip(
+        yards_model["model"].predict(yards_x[yards_model["features"]]), 0, None)
+    team_feat["team_pass_attempts_pg_pred"] = np.clip(
+        attempts_model["model"].predict(attempts_x[attempts_model["features"]]), 0, None)
+    team_feat["team_total_pred"] = team_feat["team_passing_yards_pg_pred"]
+    combined = combined.merge(
+        team_feat[["team", "team_total_pred", "team_passing_yards_pg_pred",
+                   "team_pass_attempts_pg_pred"]], on="team", how="left")
     # The player's OWN observed season-N receiving rate, carried alongside
     # so the Phase-7 elite-shrinkage correction can key on it (see
     # corrections.py for why the observed rate and not the predicted one).
@@ -1327,10 +1237,8 @@ def _attach_team_total_pred(combined, base, team_model):
 # factor` is deliberately NOT among them any more: it is the actual
 # multiplier applied to the row, and this project's rule is that a discount
 # must be visible in the output table rather than buried in a module. The
-# two flags that used to be the only evidence are each partial - `role_
-# discount_applied` is False for deep-bench rows despite their 0.15x, and
-# `depth_chart_status` says which path fired but not how hard - so a reader
-# had to consult two columns and still could not see the magnitude.
+# The explicit factor makes the magnitude auditable without reconstructing
+# it from role and chart status.
 _HELPER_COLS = ["team_total_pred", "_observed_recv_pg"]
 
 
@@ -1381,16 +1289,10 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
     RECEIVING_SHARE_LABEL for the shared source of truth on which
     (position, stat) combos are reframed.
 
-    Phase 2 of the consensus-gap work: this now runs AFTER depth-chart
-    gating (project_season calls it once the rookie path has run too), so
-    the shares arriving here are already role-discounted, and the share-sum
-    renormalization (transitions.receiving_share_scale, shared with
-    backtest.py) therefore charges each player their SHIPPED share of the
-    team budget, not their raw one. Previously the cap ran on raw shares:
-    63.6% of NYG's 1.86 "over-budget" share sum came from players about to
-    be multiplied 0.15x/0.4x, and the renormalization squeezed Malik Nabers
-    19% for it. `rookie_receiving` (per-team rookie-path receiving_yards
-    pred_pg rows) enters the denominator as implied shares - the
+    This runs after depth-chart gating and after the rookie path exists.
+    The exposure-weighted guard therefore sees shipped veteran shares and
+    incoming rookies' implied shares on the same basis. `rookie_receiving`
+    enters the denominator as implied shares - the
     user-diagnosed Robinson/Tate case: an incoming 1st-round WR consumes
     real target share the veteran share models can't see.
 
@@ -1408,6 +1310,7 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
     reframed = combined[mask].copy()
     other = combined[~mask].drop(columns=_HELPER_COLS, errors="ignore").copy()
     other["receiving_share_capped"] = np.nan
+    other["receiving_share_normalized"] = np.nan
 
     extra_team_share = None
     if rookie_receiving is not None and not rookie_receiving.empty:
@@ -1417,7 +1320,12 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
         # A rookie on a team with no composable veteran total (or a 0
         # fallback total) contributes nothing rather than dividing by 0.
         rr = rr[rr["team_total_pred"] > 0]
-        extra_team_share = (rr["pred_pg"] / rr["team_total_pred"]).groupby(rr["team"]).sum()
+        rr["weight"] = (
+            pd.to_numeric(rr["projected_games"], errors="coerce") / SEASON_GAMES
+        ).clip(0, 1).fillna(0.0)
+        extra_team_share = (
+            rr["pred_pg"] / rr["team_total_pred"] * rr["weight"]
+        ).groupby(rr["team"]).sum()
 
     share_df = reframed[["team"]].copy()
     share_df["share"] = reframed["pred_pg"]
@@ -1428,12 +1336,14 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
     # model) falls back to 1.0 - the pre-Gate-B behaviour - rather than to
     # 0, which would drop that team's denominator to nothing and disable
     # the cap silently.
+    exposure_col = "projected_games"
     share_df["weight"] = (
-        (reframed["projected_games"] / SEASON_GAMES).clip(0, 1).fillna(1.0)
-        if "projected_games" in reframed.columns else 1.0
+        (reframed[exposure_col] / SEASON_GAMES).clip(0, 1).fillna(1.0)
+        if exposure_col in reframed.columns else 1.0
     )
     scale, over_cap = receiving_share_scale(share_df, extra_team_share=extra_team_share)
     reframed["receiving_share_capped"] = over_cap
+    reframed["receiving_share_normalized"] = ~np.isclose(scale, 1.0)
     reframed["pred_pg"] = reframed["pred_pg"] * scale * reframed["team_total_pred"]
 
     # Phase 7: additive elite-shrinkage correction, applied AFTER
@@ -1495,63 +1405,257 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
 PASS_CATCH_COHERENCE_BAND = (0.8, 1.35)
 
 
-def add_team_pass_catch_coherence_flag(df, depth_chart):
-    """Diagnostic-only column, added post-Phase-6 after two prototyped fixes
-    (a team-volume input feature for the WR/TE/RB models, and a hard
-    post-hoc rescale of receiver predictions to match the team's QB
-    prediction) both backtested as a wash-to-negative - see the research
-    behind this addition. Neither fix is safe to apply automatically: the
-    rescale in particular was found to propagate the QB model's OWN
-    prediction error onto every receiver on a team (a low-confidence new
-    starter like Malik Willis dragging Tyreek Hill's prediction down with
-    him), which is exactly the kind of silent-error-propagation this
-    project's other gating mechanisms (ROLE_VOLUME_DISCOUNT,
-    apply_depth_chart_gating) are built to avoid, not reproduce.
+def reconcile_stat_constraints(df):
+    """Enforce counting-stat identities at the final output boundary.
 
-    Instead: this computes, per team, the ratio of (sum of ALL WR/TE/RB
-    predicted receiving_yards_pg, every row regardless of source/
-    low_confidence - a bench player's garbage-time catches still count
-    against the team's real passing total) to (the curated depth chart's
-    confirmed role='starter' QB's predicted passing_yards_pg for that
-    team), and flags team-season rows where that ratio falls outside
-    PASS_CATCH_COHERENCE_BAND. This is purely informational - no pred_pg
-    value is touched - surfacing exactly the kind of internal-inconsistency
-    signal that first raised the Nabers/Reed/Burden question (their teams'
-    receiving corps totals didn't add up against their own QB's projected
-    volume) so a reader can judge for themselves which teams' predictions
-    to treat with extra skepticism, the same "never silently hide, always
-    flag" principle as low_confidence/deep_bench_discounted elsewhere in
-    this module.
+    The component models are intentionally fit independently, so small
+    violations can occur even when every individual prediction is sensible.
+    A completion cannot exist without an attempt and a reception cannot
+    exist without a target. Cap the child stat at its matching parent for
+    point and interval endpoints, and expose which rows were changed.
+    """
+    out = df.copy()
+    out["stat_constraint_applied"] = False
+    keys = [c for c in ["player_id", "position", "season"] if c in out.columns]
+    if not keys:
+        return out
+    relations = (("completions", "attempts"), ("receptions", "targets"))
+    value_cols = [c for c in ["pred_pg", "pred_pg_low", "pred_pg_high"] if c in out.columns]
+    for child, parent in relations:
+        child_mask = out["stat"] == child
+        parent_rows = out[out["stat"] == parent]
+        if not child_mask.any() or parent_rows.empty:
+            continue
+        if parent_rows.duplicated(keys).any():
+            raise ValueError(f"duplicate {parent} rows prevent stat reconciliation")
+        parent_rows = parent_rows.set_index(keys)
+        child_index = pd.MultiIndex.from_frame(out.loc[child_mask, keys]) if len(keys) > 1 else pd.Index(out.loc[child_mask, keys[0]])
+        child_positions = out.index[child_mask]
+        for col in value_cols:
+            parent_values = parent_rows[col].reindex(child_index).to_numpy()
+            child_values = out.loc[child_positions, col].to_numpy(dtype=float)
+            changed = np.isfinite(parent_values) & np.isfinite(child_values) & (child_values > parent_values)
+            if changed.any():
+                changed_index = child_positions[changed]
+                out.loc[changed_index, col] = parent_values[changed]
+                out.loc[changed_index, "stat_constraint_applied"] = True
+    return out
 
-    Only meaningful for a target_season with a curated depth chart (2026
-    currently - see load_depth_chart) since it needs a confirmed, singular
-    starter to anchor against; every row gets
-    team_pass_catch_coherence_flag=NaN (not False - "not computable", not
-    "confirmed coherent") for any other season, or for a team where the
-    curated table doesn't resolve to exactly one starter QB."""
+
+def reconcile_qb_projected_volume_games(df, season_games=SEASON_GAMES):
+    """Add season-volume exposure without changing availability estimates.
+
+    ``projected_games`` remains the independently-modelled probability-like
+    count of offensive appearances for each player.  Quarterbacks are a
+    sequential position, however: summing those marginal appearance counts
+    can exceed the team's physical ``season_games`` budget.  This function
+    creates ``projected_volume_games`` for season-total arithmetic:
+
+    * non-QBs retain projected_games;
+    * every resolvable QB room receives exactly the 17-game team budget;
+    * a team with exactly one curated starter preserves that starter's
+      marginal exposure first and allocates the remainder proportionally;
+    * without a singular curated starter, every positive marginal exposure is
+      scaled proportionally to 17.
+
+    Appearance counts remain untouched. ``projected_volume_games`` answers a
+    different accounting question: how the team's mutually-exclusive QB game
+    budget is divided for season totals.
+    """
+    out = df.copy()
+    out["projected_volume_games"] = pd.to_numeric(
+        out.get("projected_games"), errors="coerce"
+    )
+    qb = out[out["position"] == "QB"]
+    if qb.empty or "player_id" not in out.columns or "team" not in out.columns:
+        return out
+
+    player_cols = ["player_id", "team", "projected_games"]
+    for optional in ["role", "depth_chart_status"]:
+        if optional in qb.columns:
+            player_cols.append(optional)
+    players = qb[player_cols].drop_duplicates(["player_id", "team"]).copy()
+    players["raw"] = pd.to_numeric(players["projected_games"], errors="coerce").clip(0, season_games)
+    players["volume"] = players["raw"]
+
+    for team, idx in players.groupby("team").groups.items():
+        idx = list(idx)
+        vals = players.loc[idx, "raw"]
+        total = vals.sum(min_count=1)
+        if pd.isna(total):
+            continue
+        starter = pd.Series(False, index=idx)
+        if "role" in players.columns:
+            starter = players.loc[idx, "role"].eq("starter")
+            if "depth_chart_status" in players.columns:
+                starter &= players.loc[idx, "depth_chart_status"].eq("curated")
+        starter_idx = list(starter[starter].index)
+        if len(starter_idx) == 1:
+            sidx = starter_idx[0]
+            starter_volume = min(float(players.at[sidx, "raw"]), float(season_games))
+            others = [i for i in idx if i != sidx]
+            remaining = max(0.0, season_games - starter_volume)
+            other_total = players.loc[others, "raw"].sum() if others else 0.0
+            if others and other_total > 0:
+                players.at[sidx, "volume"] = starter_volume
+                players.loc[others, "volume"] = (
+                    players.loc[others, "raw"] * remaining / other_total
+                )
+            else:
+                players.loc[idx, "volume"] = 0.0
+                players.at[sidx, "volume"] = season_games
+        else:
+            if total > 0:
+                players.loc[idx, "volume"] = vals * season_games / total
+            elif idx:
+                players.loc[idx, "volume"] = 0.0
+                players.at[idx[0], "volume"] = season_games
+
+    volume = players.set_index(["player_id", "team"])["volume"]
+    key = pd.MultiIndex.from_frame(out[["player_id", "team"]])
+    qb_volume = volume.reindex(key).to_numpy()
+    is_qb = out["position"].eq("QB")
+    out.loc[is_qb, "projected_volume_games"] = qb_volume[is_qb]
+    return out
+
+
+def normalize_team_passing_volume(df, season_games=SEASON_GAMES):
+    """Anchor QB passing rates to team-level attempts and yards forecasts.
+
+    Independent player-rate models allocate the team total poorly when an
+    entire room consists of backups or unproven players. Team Ridge models
+    forecast the physical totals; player projections determine only how that
+    total is divided. Attempts-related stats share one scale, passing yards a
+    second. Interval endpoints move with their point estimate.
+    """
+    out = df.copy()
+    out["team_passing_volume_scale"] = np.nan
+    out["team_pass_catch_ratio_pre_normalization"] = np.nan
+    out["team_pass_catch_pre_normalization_flag"] = np.nan
+    qb = out[out["position"].eq("QB")]
+    if qb.empty:
+        return out
+
+    exposure = pd.to_numeric(qb["projected_volume_games"], errors="coerce")
+    point = pd.to_numeric(qb["pred_pg"], errors="coerce") * exposure
+    attempt_rows = qb["stat"].eq("attempts")
+    yard_rows = qb["stat"].eq("passing_yards")
+    current_attempts = point[attempt_rows].groupby(qb.loc[attempt_rows, "team"]).sum(min_count=1)
+    current_yards = point[yard_rows].groupby(qb.loc[yard_rows, "team"]).sum(min_count=1)
+    attempt_anchor = (
+        qb[attempt_rows].drop_duplicates("team").set_index("team")["team_pass_attempts_pg_pred"]
+        * season_games
+    )
+    yard_anchor = (
+        qb[yard_rows].drop_duplicates("team").set_index("team")["team_passing_yards_pg_pred"]
+        * season_games
+    )
+    attempt_scale = (attempt_anchor / current_attempts.replace(0, np.nan)).replace([np.inf, -np.inf], np.nan)
+    yard_scale = (yard_anchor / current_yards.replace(0, np.nan)).replace([np.inf, -np.inf], np.nan)
+
+    attempt_stats = {"attempts", "completions", "passing_tds", "interceptions"}
+    for idx in out.index[out["position"].eq("QB") & out["stat"].isin(attempt_stats)]:
+        scale = attempt_scale.get(out.at[idx, "team"], np.nan)
+        if pd.notna(scale):
+            out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= scale
+            out.at[idx, "team_passing_volume_scale"] = scale
+    for idx in out.index[out["position"].eq("QB") & out["stat"].eq("passing_yards")]:
+        scale = yard_scale.get(out.at[idx, "team"], np.nan)
+        if pd.notna(scale):
+            out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= scale
+            out.at[idx, "team_passing_volume_scale"] = scale
+
+    recv_mask = out["position"].isin(["RB", "WR", "TE"]) & out["stat"].eq("receiving_yards")
+    recv = out[recv_mask]
+    if recv.empty:
+        return out
+    recv_exposure = pd.to_numeric(recv["projected_volume_games"], errors="coerce").fillna(
+        pd.to_numeric(recv["projected_games"], errors="coerce"))
+    current_receiving = (
+        pd.to_numeric(recv["pred_pg"], errors="coerce") * recv_exposure
+    ).groupby(recv["team"]).sum(min_count=1)
+    recv_anchor = (
+        recv.drop_duplicates("team").set_index("team")["team_passing_yards_pg_pred"]
+        * season_games
+    )
+    recv_scale = (recv_anchor / current_receiving.replace(0, np.nan)).replace(
+        [np.inf, -np.inf], np.nan)
+    pre_ratio = current_receiving / recv_anchor.where(recv_anchor > 0)
+    low, high = PASS_CATCH_COHERENCE_BAND
+    pre_flag = ~pre_ratio.between(low, high)
+    pre_flag = pre_flag.astype(object)
+    pre_flag.loc[pre_ratio.isna()] = np.nan
+    out["team_pass_catch_ratio_pre_normalization"] = out["team"].map(pre_ratio)
+    out["team_pass_catch_pre_normalization_flag"] = out["team"].map(pre_flag)
+    for idx in out.index[recv_mask]:
+        scale = recv_scale.get(out.at[idx, "team"], np.nan)
+        if pd.notna(scale):
+            out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= scale
+            out.at[idx, "team_passing_volume_scale"] = scale
+    return out
+
+
+def add_projected_season_totals(df):
+    """Expose the canonical season totals used by downstream comparisons.
+
+    Keeping both appearance and mutually-exclusive QB volume exposure is
+    intentional, but it makes ``pred_pg * projected_games`` an invalid team
+    total for quarterbacks. These explicit columns prevent consumers from
+    accidentally recreating the original double-counting bug.
+    """
+    out = df.copy()
+    exposure = pd.to_numeric(
+        out.get("projected_volume_games"), errors="coerce"
+    ).fillna(pd.to_numeric(out.get("projected_games"), errors="coerce"))
+    for rate_col, season_col in (
+        ("pred_pg", "pred_season"),
+        ("pred_pg_low", "pred_season_low"),
+        ("pred_pg_high", "pred_season_high"),
+    ):
+        out[season_col] = pd.to_numeric(out[rate_col], errors="coerce") * exposure
+    return out
+
+
+def add_team_pass_catch_coherence_flag(df, depth_chart=None):
+    """Assert the post-normalization passing/receiving accounting identity.
+
+    This computes expected receiving and passing yards per team game after
+    ``normalize_team_passing_volume`` has forced both sides to the shared
+    team-yardage anchor. It is therefore an output invariant, not independent
+    model validation. The genuinely diagnostic, pre-adjustment values ship as
+    ``team_pass_catch_ratio_pre_normalization`` and
+    ``team_pass_catch_pre_normalization_flag``.
+
+    Receivers are weighted by projected offensive appearances, matching the
+    appearance-week definition of receiving_yards_share. QBs use reconciled
+    ``projected_volume_games`` so their mutually exclusive exposures consume
+    exactly the team's 17-game budget.
+
+    A missing exposure value falls back to weight 1.0 for backward
+    compatibility with pre-availability model artifacts. A missing or zero
+    expected QB denominator remains NaN, not a false claim of coherence."""
     df = df.copy()
-    if depth_chart.empty:
-        df["team_pass_catch_ratio"] = np.nan
-        df["team_pass_catch_coherence_flag"] = np.nan
-        return df
-
     qb_rows = df[(df["position"] == "QB") & (df["stat"] == "passing_yards")]
-    starters = depth_chart[(depth_chart["position"] == "QB") & (depth_chart["role"] == "starter")]
-    starters = starters[["team", "gsis_id"]].rename(columns={"gsis_id": "player_id"})
-    anchor = qb_rows.merge(starters, on=["team", "player_id"], how="inner")
-    # Exactly one curated starter per team is the expected case (verified
-    # true for every 2026 team) - a team with 0 or >1 resolved starter rows
-    # (e.g. a future season's curated table drawn up differently) falls
-    # back to the mean of whatever resolves rather than erroring, but is
-    # real, rare, and would show up as an odd-looking anchor if it ever
-    # happens - not silently special-cased away.
-    anchor = anchor.groupby("team")["pred_pg"].mean().rename("qb_anchor_pg")
-
     recv = df[(df["position"].isin(["WR", "TE", "RB"])) & (df["stat"] == "receiving_yards")]
-    recv_sum = recv.groupby("team")["pred_pg"].sum().rename("team_receiving_sum_pg")
+
+    def _expected_per_team_game(rows, name, exposure_col):
+        if rows.empty:
+            return pd.Series(dtype=float, name=name)
+        if exposure_col in rows.columns:
+            weight = (pd.to_numeric(rows[exposure_col], errors="coerce") / SEASON_GAMES).clip(0, 1).fillna(1.0)
+        else:
+            weight = 1.0
+        expected = pd.to_numeric(rows["pred_pg"], errors="coerce") * weight
+        return expected.groupby(rows["team"]).sum(min_count=1).rename(name)
+
+    qb_exposure = "projected_volume_games" if "projected_volume_games" in qb_rows.columns else "projected_games"
+    recv_exposure = "projected_games"
+    anchor = _expected_per_team_game(qb_rows, "qb_anchor_pg", qb_exposure)
+    recv_sum = _expected_per_team_game(recv, "team_receiving_sum_pg", recv_exposure)
 
     team_ratio = pd.concat([anchor, recv_sum], axis=1)
-    team_ratio["team_pass_catch_ratio"] = team_ratio["team_receiving_sum_pg"] / team_ratio["qb_anchor_pg"]
+    valid_qb = team_ratio["qb_anchor_pg"].where(team_ratio["qb_anchor_pg"] > 0)
+    team_ratio["team_pass_catch_ratio"] = team_ratio["team_receiving_sum_pg"] / valid_qb
     low, high = PASS_CATCH_COHERENCE_BAND
     # object dtype (not bool) so the NaN assigned below for an unresolved
     # ratio is representable - a plain bool column can't hold NaN and
@@ -1561,7 +1665,7 @@ def add_team_pass_catch_coherence_flag(df, depth_chart):
         ~team_ratio["team_pass_catch_ratio"].between(low, high)
     ).astype(object)
     # NaN (not False) when either side of the ratio isn't resolvable (no
-    # curated starter found for this team, or no WR/TE/RB rows at all) -
+    # expected QB passing volume, or no WR/TE/RB rows at all) -
     # "not computable" is a distinct, honestly-reported state from
     # "confirmed coherent."
     team_ratio.loc[team_ratio["team_pass_catch_ratio"].isna(), "team_pass_catch_coherence_flag"] = np.nan
@@ -1571,7 +1675,23 @@ def add_team_pass_catch_coherence_flag(df, depth_chart):
         team_ratio[["team", "team_pass_catch_ratio", "team_pass_catch_coherence_flag"]],
         on="team", how="left",
     )
+    df["coherence_receiver_exposure_basis"] = "projected_games"
     return df
+
+
+def _apply_rookie_depth_rate_gating(rookie_long):
+    """Keep rookie conditional rates neutral to the veteran-only ladder.
+
+    DEPTH_RATE_LADDER is fitted on veteran transition pairs. Applying it to
+    structurally excluded rookies was neutral-to-harmful in the dedicated
+    rookie backtest, so depth affects rookie availability only until a rookie
+    calibration clears its own folds.
+    """
+    out = rookie_long.copy()
+    out["role_discount_factor"] = 1.0
+    out["role_discount_applied"] = False
+    out["low_confidence"] = True
+    return out
 
 
 def project_season(conn, target_season):
@@ -1586,13 +1706,9 @@ def project_season(conn, target_season):
     vet = project_veterans(conn, feat, source_season, models, resid, target_season)
     vet["season"] = target_season
 
-    # rookie path: bucket baselines fit on all completed rookie seasons
-    # strictly before target_season (drafted + UDFA, both requiring confirmed
-    # active-week production - see rookies.py), applied to target_season's
-    # rookie class. target_season's own rookie class is identified separately
-    # (identify_target_season_rookie_class) since target_season has no played
-    # games yet to confirm anyone's "first active season" against - it reads
-    # the class directly off draft_picks + seasonal_rosters instead.
+    # Rookie path: bucket rates and availability are fit on full preseason
+    # cohorts from completed seasons, including zero-game rookies, then
+    # applied to the target class from draft_picks + seasonal_rosters.
     hist_seasons = list(range(2016, target_season))
     hist_feat = build_player_season_features(conn, seasons=hist_seasons)
     rdf = build_rookie_dataset(conn, hist_feat, seasons=hist_seasons)
@@ -1614,13 +1730,22 @@ def project_season(conn, target_season):
     athletic = combine_athletic_scores_by_pfr_id(conn)
     target_class = target_class.merge(athletic, on="pfr_id", how="left")
     target_class["athletic_tier"] = target_class["athletic_tier"].fillna("no_data")
+    # Canonical rookie IDs now resolve against the same preseason chart used
+    # by veteran availability. This is an internal, historically testable
+    # availability signal; Sleeper projections are comparison-only.
+    target_class = attach_availability_depth_rank(
+        target_class, target_season, conn=conn)
+    target_class = attach_depth_rank(target_class, target_season, conn=conn)
     depth_chart = load_depth_chart(target_season)
     rookie_preds = predict_rookies(target_class, baselines, [target_season], depth_chart=depth_chart)
 
     pg_cols = [c for c in rookie_preds.columns if c.endswith("_pg")]
     rookie_long = rookie_preds.melt(
         id_vars=["player_id", "team", "position", "season", "rookie_tier", "round_bucket",
-                 "qb_sleeper_play_prob", "athletic_tier"],
+                 "projected_games", "athletic_tier", "target_depth_rank",
+                 "nfl_depth_rank", "rookie_depth_band", "rookie_vacancy_scale",
+                 "rookie_availability_cell_n", "rookie_availability_fallback_used",
+                 "rookie_id_unresolved"],
         value_vars=pg_cols, var_name="stat", value_name="pred_pg",
     )
     rookie_long["stat"] = rookie_long["stat"].str.replace("_pg", "", regex=False)
@@ -1641,13 +1766,10 @@ def project_season(conn, target_season):
     rookie_long["pred_pg_high"] = rookie_long["pred_pg"] * rookie_long["ratio_high"]
     rookie_long = rookie_long.drop(columns=["ratio_low", "ratio_high", "round_bucket", "n"], errors="ignore")
 
-    # Rookies already use the correct target_season team (identify_target_season_rookie_class
-    # reads it off draft_picks/seasonal_rosters directly - see PHASE5_REPORT.md), so no
-    # team-change adjustment or discount-gating applies here. Still attach
-    # depth_rank/role from the curated table when the rookie happens to be
-    # on it (e.g. a rookie who's already his team's curated RB1/WR1), purely
-    # informational - not used to discount rookie_rule predictions, which
-    # are already flagged low_confidence by construction.
+    # Rookies already use the correct target-season team. Attach curated role
+    # for transparency and for auditing the role-filtered vacancy gate that
+    # ran in predict_rookies. Rookie conditional rates remain neutral because
+    # the depth-rate ladder was fit only on veteran transition pairs.
     depth_chart = load_depth_chart(target_season)
     rookie_long["team_changed"] = False
     rookie_long["roster_status"] = np.nan
@@ -1658,53 +1780,26 @@ def project_season(conn, target_season):
     else:
         rookie_long["depth_rank"], rookie_long["role"] = np.nan, None
     rookie_long["depth_chart_status"] = "rookie_path"
-    # Rookie availability (Phase 11): the veteran games model needs a
-    # season-N feature row, which an incoming rookie by definition does
-    # not have. Uses the historical mean games played by first-year
-    # players at the same position instead (career_year == 0 rows, added
-    # in Phase 5) - the same "bucket average" spirit as the rest of the
-    # rookie path, and a real estimate rather than a blank or a silently
-    # assumed full season. Deliberately NOT differentiated by draft round.
-    #
-    # Left unchanged by Gate A, and this is a known gap rather than a
-    # judgment that it doesn't matter: the reason given for the flat prior
-    # used to be that the veteran availability signal was itself weak
-    # (+5-6% over carry-forward), and that is no longer true (+25-28%, see
-    # train.fit_availability). Rookies DO appear on the target season's
-    # preseason chart, so the same feature is available to them - but they
-    # have no season-N feature row, so it cannot simply be routed through
-    # the veteran model, and a rookie-specific games model is its own
-    # modeling step with its own validation. Flagged, not silently folded
-    # into this change.
-    rookie_games = (
-        feat[feat["career_year"] == 0].groupby("position")["games_played"].mean()
-        if "career_year" in feat.columns else pd.Series(dtype=float)
-    )
-    rookie_long["projected_games"] = rookie_long["position"].map(rookie_games)
-    # role_discount_applied is a veteran_model-only concept (see
-    # apply_depth_chart_gating) - rookie_rule rows are already
-    # low_confidence=True by construction and never pass through that
-    # function, so this is always False here, not a claim about the
-    # rookie's actual role.
-    rookie_long["role_discount_applied"] = False
-    # Likewise 1.0 = "no discount was applied to this row," which is true,
-    # rather than a claim that the rookie was evaluated and found
-    # undiscountable. Set explicitly so the column is never NaN for a whole
-    # source, which would read as "unknown" and invite a fillna somewhere
-    # downstream.
-    rookie_long["role_discount_factor"] = 1.0
+    # projected_games was estimated on the full historical rookie cohort in
+    # rookies.py, by position/draft bucket and preseason depth band.
+    rookie_long = _apply_rookie_depth_rate_gating(rookie_long)
 
     # Compose the veteran reframed receiving shares into real per-game
     # rates now that the rookie path exists: rookie receiving predictions
     # enter the share-sum denominator as implied shares (Phase 2 of the
     # consensus-gap work - the user-diagnosed Robinson/Tate case, where a
     # 1st-round rookie's incoming target share must squeeze the veterans).
-    rookie_receiving = rookie_long[rookie_long["stat"] == "receiving_yards"][["team", "pred_pg"]]
+    rookie_receiving = rookie_long[rookie_long["stat"] == "receiving_yards"][[
+        "team", "pred_pg", "projected_games"]]
     vet = _compose_reframed_receiving_predictions(
         vet, resid, rookie_receiving=rookie_receiving, corrections=load_corrections())
 
     combined = pd.concat([vet, rookie_long], ignore_index=True, sort=False)
+    combined = reconcile_qb_projected_volume_games(combined)
+    combined = normalize_team_passing_volume(combined)
+    combined = reconcile_stat_constraints(combined)
     combined = add_team_pass_catch_coherence_flag(combined, depth_chart)
+    combined = add_projected_season_totals(combined)
     return combined
 
 
@@ -1713,21 +1808,30 @@ OUTPUT_DIR = os.path.join(REPO_ROOT, "output")
 OUTPUT_COLUMNS = [
     "player_id", "display_name", "team", "position", "stat",
     "pred_pg", "pred_pg_low", "pred_pg_high",
+    "pred_season", "pred_season_low", "pred_season_high",
     "source", "low_confidence", "rookie_tier", "interval_low_n_flag", "season",
     # Phase 6 additions:
     "team_changed", "roster_status",            # Task 1 - team reassignment transparency
     "depth_rank", "role", "depth_chart_status",  # Task 2/3 - curated depth chart + gating
-    "role_discount_applied",  # curated committee/backup volume discount - see ROLE_VOLUME_DISCOUNT
+    "role_discount_applied",  # True whenever the calibrated veteran ladder scaled the rate
     "nfl_depth_rank",         # Gate B - untruncated nflverse preseason rank, the ladder's input
-    "role_discount_factor",   # the multiplier actually applied (1.0 = none); covers BOTH the
-                              # deep-bench and committee/backup paths, which the two flags above
-                              # only cover between them - see _HELPER_COLS
-    "qb_sleeper_play_prob",  # rookie QB survivorship-bias correction - NaN for non-QB/veteran rows
+    "role_discount_factor",   # calibrated veteran preseason-rank multiplier (1.0 = none)
     "athletic_tier",  # Addendum 4 - combine-athleticism scale tier; NaN for veteran_model rows
-    "team_pass_catch_ratio", "team_pass_catch_coherence_flag",  # diagnostic-only, see add_team_pass_catch_coherence_flag
+    "team_pass_catch_ratio_pre_normalization", "team_pass_catch_pre_normalization_flag",
+    "team_pass_catch_ratio", "team_pass_catch_coherence_flag",  # post-normalization accounting invariant
     "receiving_share_capped",  # joint/multi-output Phase A - see _compose_reframed_receiving_predictions
+    "receiving_share_normalized",  # two-sided accounting normalization
     "elite_correction_pg",  # Phase 7 additive elite-shrinkage correction, in yards/game - see corrections.py
-    "projected_games",  # Phase 11 availability estimate; season value = pred_pg x this. See train.fit_availability.
+    "projected_games",  # independent offensive-appearance estimate; see projected_volume_games for totals
+    "projected_volume_games",  # reconciled season-total exposure; QB team sums exactly 17
+    "team_pass_attempts_pg_pred", "team_passing_yards_pg_pred",  # physical team anchors
+    "team_passing_volume_scale",  # player-room allocation scale for QB passing stats
+    "coherence_receiver_exposure_basis",  # appearance-based receiver exposure
+    "target_depth_rank", "rookie_depth_band",  # harmonized rookie availability input + interpretable band
+    "rookie_availability_cell_n", "rookie_availability_fallback_used",  # min-cell audit
+    "rookie_vacancy_scale",  # role-gated landing-spot multiplier; NaN for veterans
+    "rookie_id_unresolved",  # placeholder GSIS ID retained only when crosswalks fail
+    "stat_constraint_applied",  # independent model output capped to a physical parent stat
 ]
 
 
@@ -1767,11 +1871,18 @@ def with_display_names(conn, out, target_season):
     return out
 
 
+def _ensure_output_parent(path):
+    """Create an output parent even when `path` is a bare filename."""
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+
+
 def export_projections(conn, target_season, path):
     out = project_season(conn, target_season)
     out = with_display_names(conn, out, target_season)
     out = out[OUTPUT_COLUMNS].sort_values(["position", "team", "player_id", "stat"])
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    # `--out projections.csv` has an empty dirname; normalizing to an
+    # absolute path gives it the current directory as a real parent.
+    _ensure_output_parent(path)
     out.to_csv(path, index=False)
     return out
 

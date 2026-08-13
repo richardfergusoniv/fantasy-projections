@@ -32,6 +32,88 @@ def get_conn():
     return sqlite3.connect(DB_PATH)
 
 
+_SNAP_APPEARANCE_COLUMNS = {
+    "season", "week", "pfr_player_id", "team", "offense_pct", "game_type",
+}
+
+
+def _opportunity_mask(df):
+    """Weeks with a position-relevant box-score opportunity."""
+    return (
+        ((df["position"] == "QB") & (df["attempts"] > 0))
+        | ((df["position"] != "QB") & ((df["carries"] > 0) | (df["targets"] > 0)))
+    )
+
+
+def _validate_snap_appearance_schema(conn):
+    """Fail early, via sqlite itself, if the optional snap schema is old.
+
+    Keeping this separate from the pandas/merge work is intentional: only a
+    known database-compatibility failure may trigger the opportunity fallback.
+    Programming, crosswalk, and merge failures must remain visible.
+    """
+    cols = ", ".join(sorted(_SNAP_APPEARANCE_COLUMNS))
+    conn.execute(f"select {cols} from snap_counts limit 0")
+
+
+def _supported_snap_schema_error(exc):
+    """Whether an sqlite OperationalError is the optional snap compatibility case."""
+    msg = str(exc).lower()
+    if "no such table: snap_counts" in msg:
+        return True
+    if "no such column:" not in msg:
+        return False
+    missing = msg.split("no such column:", 1)[1].strip().strip('"`[]')
+    missing = missing.rsplit(".", 1)[-1]
+    return missing in _SNAP_APPEARANCE_COLUMNS
+
+
+def _augment_snap_appearances(base, conn):
+    """Return a fully snap-augmented copy; never mutate ``base`` in place."""
+    w = base.copy()
+    snaps = pd.read_sql(
+        f"select season, week, pfr_player_id, team, offense_pct from snap_counts "
+        f"where season in ({','.join(map(str, SEASONS))}) and game_type = 'REG' "
+        f"and offense_pct > 0", conn,
+    )
+    xwalk = pd.read_sql(
+        "select gsis_id as player_id, pfr_id, position as master_position from players "
+        "where gsis_id is not null and pfr_id is not null", conn,
+    )
+    snaps = snaps.merge(xwalk, left_on="pfr_player_id", right_on="pfr_id", how="inner")
+    snaps = snaps[snaps["master_position"].isin(POSITIONS)]
+    appeared = snaps[["player_id", "season", "week"]].drop_duplicates()
+    appeared["_appeared"] = True
+    w = w.merge(appeared, on=["player_id", "season", "week"], how="left")
+
+    existing = w[["player_id", "season", "week"]].drop_duplicates()
+    missing = snaps.merge(existing, on=["player_id", "season", "week"], how="left", indicator=True)
+    missing = missing[missing["_merge"] == "left_only"].copy()
+    if not missing.empty:
+        # The players master is career/latest-position data. Reusing it for
+        # a historical zero-opportunity week can split one player-season
+        # across positions. Prefer the position observed that season.
+        season_pos = (
+            w.sort_values("week")
+            .dropna(subset=["position"])
+            .drop_duplicates(["player_id", "season"], keep="last")
+            [["player_id", "season", "position"]]
+            .rename(columns={"position": "season_position"})
+        )
+        missing = missing.merge(season_pos, on=["player_id", "season"], how="left")
+        missing["position"] = missing["season_position"].fillna(missing["master_position"])
+        add = missing[["player_id", "season", "week", "team", "position"]].drop_duplicates()
+        add["season_type"] = "REG"
+        for c in STAT_COLS:
+            add[c] = 0.0
+        add["_appeared"] = True
+        w = pd.concat([w, add[w.columns]], ignore_index=True)
+
+    opportunity = _opportunity_mask(w)
+    w["_appeared"] = w["_appeared"].fillna(opportunity).astype(bool)
+    return w
+
+
 def load_weekly_usage(conn):
     """One row per (player_id, season, week) for QB/RB/WR/TE, REG season
     only, with `team` and `position` backfilled for the 2025 pbp-fallback
@@ -62,32 +144,54 @@ def load_weekly_usage(conn):
 
     w = w[w["position"].isin(POSITIONS)].reset_index(drop=True)
     w = w.rename(columns={"recent_team": "team"})
-    return w
+
+    # `weekly` is a box-score table, not an appearance table. In particular,
+    # the 2025 pbp fallback contains only players credited with an opportunity,
+    # so a receiver who ran routes but drew no target disappears. Augment it
+    # with offensive snap rows and keep appearance separate from opportunity.
+    # This makes games_played mean "appeared on offense" while retaining the
+    # old opportunity-based definition as `opportunity_games` downstream.
+    try:
+        _validate_snap_appearance_schema(conn)
+    except sqlite3.OperationalError as exc:
+        if not _supported_snap_schema_error(exc):
+            raise
+        # Compatibility fallback for an older/minimal DB: appearance cannot
+        # be distinguished from opportunity, so assign the booleans directly.
+        # Do not assign False and then call fillna(False): booleans have no
+        # missing values for fillna to replace.
+        w = w.copy()
+        w["_appeared"] = _opportunity_mask(w).astype(bool)
+        return w
+
+    # No exception handling here by design. If SQL, crosswalking, merging, or
+    # augmentation is broken despite a compatible snap schema, fail loudly.
+    return _augment_snap_appearances(w, conn)
 
 
 def season_aggregate(weekly_usage):
     """Player-season totals + games_played + resolved season team.
 
-    games_played is counted on the position-relevant usage stat (QB:
-    attempts>0; RB/WR/TE: carries>0 or targets>0) rather than "any row
-    exists", since a player can appear in `weekly` for a week they were
-    inactive/injured with all-zero stats.
+    games_played counts offensive appearances derived from snap counts.
+    opportunity_games preserves the narrower usage definition (QB:
+    attempts>0; RB/WR/TE: carries>0 or targets>0) for conditional-rate and
+    rookie-survival analysis.
     """
     df = weekly_usage.copy()
-    df["_active"] = (
-        ((df["position"] == "QB") & (df["attempts"] > 0))
-        | ((df["position"] != "QB") & ((df["carries"] > 0) | (df["targets"] > 0)))
-    )
+    df["_active"] = _opportunity_mask(df)
 
     totals = df.groupby(["player_id", "season", "position"])[STAT_COLS].sum().reset_index()
-    games = df[df["_active"]].groupby(["player_id", "season"]).size().rename("games_played").reset_index()
-    totals = totals.merge(games, on=["player_id", "season"], how="left")
-    totals["games_played"] = totals["games_played"].fillna(0).astype(int)
+    appeared_col = "_appeared" if "_appeared" in df.columns else "_active"
+    games = df[df[appeared_col]].groupby(["player_id", "season"]).size().rename("games_played").reset_index()
+    opp_games = df[df["_active"]].groupby(["player_id", "season"]).size().rename("opportunity_games").reset_index()
+    totals = totals.merge(games, on=["player_id", "season"], how="left").merge(
+        opp_games, on=["player_id", "season"], how="left")
+    totals[["games_played", "opportunity_games"]] = totals[["games_played", "opportunity_games"]].fillna(0).astype(int)
 
-    # season team: the team with the most active weeks; ties broken by the
+    # season team: the team with the most offensive-appearance weeks; ties broken by the
     # most recent week played for that team (approximates "who they
     # finished the season with" for in-season trades).
-    active = df[df["_active"]].copy()
+    active = df[df[appeared_col]].copy()
     team_counts = (
         active.groupby(["player_id", "season", "team"])
         .agg(n_weeks=("week", "size"), last_week=("week", "max"))
@@ -171,10 +275,11 @@ def team_week_air_yards(conn, seasons=SEASONS):
 
 def player_active_team_opportunity(conn, seasons=SEASONS):
     """Player-season team pass/rush/red-zone attempt totals (+ team air
-    yards), restricted to the WEEKS THIS PLAYER WAS ACTUALLY ACTIVE (same
-    active-week definition as season_aggregate's games_played: attempts>0
-    for QB, carries>0 or targets>0 otherwise) - the correct denominator for
-    a share feature.
+    yards), restricted to the WEEKS THIS PLAYER APPEARED ON OFFENSE (the
+    snap-backed definition used by season_aggregate.games_played) - the
+    correct denominator for an appearance-conditional share feature. Only
+    an older database without the optional snap table falls back to the
+    narrower box-score opportunity definition.
 
     Bug this fixes: carry_share/target_share/rz_*_share/air_yards_share
     previously divided a player's season totals by the team's FULL 17-game
@@ -203,11 +308,10 @@ def player_active_team_opportunity(conn, seasons=SEASONS):
     attempts for those weeks, not their new team's."""
     wu = load_weekly_usage(conn)
     wu = wu[wu["season"].isin(seasons)].copy()
-    wu["_active"] = (
-        ((wu["position"] == "QB") & (wu["attempts"] > 0))
-        | ((wu["position"] != "QB") & ((wu["carries"] > 0) | (wu["targets"] > 0)))
-    )
-    active = wu[wu["_active"]][["player_id", "season", "week", "team"]].drop_duplicates()
+    appeared_col = "_appeared" if "_appeared" in wu.columns else "_active"
+    if appeared_col == "_active":
+        wu["_active"] = _opportunity_mask(wu)
+    active = wu[wu[appeared_col]][["player_id", "season", "week", "team"]].drop_duplicates()
 
     team_wk = team_week_pbp_totals(conn, seasons)
     team_wk_ay = team_week_air_yards(conn, seasons)
@@ -268,11 +372,11 @@ def team_week_yardage_totals(conn, seasons=SEASONS):
 
 def player_season_receiving_yards_share(conn, seasons=SEASONS):
     """Player-season receiving_yards_share = player's own receiving_yards /
-    the team's total passing_yards DURING THE WEEKS THIS PLAYER WAS ACTIVE
-    (same games-played-aware denominator fix as player_active_team_opportunity
-    - reused here rather than duplicated, since a receiving-yards share has
-    the identical injury-season-dilution risk target_share/air_yards_share
-    already had). This is a LABEL for the team-total x player-share
+    the team's total passing yards during every week the player appeared on
+    offense.  The numerator therefore includes explicit zero-yard appearance
+    weeks, matching the appearance-based games_played availability target and
+    the projected_games exposure used by the live share cap. This is a LABEL
+    for the team-total x player-share
     decomposition (Phase A of the joint/multi-output plan), not an input
     feature - WR_receiving_yards/TE_receiving_yards/RB_receiving_yards are
     trained to predict this share, then multiplied by a separately-trained
@@ -280,11 +384,10 @@ def player_season_receiving_yards_share(conn, seasons=SEASONS):
     predicting receiving_yards_pg directly."""
     wu = load_weekly_usage(conn)
     wu = wu[wu["season"].isin(seasons)].copy()
-    wu["_active"] = (
-        ((wu["position"] == "QB") & (wu["attempts"] > 0))
-        | ((wu["position"] != "QB") & ((wu["carries"] > 0) | (wu["targets"] > 0)))
-    )
-    active = wu[wu["_active"]][["player_id", "season", "week", "team", "receiving_yards"]].drop_duplicates(
+    appeared_col = "_appeared" if "_appeared" in wu.columns else "_active"
+    if appeared_col == "_active":
+        wu["_active"] = _opportunity_mask(wu)
+    active = wu[wu[appeared_col]][["player_id", "season", "week", "team", "receiving_yards"]].drop_duplicates(
         subset=["player_id", "season", "week", "team"]
     )
 
@@ -465,12 +568,10 @@ def build_player_season_injury_durability(conn, seasons=SEASONS):
 
     wu = load_weekly_usage(conn)
     wu = wu[wu["season"].isin(seasons)].copy()
-    wu["_active"] = (
-        ((wu["position"] == "QB") & (wu["attempts"] > 0))
-        | ((wu["position"] != "QB") & ((wu["carries"] > 0) | (wu["targets"] > 0)))
-    )
-
-    played = wu[wu["_active"]][["season", "week", "player_id"]].drop_duplicates()
+    # Availability is an appearance concept, not an opportunity concept.
+    # load_weekly_usage derives `_appeared` from offensive snaps (falling
+    # back to opportunity only when snap data is unavailable).
+    played = wu[wu["_appeared"]][["season", "week", "player_id"]].drop_duplicates()
     games_played = played.groupby(["season", "player_id"]).size().rename("games_played").reset_index()
 
     played_flagged = played.merge(flagged, on=["season", "week", "player_id"], how="inner")
@@ -586,7 +687,7 @@ def team_week_rz_position_totals(conn, seasons=SEASONS):
 
 def player_active_rz_position_opportunity(conn, seasons=SEASONS):
     """Player-season position-group red-zone carry/target totals restricted
-    to the WEEKS THIS PLAYER WAS ACTUALLY ACTIVE - the position-keyed
+    to the WEEKS THIS PLAYER APPEARED ON OFFENSE - the position-keyed
     sibling of player_active_team_opportunity, and the Phase-3 fix for the
     last denominator the original active-weeks pass missed.
 
@@ -614,11 +715,12 @@ def player_active_rz_position_opportunity(conn, seasons=SEASONS):
     stabilizer for exactly this."""
     wu = load_weekly_usage(conn)
     wu = wu[wu["season"].isin(seasons)].copy()
-    wu["_active"] = (
-        ((wu["position"] == "QB") & (wu["attempts"] > 0))
-        | ((wu["position"] != "QB") & ((wu["carries"] > 0) | (wu["targets"] > 0)))
-    )
-    active = wu[wu["_active"]][["player_id", "season", "week", "team", "position"]].drop_duplicates()
+    appeared_col = "_appeared" if "_appeared" in wu.columns else "_active"
+    if appeared_col == "_active":
+        wu["_active"] = _opportunity_mask(wu)
+    active = wu[wu[appeared_col]][
+        ["player_id", "season", "week", "team", "position"]
+    ].drop_duplicates()
 
     team_wk_rz_pos = team_week_rz_position_totals(conn, seasons)
     joined = active.merge(team_wk_rz_pos, on=["season", "week", "team", "position"], how="left")

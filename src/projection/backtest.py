@@ -28,9 +28,10 @@ from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
-    ALL_FEATURES, AVAILABILITY_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS,
+    ALL_FEATURES, AVAILABILITY_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
+    REFRAMED_SHARE_STATS,
     RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, AVAILABILITY_LABEL, SEASON_GAMES,
-    receiving_share_scale,
+    TEAM_ATTEMPTS_LABEL, receiving_share_scale,
 )
 from src.projection.rookies import build_rookie_dataset, fit_rookie_baselines, predict_rookies
 from src.projection.train import LGBM_PARAMS
@@ -38,18 +39,60 @@ from src.projection.corrections import (
     compute_loo_receiving_residuals, fit_elite_shrinkage, elite_shrinkage_adjustment,
     injury_cohort_gate, load_suspension_weeks,
 )
+from src.projection.depth_history import attach_depth_rank
 
 TRAIN_PAIRS = [(2021, 2022), (2022, 2023), (2023, 2024)]
 TEST_PAIR = (2024, 2025)
+ROLLING_TEST_PAIRS = [(2022, 2023), (2023, 2024), (2024, 2025)]
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MODELS_DIR = os.path.join(REPO_ROOT, "models")
 INTERVAL_QUANTILES = (0.10, 0.90)  # 80% empirical interval width - see PHASE5_REPORT.md for why
 INTERVAL_MIN_N = 30  # veteran (position, stat) test-set n below this would need a parametric fallback (none do - min is 61)
+DEPTH_VOLUME_STATS = {"QB": "attempts", "RB": "carries", "WR": "targets", "TE": "targets"}
 
 
 def mae(a, b):
     return float(np.mean(np.abs(a - b)))
+
+
+def depth_rate_calibration(feat, conn, pairs=TRAIN_PAIRS + [TEST_PAIR]):
+    """LOTO calibration for predict.DEPTH_RATE_LADDER.
+
+    Uses one opportunity-volume rate per position and the current ``*_pg``
+    labels, so a games-played redefinition cannot leave the hard-coded ladder
+    silently calibrated to an obsolete denominator. Ratios are reported raw;
+    production may cap ratios above 1 because this gate is a discount, not a
+    general model-bias correction.
+    """
+    rows = []
+    for position, stat in DEPTH_VOLUME_STATS.items():
+        label = f"{stat}_pg"
+        for held_out in pairs:
+            train_pairs = [pair for pair in pairs if pair != held_out]
+            train = build_transition_pairs(feat, position, stat, train_pairs)
+            test = build_transition_pairs(feat, position, stat, [held_out])
+            if train.empty or test.empty:
+                continue
+            model = LGBMRegressor(**LGBM_PARAMS)
+            model.fit(train[ALL_FEATURES], train[label])
+            test = test.copy()
+            test["pred"] = np.clip(model.predict(test[ALL_FEATURES]), 0, None)
+            test["position"] = position
+            test = attach_depth_rank(test, held_out[1], conn=conn)
+            test["actual"] = test[label]
+            rows.append(test[["position", "nfl_depth_rank", "actual", "pred"]])
+    if not rows:
+        return pd.DataFrame()
+    out = pd.concat(rows, ignore_index=True)
+    out["depth_band"] = out["nfl_depth_rank"].apply(
+        lambda rank: "off_chart" if pd.isna(rank)
+        else (f"rank_{int(rank)}" if int(rank) <= 5 else "deep"))
+    summary = out.groupby(["position", "depth_band"]).agg(
+        n=("actual", "size"), actual_sum=("actual", "sum"), pred_sum=("pred", "sum")
+    ).reset_index()
+    summary["actual_over_pred"] = summary["actual_sum"] / summary["pred_sum"].replace(0, np.nan)
+    return summary
 
 
 def _fit_team_total_model(feat, train_pairs):
@@ -57,7 +100,7 @@ def _fit_team_total_model(feat, train_pairs):
     if team_train.empty:
         return None
     model = RidgeCV(alphas=np.logspace(-2, 3, 20))
-    model.fit(team_train[TEAM_FEATURES], team_train[TEAM_TOTAL_LABEL])
+    model.fit(team_train[TEAM_MODEL_FEATURES], team_train[TEAM_TOTAL_LABEL])
     return model
 
 
@@ -78,20 +121,16 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
     32 live 2026 teams shipped capped ones.
 
     Parity limits vs predict.py's live composition, stated plainly rather
-    than papered over: (1) shares here carry NO role/depth-chart discount
-    (d_i=1) - no historical CURATED depth chart exists for held-out
-    seasons; (2) no rookie-path implied shares enter the denominator - the
+    than papered over: (1) shares here carry no hand-curated role metadata;
+    (2) no rookie-path implied shares enter the denominator - the
     veteran backtest frame has no rookie predictions for the held-out
     season. Achieved parity is "identical composition code path, empty
     discount/rookie inputs," not a byte-for-byte replica of the live run.
 
     Limit (1) is narrower than it used to be. Gate A added
     depth_history.py, which reconstructs a preseason depth chart for EVERY
-    season from nflverse; what is still missing is only the curated file's
-    hand-verified ROLE tier (starter/committee/backup), which is what
-    ROLE_VOLUME_DISCOUNT keys on. Deriving those tiers from the historical
-    ranks - so the discount constants can be fit against outcomes instead
-    of asserted - is the next step, and is deliberately not done here.
+    season from nflverse; what is still missing is the curated file's
+    hand-verified role tier and a complete historical as-of roster path.
 
     Team-total predictions are drawn from each test row's OWN
     TEAM_FEATURES (already the player's season_from team context), the
@@ -124,7 +163,14 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
         share_model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
         f = test[["team"]].copy()
         f["share"] = np.clip(share_model.predict(test[ALL_FEATURES]), 0, None)
-        f["team_total_pred"] = np.clip(team_model.predict(test[TEAM_FEATURES]), 0, None)
+        f["weight"] = (
+            pd.to_numeric(test["games_played_to"], errors="coerce") / SEASON_GAMES
+        ).clip(0, 1)
+        # Team-grain inputs, looked up per (season_from, team). Scoring the
+        # team model on `test` directly is what produced ~40%-low team
+        # totals and dragged every reframed receiving residual with them.
+        f["team_total_pred"] = np.clip(team_model.predict(
+            team_model_inputs(feat, test_pairs, test["season_from"], test["team"])), 0, None)
         f["position"], f["stat"], f["row"] = position, stat, test.index
         per_combo[(position, stat)] = test
         frames.append(f)
@@ -134,7 +180,7 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
         return {}
 
     allf = pd.concat(frames, ignore_index=True)
-    scale, _ = receiving_share_scale(allf[["team", "share"]])
+    scale, _ = receiving_share_scale(allf[["team", "share", "weight"]])
     allf["uncapped"] = allf["share"] * allf["team_total_pred"]
     allf["capped"] = allf["share"] * scale * allf["team_total_pred"]
 
@@ -170,17 +216,17 @@ def _predict_reframed_receiving(feat, position, stat, train_pairs, test_pairs):
     return _predict_all_reframed_receiving(feat, train_pairs, test_pairs).get((position, stat))
 
 
-def backtest_position_stat(feat, position, stat):
+def backtest_position_stat(feat, position, stat, train_pairs=TRAIN_PAIRS, test_pair=TEST_PAIR):
     y_col = f"{stat}_pg"
 
     if (position, stat) in REFRAMED_SHARE_STATS:
-        result = _predict_reframed_receiving(feat, position, stat, TRAIN_PAIRS, [TEST_PAIR])
+        result = _predict_reframed_receiving(feat, position, stat, train_pairs, [test_pair])
         if result is None:
             return None
         test, pred, pred_uncapped = result
     else:
-        train = build_transition_pairs(feat, position, stat, TRAIN_PAIRS)
-        test = build_transition_pairs(feat, position, stat, [TEST_PAIR])
+        train = build_transition_pairs(feat, position, stat, train_pairs)
+        test = build_transition_pairs(feat, position, stat, [test_pair])
         if train.empty or test.empty:
             return None
         model = LGBMRegressor(**LGBM_PARAMS)
@@ -205,21 +251,22 @@ def backtest_position_stat(feat, position, stat):
     return row
 
 
-def backtest_team_total(feat):
+def backtest_team_total(feat, train_pairs=TRAIN_PAIRS, test_pair=TEST_PAIR,
+                        label_col=TEAM_TOTAL_LABEL, stat="passing_yards"):
     """Team-level MAE-vs-naive for the new team_passing_yards model (joint/
     multi-output Phase A) - same held-out discipline as
     backtest_position_stat, at team-season grain instead of player-season."""
-    train = build_team_transition_pairs(feat, TRAIN_PAIRS)
-    test = build_team_transition_pairs(feat, [TEST_PAIR])
+    train = build_team_transition_pairs(feat, train_pairs, label_col=label_col)
+    test = build_team_transition_pairs(feat, [test_pair], label_col=label_col)
     if train.empty or test.empty:
         return None
     model = RidgeCV(alphas=np.logspace(-2, 3, 20))
-    model.fit(train[TEAM_FEATURES], train[TEAM_TOTAL_LABEL])
-    pred = model.predict(test[TEAM_FEATURES])
+    model.fit(train[TEAM_MODEL_FEATURES], train[label_col])
+    pred = model.predict(test[TEAM_MODEL_FEATURES])
     naive = test["naive_pred"]
-    actual = test[TEAM_TOTAL_LABEL]
+    actual = test[label_col]
     return {
-        "position": "TEAM", "stat": "passing_yards", "n_test": len(test),
+        "position": "TEAM", "stat": stat, "n_test": len(test),
         "model_mae": mae(pred, actual), "naive_mae": mae(naive, actual),
         "model_wins": mae(pred, actual) < mae(naive, actual),
     }
@@ -253,7 +300,8 @@ def coherence_ratio_backtest(feat):
         old_test = old_test.copy()
         old_test["old_pred"] = old_model.predict(old_test[ALL_FEATURES])
         old_test["actual"] = old_test[f"{stat}_pg"]
-        old_pred.append(old_test[["team", "old_pred", "actual"]])
+        old_test["weight"] = old_test["games_played_to"] / SEASON_GAMES
+        old_pred.append(old_test[["team", "old_pred", "actual", "weight"]])
 
         # NEW: reframed share model x team-total model.
         result = _predict_reframed_receiving(feat, position, stat, TRAIN_PAIRS, [TEST_PAIR])
@@ -262,7 +310,8 @@ def coherence_ratio_backtest(feat):
         new_test, new_reconstructed, _ = result
         new_test = new_test.copy()
         new_test["new_pred"] = new_reconstructed
-        new_pred.append(new_test[["team", "new_pred"]])
+        new_test["weight"] = new_test["games_played_to"] / SEASON_GAMES
+        new_pred.append(new_test[["team", "new_pred", "weight"]])
 
     if not old_pred or not new_pred:
         return pd.DataFrame()
@@ -272,11 +321,14 @@ def coherence_ratio_backtest(feat):
 
     team_test = build_team_transition_pairs(feat, [TEST_PAIR])
     team_test = team_test.copy()
-    team_test["team_total_pred"] = team_model.predict(team_test[TEAM_FEATURES])
+    team_test["team_total_pred"] = team_model.predict(team_test[TEAM_MODEL_FEATURES])
 
-    old_sum = old_df.groupby("team")["old_pred"].sum().rename("old_receiving_sum")
-    new_sum = new_df.groupby("team")["new_pred"].sum().rename("new_receiving_sum")
-    actual_sum = old_df.groupby("team")["actual"].sum().rename("actual_receiving_sum")
+    old_df["old_expected"] = old_df["old_pred"] * old_df["weight"]
+    new_df["new_expected"] = new_df["new_pred"] * new_df["weight"]
+    old_df["actual_expected"] = old_df["actual"] * old_df["weight"]
+    old_sum = old_df.groupby("team")["old_expected"].sum().rename("old_receiving_sum")
+    new_sum = new_df.groupby("team")["new_expected"].sum().rename("new_receiving_sum")
+    actual_sum = old_df.groupby("team")["actual_expected"].sum().rename("actual_receiving_sum")
 
     out = team_test.set_index("team")[["team_total_pred", TEAM_TOTAL_LABEL]].join(
         [old_sum, new_sum, actual_sum], how="inner"
@@ -411,6 +463,48 @@ def run_veteran_backtest(feat):
     team_row = backtest_team_total(feat)
     if team_row:
         rows.append(team_row)
+    attempts_row = backtest_team_total(
+        feat, label_col=TEAM_ATTEMPTS_LABEL, stat="pass_attempts")
+    if attempts_row:
+        rows.append(attempts_row)
+    return pd.DataFrame(rows)
+
+
+def run_rolling_origin_backtest(feat, test_pairs=ROLLING_TEST_PAIRS):
+    """Expanding-window evaluation across multiple genuinely future folds.
+
+    Each test transition is predicted only from earlier transitions.  This
+    prevents the repeatedly inspected 2024->2025 result from serving as the
+    project's sole evidence.  The first evaluable fold is 2022->2023 because
+    2021->2022 is required as its training history.
+    """
+    available = [(2021, 2022), (2022, 2023), (2023, 2024), (2024, 2025)]
+    rows = []
+    for test_pair in test_pairs:
+        train_pairs = [pair for pair in available if pair[1] <= test_pair[0]]
+        if not train_pairs:
+            continue
+        for position, stats in TARGET_STATS.items():
+            for stat in stats:
+                result = backtest_position_stat(
+                    feat, position, stat, train_pairs=train_pairs, test_pair=test_pair
+                )
+                if result:
+                    result["test_season"] = test_pair[1]
+                    result["n_train_transitions"] = len(train_pairs)
+                    rows.append(result)
+        team = backtest_team_total(feat, train_pairs=train_pairs, test_pair=test_pair)
+        if team:
+            team["test_season"] = test_pair[1]
+            team["n_train_transitions"] = len(train_pairs)
+            rows.append(team)
+        attempts = backtest_team_total(
+            feat, train_pairs=train_pairs, test_pair=test_pair,
+            label_col=TEAM_ATTEMPTS_LABEL, stat="pass_attempts")
+        if attempts:
+            attempts["test_season"] = test_pair[1]
+            attempts["n_train_transitions"] = len(train_pairs)
+            rows.append(attempts)
     return pd.DataFrame(rows)
 
 
@@ -446,6 +540,22 @@ def main():
     pd.set_option("display.width", 160)
     print(vet.to_string(index=False))
 
+    print("\n=== Rolling-origin veteran evaluation (expanding window) ===")
+    rolling = run_rolling_origin_backtest(feat)
+    if rolling.empty:
+        print("(no rolling-origin rows)")
+    else:
+        print(rolling.to_string(index=False))
+        summary = rolling.groupby(["position", "stat"]).agg(
+            folds=("test_season", "nunique"),
+            n_test=("n_test", "sum"),
+            model_mae=("model_mae", "mean"),
+            naive_mae=("naive_mae", "mean"),
+            fold_win_rate=("model_wins", "mean"),
+        ).reset_index()
+        print("\nRolling-origin fold-mean summary:")
+        print(summary.to_string(index=False))
+
     print("\n=== Rookie backtest: baselines from 2016-2024 rookies, test 2025 rookies ===")
     rook = run_rookie_backtest(conn, feat)
     print(rook.to_string(index=False))
@@ -473,6 +583,14 @@ def main():
     print("\n=== Availability backtest (Phase 11): games played, vs carrying season-N games forward ===")
     av = backtest_availability(feat)
     print(av.to_string(index=False) if not av.empty else "(no availability rows)")
+
+    print("\n=== Conditional rate by preseason depth (Gate B calibration) ===")
+    depth_cal = depth_rate_calibration(feat, conn)
+    print(depth_cal.to_string(index=False) if not depth_cal.empty else "(no calibration rows)")
+    if not depth_cal.empty:
+        depth_path = os.path.join(MODELS_DIR, "depth_rate_calibration.csv")
+        depth_cal.to_csv(depth_path, index=False)
+        print(f"Saved -> {depth_path}")
 
     print("\n=== Season-TOTAL framing (Phase 11): which produces the best season value? ===")
     print("(scored on actual season totals incl. 0 for players who never played again)")
