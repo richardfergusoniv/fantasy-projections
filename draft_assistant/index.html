@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Draft Assistant 2026</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-brand">
+        <h1>Draft Assistant</h1>
+        <span class="season-badge" id="seasonBadge">2026</span>
+      </div>
+      <div class="header-controls">
+        <label class="control">
+          Teams
+          <select id="teamCount">
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="12" selected>12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+          </select>
+        </label>
+        <label class="control">
+          Your slot
+          <select id="draftSlot"></select>
+        </label>
+        <label class="control">
+          Current pick
+          <input id="currentPick" type="number" min="1" value="1" />
+        </label>
+        <button id="undoBtn" class="btn btn-ghost" type="button">Undo pick</button>
+        <button id="resetBtn" class="btn btn-ghost" type="button">Reset draft</button>
+      </div>
+    </header>
+
+    <div class="draft-status" id="draftStatus"></div>
+
+    <main class="main">
+      <section class="panel rankings-panel">
+        <div class="panel-header">
+          <h2>Rankings</h2>
+          <div class="panel-tools">
+            <input id="searchInput" type="search" placeholder="Search players..." />
+            <div class="position-tabs" id="positionTabs">
+              <button class="tab active" data-pos="ALL">All</button>
+              <button class="tab" data-pos="QB">QB</button>
+              <button class="tab" data-pos="RB">RB</button>
+              <button class="tab" data-pos="WR">WR</button>
+              <button class="tab" data-pos="TE">TE</button>
+              <button class="tab" data-pos="FLEX">FLEX</button>
+            </div>
+            <label class="toggle">
+              <input id="hideDrafted" type="checkbox" checked />
+              Hide drafted
+            </label>
+            <label class="toggle">
+              <input id="posTiers" type="checkbox" checked />
+              Position tiers
+            </label>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="rankings-table">
+            <thead>
+              <tr>
+                <th class="col-check"></th>
+                <th class="col-rank">Rank</th>
+                <th class="col-tier">Tier</th>
+                <th class="col-player">Player</th>
+                <th class="col-pos">Pos</th>
+                <th class="col-team">Team</th>
+                <th class="col-pts">Pts/G</th>
+                <th class="col-season">Season</th>
+              </tr>
+            </thead>
+            <tbody id="rankingsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <section class="panel suggestions-panel">
+          <div class="panel-header">
+            <h2>Suggested picks</h2>
+          </div>
+          <ul class="suggestions" id="suggestionsList"></ul>
+        </section>
+
+        <section class="panel roster-panel">
+          <div class="panel-header">
+            <h2>Your roster</h2>
+            <span class="roster-count" id="rosterCount">0 players</span>
+          </div>
+          <div class="roster-slots" id="rosterSlots"></div>
+        </section>
+
+        <section class="panel log-panel">
+          <div class="panel-header">
+            <h2>Draft log</h2>
+          </div>
+          <ol class="draft-log" id="draftLog" reversed></ol>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>
