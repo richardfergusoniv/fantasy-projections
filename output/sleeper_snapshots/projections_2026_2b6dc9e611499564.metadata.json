@@ -1,0 +1,6 @@
+{
+  "endpoint": "https://api.sleeper.app/v1/projections/nfl/regular/2026",
+  "fetched_at": "2026-08-14T16:21:08.528405+00:00",
+  "raw_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\sleeper_snapshots\\projections_2026_2b6dc9e611499564.json",
+  "sha256": "2b6dc9e611499564740f01887ae6231983d8110a379ec6d436ab6cc7252f7df1"
+}

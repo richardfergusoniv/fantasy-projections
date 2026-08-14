@@ -1,0 +1,6 @@
+{
+  "endpoint": "https://api.sleeper.app/v1/players/nfl",
+  "fetched_at": "2026-08-14T16:21:08.099103+00:00",
+  "raw_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\sleeper_snapshots\\players_nfl_08483e49329f0efd.json",
+  "sha256": "08483e49329f0efd9d5dcfece706e09d0fbdceede34078157cb9996030e24dda"
+}

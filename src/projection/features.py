@@ -93,13 +93,18 @@ FEATURE_COLS = [
     # existed anywhere in the model before this) - see
     # data_prep.team_season_opponent_strength for the full construction.
     "opp_def_pass_epa_prior", "opp_def_rush_epa_prior",
-    # Draft capital + experience (Phase 5 of the consensus-gap work):
-    # draft-capital signal previously died at the rookie/veteran boundary,
-    # leaving year-2 breakouts invisible. Validated on the extended
-    # 2016-2024 leave-one-transition-out window before adding - see the
-    # Phase-5 commit for numbers. NaN round/pick = undrafted (real
-    # information, LightGBM-native).
-    "draft_round", "draft_pick", "career_year",
+    # Experience only. `draft_round`/`draft_pick` were added here in Phase 5
+    # of the consensus-gap work (the draft-capital signal died at the
+    # rookie/veteran boundary, so year-2 breakouts were invisible) and
+    # REMOVED again after a driver review: once a player has NFL snaps on
+    # record, where he was drafted is not what predicts his next season -
+    # his observed usage, role, and experience are. Draft capital is a
+    # rookie-path input and belongs only there (src/projection/rookies.py
+    # sources round/pick from `draft_picks` independently of this table, so
+    # the rookie model is unaffected by this removal).
+    # career_year = season - rookie_season stays: it is experience, not
+    # draft slot, and is the honest carrier of the year-2/year-3 curve.
+    "career_year",
 ] + OC_METRICS + LAG_RATE_FEATURES
 
 # Player-grain rate/share/monopoly features stabilized by the
@@ -211,21 +216,19 @@ def build_player_season_features(conn, seasons=SEASONS):
     # NOT filled - see player_season_age's docstring. A missing age is a
     # real, if uncommon, roster-data gap, not "age 0."
 
-    # --- Draft capital + experience (Phase 5 of the consensus-gap work):
-    # the rookie path uses draft round/pick heavily, then the signal
-    # vanishes the moment a player enters the veteran models - so a
-    # 1st/2nd-round WR coming off a quiet rookie year (Luther Burden,
-    # Matthew Golden, Jayden Higgins in 2025) is projected purely off that
-    # quiet season, while consensus correctly prices the year-2 leap that
-    # high draft capital still predicts. Sourced from `players` (not
-    # draft_picks - players covers pre-2016 draftees too). UDFA rows are
-    # genuinely NaN for round/pick (LightGBM handles natively - "went
-    # undrafted" is real information, not a missing value to fill).
-    # career_year = season - rookie_season (0 = rookie year, 1 =
-    # sophomore); NaN when rookie_season itself is unknown. Static
-    # per-player facts - deliberately NOT in BLEND_FEATURES.
+    # --- Experience. career_year = season - rookie_season (0 = rookie year,
+    # 1 = sophomore); NaN when rookie_season itself is unknown. A static
+    # per-player fact - deliberately NOT in BLEND_FEATURES.
+    #
+    # `draft_round`/`draft_pick` were read here too (Phase 5 of the
+    # consensus-gap work) and fed to the player-level models. Removed: draft
+    # slot is a rookie-path signal, and once a player has real NFL snaps his
+    # own observed usage and experience are what carry the year-2/year-3
+    # curve - see the FEATURE_COLS comment. `players.rookie_season` is read
+    # from the master roster (not draft_picks), so undrafted and pre-2016
+    # players still get a real career_year.
     draft = pd.read_sql(
-        "select gsis_id as player_id, draft_round, draft_pick, rookie_season from players", conn
+        "select gsis_id as player_id, rookie_season from players", conn
     )
     base = base.merge(draft, on="player_id", how="left")
     base["career_year"] = base["season"] - base["rookie_season"]
