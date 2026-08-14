@@ -11,6 +11,9 @@ import pandas as pd
 from src.comparison import sleeper_compare
 from src.projection.fantasy_points import DESCRIPTIVE_COLS, compute_fantasy_points
 from src.projection.predict import (
+    DEEP_BENCH_GAMES_CAP,
+    NAMED_REC_TDS_COVERAGE,
+    NAMED_REC_YARDS_COVERAGE,
     NAMED_RUSH_COVERAGE,
     QB_ATTEMPTS_PER_VOLUME_GAME_MAX,
     REPLACEMENT_POSITIONS,
@@ -19,13 +22,18 @@ from src.projection.predict import (
     USAGE_SHARE_CURATED_W,
     _ensure_output_parent,
     _warn_board_level_allocation,
+    apply_curated_availability_override,
+    apply_deep_bench_games_cap,
+    apply_status_overrides,
     apply_usage_share_prior,
     add_projected_season_totals,
     add_team_pass_catch_coherence_flag,
+    enforce_availability_chart_review,
     normalize_team_passing_volume,
     normalize_team_rushing_volume,
     reconcile_qb_projected_volume_games,
     reconcile_stat_constraints,
+    reconcile_team_pass_receive_counts,
 )
 from src.projection.transitions import receiving_share_scale
 
@@ -192,12 +200,15 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
              "team_pass_attempts_pg_pred": 34.0, "team_passing_yards_pg_pred": 240.0},
         ]
         out = normalize_team_passing_volume(pd.DataFrame(rows))
-        qb = out[out["position"] == "QB"].iloc[0]
         wr = out[out["position"] == "WR"].iloc[0]
         qb_yards = out[(out["position"] == "QB") & (out["stat"] == "passing_yards")].iloc[0]
+        target_pg = 240.0 * NAMED_REC_YARDS_COVERAGE
         self.assertAlmostEqual(qb_yards["pred_pg"], 240.0)
-        self.assertAlmostEqual(wr["pred_pg"], 100.0)
-        self.assertAlmostEqual(wr["team_unmodeled_receiving_yards_season"], 140.0 * 17.0)
+        self.assertAlmostEqual(wr["pred_pg"], target_pg)
+        self.assertAlmostEqual(
+            wr["team_unmodeled_receiving_yards_season"],
+            240.0 * 17.0 * (1.0 - NAMED_REC_YARDS_COVERAGE),
+        )
         self.assertAlmostEqual(wr["team_pass_catch_ratio_pre_normalization"], 100 / 240)
         self.assertTrue(wr["team_pass_catch_pre_normalization_flag"])
 
@@ -250,7 +261,10 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "could not meet the team attempt anchor"):
             normalize_team_passing_volume(pd.DataFrame(rows))
 
-    def test_receiver_shortfall_does_not_inflate_named_players(self):
+    def test_receiver_shortfall_fills_only_to_measured_coverage(self):
+        # Anchor is 240 yds/game but the only modeled WR is at 80. He is
+        # filled up to NAMED_REC_YARDS_COVERAGE of the anchor - not the whole
+        # thing - leaving an explicit residual for unlisted production.
         rows = [
             {"player_id": "q", "team": "TST", "position": "QB", "stat": "attempts",
              "pred_pg": 34.0, "pred_pg_low": 30.0, "pred_pg_high": 38.0,
@@ -267,8 +281,44 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         ]
         out = normalize_team_passing_volume(pd.DataFrame(rows))
         wr = out[out["position"] == "WR"].iloc[0]
-        self.assertAlmostEqual(wr["pred_pg"], 80.0)
-        self.assertAlmostEqual(wr["team_unmodeled_receiving_yards_season"], 160.0 * 17.0)
+        self.assertAlmostEqual(wr["pred_pg"], 240.0 * NAMED_REC_YARDS_COVERAGE)
+        self.assertAlmostEqual(
+            wr["team_unmodeled_receiving_yards_season"],
+            240.0 * 17.0 * (1.0 - NAMED_REC_YARDS_COVERAGE),
+        )
+        self.assertGreater(wr["pred_pg"], 80.0)
+        self.assertLess(wr["pred_pg"], 240.0)
+
+    def test_receiver_td_shortfall_fills_only_to_measured_coverage(self):
+        rows = [
+            {"player_id": "q", "team": "TST", "position": "QB", "stat": "attempts",
+             "pred_pg": 34.0, "pred_pg_low": 30.0, "pred_pg_high": 38.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_unmodeled_qb_attempts_season": 0.0},
+            {"player_id": "q", "team": "TST", "position": "QB", "stat": "completions",
+             "pred_pg": 22.0, "pred_pg_low": 18.0, "pred_pg_high": 26.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_unmodeled_qb_attempts_season": 0.0},
+            {"player_id": "q", "team": "TST", "position": "QB", "stat": "passing_tds",
+             "pred_pg": 2.0, "pred_pg_low": 1.0, "pred_pg_high": 3.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_unmodeled_qb_attempts_season": 0.0},
+            {"player_id": "w", "team": "TST", "position": "WR", "stat": "receptions",
+             "pred_pg": 10.0, "pred_pg_low": 8.0, "pred_pg_high": 12.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_unmodeled_qb_attempts_season": 0.0},
+            {"player_id": "w", "team": "TST", "position": "WR", "stat": "receiving_tds",
+             "pred_pg": 0.8, "pred_pg_low": 0.4, "pred_pg_high": 1.2,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_unmodeled_qb_attempts_season": 0.0},
+        ]
+        out = reconcile_team_pass_receive_counts(pd.DataFrame(rows))
+        wr_td = out[out["stat"] == "receiving_tds"].iloc[0]
+        self.assertAlmostEqual(wr_td["pred_pg"], 2.0 * NAMED_REC_TDS_COVERAGE)
+        self.assertAlmostEqual(
+            wr_td["team_unmodeled_receiving_tds_season"],
+            2.0 * 17.0 * (1.0 - NAMED_REC_TDS_COVERAGE),
+        )
 
     def _carry_row(self, player_id, team, position, pred_pg, anchor_carries,
                    anchor_yards, games=17.0):
@@ -423,6 +473,112 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         # evidence says otherwise.
         self.assertEqual(USAGE_SHARE_BLEND_W, 0.0)
         self.assertGreater(USAGE_SHARE_CURATED_W, 0.0)
+
+    def test_status_override_zero_preserves_raw_games(self):
+        df = pd.DataFrame([
+            {"player_id": "pear", "projected_games": 13.2},
+            {"player_id": "ok", "projected_games": 15.0},
+        ])
+        overrides = pd.DataFrame([{
+            "gsis_id": "pear", "mode": "zero", "projected_games": None,
+        }])
+        out = apply_status_overrides(df, overrides).set_index("player_id")
+        self.assertEqual(out.loc["pear", "projected_games"], 0.0)
+        self.assertAlmostEqual(out.loc["pear", "projected_games_raw"], 13.2)
+        self.assertAlmostEqual(out.loc["ok", "projected_games"], 15.0)
+        self.assertTrue(out.loc["pear", "status_override_applied"])
+        self.assertFalse(out.loc["ok", "status_override_applied"])
+
+    def test_status_override_cap(self):
+        df = pd.DataFrame([{"player_id": "x", "projected_games": 14.0}])
+        overrides = pd.DataFrame([{
+            "gsis_id": "x", "mode": "cap", "projected_games": 6.0,
+        }])
+        out = apply_status_overrides(df, overrides).iloc[0]
+        self.assertAlmostEqual(out["projected_games"], 6.0)
+        self.assertAlmostEqual(out["projected_games_raw"], 14.0)
+
+    def test_deep_bench_games_cap_skips_status_zero(self):
+        df = pd.DataFrame([
+            {"player_id": "bench", "projected_games": 13.0,
+             "projected_games_raw": 13.0, "depth_chart_status": "deep_bench_discounted",
+             "status_override_applied": False},
+            {"player_id": "ir", "projected_games": 0.0,
+             "projected_games_raw": 12.0, "depth_chart_status": "deep_bench_discounted",
+             "status_override_applied": True},
+            {"player_id": "starter", "projected_games": 15.0,
+             "projected_games_raw": 15.0, "depth_chart_status": "curated",
+             "status_override_applied": False},
+        ])
+        out = apply_deep_bench_games_cap(df).set_index("player_id")
+        self.assertAlmostEqual(out.loc["bench", "projected_games"], DEEP_BENCH_GAMES_CAP)
+        self.assertEqual(out.loc["ir", "projected_games"], 0.0)
+        self.assertAlmostEqual(out.loc["starter", "projected_games"], 15.0)
+
+    def test_curated_availability_override_forces_off_chart(self):
+        base = pd.DataFrame([
+            {"player_id": "on", "position": "WR", "target_depth_rank": 2.0},
+            {"player_id": "off", "position": "WR", "target_depth_rank": 1.0},
+            {"player_id": "miss", "position": "WR", "target_depth_rank": float("nan")},
+        ])
+        chart = pd.DataFrame([
+            {"gsis_id": "on", "position": "WR", "depth_rank": 1},
+            {"gsis_id": "miss", "position": "WR", "depth_rank": 2},
+        ])
+        out = apply_curated_availability_override(base, chart).set_index("player_id")
+        self.assertAlmostEqual(out.loc["on", "target_depth_rank"], 2.0)
+        self.assertTrue(pd.isna(out.loc["off", "target_depth_rank"]))
+        self.assertAlmostEqual(out.loc["miss", "target_depth_rank"], 2.0)
+
+    def test_reverse_chart_conflict_fails_without_status_override(self):
+        base = pd.DataFrame([{"player_id": "pear", "position": "WR"}])
+        chart = pd.DataFrame([
+            {"gsis_id": "other", "position": "WR", "depth_rank": 1,
+             "player_name": "Other", "role": "starter"},
+        ])
+        nfl = pd.DataFrame([{
+            "player_id": "pear", "position": "WR", "depth_rank": 2.0,
+            "availability_rank": 1.0, "full_name": "Ricky Pearsall",
+            "team": "SF", "source": "test",
+        }])
+        with patch("src.projection.predict.load_preseason_depth_chart", return_value=nfl):
+            with self.assertRaisesRegex(ValueError, "REVIEW FAILURE"):
+                enforce_availability_chart_review(
+                    base, chart, overrides=pd.DataFrame(), target_season=2026)
+
+    def test_reverse_chart_conflict_cleared_by_status_override(self):
+        base = pd.DataFrame([{"player_id": "pear", "position": "WR"}])
+        chart = pd.DataFrame([
+            {"gsis_id": "other", "position": "WR", "depth_rank": 1,
+             "player_name": "Other", "role": "starter"},
+        ])
+        nfl = pd.DataFrame([{
+            "player_id": "pear", "position": "WR", "depth_rank": 2.0,
+            "availability_rank": 1.0, "full_name": "Ricky Pearsall",
+            "team": "SF", "source": "test",
+        }])
+        overrides = pd.DataFrame([{"gsis_id": "pear", "mode": "zero"}])
+        with patch("src.projection.predict.load_preseason_depth_chart", return_value=nfl):
+            enforce_availability_chart_review(
+                base, chart, overrides=overrides, target_season=2026)
+
+    def test_all_wr_rooms_are_usage_share_reviewed(self):
+        path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "src", "depth_chart", "starters_2026.csv",
+        )
+        dc = pd.read_csv(path)
+        wr = dc[dc["position"] == "WR"]
+        reviewed = wr["usage_share_reviewed"].astype(str).str.strip().str.lower().isin(
+            ("true", "1", "yes")
+        )
+        self.assertEqual(int(reviewed.sum()), len(wr))
+        self.assertEqual(wr["team"].nunique(), 32)
+        dal = wr[wr["team"] == "DAL"].set_index("player_name")
+        self.assertGreater(
+            float(dal.loc["CeeDee Lamb", "usage_share_prior"]),
+            float(dal.loc["George Pickens", "usage_share_prior"]),
+        )
 
     def _tripwire_conn(self):
         conn = sqlite3.connect(":memory:")

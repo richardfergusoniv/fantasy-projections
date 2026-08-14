@@ -46,7 +46,12 @@ import numpy as np
 import pandas as pd
 
 from src.projection.data_prep import get_conn, load_weekly_usage, team_season_opponent_strength
-from src.projection.depth_history import attach_availability_depth_rank, attach_depth_rank
+from src.projection.depth_history import (
+    PRESEASON_CHART_DEPTH,
+    attach_availability_depth_rank,
+    attach_depth_rank,
+    load_preseason_depth_chart,
+)
 from src.projection.features import build_player_season_features, TARGET_STATS, OC_METRICS
 from src.projection.ol_quality import team_season_ol_quality
 from src.projection.transitions import (
@@ -67,6 +72,16 @@ MODELS_DIR = os.path.join(REPO_ROOT, "models")
 INTERVAL_RESIDUALS_PATH = os.path.join(MODELS_DIR, "interval_residuals.csv")
 CORRECTIONS_PATH = os.path.join(MODELS_DIR, "corrections.joblib")
 DEPTH_CHART_PATH = os.path.join(REPO_ROOT, "src", "depth_chart", "starters_2026.csv")
+STATUS_OVERRIDES_PATH = os.path.join(
+    REPO_ROOT, "src", "depth_chart", "status_overrides_2026.csv"
+)
+# Researched curated depths (PHASE6_REPORT.md): QB1-2, RB1-2, WR1-3, TE1-2.
+# Reverse chart conflicts are only review failures inside this window — nflverse
+# WR4-6 map into availability tiers 2-3 after pairing and are not "Pearsall-shaped".
+CURATED_RESEARCH_DEPTH = {"QB": 2, "RB": 2, "WR": 3, "TE": 2}
+# Mean REG games among off-chart RB/WR/TE with any weekly usage, 2017-2025 ≈ 5.51.
+# Cap curated-excluded players' projected_games (Gate A), not their rates.
+DEEP_BENCH_GAMES_CAP = 6.0
 # Rookie ratio fallback if a bucket/stat combo has too few historical rows
 # for its own empirical ratio (rookie_interval_ratios drops any with <3
 # values) - deliberately wide, and always flagged via interval_low_n_flag.
@@ -862,6 +877,179 @@ def load_depth_chart(target_season):
     return dc[dc["season"] == target_season]
 
 
+def load_status_overrides(target_season):
+    """Dated human availability overrides (season-ending IR → zero, PUP → cap).
+
+    Empty for seasons without a file. Never auto-derived from roster_status —
+    RES/PUP on seasonal_rosters stays metadata only (Phase 6)."""
+    cols = ["season", "gsis_id", "player_name", "as_of_date", "mode",
+            "projected_games", "reason"]
+    if target_season != 2026 or not os.path.exists(STATUS_OVERRIDES_PATH):
+        return pd.DataFrame(columns=cols)
+    ov = pd.read_csv(STATUS_OVERRIDES_PATH)
+    return ov[ov["season"] == target_season].copy()
+
+
+def apply_curated_availability_override(base, depth_chart):
+    """Predict-time: curated membership wins for Gate A ``target_depth_rank``.
+
+    Training still uses only the nflverse feature. When a curated chart exists
+    for the target season, players off it are forced off-chart (NaN); players
+    on it but missing from nflverse get their curated depth_rank clipped to
+    PRESEASON_CHART_DEPTH so the availability model sees the curator’s call.
+    """
+    out = base.copy()
+    if depth_chart.empty or "target_depth_rank" not in out.columns:
+        return out
+    dc = depth_chart.dropna(subset=["gsis_id"]).drop_duplicates(["gsis_id", "position"])
+    curated = set(zip(dc["gsis_id"], dc["position"]))
+    rank_of = dc.set_index(["gsis_id", "position"])["depth_rank"]
+    keys = list(zip(out["player_id"], out["position"]))
+    on_curated = pd.Series([(p, pos) in curated for p, pos in keys], index=out.index)
+    out.loc[~on_curated, "target_depth_rank"] = np.nan
+    need = on_curated & out["target_depth_rank"].isna()
+    if need.any():
+        for idx in out.index[need]:
+            pid, pos = out.at[idx, "player_id"], out.at[idx, "position"]
+            raw = float(rank_of.loc[(pid, pos)])
+            cap = float(PRESEASON_CHART_DEPTH.get(pos, raw))
+            out.at[idx, "target_depth_rank"] = min(raw, cap)
+    return out
+
+
+def apply_status_overrides(df, overrides):
+    """Write status overrides into ``projected_games``; keep ``projected_games_raw``.
+
+    mode=zero → 0 games. mode=cap → min(projected_games, projected_games column).
+    """
+    out = df.copy()
+    if "projected_games_raw" not in out.columns:
+        out["projected_games_raw"] = pd.to_numeric(out.get("projected_games"), errors="coerce")
+    if overrides is None or overrides.empty:
+        out["status_override_applied"] = False
+        return out
+    out["status_override_applied"] = False
+    by_id = overrides.drop_duplicates("gsis_id").set_index("gsis_id")
+    for pid, row in by_id.iterrows():
+        mask = out["player_id"].eq(pid)
+        if not mask.any():
+            continue
+        mode = str(row["mode"]).strip().lower()
+        if mode == "zero":
+            out.loc[mask, "projected_games"] = 0.0
+            out.loc[mask, "status_override_applied"] = True
+        elif mode == "cap":
+            cap = pd.to_numeric(row.get("projected_games"), errors="coerce")
+            if pd.isna(cap):
+                raise ValueError(
+                    f"status override for {pid} mode=cap requires projected_games"
+                )
+            cur = pd.to_numeric(out.loc[mask, "projected_games"], errors="coerce")
+            out.loc[mask, "projected_games"] = np.minimum(cur.fillna(cap), float(cap))
+            out.loc[mask, "status_override_applied"] = True
+        else:
+            raise ValueError(f"Unknown status override mode {mode!r} for {pid}")
+    return out
+
+
+def apply_deep_bench_games_cap(df):
+    """Hard games cap for curated-excluded players; does not touch rates.
+
+    Skips rows already written by a status override (zero must stay zero;
+    an explicit status cap is the human’s number)."""
+    out = df.copy()
+    if "projected_games_raw" not in out.columns:
+        out["projected_games_raw"] = pd.to_numeric(out.get("projected_games"), errors="coerce")
+    if "depth_chart_status" not in out.columns:
+        return out
+    if "status_override_applied" in out.columns:
+        status_done = out["status_override_applied"].fillna(False).astype(bool)
+    else:
+        status_done = False
+    mask = out["depth_chart_status"].eq("deep_bench_discounted") & ~status_done
+    if not mask.any():
+        return out
+    cur = pd.to_numeric(out.loc[mask, "projected_games"], errors="coerce")
+    out.loc[mask, "projected_games"] = np.minimum(cur, DEEP_BENCH_GAMES_CAP)
+    return out
+
+
+def enforce_availability_chart_review(base, depth_chart, overrides, target_season, conn=None):
+    """Bidirectional curated↔nflverse conflicts at researched depth.
+
+    Forward (curated-on / nflverse-off): stderr warning only — curated already
+    won via ``apply_curated_availability_override``.
+
+    Reverse (curated-off / nflverse-on within CURATED_RESEARCH_DEPTH, and the
+    player is in this projection frame): hard review failure unless a status
+    override row acknowledges the exclusion (Pearsall zero, or cap ack).
+    """
+    if depth_chart.empty:
+        return
+    nfl = load_preseason_depth_chart(target_season, conn=conn)
+    if nfl.empty:
+        return
+    keep = nfl[
+        nfl["availability_rank"] <= nfl["position"].map(PRESEASON_CHART_DEPTH)
+    ]
+    nfl_on_avail = set(zip(keep["player_id"], keep["position"]))
+    dc = depth_chart.dropna(subset=["gsis_id"])
+    curated_on = set(zip(dc["gsis_id"], dc["position"]))
+    name_of = dc.drop_duplicates("gsis_id").set_index("gsis_id")["player_name"]
+    role_of = dc.drop_duplicates(["gsis_id", "position"]).set_index(
+        ["gsis_id", "position"]
+    )["role"]
+
+    # Forward: curated listed, nflverse off at availability depth.
+    forward = []
+    for pid, pos in curated_on:
+        if (pid, pos) not in nfl_on_avail:
+            forward.append(
+                (name_of.get(pid, pid), pos, role_of.get((pid, pos), "?"))
+            )
+    if forward:
+        names = ", ".join(f"{n} ({p}, curated {r})" for n, p, r in sorted(forward))
+        print(
+            f"AVAILABILITY CHART DISAGREEMENT (curated-on/nflverse-off): {len(forward)} "
+            f"player(s) — curated availability override applied; review chart drift: {names}",
+            file=sys.stderr,
+        )
+
+    overridden = set()
+    if overrides is not None and not overrides.empty:
+        overridden = set(overrides["gsis_id"].dropna().astype(str))
+
+    frame_keys = set(zip(base["player_id"], base["position"]))
+    nfl_rank = nfl.set_index(["player_id", "position"])["depth_rank"]
+    nfl_name = nfl.set_index(["player_id", "position"])["full_name"]
+    reverse = []
+    for pid, pos in frame_keys:
+        if (pid, pos) in curated_on:
+            continue
+        max_d = CURATED_RESEARCH_DEPTH.get(pos)
+        if max_d is None:
+            continue
+        key = (pid, pos)
+        if key not in nfl_rank.index:
+            continue
+        rank = float(nfl_rank.loc[key])
+        if rank <= max_d and str(pid) not in overridden:
+            reverse.append(
+                (nfl_name.get(key, pid), pos, int(rank), pid)
+            )
+    if reverse:
+        detail = ", ".join(
+            f"{n} ({p}{r}, {pid})" for n, p, r, pid in sorted(reverse)
+        )
+        raise ValueError(
+            f"AVAILABILITY CHART REVIEW FAILURE: {len(reverse)} player(s) are on the "
+            f"nflverse chart within curated research depth but absent from the curated "
+            f"chart, with no status override acknowledging the exclusion. Resolve by "
+            f"editing starters_{target_season}.csv or status_overrides_{target_season}.csv: "
+            f"{detail}"
+        )
+
+
 def apply_depth_chart_gating(df, depth_chart):
     """Apply the historically calibrated veteran depth-rate factor.
 
@@ -1172,7 +1360,8 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     # authoritative for membership/team/role, but exists only for 2026, so
     # it can never be a trained-on feature. The nflverse chart exists for
     # every season, which is the only reason the availability model can be
-    # honestly held out on it.
+    # honestly held out on it. At predict time only, curated membership
+    # overrides target_depth_rank (see apply_curated_availability_override).
     avail_models = load_availability_models()
     base = base.copy()
     base = attach_availability_depth_rank(base, target_season, conn=conn)
@@ -1180,6 +1369,10 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     # it rides along into `combined` and is available to gating and to the
     # share renormalization without a second lookup.
     base = attach_depth_rank(base, target_season, conn=conn)
+    base = apply_curated_availability_override(base, depth_chart)
+    status_overrides = load_status_overrides(target_season)
+    enforce_availability_chart_review(
+        base, depth_chart, status_overrides, target_season, conn=conn)
     base["projected_games"] = np.nan
     for position, am in avail_models.items():
         mask = base["position"] == position
@@ -1190,7 +1383,8 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
             # still carries the narrower one and must keep working.
             base.loc[mask, "projected_games"] = np.clip(
                 am["model"].predict(base.loc[mask, am["features"]]), 0, SEASON_GAMES)
-    _warn_availability_chart_disagreement(base, depth_chart)
+    base["projected_games_raw"] = base["projected_games"]
+    base = apply_status_overrides(base, status_overrides)
 
     rows = []
     for position, stats in TARGET_STATS.items():
@@ -1202,7 +1396,10 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
             m = models[(position, stat)]
             preds = age_shrunk_predict(m["model"], X, position, features=ALL_FEATURES)
             out = pos_df[["player_id", "team", "position", "team_changed",
-                          "roster_status", "projected_games", "nfl_depth_rank"]].copy()
+                          "roster_status", "projected_games", "projected_games_raw",
+                          "nfl_depth_rank"]].copy()
+            if "status_override_applied" in pos_df.columns:
+                out["status_override_applied"] = pos_df["status_override_applied"].to_numpy()
             out["stat"] = stat
             out["source"] = "veteran_model"
             out["low_confidence"] = False
@@ -1244,6 +1441,9 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
 
     depth_chart = load_depth_chart(target_season)
     combined = apply_depth_chart_gating(combined, depth_chart)
+    combined = apply_deep_bench_games_cap(combined)
+    # Status overrides re-applied after the deep-bench cap so mode=zero wins.
+    combined = apply_status_overrides(combined, load_status_overrides(target_season))
     _warn_discounted_high_usage(conn, combined, base, source_season)
     return combined, rookie_residual
 
@@ -1685,6 +1885,19 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
 # every team that's merely off-center) rather than tight.
 PASS_CATCH_COHERENCE_BAND = (0.8, 1.35)
 
+# Named receiving coverage floors (Option B fill + Option C residual guardrail).
+#
+# Measured against same-season skill / deep volume boards in nflverse weekly
+# (2016-2024), not the returning-veteran universe used by NAMED_RUSH_COVERAGE:
+# top-12 target boards cover ~97.8% of receiving yards and ~97.1% of receiving
+# TDs; all WR/TE/RB cover ~99.3% / ~98.7%. Non-skill (FB/OL/QB) scores account
+# for ~0.7% of yards vs ~1.4% of TDs - the main reason TDs leave a slightly
+# larger residual. Applied like rushing: floor to fill UP to, hard 1.0 anchor
+# as the only downward bound. Receptions track yards, not the TD leak.
+NAMED_REC_YARDS_COVERAGE = 0.98
+NAMED_REC_RECEPTIONS_COVERAGE = 0.98
+NAMED_REC_TDS_COVERAGE = 0.96
+
 
 def reconcile_stat_constraints(df):
     """Enforce counting-stat identities at the final output boundary.
@@ -1924,8 +2137,12 @@ def normalize_team_passing_volume(df, season_games=SEASON_GAMES):
 
     Named QB attempt rates are water-filled only up to the historical-support
     ceiling.  Any remainder belongs to an explicit replacement-QB bucket.
-    Receiver shortages likewise remain an unmodeled residual instead of being
-    spread back across named players and undoing depth/role discounts.
+
+    Named receivers are scaled toward ``NAMED_REC_YARDS_COVERAGE`` of the
+    team pass-yardage anchor (proportional to current season volume): fill up
+    when under-covered, cut only when over the hard 1.0 anchor. The residual
+    share stays in ``team_unmodeled_receiving_yards_season`` for practice-
+    squad / emergency / non-skill production.
     """
     out = df.copy()
     out["team_passing_volume_scale"] = np.nan
@@ -2027,19 +2244,32 @@ def normalize_team_passing_volume(df, season_games=SEASON_GAMES):
         pd.to_numeric(recv["pred_pg"], errors="coerce").clip(lower=0) * recv["exposure"]
     ).groupby(recv["team"]).sum(min_count=1)
     recv_anchor = recv.drop_duplicates("team").set_index("team")["team_passing_yards_pg_pred"] * season_games
-    recv_scale = (recv_anchor / current_receiving.replace(0, np.nan)).clip(upper=1.0).fillna(0.0)
     pre_ratio = current_receiving / recv_anchor.where(recv_anchor > 0)
     low, high = PASS_CATCH_COHERENCE_BAND
     pre_flag = (~pre_ratio.between(low, high)).astype(object)
     pre_flag.loc[pre_ratio.isna()] = np.nan
     _map_team_field(out, pre_ratio, "team_pass_catch_ratio_pre_normalization")
     _map_team_field(out, pre_flag, "team_pass_catch_pre_normalization_flag")
+
+    recv_scale = pd.Series(0.0, index=current_receiving.index)
+    named_receiving = pd.Series(0.0, index=current_receiving.index)
+    for team in current_receiving.index:
+        raw = float(current_receiving.at[team])
+        anchor = float(recv_anchor.at[team]) if team in recv_anchor.index else np.nan
+        if raw > 0 and np.isfinite(anchor):
+            target = _named_supply_target(raw, anchor, NAMED_REC_YARDS_COVERAGE)
+            recv_scale.at[team] = target / raw
+            named_receiving.at[team] = target
+        elif raw > 0:
+            recv_scale.at[team] = 1.0
+            named_receiving.at[team] = raw
     for idx in out.index[recv_mask]:
-        factor = recv_scale.get(out.at[idx, "team"], 0.0)
+        factor = float(recv_scale.get(out.at[idx, "team"], 0.0))
         out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= factor
         out.at[idx, "team_passing_volume_scale"] = factor
-    named_receiving = np.minimum(current_receiving, recv_anchor)
-    unmodeled_receiving = (recv_anchor - named_receiving).clip(lower=0.0)
+    unmodeled_receiving = (
+        recv_anchor.reindex(named_receiving.index).fillna(0.0) - named_receiving
+    ).clip(lower=0.0)
     _map_team_field(out, unmodeled_receiving, "team_unmodeled_receiving_yards_season")
     return out
 
@@ -2320,7 +2550,7 @@ def normalize_team_rushing_volume(df, season_games=SEASON_GAMES):
     landed on the 25.0 carries/game cap at 1.72x his modeled rate. An
     anchor a modeled roster cannot account for is missing information, not
     opportunity belonging to the players who happen to be present - the
-    same reasoning the receiving side already applies in
+    same measured-coverage floor applied to receiving yards / TDs in
     normalize_team_passing_volume and reconcile_team_pass_receive_counts.
 
     Position capacity (RUSH_ATTEMPTS_PER_APPEARANCE_MAX /
@@ -2401,9 +2631,11 @@ def normalize_team_rushing_volume(df, season_games=SEASON_GAMES):
 def reconcile_team_pass_receive_counts(df, season_games=SEASON_GAMES):
     """Make completion/reception and pass-TD/rec-TD identities auditable.
 
-    Missing production remains in explicit QB/receiver residual buckets.  If
-    named receivers exceed the passing-side total, only then are their point
-    and interval rates scaled down together.
+    Named receivers are filled up to the measured coverage floors
+    (``NAMED_REC_RECEPTIONS_COVERAGE`` / ``NAMED_REC_TDS_COVERAGE``) of the
+    pass-side totals and cut only when they exceed those totals. Leftover
+    production stays in explicit residual buckets for practice-squad /
+    emergency / non-skill scores.
     """
     out = df.copy()
     out["team_pass_receive_count_scale"] = np.nan
@@ -2431,19 +2663,34 @@ def reconcile_team_pass_receive_counts(df, season_games=SEASON_GAMES):
     _map_team_field(out, unmodeled_completions, "team_unmodeled_qb_completions_season")
     _map_team_field(out, unmodeled_pass_tds, "team_unmodeled_qb_passing_tds_season")
 
-    for stat, total, residual_col in (
-        ("receptions", total_completions, "team_unmodeled_receptions_season"),
-        ("receiving_tds", total_pass_tds, "team_unmodeled_receiving_tds_season"),
+    for stat, total, residual_col, coverage in (
+        ("receptions", total_completions, "team_unmodeled_receptions_season",
+         NAMED_REC_RECEPTIONS_COVERAGE),
+        ("receiving_tds", total_pass_tds, "team_unmodeled_receiving_tds_season",
+         NAMED_REC_TDS_COVERAGE),
     ):
         named = season_sum(recv_position, stat)
-        scale = (total / named.replace(0, np.nan)).clip(upper=1.0).fillna(0.0)
+        scale = pd.Series(0.0, index=named.index)
+        named_after = pd.Series(0.0, index=named.index)
+        for team in named.index:
+            raw = float(named.at[team])
+            anchor = float(total.at[team]) if team in total.index else np.nan
+            if raw > 0 and np.isfinite(anchor):
+                target = _named_supply_target(raw, anchor, coverage)
+                scale.at[team] = target / raw
+                named_after.at[team] = target
+            elif raw > 0:
+                scale.at[team] = 1.0
+                named_after.at[team] = raw
         mask = recv_position & out["stat"].eq(stat)
         for idx in out.index[mask]:
-            factor = scale.get(out.at[idx, "team"], 0.0)
+            factor = float(scale.get(out.at[idx, "team"], 0.0))
             out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= factor
             out.at[idx, "team_pass_receive_count_scale"] = factor
-        named_after = np.minimum(named, total)
-        _map_team_field(out, (total - named_after).clip(lower=0.0), residual_col)
+        residual = (
+            total.reindex(named_after.index).fillna(0.0) - named_after
+        ).clip(lower=0.0)
+        _map_team_field(out, residual, residual_col)
     return out
 
 
@@ -2480,8 +2727,8 @@ def add_team_pass_catch_coherence_flag(df, depth_chart=None):
 
     Receivers are weighted by projected offensive appearances and QBs by
     reconciled volume-games. Explicit unmodeled QB/receiver residuals are then
-    included on their respective side; named players are never inflated merely
-    to make this assertion pass.
+    included on their respective side so the accounting identity holds after
+    the measured coverage floors leave a small intentional residual.
 
     A missing exposure value falls back to weight 1.0 for backward
     compatibility with pre-availability model artifacts. A missing or zero
@@ -2629,6 +2876,10 @@ def project_season(conn, target_season):
         target_class, target_season, conn=conn)
     target_class = attach_depth_rank(target_class, target_season, conn=conn)
     depth_chart = load_depth_chart(target_season)
+    target_class = apply_curated_availability_override(target_class, depth_chart)
+    status_overrides = load_status_overrides(target_season)
+    enforce_availability_chart_review(
+        target_class, depth_chart, status_overrides, target_season, conn=conn)
     # Vacancy still unclaimed after the veteran paths took their cut - see
     # _attach_rookie_residual_vacancy. Without it a rookie is scaled by the
     # team's whole gross vacancy while incumbents are simultaneously
@@ -2685,6 +2936,18 @@ def project_season(conn, target_season):
     # projected_games was estimated on the full historical rookie cohort in
     # rookies.py, by position/draft bucket and preseason depth band.
     rookie_long = _apply_rookie_depth_rate_gating(rookie_long)
+    # Curated-excluded rookies: same games cap as veterans. Status overrides
+    # (rare for rookies) still win after the cap.
+    if not depth_chart.empty:
+        curated_ids = set(depth_chart.dropna(subset=["gsis_id"])["gsis_id"])
+        off = ~rookie_long["player_id"].isin(curated_ids)
+        rookie_long.loc[off, "depth_chart_status"] = "deep_bench_discounted"
+        rookie_long.loc[off, "role"] = "deep_bench"
+    rookie_long["projected_games_raw"] = pd.to_numeric(
+        rookie_long["projected_games"], errors="coerce"
+    )
+    rookie_long = apply_deep_bench_games_cap(rookie_long)
+    rookie_long = apply_status_overrides(rookie_long, status_overrides)
 
     # Compose the veteran reframed receiving shares into real per-game
     # rates now that the rookie path exists: rookie receiving predictions
@@ -2712,6 +2975,8 @@ def project_season(conn, target_season):
             print(f"    {r['player_id']} ({r['position']}, {r['team']}, role={r['role']})")
 
     combined = pd.concat([vet, rookie_long, replacement], ignore_index=True, sort=False)
+    combined = apply_deep_bench_games_cap(combined)
+    combined = apply_status_overrides(combined, load_status_overrides(target_season))
     combined = propagate_team_anchors(combined)
     combined = reconcile_qb_projected_volume_games(combined)
     # Reorder each room toward what its depth ranks imply, before the
