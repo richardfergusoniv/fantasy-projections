@@ -8,7 +8,9 @@ import pandas as pd
 from src.comparison import sleeper_compare
 from src.projection.fantasy_points import DESCRIPTIVE_COLS, compute_fantasy_points
 from src.projection.predict import (
+    NAMED_RUSH_COVERAGE,
     QB_ATTEMPTS_PER_VOLUME_GAME_MAX,
+    RUSH_ATTEMPTS_PER_APPEARANCE_MAX,
     _ensure_output_parent,
     add_projected_season_totals,
     add_team_pass_catch_coherence_flag,
@@ -259,6 +261,73 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         wr = out[out["position"] == "WR"].iloc[0]
         self.assertAlmostEqual(wr["pred_pg"], 80.0)
         self.assertAlmostEqual(wr["team_unmodeled_receiving_yards_season"], 160.0 * 17.0)
+
+    def _carry_row(self, player_id, team, position, pred_pg, anchor_carries,
+                   anchor_yards, games=17.0):
+        return {
+            "player_id": player_id, "team": team, "position": position,
+            "stat": "carries", "pred_pg": pred_pg,
+            "pred_pg_low": pred_pg * .5, "pred_pg_high": pred_pg * 1.5,
+            "projected_games": games, "projected_volume_games": games,
+            "team_carries_pg_pred": anchor_carries,
+            "team_rushing_yards_pg_pred": anchor_yards,
+        }
+
+    def test_rushing_shortfall_fills_only_to_measured_coverage(self):
+        # Anchor is 27 carries/game but the only modeled back is at 15. He
+        # may be filled up to the historically supported share of the
+        # anchor - not to the whole thing, which is what pinned a lead back
+        # to his position ceiling when his backfield was under-represented.
+        rows = [self._carry_row("rb1", "TST", "RB", 15.0, 27.0, 120.0)]
+        out = normalize_team_rushing_volume(pd.DataFrame(rows))
+        rb = out[out["position"] == "RB"].iloc[0]
+        self.assertAlmostEqual(rb["pred_pg"], 27.0 * NAMED_RUSH_COVERAGE)
+        self.assertLess(rb["pred_pg"], 27.0)
+        self.assertAlmostEqual(
+            rb["team_unmodeled_carries_season"],
+            27.0 * 17.0 * (1 - NAMED_RUSH_COVERAGE),
+        )
+
+    def test_rushing_room_above_coverage_is_left_alone(self):
+        # Coverage is a floor to fill up to, never a ceiling to cut down
+        # to: a room already projecting above it keeps what it projects.
+        rows = [
+            self._carry_row("rb1", "TST", "RB", 16.0, 24.0, 110.0),
+            self._carry_row("rb2", "TST", "RB", 6.0, 24.0, 110.0),
+        ]
+        out = normalize_team_rushing_volume(pd.DataFrame(rows))
+        carries = out[out["stat"] == "carries"].set_index("player_id")
+        self.assertGreater(22.0, 24.0 * NAMED_RUSH_COVERAGE)  # premise
+        self.assertAlmostEqual(carries.loc["rb1", "pred_pg"], 16.0)
+        self.assertAlmostEqual(carries.loc["rb2", "pred_pg"], 6.0)
+
+    def test_rushing_overflow_still_scales_named_players_down(self):
+        # The downward half is the half that was always correct: two backs
+        # projected past the anchor get scaled back into it.
+        rows = [
+            self._carry_row("rb1", "TST", "RB", 20.0, 24.0, 110.0),
+            self._carry_row("rb2", "TST", "RB", 16.0, 24.0, 110.0),
+        ]
+        out = normalize_team_rushing_volume(pd.DataFrame(rows))
+        carries = out[out["stat"] == "carries"]
+        allocated = (carries["pred_pg"] * carries["projected_volume_games"]).sum()
+        self.assertAlmostEqual(allocated, 24.0 * 17.0)
+        self.assertAlmostEqual(carries["team_unmodeled_carries_season"].iloc[0], 0.0)
+        self.assertTrue((carries["team_rushing_volume_scale"] < 1.0).all())
+        # Pecking order survives the scale-down.
+        by_player = carries.set_index("player_id")["pred_pg"]
+        self.assertGreater(by_player["rb1"], by_player["rb2"])
+
+    def test_rushing_shortfall_leaves_capacity_ceiling_unreached(self):
+        # The regression that motivated this: a lone lead back pinned to
+        # exactly RUSH_ATTEMPTS_PER_APPEARANCE_MAX because his committee
+        # partner had no row at all. Filling to measured coverage rather
+        # than to the full anchor keeps him off the ceiling.
+        rows = [self._carry_row("rb1", "TST", "RB", 14.5, 28.0, 125.0)]
+        out = normalize_team_rushing_volume(pd.DataFrame(rows))
+        rb = out[out["position"] == "RB"].iloc[0]
+        self.assertLess(rb["pred_pg"], RUSH_ATTEMPTS_PER_APPEARANCE_MAX["RB"])
+        self.assertAlmostEqual(rb["pred_pg"], 28.0 * NAMED_RUSH_COVERAGE)
 
     def test_receiving_share_cap_uses_exposure_weights(self):
         shares = pd.DataFrame([

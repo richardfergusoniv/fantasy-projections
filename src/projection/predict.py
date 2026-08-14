@@ -1828,14 +1828,76 @@ def normalize_team_passing_volume(df, season_games=SEASON_GAMES):
 RUSH_ATTEMPTS_PER_APPEARANCE_MAX = {"QB": 12.0, "RB": 25.0, "WR": 5.0, "TE": 3.0}
 RUSH_YARDS_PER_CARRY_MAX = {"QB": 10.0, "RB": 7.0, "WR": 15.0, "TE": 15.0}
 
+# How much of a team's rushing a MODELABLE roster actually accounts for.
+#
+# Measured, not asserted: for every 2017-2025 transition, the share of a
+# team's season-N carries taken by players who were active in season N-1
+# (exactly the universe the veteran path can project) averages 0.814, and
+# is stable season to season - 0.776 to 0.869, no trend. The rest goes to
+# players who did not exist in the prior season's data at all: rookies
+# beyond the modeled class, practice-squad callups, waiver pickups
+# mid-season.
+#
+# This constant is what makes the reconciliation honest in BOTH directions,
+# and it replaced two different errors:
+#
+#   Filling to 1.00 (the original behavior) asserts a modeled roster
+#   accounts for every carry a team will run. It does not, and the surplus
+#   landed on whoever was present - inflating Josh Jacobs 1.72x onto the
+#   exact 25.0 carries/game position ceiling because Green Bay's charted
+#   committee back had no projection row to absorb his share.
+#
+#   Filling to 0.00 - leaving every shortfall as residual - looks more
+#   conservative but asserts the opposite falsehood: that our raw per-player
+#   rates already cover everything a named roster should. They do not. Left
+#   alone the 2026 board allocated only 74.8% of league rushing, and every
+#   lead back fell well under consensus (RB season-total MAE 15.6 -> 19.0).
+#
+# Filling to the measured 0.814 is the only one of the three backed by what
+# actually happens. Applied asymmetrically, because the evidence is
+# asymmetric: 0.814 is a league MEAN with real spread (team p90 reaches
+# 0.99), so it is used as a floor to fill UP to, never as a ceiling to cut
+# a team down to. The hard 1.00 anchor remains the only downward bound.
+NAMED_RUSH_COVERAGE = 0.814
+
+
+def _named_supply_target(raw_supply, anchor, coverage=NAMED_RUSH_COVERAGE):
+    """How much team volume named players may be allocated.
+
+    Their own raw supply, floored at the historically supported share of the
+    anchor and capped by the anchor itself. A room already projecting above
+    that share keeps what it projects; only a genuinely overfull one is cut.
+    """
+    if not np.isfinite(anchor):
+        return float(raw_supply)
+    return float(min(anchor, max(raw_supply, anchor * coverage)))
+
 
 def normalize_team_rushing_volume(df, season_games=SEASON_GAMES):
-    """Water-fill team rushing anchors within position-specific support.
+    """Reconcile team rushing anchors against named-player supply.
 
     Post-role-gating raw projections are the allocation weights, preserving
-    the modeled pecking order. Named players may absorb an underfilled team
-    anchor only within projected appearances and historical rate support;
-    capacity shortfall remains an explicit residual.
+    the modeled pecking order. Named players are allocated up to
+    ``NAMED_RUSH_COVERAGE`` of the team anchor - the historically measured
+    share a modelable roster actually accounts for - and never past the
+    anchor itself. Whatever is left over stays an explicit residual in
+    ``team_unmodeled_carries_season`` /
+    ``team_unmodeled_rushing_yards_season`` instead of being pushed into
+    whichever players happen to be modeled.
+
+    The bug this fixes: pushing the FULL anchor into named players inflated
+    a lead back to exactly his position capacity ceiling whenever his
+    backfield was under-represented. Green Bay's charted committee back had
+    no projection row, so Josh Jacobs absorbed the whole missing share and
+    landed on the 25.0 carries/game cap at 1.72x his modeled rate. An
+    anchor a modeled roster cannot account for is missing information, not
+    opportunity belonging to the players who happen to be present - the
+    same reasoning the receiving side already applies in
+    normalize_team_passing_volume and reconcile_team_pass_receive_counts.
+
+    Position capacity (RUSH_ATTEMPTS_PER_APPEARANCE_MAX /
+    RUSH_YARDS_PER_CARRY_MAX) still binds each player independently, so an
+    overfull room is redistributed within real single-player support.
     """
     out = df.copy()
     out["team_rushing_volume_scale"] = np.nan
@@ -1851,7 +1913,8 @@ def normalize_team_rushing_volume(df, season_games=SEASON_GAMES):
     for team, idx in carries.groupby("team").groups.items():
         rows = carries.loc[idx]
         carries.loc[idx, "allocated"] = _capped_proportional_allocation(
-            rows["raw_season"], rows["capacity"], carry_anchor.at[team])
+            rows["raw_season"], rows["capacity"],
+            _named_supply_target(rows["raw_season"].sum(), carry_anchor.at[team]))
     keys = ["player_id", "team"]
     carry_alloc = carries.set_index(keys)["allocated"]
     raw_carries = carries.set_index(keys)["raw_season"]
@@ -1884,7 +1947,8 @@ def normalize_team_rushing_volume(df, season_games=SEASON_GAMES):
     for team, idx in yards.groupby("team").groups.items():
         rows = yards.loc[idx]
         yards.loc[idx, "allocated"] = _capped_proportional_allocation(
-            rows["raw_season"], rows["capacity"], yard_anchor.at[team])
+            rows["raw_season"], rows["capacity"],
+            _named_supply_target(rows["raw_season"].sum(), yard_anchor.at[team]))
     yard_alloc = yards.set_index(keys)["allocated"]
     raw_yards = yards.set_index(keys)["raw_season"]
     yard_factor = (yard_alloc / raw_yards.replace(0, np.nan)).replace([np.inf, -np.inf], np.nan)
