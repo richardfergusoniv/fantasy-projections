@@ -18,6 +18,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DRAFT_DIR, **kwargs)
 
+    def end_headers(self) -> None:
+        # Local draft tooling: always revalidate static assets so prepare/UI
+        # edits show up without a hard browser cache fight.
+        if self.path.split("?", 1)[0].endswith(
+            (".js", ".css", ".json", ".html")
+        ):
+            self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
     def do_GET(self) -> None:
         if self.path in ("", "/"):
             self.path = "/index.html"
@@ -37,7 +46,9 @@ def main() -> None:
 
     with socketserver.TCPServer(("", args.port), Handler) as httpd:
         url = f"http://127.0.0.1:{args.port}/"
-        print(f"Serving draft assistant at {url}")
+        print(f"Serving Fantasy Tools at {url}")
+        print(f"  Draft:             {url}")
+        print(f"  Team Projections:  {url}teams/")
         if args.open:
             webbrowser.open(url)
         try:

@@ -110,11 +110,27 @@ def _load_old_schema(conn, season):
     return df
 
 
-def _load_new_schema(conn, season):
-    """2025+: the earliest August daily snapshot, ranked by `pos_rank`."""
-    dt = pd.read_sql(
-        "SELECT MIN(dt) AS d FROM depth_charts WHERE season IS NULL AND dt >= ? AND dt < ?",
-        conn, params=(f"{season}-08-01", f"{season}-09-01")).at[0, "d"]
+def _load_new_schema(conn, season, as_of=None):
+    """2025+: daily snapshots ranked by `pos_rank`.
+
+    Default (``as_of is None``): earliest August snapshot — the training /
+    week-1-equivalent freeze. When ``as_of`` is set: latest snapshot with
+    ``dt <= as_of`` on or after Aug 1 of ``season``, so mid-season refreshes
+    can follow a fresher nflverse chart without retraining.
+    """
+    start = f"{season}-08-01"
+    if as_of is None:
+        end = f"{season}-09-01"
+        dt = pd.read_sql(
+            "SELECT MIN(dt) AS d FROM depth_charts WHERE season IS NULL "
+            "AND dt >= ? AND dt < ?",
+            conn, params=(start, end)).at[0, "d"]
+    else:
+        as_of_s = str(as_of)[:10]
+        dt = pd.read_sql(
+            "SELECT MAX(dt) AS d FROM depth_charts WHERE season IS NULL "
+            "AND dt >= ? AND dt <= ?",
+            conn, params=(start, as_of_s)).at[0, "d"]
     if dt is None:
         return pd.DataFrame()
     df = pd.read_sql(
@@ -135,7 +151,12 @@ def _load_new_schema(conn, season):
     return df
 
 
-def load_preseason_depth_chart(season, conn=None):
+def clear_depth_chart_cache():
+    """Drop the process-local preseason chart cache (call after re-ingest)."""
+    _CHART_CACHE.clear()
+
+
+def load_preseason_depth_chart(season, conn=None, as_of=None):
     """The depth chart as it stood entering `season`, one row per (player,
     position), with a 1-based `depth_rank` within (team, position).
 
@@ -143,28 +164,29 @@ def load_preseason_depth_chart(season, conn=None):
     error) for a season with no chart, so callers degrade to "no depth
     signal" the way load_depth_chart does for a missing curated file.
 
-    Cached per season (a leave-one-transition-out backtest asks for the
-    same handful of seasons dozens of times); a copy is handed out so a
-    caller cannot mutate the cached frame out from under the next one.
+    Cached per (season, as_of); a copy is handed out so a caller cannot
+    mutate the cached frame out from under the next one. Pass ``as_of`` to
+    use the latest 2025+ daily snapshot on or before that date.
     """
-    if season in _CHART_CACHE:
-        return _CHART_CACHE[season].copy()
+    cache_key = (season, None if as_of is None else str(as_of)[:10])
+    if cache_key in _CHART_CACHE:
+        return _CHART_CACHE[cache_key].copy()
     own_conn = conn is None
     conn = conn or get_conn()
     try:
         df = _load_old_schema(conn, season)
         if df.empty:
-            df = _load_new_schema(conn, season)
+            df = _load_new_schema(conn, season, as_of=as_of)
     finally:
         if own_conn:
             conn.close()
     cols = ["player_id", "team", "position", "depth_rank", "availability_rank", "full_name", "source"]
     df = df[cols].reset_index(drop=True) if not df.empty else pd.DataFrame(columns=cols)
-    _CHART_CACHE[season] = df
+    _CHART_CACHE[cache_key] = df
     return df.copy()
 
 
-def attach_depth_rank(df, season, conn=None):
+def attach_depth_rank(df, season, conn=None, as_of=None):
     """Add `nfl_depth_rank` to `df` (needs `player_id` and `position`): the
     player's untruncated source rank on the chart entering `season`, NaN when
     he is not on it at all. Old-feed ties remain tied; new-feed ranks are
@@ -175,7 +197,7 @@ def attach_depth_rank(df, season, conn=None):
     therefore truncates, while the volume discount needs to tell a WR4 from
     a WR8 and therefore must not. Both are the same underlying chart.
     """
-    chart = load_preseason_depth_chart(season, conn=conn)
+    chart = load_preseason_depth_chart(season, conn=conn, as_of=as_of)
     out = df.copy()
     if chart.empty:
         out["nfl_depth_rank"] = float("nan")
@@ -186,7 +208,7 @@ def attach_depth_rank(df, season, conn=None):
     return out
 
 
-def attach_availability_depth_rank(df, season, conn=None):
+def attach_availability_depth_rank(df, season, conn=None, as_of=None):
     """Add `target_depth_rank` to `df` (needs `player_id` and `position`):
     the player's rank on the chart entering `season`, truncated per
     PRESEASON_CHART_DEPTH, NaN when he is off the chart at that depth.
@@ -198,7 +220,7 @@ def attach_availability_depth_rank(df, season, conn=None):
     carried. Its incremental value must be remeasured with the current
     appearance-based target before changing this schema.
     """
-    chart = load_preseason_depth_chart(season, conn=conn)
+    chart = load_preseason_depth_chart(season, conn=conn, as_of=as_of)
     out = df.copy()
     if chart.empty:
         # Loud, because the quiet version of this is the worst failure mode

@@ -71,16 +71,21 @@ def test_build_player_records_replaces_nan_with_null():
             "low_confidence": [float("nan")],
             "role": [float("nan")],
             "depth_chart_status": ["starter"],
+            "vorp": [40.0],
+            "replacement_pts": [110.0],
             "overall_rank": [1],
             "overall_tier": [1],
             "pos_rank": [1],
             "pos_tier": [1],
+            "flex_rank": [1],
+            "flex_tier": [1],
         }
     )
     rec = build_player_records(df)[0]
     assert rec["role"] is None
     assert rec["fantasy_pts_low"] is None
     assert rec["low_confidence"] is False
+    assert rec["vorp"] == 40.0
     json.dumps(rec)
 
 
@@ -89,19 +94,19 @@ def test_export_draft_data_writes_strict_json(tmp_path, monkeypatch):
     csv_dir.mkdir()
     pd.DataFrame(
         {
-            "player_id": ["a"],
-            "display_name": ["Alpha"],
-            "position": ["QB"],
-            "team": ["TST"],
-            "fantasy_pts": [20.0],
-            "fantasy_pts_low": [float("nan")],
-            "fantasy_pts_high": [25.0],
-            "fantasy_pts_season": [300.0],
-            "projected_games": [15.0],
-            "source": ["test"],
-            "low_confidence": [False],
-            "role": [float("nan")],
-            "depth_chart_status": ["starter"],
+            "player_id": ["a", "b", "c"],
+            "display_name": ["Alpha", "Bravo", "Charlie"],
+            "position": ["QB", "RB", "WR"],
+            "team": ["TST", "TST", "TST"],
+            "fantasy_pts": [20.0, 18.0, 16.0],
+            "fantasy_pts_low": [float("nan"), 16.0, 14.0],
+            "fantasy_pts_high": [25.0, 20.0, 18.0],
+            "fantasy_pts_season": [300.0, 270.0, 240.0],
+            "projected_games": [15.0, 15.0, 15.0],
+            "source": ["test", "test", "test"],
+            "low_confidence": [False, False, False],
+            "role": [float("nan"), "starter", "starter"],
+            "depth_chart_status": ["starter", "starter", "starter"],
         }
     ).to_csv(csv_dir / "fantasy_points_2099.csv", index=False)
 
@@ -112,4 +117,63 @@ def test_export_draft_data_writes_strict_json(tmp_path, monkeypatch):
     out_path = export_draft_data(2099)
     raw = open(out_path, encoding="utf-8").read()
     assert "NaN" not in raw
-    json.loads(raw)
+    payload = json.loads(raw)
+    assert "vorp" in payload["players"][0]
+    assert payload["meta"]["roster"] == "1QB, 2RB, 3WR, 1TE, 1FLEX"
+    assert payload["meta"]["vorp_replacement_ranks"]["QB"] == 13
+
+
+def test_export_overall_rank_uses_vorp_not_raw_ppg(tmp_path, monkeypatch):
+    csv_dir = tmp_path / "output"
+    csv_dir.mkdir()
+    rows = []
+    for i in range(13):
+        rows.append(
+            {
+                "player_id": f"qb{i}",
+                "display_name": f"QB {i}",
+                "position": "QB",
+                "team": "TST",
+                "fantasy_pts": 22.0 - i * 0.2,
+                "fantasy_pts_low": 20.0,
+                "fantasy_pts_high": 24.0,
+                "fantasy_pts_season": 320.0 - i * 4.0,
+                "projected_games": 15.0,
+                "source": "test",
+                "low_confidence": False,
+                "role": "starter",
+                "depth_chart_status": "starter",
+            }
+        )
+    for i in range(30):
+        rows.append(
+            {
+                "player_id": "rb0" if i == 0 else f"rb{i}",
+                "display_name": "Top RB" if i == 0 else f"RB {i}",
+                "position": "RB",
+                "team": "TST",
+                "fantasy_pts": 17.0 if i == 0 else 12.0,
+                "fantasy_pts_low": 15.0,
+                "fantasy_pts_high": 19.0,
+                "fantasy_pts_season": 310.0 if i == 0 else 200.0 - i,
+                "projected_games": 15.0,
+                "source": "test",
+                "low_confidence": False,
+                "role": "starter",
+                "depth_chart_status": "starter",
+            }
+        )
+    pd.DataFrame(rows).to_csv(csv_dir / "fantasy_points_2099.csv", index=False)
+
+    draft_dir = tmp_path / "draft_assistant" / "data"
+    monkeypatch.setattr("src.draft_assistant.prepare.OUTPUT_DIR", str(csv_dir))
+    monkeypatch.setattr("src.draft_assistant.prepare.DRAFT_DATA_DIR", str(draft_dir))
+
+    payload = json.loads(open(export_draft_data(2099), encoding="utf-8").read())
+    by_id = {p["player_id"]: p for p in payload["players"]}
+    assert by_id["rb0"]["overall_rank"] < by_id["qb0"]["overall_rank"] or by_id[
+        "rb0"
+    ]["vorp"] >= by_id["qb0"]["vorp"]
+    assert by_id["rb0"]["fantasy_pts"] < by_id["qb0"]["fantasy_pts"]
+    assert by_id["rb0"]["overall_rank"] == 1
+

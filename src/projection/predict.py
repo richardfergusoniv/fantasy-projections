@@ -72,6 +72,7 @@ MODELS_DIR = os.path.join(REPO_ROOT, "models")
 INTERVAL_RESIDUALS_PATH = os.path.join(MODELS_DIR, "interval_residuals.csv")
 CORRECTIONS_PATH = os.path.join(MODELS_DIR, "corrections.joblib")
 DEPTH_CHART_PATH = os.path.join(REPO_ROOT, "src", "depth_chart", "starters_2026.csv")
+LIVE_DEPTH_CHART_PATH = os.path.join(REPO_ROOT, "src", "depth_chart", "live_depth_2026.csv")
 STATUS_OVERRIDES_PATH = os.path.join(
     REPO_ROOT, "src", "depth_chart", "status_overrides_2026.csv"
 )
@@ -865,29 +866,44 @@ def reassign_team_changers(conn, df, target_season, depth_chart):
 
 
 def load_depth_chart(target_season):
-    """Manually curated relevant-depth table (Task 2) - only built for
-    2026 so far (src/depth_chart/starters_2026.csv). Returns an empty
-    DataFrame (not an error) for any other target_season, so gating simply
-    becomes a no-op rather than breaking historical backtesting/other
-    seasons - the file is a 2026-specific research deliverable, not a
-    general mechanism yet."""
-    if target_season != 2026 or not os.path.exists(DEPTH_CHART_PATH):
+    """Membership/role chart for ``target_season``.
+
+    Prefers ``live_depth_{season}.csv`` (injury-refreshed derived chart) when
+    present; otherwise the hand-curated ``starters_{season}.csv``. Empty for
+    seasons without a file so gating is a no-op on historical backtests.
+    """
+    if target_season != 2026:
         return pd.DataFrame(columns=["team", "position", "depth_rank", "gsis_id", "role", "confidence"])
-    dc = pd.read_csv(DEPTH_CHART_PATH)
+    path = LIVE_DEPTH_CHART_PATH if os.path.exists(LIVE_DEPTH_CHART_PATH) else DEPTH_CHART_PATH
+    if not os.path.exists(path):
+        return pd.DataFrame(columns=["team", "position", "depth_rank", "gsis_id", "role", "confidence"])
+    dc = pd.read_csv(path)
     return dc[dc["season"] == target_season]
 
 
-def load_status_overrides(target_season):
-    """Dated human availability overrides (season-ending IR → zero, PUP → cap).
+def load_status_overrides(target_season, as_of=None):
+    """Dated human / refresh availability overrides (IR → zero, PUP → cap).
 
-    Empty for seasons without a file. Never auto-derived from roster_status —
-    RES/PUP on seasonal_rosters stays metadata only (Phase 6)."""
+    When ``as_of`` is set, only rows with ``as_of_date <= as_of`` apply (latest
+    row per gsis_id+mode wins after the filter). Never auto-derived from
+    roster_status — RES/PUP on seasonal_rosters stays metadata only (Phase 6).
+    """
     cols = ["season", "gsis_id", "player_name", "as_of_date", "mode",
             "projected_games", "reason"]
     if target_season != 2026 or not os.path.exists(STATUS_OVERRIDES_PATH):
         return pd.DataFrame(columns=cols)
     ov = pd.read_csv(STATUS_OVERRIDES_PATH)
-    return ov[ov["season"] == target_season].copy()
+    ov = ov[ov["season"] == target_season].copy()
+    if ov.empty:
+        return ov
+    ov["_as_of"] = pd.to_datetime(ov["as_of_date"], errors="coerce")
+    if as_of is not None:
+        cutoff = pd.to_datetime(as_of)
+        ov = ov[ov["_as_of"].isna() | (ov["_as_of"] <= cutoff)]
+    # Latest dated row wins per player+mode.
+    ov = ov.sort_values(["gsis_id", "mode", "_as_of"])
+    ov = ov.drop_duplicates(["gsis_id", "mode"], keep="last")
+    return ov.drop(columns=["_as_of"]).reset_index(drop=True)
 
 
 def apply_curated_availability_override(base, depth_chart):
@@ -1285,7 +1301,7 @@ def _replacement_availability(conn, feat, seasons):
     return means.to_dict()
 
 
-def project_veterans(conn, feat, source_season, models, resid, target_season):
+def project_veterans(conn, feat, source_season, models, resid, target_season, as_of=None):
     """source_season's feature rows -> next-season per-game rate
     predictions, for every player with real source_season production.
     target_season's OWN incoming rookie class (drafted in target_season, or
@@ -1364,13 +1380,13 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     # overrides target_depth_rank (see apply_curated_availability_override).
     avail_models = load_availability_models()
     base = base.copy()
-    base = attach_availability_depth_rank(base, target_season, conn=conn)
+    base = attach_availability_depth_rank(base, target_season, conn=conn, as_of=as_of)
     # The untruncated rank, for the Gate B volume ladder. Attached here so
     # it rides along into `combined` and is available to gating and to the
     # share renormalization without a second lookup.
-    base = attach_depth_rank(base, target_season, conn=conn)
+    base = attach_depth_rank(base, target_season, conn=conn, as_of=as_of)
     base = apply_curated_availability_override(base, depth_chart)
-    status_overrides = load_status_overrides(target_season)
+    status_overrides = load_status_overrides(target_season, as_of=as_of)
     enforce_availability_chart_review(
         base, depth_chart, status_overrides, target_season, conn=conn)
     base["projected_games"] = np.nan
@@ -1443,7 +1459,8 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     combined = apply_depth_chart_gating(combined, depth_chart)
     combined = apply_deep_bench_games_cap(combined)
     # Status overrides re-applied after the deep-bench cap so mode=zero wins.
-    combined = apply_status_overrides(combined, load_status_overrides(target_season))
+    combined = apply_status_overrides(
+        combined, load_status_overrides(target_season, as_of=as_of))
     _warn_discounted_high_usage(conn, combined, base, source_season)
     return combined, rookie_residual
 
@@ -2832,17 +2849,21 @@ def propagate_team_anchors(df):
     return out
 
 
-def project_season(conn, target_season):
+def project_season(conn, target_season, as_of=None):
     """Project `target_season` per-game rates using `target_season - 1`
     features for veterans, and the rookie rule-based path for
-    `target_season`'s actual draft-year rookies."""
+    `target_season`'s actual draft-year rookies.
+
+    ``as_of`` (optional ISO date) filters status overrides and selects the
+    latest nflverse daily depth snapshot on or before that date for 2025+.
+    """
     source_season = target_season - 1
     models = load_models()
     resid = load_interval_residuals()
 
     feat = build_player_season_features(conn, seasons=list(range(2016, target_season)))
     vet, rookie_residual = project_veterans(
-        conn, feat, source_season, models, resid, target_season)
+        conn, feat, source_season, models, resid, target_season, as_of=as_of)
     vet["season"] = target_season
 
     # Rookie path: bucket rates and availability are fit on full preseason
@@ -2873,11 +2894,11 @@ def project_season(conn, target_season):
     # by veteran availability. This is an internal, historically testable
     # availability signal; Sleeper projections are comparison-only.
     target_class = attach_availability_depth_rank(
-        target_class, target_season, conn=conn)
-    target_class = attach_depth_rank(target_class, target_season, conn=conn)
+        target_class, target_season, conn=conn, as_of=as_of)
+    target_class = attach_depth_rank(target_class, target_season, conn=conn, as_of=as_of)
     depth_chart = load_depth_chart(target_season)
     target_class = apply_curated_availability_override(target_class, depth_chart)
-    status_overrides = load_status_overrides(target_season)
+    status_overrides = load_status_overrides(target_season, as_of=as_of)
     enforce_availability_chart_review(
         target_class, depth_chart, status_overrides, target_season, conn=conn)
     # Vacancy still unclaimed after the veteran paths took their cut - see
@@ -2976,7 +2997,8 @@ def project_season(conn, target_season):
 
     combined = pd.concat([vet, rookie_long, replacement], ignore_index=True, sort=False)
     combined = apply_deep_bench_games_cap(combined)
-    combined = apply_status_overrides(combined, load_status_overrides(target_season))
+    combined = apply_status_overrides(
+        combined, load_status_overrides(target_season, as_of=as_of))
     combined = propagate_team_anchors(combined)
     combined = reconcile_qb_projected_volume_games(combined)
     # Reorder each room toward what its depth ranks imply, before the
@@ -3181,8 +3203,8 @@ def _ensure_output_parent(path):
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
 
 
-def export_projections(conn, target_season, path):
-    out = project_season(conn, target_season)
+def export_projections(conn, target_season, path, as_of=None):
+    out = project_season(conn, target_season, as_of=as_of)
     out = with_display_names(conn, out, target_season)
     out = out[OUTPUT_COLUMNS].sort_values(["position", "team", "player_id", "stat"])
     # `--out projections.csv` has an empty dirname; normalizing to an
@@ -3196,11 +3218,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--season", type=int, required=True)
     ap.add_argument("--out", default=None, help="CSV output path (default: output/projections_<season>.csv)")
+    ap.add_argument(
+        "--as-of",
+        default=None,
+        help="ISO date: filter status overrides and use latest nflverse depth snapshot on/before this date",
+    )
     args = ap.parse_args()
     out_path = args.out or os.path.join(OUTPUT_DIR, f"projections_{args.season}.csv")
 
     conn = get_conn()
-    out = export_projections(conn, args.season, out_path)
+    out = export_projections(conn, args.season, out_path, as_of=args.as_of)
     conn.close()
 
     pd.set_option("display.width", 200)

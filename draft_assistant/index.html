@@ -10,8 +10,15 @@
   <div class="app">
     <header class="header">
       <div class="header-brand">
-        <h1>Draft Assistant</h1>
+        <div class="brand-block">
+          <p class="brand-label">Fantasy Tools</p>
+          <h1>Draft Assistant</h1>
+        </div>
         <span class="season-badge" id="seasonBadge">2026</span>
+        <nav class="app-nav" aria-label="App">
+          <a href="/" class="active" aria-current="page">Draft</a>
+          <a href="/teams/">Team Projections</a>
+        </nav>
       </div>
       <div class="header-controls">
         <label class="control">
@@ -75,6 +82,7 @@
                 <th class="col-team">Team</th>
                 <th class="col-pts">Pts/G</th>
                 <th class="col-season">Season</th>
+                <th class="col-vorp" title="Value over replacement (season pts)">VORP</th>
               </tr>
             </thead>
             <tbody id="rankingsBody"></tbody>
@@ -108,6 +116,16 @@
     </main>
   </div>
 
-  <script src="js/app.js" type="module"></script>
+  <div id="playerHoverCard" class="player-card player-card-hover" hidden role="tooltip"></div>
+
+  <div id="playerModal" class="player-modal" hidden>
+    <div class="player-modal-backdrop" data-close-modal></div>
+    <div class="player-modal-panel" role="dialog" aria-modal="true" aria-labelledby="playerModalTitle">
+      <button type="button" class="player-modal-close" data-close-modal aria-label="Close">Close</button>
+      <div id="playerModalBody" class="player-card player-card-full"></div>
+    </div>
+  </div>
+
+  <script src="js/app.js?v=cards1" type="module"></script>
 </body>
 </html>

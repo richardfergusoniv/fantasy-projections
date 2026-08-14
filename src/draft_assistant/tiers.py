@@ -73,20 +73,28 @@ def add_tier_columns(
     df: pd.DataFrame,
     *,
     points_col: str = "fantasy_pts",
+    overall_points_col: str | None = None,
+    overall_gap: float | None = None,
     position_col: str = "position",
     config: TierConfig | None = None,
 ) -> pd.DataFrame:
-    """Add overall_tier and pos_tier columns to a player dataframe."""
+    """Add overall_tier and pos_tier columns to a player dataframe.
+
+    Positional / FLEX ranks use `points_col` (typically PPG). Overall ranks use
+    `overall_points_col` when provided (typically season VORP).
+    """
     cfg = config or TierConfig(position_gaps=DEFAULT_TIER_GAPS)
     out = df.copy()
+    overall_col = overall_points_col or points_col
+    overall_tier_gap = cfg.overall_gap if overall_gap is None else overall_gap
 
-    overall_order = out.sort_values(points_col, ascending=False)
+    overall_order = out.sort_values(overall_col, ascending=False)
     out.loc[overall_order.index, "overall_rank"] = range(
         1, len(overall_order) + 1
     )
     out.loc[overall_order.index, "overall_tier"] = assign_tiers(
-        overall_order[points_col],
-        gap=cfg.overall_gap,
+        overall_order[overall_col],
+        gap=overall_tier_gap,
         pct_gap=0.04,
     ).values
 

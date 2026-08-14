@@ -1,47 +1,80 @@
-# Draft Assistant
+# Fantasy Tools
 
-FantasyPros Draft Wizard-style board powered by your `output/fantasy_points_<season>.csv` projections.
+Local static app with two views powered by your projection pipeline:
+
+- **Draft Assistant** — FantasyPros-style board from `output/fantasy_points_<season>.csv`
+- **Team Projections** — ESPN-style team stats + depth chart from `output/projections_<season>.csv`
 
 ## Features
 
-- **Tiered rankings** — players with similar projected points per game are grouped; tier breaks appear when projections drop by a position-specific threshold (or 4% for overall board).
+### Draft
+
+- **VORP overall board** — All tab ranks by value over replacement for **1QB / 2RB / 3WR / 1TE / 1FLEX**, not raw PPG (so elite RBs/WRs outrank high-scoring QBs).
+- **Player cards** — hover or click a name for fantasy drivers, volume scales, VORP, and context (same cards as Team Projections).
+- **Tiered rankings** — overall tiers use season VORP cliffs; position tabs still use PPG tiers.
 - **Draft checkboxes** — mark players drafted; state persists in your browser.
 - **Snake draft tracking** — set league size, your draft slot, and current pick to see who is on the clock.
-- **Suggested picks** — blends projection value, positional need, and tier.
+- **Suggested picks** — blends VORP, positional need, and tier.
 - **Roster builder** — QB/RB/WR/TE/FLEX/BN slots fill as you draft yourself.
+
+### Team Projections
+
+- Team picker with Passing / Rushing / Receiving tables (Total or Per Game)
+- ESPN-style depth chart (Starter / 2nd / 3rd / 4th)
+- Player hover cards and fullscreen detail modal
 
 ## Quick start
 
 ```bash
-# 1. Export projections to JSON (after fantasy_points CSV exists)
+# 1. Export JSON after projections exist
 python -m src.draft_assistant.prepare --season 2026
+python -m src.team_stats.prepare --season 2026
 
-# 2. Serve the app
+# 2. Serve the combined app
 python -m src.draft_assistant.serve --open
 ```
 
-Open http://127.0.0.1:8765/ if the browser does not launch automatically.
+Open http://127.0.0.1:8765/ (Draft) or http://127.0.0.1:8765/teams/ (Team Projections).
 
-## Workflow
+`python -m src.team_stats.serve` is an alias for the same combined server.
 
-1. Set **Teams**, **Your slot**, and **Current pick** in the header.
-2. Use position tabs (QB/RB/WR/TE) for position-specific tiers and ranks.
+## Draft workflow
+
+1. Set **Teams**, **Your slot**, and **Current pick** in the header (Teams also rescales VORP baselines).
+2. Use **All** for positional-value order; QB/RB/WR/TE/FLEX for position PPG boards.
 3. Check a player when they are drafted — your pick is tagged when you are on the clock.
 4. Use **Suggested picks** for quick adds during your turn.
 5. **Undo pick** / **Reset draft** as needed; progress saves to `localStorage`.
+
+## VORP baselines
+
+`VORP = max(0, fantasy_pts_season − replacement season points)`.
+
+Replacement rank for an N-team league:
+
+`floor(N × starters + N × flex_share) + 1`
+
+| Position | Starters | FLEX share | Replacement @ 12 teams |
+|----------|----------|------------|-------------------------|
+| QB | 1 | 0.00 | QB13 |
+| RB | 2 | 0.40 | RB29 |
+| WR | 3 | 0.50 | WR43 |
+| TE | 1 | 0.10 | TE14 |
+
+Defaults live in `src/draft_assistant/vorp.py`. The browser recomputes when you change **Teams**.
 
 ## Tier thresholds
 
 | Scope   | Rule                                      |
 |---------|-------------------------------------------|
-| Overall | 1.0 pt drop or 4% relative drop           |
-| QB      | 0.85 pt or 3%                             |
-| RB      | 0.75 pt or 3%                             |
-| WR      | 0.55 pt or 3%                             |
-| TE      | 0.50 pt or 3%                             |
-| FLEX    | 0.65 pt or 3% (RB/WR/TE combined)         |
+| Overall (VORP) | 12.0 season-VORP drop or 4% relative |
+| QB      | 0.85 PPG or 3%                            |
+| RB      | 0.75 PPG or 3%                            |
+| WR      | 0.55 PPG or 3%                            |
+| TE      | 0.50 PPG or 3%                            |
+| FLEX    | 0.65 PPG or 3% (RB/WR/TE combined)        |
 
-Adjust in `src/draft_assistant/tiers.py` and re-run `prepare`.
+Adjust in `src/draft_assistant/tiers.py` / `vorp.py` and re-run `prepare`.
 
 ## Scoring
 
