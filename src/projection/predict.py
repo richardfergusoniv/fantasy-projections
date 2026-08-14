@@ -45,7 +45,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from src.projection.data_prep import get_conn, team_season_opponent_strength
+from src.projection.data_prep import get_conn, load_weekly_usage, team_season_opponent_strength
 from src.projection.depth_history import attach_availability_depth_rank, attach_depth_rank
 from src.projection.features import build_player_season_features, TARGET_STATS, OC_METRICS
 from src.projection.ol_quality import team_season_ol_quality
@@ -2080,6 +2080,215 @@ RUSH_YARDS_PER_CARRY_MAX = {"QB": 10.0, "RB": 7.0, "WR": 15.0, "TE": 15.0}
 NAMED_RUSH_COVERAGE = 0.814
 
 
+# How far a room's modeled ordering is pulled toward the share its preseason
+# depth ranks imply. Only the ORDERING WITHIN a room is affected: every blend
+# is renormalised so the group's total volume is unchanged, and every team
+# anchor still binds downstream. This can move a WR2 ahead of a WR1; it
+# cannot change how much the offense throws.
+#
+# THE FITTED RANK PRIOR SHIPS DISABLED - measured, not assumed, and the
+# measurement went against it.
+#
+# Fit leave-one-season-out over the 2017-2025 transitions it looked
+# excellent: w=0.4 minimised share MAE for both targets (-9.3%) and carries
+# (-8.8%), with all 9 folds improving at every weight from 0.10 to 0.50. But
+# that fit scores the blend against a CARRIED-FORWARD share - the naive
+# baseline - and this pipeline does not ship naive. Re-scored against the
+# actual models on the leakage-safe 2025 evaluation, the same blend is a
+# straight loss: at w=0.25, RB points MAE +1.25%, WR +0.73%, mean VORP MAE
+# +1.5%, one fewer tier hit; at 0.40 it degrades roughly twice as fast. Only
+# TE improves at all (-0.4% points MAE), on a single 145-player holdout,
+# which is not enough to ship a position-specific exception on.
+#
+# The reason is not subtle in hindsight: the models already read depth and
+# usage history, so a rank prior mostly re-tells them what they know, and
+# blending double-counts it. A depth rank knows a slot, not a player.
+#
+# What DOES beat the models is a human who has actually looked at a specific
+# room, which is why the curated weight below is live and this one is not.
+USAGE_SHARE_BLEND_W = 0.0
+
+# Weight for a hand-reviewed usage_share_prior on the curated chart.
+#
+# Distinct from the fitted rank prior above and deliberately much stronger,
+# for the same reason reassign_team_changers lets a curated 'starter' beat
+# the vacancy heuristic: research about one room is a stronger, more specific
+# signal than a league average over a rank. It applies ONLY to rows a human
+# has marked usage_share_reviewed - an unreviewed default is a starting point
+# for that research, never a claim, and must not move a projection.
+#
+# Today no row is reviewed, so this is a no-op on the shipped board by
+# construction. The Dallas case the diagnosis raised - the curated chart
+# lists George Pickens above CeeDee Lamb because its rank is formation order,
+# and the models carry Pickens' better 2025 forward - is fixed by reviewing
+# those two rows, not by a league-wide rule that testing says costs accuracy.
+USAGE_SHARE_CURATED_W = 0.5
+
+# Which stats move together. A player's blend factor is computed once from
+# the family's volume stat and applied to the whole family, so blending
+# cannot pull his receptions away from his targets.
+USAGE_SHARE_FAMILIES = {
+    "receiving": {
+        "positions": ("WR", "TE", "RB"),
+        "stats": ("targets", "receptions", "receiving_yards", "receiving_tds"),
+        "prior": "target_share",
+    },
+    "rushing": {
+        "positions": ("RB",),
+        "stats": ("carries", "rushing_yards", "rushing_tds"),
+        "prior": "carry_share",
+    },
+}
+USAGE_SHARE_MAX_RANK = 5
+
+
+def fit_usage_share_priors(conn, seasons):
+    """Mean team share by position and preseason depth rank.
+
+    Keyed on the nflverse preseason rank rather than the curated chart's
+    `depth_rank` for two reasons. It is the only rank that exists for
+    historical seasons, so it is the only one this can be fit and validated
+    on - the same argument that keys Gate B's ladder. And the curated
+    `depth_rank` is explicitly formation order: starters_2026.csv says so in
+    its own notes column, which is exactly why it cannot be read as a volume
+    ordering. Dallas is the case in point - the curated chart lists George
+    Pickens ahead of CeeDee Lamb, while the nflverse chart has Lamb first.
+
+    Rank is a real usage signal, not a proxy for one: Spearman between rank
+    and target share is -0.62 for WR, with mean shares of 0.154 / 0.066 /
+    0.038 across the top three rungs.
+    """
+    usage = load_weekly_usage(conn)
+    usage = usage[usage["season"].isin(seasons)]
+    if usage.empty:
+        return pd.DataFrame()
+    agg = usage.groupby(["season", "player_id", "team", "position"], as_index=False).agg(
+        targets=("targets", "sum"), carries=("carries", "sum"))
+    team = agg.groupby(["season", "team"])[["targets", "carries"]].sum().replace(0, np.nan)
+    keys = pd.MultiIndex.from_frame(agg[["season", "team"]])
+    agg["target_share"] = agg["targets"].to_numpy() / team["targets"].reindex(keys).to_numpy()
+    agg["carry_share"] = agg["carries"].to_numpy() / team["carries"].reindex(keys).to_numpy()
+    ranked = []
+    for season in sorted(agg["season"].unique()):
+        ranked.append(attach_depth_rank(agg[agg["season"] == season], int(season), conn=conn))
+    agg = pd.concat(ranked, ignore_index=True)
+    agg = agg[agg["nfl_depth_rank"].notna()]
+    if agg.empty:
+        return pd.DataFrame()
+    agg["rank"] = agg["nfl_depth_rank"].clip(upper=USAGE_SHARE_MAX_RANK).astype(int)
+    return agg.groupby(["position", "rank"])[["target_share", "carry_share"]].mean()
+
+
+def apply_usage_share_prior(df, priors, depth_chart=None, weight=None):
+    """Pull each room's modeled ordering toward what its depth ranks imply.
+
+    The gap this closes: the per-(position, stat) models are independent and
+    each carries a player's own prior-season usage forward, so nothing can
+    correct an ordering the depth chart contradicts. George Pickens
+    out-projects CeeDee Lamb on every receiving stat because his 2025 was
+    better, and no part of the pipeline was able to say that Dallas's alpha
+    receiver is Lamb - the curated chart's rank is formation order, and Gate
+    B's ladder gives both a 1.00 multiplier, by construction: it was fit to
+    calibrate a rate, not to rank a room.
+
+    Group totals are preserved exactly. Each player's blended weight is
+    renormalised within his (team, position) group, so this redistributes
+    volume between teammates and never creates or destroys any. Every team
+    anchor downstream still binds.
+
+    Two priors feed this, at different strengths. A REVIEWED
+    `usage_share_prior` on the curated chart carries USAGE_SHARE_CURATED_W,
+    because research about one specific room beats a league average over a
+    rank. The fitted rank prior carries USAGE_SHARE_BLEND_W, which ships at
+    0.0 - it tested as a straight loss against real outcomes. An unreviewed
+    curated value is a starting point for research, not a claim, and is
+    ignored entirely.
+    """
+    if weight is None:
+        weight = USAGE_SHARE_BLEND_W
+    out = df.copy()
+    out["usage_share_blend_factor"] = np.nan
+    if priors is None or priors.empty:
+        return out
+
+    curated_prior = {}
+    if depth_chart is not None and "usage_share_prior" in getattr(depth_chart, "columns", []):
+        curated = depth_chart.dropna(subset=["gsis_id", "usage_share_prior"])
+        if "usage_share_reviewed" in curated.columns:
+            reviewed = curated["usage_share_reviewed"]
+            curated = curated[
+                reviewed.astype(str).str.strip().str.lower().isin(("true", "1", "yes"))
+            ]
+        curated_prior = {
+            (r["gsis_id"], r["position"]): float(r["usage_share_prior"])
+            for _, r in curated.iterrows()
+        }
+    if weight <= 0 and not curated_prior:
+        return out
+
+    exposure = _row_exposure(out)
+    rank = pd.to_numeric(out.get("nfl_depth_rank"), errors="coerce")
+    banded = rank.clip(upper=USAGE_SHARE_MAX_RANK)
+
+    for family in USAGE_SHARE_FAMILIES.values():
+        prior_col = family["prior"]
+        mask = out["position"].isin(family["positions"]) & out["stat"].isin(family["stats"])
+        if not mask.any():
+            continue
+        volume_stat = family["stats"][0]
+        vol_mask = mask & out["stat"].eq(volume_stat)
+        vol = out[vol_mask].copy()
+        vol["exposure"] = exposure[vol_mask]
+        vol["season_volume"] = (
+            pd.to_numeric(vol["pred_pg"], errors="coerce").clip(lower=0) * vol["exposure"])
+        priors_and_weights = [
+            (curated_prior[(pid, pos)], USAGE_SHARE_CURATED_W)
+            if (pid, pos) in curated_prior
+            else (priors[prior_col].get((pos, int(r)), np.nan) if pd.notna(r) else np.nan,
+                  weight)
+            for pid, pos, r in zip(vol["player_id"], vol["position"], banded[vol_mask])
+        ]
+        vol["prior"] = [p for p, _ in priors_and_weights]
+        vol["prior_weight"] = [w for _, w in priors_and_weights]
+        factors = {}
+        for (team, position), group in vol.groupby(["team", "position"]):
+            # Only players the preseason chart actually ranks are reordered,
+            # among themselves; everyone else keeps exactly what the models
+            # gave them. Requiring the WHOLE room to be ranked would disable
+            # this entirely - charts run three deep and rooms do not - and
+            # blending an unranked player toward a prior he has no rank for
+            # would be inventing a number, not correcting one.
+            rows = group[group["prior"].notna() & (group["prior_weight"] > 0)]
+            if len(rows) < 2:
+                continue
+            total = rows["season_volume"].sum()
+            prior = rows["prior"]
+            if total <= 0 or prior.sum() <= 0:
+                continue
+            model_w = rows["season_volume"] / total
+            prior_w = prior / prior.sum()
+            # Per-row weight: a reviewed curated prior pulls harder than a
+            # fitted rank one, so a room can mix a researched player with
+            # rank-prior teammates without the research being diluted.
+            w = rows["prior_weight"]
+            blended = (1 - w) * model_w + w * prior_w
+            blended = blended / blended.sum()
+            new_volume = blended * total
+            for idx, old, new in zip(rows.index, rows["season_volume"], new_volume):
+                factors[(vol.at[idx, "player_id"], team, position)] = (
+                    new / old if old > 0 else 1.0)
+        if not factors:
+            continue
+        for idx in out.index[mask]:
+            key = (out.at[idx, "player_id"], out.at[idx, "team"], out.at[idx, "position"])
+            factor = factors.get(key)
+            if factor is None:
+                continue
+            out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= factor
+            out.at[idx, "usage_share_blend_factor"] = factor
+    return out
+
+
 def _named_supply_target(raw_supply, anchor, coverage=NAMED_RUSH_COVERAGE):
     """How much team volume named players may be allocated.
 
@@ -2505,6 +2714,11 @@ def project_season(conn, target_season):
     combined = pd.concat([vet, rookie_long, replacement], ignore_index=True, sort=False)
     combined = propagate_team_anchors(combined)
     combined = reconcile_qb_projected_volume_games(combined)
+    # Reorder each room toward what its depth ranks imply, before the
+    # anchors bind - the blend preserves group totals, so it settles who
+    # gets the volume while the reconcilers below settle how much there is.
+    combined = apply_usage_share_prior(
+        combined, fit_usage_share_priors(conn, hist_seasons), depth_chart)
     combined = normalize_team_passing_volume(combined)
     combined = normalize_team_rushing_volume(combined)
     combined = reconcile_stat_constraints(combined)
@@ -2544,6 +2758,7 @@ OUTPUT_COLUMNS = [
     "team_passing_volume_scale",  # player-room allocation scale for QB passing stats
     "team_qb_attempt_anchor_fully_allocated",
     "team_rushing_volume_scale", "team_pass_receive_count_scale",
+    "usage_share_blend_factor",  # room reordering from a reviewed usage prior
     "team_unmodeled_qb_volume_games", "team_unmodeled_qb_attempts_season",
     "team_unmodeled_qb_completions_season", "team_unmodeled_qb_passing_yards_season",
     "team_unmodeled_qb_passing_tds_season", "team_unmodeled_receiving_yards_season",

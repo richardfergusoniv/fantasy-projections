@@ -12,7 +12,10 @@ from src.projection.predict import (
     QB_ATTEMPTS_PER_VOLUME_GAME_MAX,
     REPLACEMENT_POSITIONS,
     RUSH_ATTEMPTS_PER_APPEARANCE_MAX,
+    USAGE_SHARE_BLEND_W,
+    USAGE_SHARE_CURATED_W,
     _ensure_output_parent,
+    apply_usage_share_prior,
     add_projected_season_totals,
     add_team_pass_catch_coherence_flag,
     normalize_team_passing_volume,
@@ -352,6 +355,70 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         # takes exposure straight off the starter.
         self.assertNotIn("QB", REPLACEMENT_POSITIONS)
         self.assertEqual(set(REPLACEMENT_POSITIONS), {"RB", "WR", "TE"})
+
+    def _wr_room(self):
+        rows = []
+        for pid, rate, rank in (("a", 8.0, 2.0), ("b", 6.0, 1.0), ("c", 2.0, 3.0)):
+            rows.append({
+                "player_id": pid, "team": "TST", "position": "WR", "stat": "targets",
+                "pred_pg": rate, "pred_pg_low": rate * .5, "pred_pg_high": rate * 1.5,
+                "projected_games": 17.0, "projected_volume_games": 17.0,
+                "nfl_depth_rank": rank,
+            })
+        priors = pd.DataFrame(
+            {"target_share": [0.15, 0.06, 0.03], "carry_share": [0.0, 0.0, 0.0]},
+            index=pd.MultiIndex.from_tuples(
+                [("WR", 1), ("WR", 2), ("WR", 3)], names=["position", "rank"]),
+        )
+        return pd.DataFrame(rows), priors
+
+    def test_unreviewed_usage_prior_never_moves_a_projection(self):
+        # An unreviewed default is a starting point for research, not a claim.
+        df, priors = self._wr_room()
+        chart = pd.DataFrame([
+            dict(gsis_id="a", position="WR", usage_share_prior=0.06,
+                 usage_share_reviewed=False),
+            dict(gsis_id="b", position="WR", usage_share_prior=0.15,
+                 usage_share_reviewed=False),
+        ])
+        out = apply_usage_share_prior(df, priors, chart, weight=0.0)
+        pd.testing.assert_series_equal(out["pred_pg"], df["pred_pg"])
+
+    def test_reviewed_usage_prior_reorders_the_room(self):
+        # The Dallas case: the models rank 'a' first on prior-season usage,
+        # research says 'b' is the real alpha.
+        df, priors = self._wr_room()
+        chart = pd.DataFrame([
+            dict(gsis_id="a", position="WR", usage_share_prior=0.06,
+                 usage_share_reviewed=True),
+            dict(gsis_id="b", position="WR", usage_share_prior=0.15,
+                 usage_share_reviewed=True),
+        ])
+        out = apply_usage_share_prior(df, priors, chart, weight=0.0).set_index("player_id")
+        self.assertGreater(out.loc["b", "pred_pg"], out.loc["a", "pred_pg"])
+        # Unranked/unreviewed teammate is untouched.
+        self.assertAlmostEqual(out.loc["c", "pred_pg"], 2.0)
+
+    def test_usage_prior_preserves_group_volume(self):
+        # Reordering redistributes between teammates; it never invents or
+        # destroys team volume, which the anchors downstream depend on.
+        df, priors = self._wr_room()
+        chart = pd.DataFrame([
+            dict(gsis_id="a", position="WR", usage_share_prior=0.06,
+                 usage_share_reviewed=True),
+            dict(gsis_id="b", position="WR", usage_share_prior=0.15,
+                 usage_share_reviewed=True),
+        ])
+        out = apply_usage_share_prior(df, priors, chart, weight=0.0)
+        moved = out[out["usage_share_blend_factor"].notna()]
+        before = df.set_index("player_id").loc[moved["player_id"], "pred_pg"].sum()
+        self.assertAlmostEqual(moved["pred_pg"].sum(), before)
+
+    def test_fitted_rank_prior_ships_disabled(self):
+        # Measured against real 2025 outcomes and it lost; kept at 0 until
+        # evidence says otherwise.
+        self.assertEqual(USAGE_SHARE_BLEND_W, 0.0)
+        self.assertGreater(USAGE_SHARE_CURATED_W, 0.0)
 
     def test_receiving_share_cap_uses_exposure_weights(self):
         shares = pd.DataFrame([

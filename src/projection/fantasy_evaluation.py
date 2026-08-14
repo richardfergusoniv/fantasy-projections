@@ -29,7 +29,9 @@ from src.projection.fantasy_points import SCORING
 from src.projection.features import TARGET_STATS, build_player_season_features
 from src.projection.predict import (
     add_projected_season_totals,
+    apply_usage_share_prior,
     depth_rate_factor,
+    fit_usage_share_priors,
     normalize_team_passing_volume,
     normalize_team_rushing_volume,
     reconcile_qb_projected_volume_games,
@@ -398,7 +400,7 @@ def _rookie_forecasts(
 
 
 def _compose_and_reconcile(
-    long: pd.DataFrame, anchors: pd.DataFrame, target_season: int
+    long: pd.DataFrame, anchors: pd.DataFrame, target_season: int, conn=None
 ) -> pd.DataFrame:
     out = long.merge(anchors, on="team", how="left")
     share_mask = out["is_receiving_share"].fillna(False)
@@ -428,6 +430,13 @@ def _compose_and_reconcile(
     out["pred_pg_high"] = out["pred_pg"]
     out = reconcile_stat_constraints(out)
     out = reconcile_qb_projected_volume_games(out, season_games=SEASON_GAMES)
+    # Same room reordering predict.py applies, fit strictly on seasons before
+    # this fold's target so the evaluation stays leakage-safe. This is the
+    # only place the blend can be scored against real outcomes rather than
+    # against consensus.
+    if conn is not None:
+        out = apply_usage_share_prior(
+            out, fit_usage_share_priors(conn, list(range(2016, target_season))))
     out = normalize_team_passing_volume(out, season_games=SEASON_GAMES)
     out = normalize_team_rushing_volume(out, season_games=SEASON_GAMES)
     out = reconcile_team_pass_receive_counts(out, season_games=SEASON_GAMES)
@@ -457,7 +466,7 @@ def _forecast_from_history(
         rookie_cohort, source_season, target_season
     )
     long = pd.concat([veteran_long, rookie_long], ignore_index=True, sort=False)
-    long = _compose_and_reconcile(long, anchors, target_season)
+    long = _compose_and_reconcile(long, anchors, target_season, conn=conn)
     scored_stats = long.pivot_table(
         index="player_id", columns="stat", values="pred_season", aggfunc="first"
     )
