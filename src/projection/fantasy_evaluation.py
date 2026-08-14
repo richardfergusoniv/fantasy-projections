@@ -51,6 +51,7 @@ from src.projection.transitions import (
     REFRAMED_SHARE_STATS,
     SEASON_GAMES,
     TEAM_ATTEMPTS_LABEL,
+    age_shrunk_predict,
     TEAM_CARRIES_LABEL,
     TEAM_FEATURES,
     TEAM_MODEL_FEATURES,
@@ -335,7 +336,7 @@ def _veteran_forecasts(
         }))
         for stat in stats:
             rate_model, _ = fit_one(history, position, stat, pairs=pairs)
-            pred = np.clip(rate_model.predict(base.loc[idx, ALL_FEATURES]), 0, None)
+            pred = np.clip(age_shrunk_predict(rate_model, base.loc[idx], position), 0, None)
             # Production applies the veteran-only depth ladder before share
             # composition.  The held-out chart is available preseason; the
             # factor is deterministic and contains no target outcome.

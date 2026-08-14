@@ -173,6 +173,56 @@ def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_S
     return scale, over_cap
 
 
+# Age-effect shrinkage (predict-time only - no retrain, the saved models in
+# models/ are unchanged). Added after a user-driven investigation found the
+# trained models lean on `age` ~1.6-3.2x harder for WR than RB (gain-share
+# and partial-dependence magnitude), which the user found excessive.
+# Follow-up work ruled out a bug and ruled out the "stale historical
+# pattern" explanation (the age-related WR decline is real, current, and
+# specifically concentrated in the model's own 2021-2025 training window -
+# see project memory / DRAFT_CAPITAL_REMOVAL-adjacent investigation notes
+# for the full writeup). But it also surfaced a genuine asymmetry: RB's age
+# signal is thin (sparse older-RB sample) and does NOT earn its keep -
+# grid-searching a shrink factor from 1.0 (unshrunk) to 0.0 (fully
+# neutralized) against both the single 2024->2025 holdout and the 3-fold
+# rolling-origin backtest showed RB accuracy improves MONOTONICALLY as age
+# is shrunk toward 0, across all 7 RB stats (holdout: -1.2% mean MAE at
+# shrink=0; rolling: -0.4%) - a clean win, not a cosmetic one. WR shows the
+# opposite: monotonic MAE REGRESSION as age is shrunk (holdout: +1.3% at
+# shrink=0; rolling: +1.0%) - dampening it costs real accuracy. QB/TE are
+# within noise either way (<0.5%). User's explicit choice (2026-08-14):
+# ship the shrink only where evidence supports it - RB fully neutralized,
+# everyone else untouched.
+REFERENCE_AGE = {"QB": 27.0, "RB": 25.0, "WR": 25.0, "TE": 26.0}  # median age, that position's 2021-2025 population
+AGE_EFFECT_SHRINK = {"QB": 1.0, "RB": 0.0, "WR": 1.0, "TE": 1.0}  # 1.0 = unshrunk, 0.0 = fully neutralized
+
+
+def age_shrunk_predict(model, X, position, features=None):
+    """Predict with `model` on `X[features]` (`features` defaults to
+    ALL_FEATURES), dampening `age`'s marginal contribution for `position`
+    per AGE_EFFECT_SHRINK - see that constant's comment for the evidence.
+    The dampened prediction is `pred_neutral + shrink * (pred - pred_neutral)`,
+    where `pred_neutral` is the SAME already-trained model's prediction with
+    `age` replaced by REFERENCE_AGE[position] and every other feature left
+    at its real observed value - an individual-conditional-expectation swap,
+    not a retrain. Skips the second predict() call entirely (a no-op) for
+    any position at shrink=1.0, so the 3 unaffected positions pay no extra
+    inference cost. Shared by predict.py (live composition) and backtest.py
+    (MAE + interval calibration), so the two cannot drift apart - same
+    reason receiving_share_scale lives here rather than in predict.py."""
+    if features is None:
+        features = ALL_FEATURES
+    Xf = X[features]
+    pred = model.predict(Xf)
+    shrink = AGE_EFFECT_SHRINK.get(position, 1.0)
+    if shrink >= 1.0:
+        return pred
+    X_neutral = Xf.copy()
+    X_neutral["age"] = REFERENCE_AGE[position]
+    pred_neutral = model.predict(X_neutral)
+    return pred_neutral + shrink * (pred - pred_neutral)
+
+
 def build_transition_pairs(feat, position, stat, season_pairs, label_col=None):
     """Stack (X, y) rows across the given list of (season_from, season_to)
     pairs for one position/stat. Requires games_played > 0 in season_to

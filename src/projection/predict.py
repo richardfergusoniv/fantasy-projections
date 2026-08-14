@@ -53,7 +53,7 @@ from src.projection.transitions import (
     ALL_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, REFRAMED_SHARE_STATS,
     RECEIVING_SHARE_SUM_CAP, receiving_share_scale, SEASON_GAMES,
     TEAM_TOTAL_LABEL, TEAM_ATTEMPTS_LABEL, TEAM_CARRIES_LABEL,
-    TEAM_RUSH_YARDS_LABEL,
+    TEAM_RUSH_YARDS_LABEL, age_shrunk_predict,
 )
 from src.projection.corrections import elite_shrinkage_adjustment
 from src.projection.rookies import (
@@ -981,7 +981,7 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
         X = pos_df[ALL_FEATURES]
         for stat in stats:
             m = models[(position, stat)]
-            preds = m["model"].predict(X)
+            preds = age_shrunk_predict(m["model"], X, position, features=ALL_FEATURES)
             out = pos_df[["player_id", "team", "position", "team_changed",
                           "roster_status", "projected_games", "nfl_depth_rank"]].copy()
             out["stat"] = stat

@@ -29,7 +29,7 @@ from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
     ALL_FEATURES, AVAILABILITY_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
-    REFRAMED_SHARE_STATS,
+    REFRAMED_SHARE_STATS, age_shrunk_predict,
     RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, AVAILABILITY_LABEL, SEASON_GAMES,
     TEAM_ATTEMPTS_LABEL, receiving_share_scale,
 )
@@ -77,7 +77,7 @@ def depth_rate_calibration(feat, conn, pairs=TRAIN_PAIRS + [TEST_PAIR]):
             model = LGBMRegressor(**LGBM_PARAMS)
             model.fit(train[ALL_FEATURES], train[label])
             test = test.copy()
-            test["pred"] = np.clip(model.predict(test[ALL_FEATURES]), 0, None)
+            test["pred"] = np.clip(age_shrunk_predict(model, test, position), 0, None)
             test["position"] = position
             test = attach_depth_rank(test, held_out[1], conn=conn)
             test["actual"] = test[label]
@@ -169,7 +169,7 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
         share_model = LGBMRegressor(**LGBM_PARAMS)
         share_model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
         f = test[["team"]].copy()
-        f["share"] = np.clip(share_model.predict(test[ALL_FEATURES]), 0, None)
+        f["share"] = np.clip(age_shrunk_predict(share_model, test, position), 0, None)
         # Production uses projected_games/17 in the share guard.  Using the
         # held-out season's actual games_played_to here leaks the outcome and
         # makes the historical composition easier than the live one.  Fit the
@@ -242,7 +242,7 @@ def backtest_position_stat(feat, position, stat, train_pairs=TRAIN_PAIRS, test_p
             return None
         model = LGBMRegressor(**LGBM_PARAMS)
         model.fit(train[ALL_FEATURES], train[y_col])
-        pred = model.predict(test[ALL_FEATURES])
+        pred = age_shrunk_predict(model, test, position)
         pred_uncapped = None
 
     naive = test["naive_pred"]  # season_from's own pg rate, carried forward unchanged
@@ -312,7 +312,7 @@ def coherence_ratio_backtest(feat):
         old_model = LGBMRegressor(**LGBM_PARAMS)
         old_model.fit(old_train[ALL_FEATURES], old_train[f"{stat}_pg"])
         old_test = old_test.copy()
-        old_test["old_pred"] = old_model.predict(old_test[ALL_FEATURES])
+        old_test["old_pred"] = age_shrunk_predict(old_model, old_test, position)
         old_test["actual"] = old_test[f"{stat}_pg"]
         old_test["weight"] = projected_participation_weight(
             feat, old_test, position, TRAIN_PAIRS, TEST_PAIR)
@@ -392,7 +392,7 @@ def rolling_residual_rows(feat, test_pairs=ROLLING_TEST_PAIRS):
                         continue
                     model = LGBMRegressor(**LGBM_PARAMS)
                     model.fit(train[ALL_FEATURES], train[y_col])
-                    pred = model.predict(test[ALL_FEATURES])
+                    pred = age_shrunk_predict(model, test, position)
                 actual = pd.to_numeric(test[y_col], errors="coerce").to_numpy()
                 frame = pd.DataFrame({
                     "position": position,
@@ -581,7 +581,7 @@ def backtest_season_totals(feat, conn=None, train_pairs=TRAIN_PAIRS,
         gm = LGBMRegressor(**LGBM_PARAMS).fit(av_train[AVAILABILITY_FEATURES], av_train[AVAILABILITY_LABEL])
         rm = LGBMRegressor(**LGBM_PARAMS).fit(rate_train[ALL_FEATURES], rate_train[f"{stat}_pg"])
         games_hat = np.clip(gm.predict(av_test[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
-        rate_hat = np.clip(rm.predict(av_test[ALL_FEATURES]), 0, None)
+        rate_hat = np.clip(age_shrunk_predict(rm, av_test, position), 0, None)
         composed = pd.Series(np.nan, index=av_test.index, dtype=float)
         parity_limit = "independent rate path; production room normalization unavailable"
         if (position, stat) in REFRAMED_SHARE_STATS:

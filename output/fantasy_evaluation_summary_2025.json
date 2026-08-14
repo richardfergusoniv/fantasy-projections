@@ -48,8 +48,8 @@
       "population_n": 107,
       "forecast_covered_n": 91,
       "zero_outcome_n": 27,
-      "spearman": 0.7825705483910919,
-      "points_mae": 42.39633292383905,
+      "spearman": 0.7822391487612083,
+      "points_mae": 42.39246025258702,
       "tier_rank": 12,
       "predicted_top_n": 12,
       "actual_top_n": 12,
@@ -58,10 +58,10 @@
       "tier_recall": 0.5,
       "tier_hit_rate": 0.5,
       "replacement_rank": 13,
-      "predicted_replacement_points": 259.25175706287683,
+      "predicted_replacement_points": 259.4358428977677,
       "actual_replacement_points": 243.57999999999998,
-      "vorp_mae": 46.4112698721933,
-      "vorp_spearman": 0.7825705483910919
+      "vorp_mae": 46.474176895200394,
+      "vorp_spearman": 0.7822391487612083
     },
     {
       "position": "QB",
@@ -117,8 +117,8 @@
       "population_n": 107,
       "forecast_covered_n": 91,
       "zero_outcome_n": 17,
-      "spearman": 0.783209612962334,
-      "points_mae": 48.35898486649205,
+      "spearman": 0.782722278985788,
+      "points_mae": 48.35443128600891,
       "tier_rank": 12,
       "predicted_top_n": 12,
       "actual_top_n": 12,
@@ -127,10 +127,10 @@
       "tier_recall": 0.5,
       "tier_hit_rate": 0.5,
       "replacement_rank": 13,
-      "predicted_replacement_points": 259.25175706287683,
+      "predicted_replacement_points": 259.4358428977677,
       "actual_replacement_points": 243.57999999999998,
-      "vorp_mae": 50.328327069435765,
-      "vorp_spearman": 0.783209612962334
+      "vorp_mae": 50.36992792771601,
+      "vorp_spearman": 0.782722278985788
     },
     {
       "position": "QB",
@@ -186,8 +186,8 @@
       "population_n": 185,
       "forecast_covered_n": 156,
       "zero_outcome_n": 43,
-      "spearman": 0.7330776441160028,
-      "points_mae": 33.58461515565734,
+      "spearman": 0.7324471969390375,
+      "points_mae": 33.54803318661877,
       "tier_rank": 24,
       "predicted_top_n": 24,
       "actual_top_n": 24,
@@ -196,10 +196,10 @@
       "tier_recall": 0.625,
       "tier_hit_rate": 0.625,
       "replacement_rank": 25,
-      "predicted_replacement_points": 171.80255731160707,
+      "predicted_replacement_points": 174.9158413459555,
       "actual_replacement_points": 164.8,
-      "vorp_mae": 35.19931175230608,
-      "vorp_spearman": 0.7329993129125795
+      "vorp_mae": 36.59245857796023,
+      "vorp_spearman": 0.7323669462600827
     },
     {
       "position": "RB",
@@ -255,8 +255,8 @@
       "population_n": 185,
       "forecast_covered_n": 156,
       "zero_outcome_n": 26,
-      "spearman": 0.7430481124181294,
-      "points_mae": 38.286883357670554,
+      "spearman": 0.7424001939778796,
+      "points_mae": 38.24350089438763,
       "tier_rank": 24,
       "predicted_top_n": 24,
       "actual_top_n": 24,
@@ -265,10 +265,10 @@
       "tier_recall": 0.625,
       "tier_hit_rate": 0.625,
       "replacement_rank": 25,
-      "predicted_replacement_points": 171.80255731160707,
+      "predicted_replacement_points": 174.9158413459555,
       "actual_replacement_points": 164.8,
-      "vorp_mae": 38.90255456500013,
-      "vorp_spearman": 0.7430481124181294
+      "vorp_mae": 39.97593229416624,
+      "vorp_spearman": 0.7424001939778796
     },
     {
       "position": "RB",
@@ -324,8 +324,8 @@
       "population_n": 298,
       "forecast_covered_n": 269,
       "zero_outcome_n": 66,
-      "spearman": 0.7725265981049488,
-      "points_mae": 22.720689834093047,
+      "spearman": 0.772550972751486,
+      "points_mae": 22.720689296622727,
       "tier_rank": 36,
       "predicted_top_n": 36,
       "actual_top_n": 36,
@@ -336,8 +336,8 @@
       "replacement_rank": 37,
       "predicted_replacement_points": 124.97148857164521,
       "actual_replacement_points": 133.2,
-      "vorp_mae": 24.587549291188576,
-      "vorp_spearman": 0.7725125211819529
+      "vorp_mae": 24.587658199286576,
+      "vorp_spearman": 0.7725368958341676
     },
     {
       "position": "WR",
@@ -393,8 +393,8 @@
       "population_n": 298,
       "forecast_covered_n": 269,
       "zero_outcome_n": 52,
-      "spearman": 0.781797063252787,
-      "points_mae": 24.543663831077055,
+      "spearman": 0.7818300232204852,
+      "points_mae": 24.54366323566384,
       "tier_rank": 36,
       "predicted_top_n": 36,
       "actual_top_n": 36,
@@ -405,8 +405,8 @@
       "replacement_rank": 37,
       "predicted_replacement_points": 124.97148857164521,
       "actual_replacement_points": 133.2,
-      "vorp_mae": 26.20105945907867,
-      "vorp_spearman": 0.7817780299016595
+      "vorp_mae": 26.201180108198393,
+      "vorp_spearman": 0.7818109898796921
     },
     {
       "position": "WR",
@@ -462,8 +462,8 @@
       "population_n": 165,
       "forecast_covered_n": 145,
       "zero_outcome_n": 30,
-      "spearman": 0.8326905080839979,
-      "points_mae": 16.569282908673713,
+      "spearman": 0.8323588389700585,
+      "points_mae": 16.568452285012363,
       "tier_rank": 12,
       "predicted_top_n": 12,
       "actual_top_n": 12,
@@ -474,8 +474,8 @@
       "replacement_rank": 13,
       "predicted_replacement_points": 98.7050050885183,
       "actual_replacement_points": 133.0,
-      "vorp_mae": 35.164810273149364,
-      "vorp_spearman": 0.8327046157650337
+      "vorp_mae": 35.16559764052936,
+      "vorp_spearman": 0.8323729464239947
     },
     {
       "position": "TE",
@@ -531,8 +531,8 @@
       "population_n": 165,
       "forecast_covered_n": 145,
       "zero_outcome_n": 21,
-      "spearman": 0.8423406764491101,
-      "points_mae": 18.244356413318364,
+      "spearman": 0.8419050625396935,
+      "points_mae": 18.243411220876137,
       "tier_rank": 12,
       "predicted_top_n": 12,
       "actual_top_n": 12,
@@ -543,8 +543,8 @@
       "replacement_rank": 13,
       "predicted_replacement_points": 98.7050050885183,
       "actual_replacement_points": 133.0,
-      "vorp_mae": 35.31023301146879,
-      "vorp_spearman": 0.8423613159333351
+      "vorp_mae": 35.311128981246036,
+      "vorp_spearman": 0.8419257015901189
     },
     {
       "position": "TE",

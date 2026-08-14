@@ -47,7 +47,7 @@ from src.projection.transitions import (
     build_transition_pairs, ALL_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
     AVAILABILITY_FEATURES,
     REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL, receiving_share_scale,
-    SEASON_GAMES,
+    SEASON_GAMES, age_shrunk_predict,
 )
 
 # Per-position "elite" thresholds for the shrinkage correction, in
@@ -176,7 +176,7 @@ def compute_loo_receiving_residuals(feat, pairs):
             model = LGBMRegressor(**LGBM_PARAMS)
             model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
             f = test[["team"]].copy()
-            f["share"] = np.clip(model.predict(test[ALL_FEATURES]), 0, None)
+            f["share"] = np.clip(age_shrunk_predict(model, test, position), 0, None)
             # Team-grain inputs - see transitions.team_model_inputs. Fitting
             # the elite-shrinkage correction on a composition built from
             # ~40%-low team totals inflated its residuals and therefore beta.
