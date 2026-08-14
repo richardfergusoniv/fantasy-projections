@@ -323,6 +323,63 @@ def _incoming_volume_share(df, changed):
     return out
 
 
+def _attach_rookie_residual_vacancy(conn, df, target_season, changed):
+    """What fraction of a team's vacated opportunity is still unclaimed once
+    the veteran paths have taken their cut.
+
+    The rookie path is the only claimant on a team's vacancy that never nets
+    itself against the others. Arrivals net out their competitors
+    (reassign_team_changers) and incumbents net out arrivals
+    (apply_incumbent_vacancy_boost), but a rookie is handed the team's ENTIRE
+    gross vacancy - so the same opening is spent twice. Philadelphia loses
+    A.J. Brown, DeVonta Smith is credited for absorbing part of it as a
+    curated incumbent, and Makai Lemon is then scaled by the whole thing
+    anyway, landing at 118.9 targets against Smith's 97.9.
+
+    In share-of-team-volume units the accounting is:
+
+        v_net    = gross_vacated - arrivals_incoming     (already the basis
+                   apply_incumbent_vacancy_boost credits incumbents on)
+        absorbed = INCUMBENT_VACANCY_ALPHA * v_net       (their measured cut)
+        residual = v_net - absorbed = v_net * (1 - alpha)
+
+    and this returns residual / gross - the share of the boost a rookie can
+    still honestly claim. It falls out to 1.0 exactly when there are no
+    arrivals and no eligible incumbents to credit, i.e. when the rookie
+    really is the only claimant. Carries come out at 1.0 across the board
+    today because INCUMBENT_VACANCY_ALPHA['carry'] ships disabled; that is
+    the correct coupling, not a special case - if the carry side is ever
+    turned on, rookies stop double-counting it in the same commit.
+
+    Computed here rather than recomputed later because `team_target` and
+    `changed` are both fully resolved at this point, and re-deriving either
+    one downstream is exactly how two code paths drift apart.
+    """
+    for kind in ("carry", "target"):
+        df[f"rookie_residual_{kind}_fraction"] = 1.0
+    vacated = team_vacated_opportunity(conn, [target_season])
+    vacated = vacated[vacated["season"] == target_season].set_index("team")
+    if vacated.empty:
+        return df
+    incoming = _incoming_volume_share(df, changed) if changed.any() else None
+    for col, vac_col, kind in (
+        ("carries", "vacated_carry_share", "carry"),
+        ("targets", "vacated_target_share", "target"),
+    ):
+        gross = vacated[vac_col]
+        if incoming is None:
+            absorbed = pd.Series(0.0, index=gross.index)
+        else:
+            absorbed = incoming[col][0].reindex(gross.index).fillna(0.0)
+        v_net = (gross - absorbed).clip(lower=0.0)
+        residual = v_net * (1.0 - INCUMBENT_VACANCY_ALPHA[kind])
+        fraction = (residual / gross.replace(0, np.nan)).clip(0.0, 1.0)
+        df[f"rookie_residual_{kind}_fraction"] = (
+            df["team_target"].map(fraction).fillna(1.0)
+        )
+    return df
+
+
 def drop_players_absent_from_target_season(conn, df, depth_chart, target_season):
     """Drop players who have NO target_season roster row at all AND are
     not vouched for by the curated depth chart - players who have left the
@@ -784,6 +841,7 @@ def reassign_team_changers(conn, df, target_season, depth_chart):
     # half of the same idea: credit for the opportunity their departing
     # teammates left behind. Runs here, while df["team"] is still the
     # source-season team and `changed` is available to net out arrivals.
+    df = _attach_rookie_residual_vacancy(conn, df, target_season, changed)
     df = apply_incumbent_vacancy_boost(conn, df, target_season, depth_chart, changed)
 
     df["team"] = df["team_target"]
@@ -1079,6 +1137,15 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     base = feat[(feat["season"] == source_season) & (feat["games_played"] > 0)]
     base = reassign_team_changers(conn, base, target_season, depth_chart)
     base = drop_players_absent_from_target_season(conn, base, depth_chart, target_season)
+    # Team-level, resolved above while team_target and `changed` were both
+    # in hand. Handed to the rookie path so it nets against the same
+    # arithmetic the veteran paths used instead of re-deriving it.
+    residual_cols = ["rookie_residual_carry_fraction", "rookie_residual_target_fraction"]
+    rookie_residual = (
+        base.drop_duplicates("team").set_index("team")[residual_cols]
+        if set(residual_cols) <= set(base.columns) else pd.DataFrame(columns=residual_cols)
+    )
+    base = base.drop(columns=residual_cols, errors="ignore")
 
     # Availability (Phase 11): a per-game rate alone can't express season
     # value - two players at the same rate are worth very different
@@ -1164,7 +1231,7 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
             rows.append(out)
     combined = pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
     if combined.empty:
-        return combined
+        return combined, rookie_residual
 
     # Phase 2 of the consensus-gap work: the reframed receiving rows leave
     # this function with pred_pg still in (now role-discounted) SHARE
@@ -1178,7 +1245,7 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     depth_chart = load_depth_chart(target_season)
     combined = apply_depth_chart_gating(combined, depth_chart)
     _warn_discounted_high_usage(conn, combined, base, source_season)
-    return combined
+    return combined, rookie_residual
 
 
 # Curation-tripwire thresholds: season-N usage above ANY of these makes a
@@ -2318,7 +2385,8 @@ def project_season(conn, target_season):
     resid = load_interval_residuals()
 
     feat = build_player_season_features(conn, seasons=list(range(2016, target_season)))
-    vet = project_veterans(conn, feat, source_season, models, resid, target_season)
+    vet, rookie_residual = project_veterans(
+        conn, feat, source_season, models, resid, target_season)
     vet["season"] = target_season
 
     # Rookie path: bucket rates and availability are fit on full preseason
@@ -2352,6 +2420,16 @@ def project_season(conn, target_season):
         target_class, target_season, conn=conn)
     target_class = attach_depth_rank(target_class, target_season, conn=conn)
     depth_chart = load_depth_chart(target_season)
+    # Vacancy still unclaimed after the veteran paths took their cut - see
+    # _attach_rookie_residual_vacancy. Without it a rookie is scaled by the
+    # team's whole gross vacancy while incumbents are simultaneously
+    # credited with absorbing part of the same opening.
+    for kind in ("carry", "target"):
+        col = f"rookie_residual_{kind}_fraction"
+        target_class[col] = (
+            target_class["team"].map(rookie_residual[col]).fillna(1.0)
+            if col in rookie_residual.columns else 1.0
+        )
     rookie_preds = predict_rookies(target_class, baselines, [target_season], depth_chart=depth_chart)
 
     pg_cols = [c for c in rookie_preds.columns if c.endswith("_pg")]

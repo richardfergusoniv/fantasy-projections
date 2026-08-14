@@ -644,6 +644,24 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
     it. Downward scaling (a below-average opportunity) still always
     applies - a below-average situation should reduce even an unconfirmed
     player's already-modest bucket-mean projection.
+
+    `rookie_residual_{carry,target}_fraction` (optional columns on
+    `rookie_df`, supplied by predict.py's _attach_rookie_residual_vacancy):
+    the share of the team's vacancy still unclaimed after the veteran paths
+    took their cut. The rookie path used to be the ONLY claimant that never
+    netted itself against the others - arrivals net out competitors and
+    incumbents net out arrivals, but a rookie got the entire gross vacancy,
+    so the same opening was spent twice. Philadelphia lost A.J. Brown,
+    credited DeVonta Smith as a curated incumbent absorbing part of it, and
+    scaled Makai Lemon by the whole thing anyway: 118.9 targets against
+    Smith's 97.9. Netted, Lemon lands at 79.3 and the room reads in the
+    order the depth chart describes.
+
+    Multiple boost-eligible rookies competing for the same team's same
+    opening additionally split it in proportion to their bucket-mean volume,
+    which reduces to 1.0 for a lone rookie. Both adjustments touch only the
+    UPWARD half of the scale: a below-average opening is a real fact about
+    this rookie's situation and no other player's claim makes it less true.
     """
     pg_cols = [c for c in baselines.columns if c.endswith("_pg")]
     target = rookie_df[rookie_df["season"].isin(target_seasons)].copy()
@@ -653,6 +671,37 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
             depth_chart["role"].isin(ROOKIE_BOOST_ELIGIBLE_ROLES)]
         boost_eligible_players = set(zip(
             eligible_chart["gsis_id"], eligible_chart["position"]))
+
+    # Share of the residual each boost-eligible rookie may claim, when more
+    # than one of them is competing for the same team's same opening.
+    # Splitting proportionally to bucket-mean volume reduces to 1.0 for a
+    # lone rookie, so the single-claimant case is untouched. Without it, two
+    # rookies drafted into the same room would each be scaled by the whole
+    # residual - the identical double-count this function is being fixed for
+    # one level up.
+    target["_vac_kind"] = np.where(
+        target["position"] == "RB", "carry",
+        np.where(target["position"] == "QB", "attempts", "target"))
+    claim_weight = {}
+    for (position, bucket), _ in baselines.iterrows():
+        primary = {"RB": "carries_pg", "QB": "attempts_pg"}.get(position, "targets_pg")
+        if primary in baselines.columns:
+            claim_weight[(position, bucket)] = max(
+                float(baselines.loc[(position, bucket), primary]), 0.0)
+    target["_claim_weight"] = [
+        claim_weight.get((p, b), 0.0)
+        for p, b in zip(target["position"], target["round_bucket"])
+    ]
+    eligible_mask = [
+        (pid, pos) in boost_eligible_players
+        for pid, pos in zip(target["player_id"], target["position"])
+    ]
+    target["_eligible"] = eligible_mask
+    pool = target[target["_eligible"]].groupby(["team", "_vac_kind"])["_claim_weight"].sum()
+    target["_claim_share"] = [
+        (w / pool.get((t, k), w)) if (w > 0 and pool.get((t, k), 0.0) > 0) else 1.0
+        for w, t, k in zip(target["_claim_weight"], target["team"], target["_vac_kind"])
+    ]
 
     def project_row(row):
         key = (row["position"], row["round_bucket"])
@@ -672,6 +721,19 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
             scale = np.clip(player_vac / hist_vac, *VACATED_CLIP)
             if (row["player_id"], row["position"]) not in boost_eligible_players:
                 scale = min(scale, 1.0)
+            elif scale > 1.0:
+                # Only the UPWARD half is netted. A below-average opening is
+                # a real signal about this rookie's situation and nobody
+                # else's claim makes it less true; it is only the boost that
+                # can be spent twice.
+                kind = row.get("_vac_kind", "target")
+                residual = row.get(f"rookie_residual_{kind}_fraction", 1.0)
+                if pd.isna(residual):
+                    residual = 1.0
+                claim = row.get("_claim_share", 1.0)
+                if pd.isna(claim):
+                    claim = 1.0
+                scale = 1.0 + (scale - 1.0) * float(residual) * float(claim)
         preds = {c: b[c] * scale for c in pg_cols}
         preds["rookie_vacancy_scale"] = scale
 

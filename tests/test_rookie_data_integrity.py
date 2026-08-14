@@ -103,6 +103,74 @@ class RookieDataIntegrityTests(unittest.TestCase):
         self.assertEqual(pred.loc["backup", "rookie_vacancy_scale"], 1.0)
         self.assertEqual(pred.loc["backup", "attempts_pg"], 10.0)
 
+    def _wr_vacancy_case(self, extra_rows=(), residual=1.0):
+        idx = pd.MultiIndex.from_tuples(
+            [("WR", "round_1")], names=["position", "round_bucket"])
+        baselines = pd.DataFrame([dict(
+            targets_pg=6.0,
+            vacated_carry_share=0.2,
+            vacated_target_share=0.2,
+            vacated_attempts_share=0.2,
+            mean_games_rank_2=12.0,
+            mean_games_played=10.0,
+            n_train_rookies=20,
+        )], index=idx)
+        base = dict(season=2026, team="A", position="WR", round_bucket="round_1",
+                    rookie_tier="drafted", vacated_carry_share=0.2,
+                    vacated_target_share=0.5, vacated_attempts_share=0.2,
+                    athletic_tier="no_data", target_depth_rank=2, nfl_depth_rank=2,
+                    rookie_residual_carry_fraction=1.0,
+                    rookie_residual_target_fraction=residual)
+        rows = [dict(base, player_id="r1", pick=1)]
+        rows += [dict(base, **r) for r in extra_rows]
+        chart = pd.DataFrame(
+            [dict(gsis_id=r["player_id"], position="WR", role="starter") for r in rows])
+        return pd.DataFrame(rows), baselines, chart
+
+    def test_rookie_boost_is_netted_against_what_veterans_already_absorbed(self):
+        # A team's opening cannot be spent twice: if the veteran paths were
+        # credited with absorbing all of it, no boost is left for the rookie.
+        target, baselines, chart = self._wr_vacancy_case(residual=1.0)
+        full = predict_rookies(target, baselines, [2026], depth_chart=chart).iloc[0]
+        target, baselines, chart = self._wr_vacancy_case(residual=0.0)
+        none = predict_rookies(target, baselines, [2026], depth_chart=chart).iloc[0]
+
+        self.assertGreater(full["rookie_vacancy_scale"], 1.0)
+        self.assertEqual(none["rookie_vacancy_scale"], 1.0)
+        self.assertEqual(none["targets_pg"], 6.0)
+        self.assertLess(none["targets_pg"], full["targets_pg"])
+
+    def test_two_rookies_in_one_room_split_the_opening(self):
+        # Each of two co-eligible rookies claiming the whole residual is the
+        # same double-count, one level down.
+        lone, baselines, chart = self._wr_vacancy_case()
+        alone = predict_rookies(lone, baselines, [2026], depth_chart=chart).iloc[0]
+
+        pair, baselines, chart = self._wr_vacancy_case(
+            extra_rows=[dict(player_id="r2", pick=2)])
+        shared = predict_rookies(pair, baselines, [2026], depth_chart=chart)
+        shared = shared.set_index("player_id")
+
+        self.assertGreater(alone["rookie_vacancy_scale"], 1.0)
+        for pid in ("r1", "r2"):
+            self.assertLess(shared.loc[pid, "rookie_vacancy_scale"],
+                            alone["rookie_vacancy_scale"])
+        # Equal bucket weights, so the opening splits evenly between them.
+        self.assertAlmostEqual(shared.loc["r1", "rookie_vacancy_scale"],
+                               shared.loc["r2", "rookie_vacancy_scale"])
+        excess = alone["rookie_vacancy_scale"] - 1.0
+        self.assertAlmostEqual(
+            sum(shared.loc[p, "rookie_vacancy_scale"] - 1.0 for p in ("r1", "r2")),
+            excess)
+
+    def test_downward_vacancy_scale_is_never_netted(self):
+        # A below-average opening is a true fact about this rookie's
+        # situation; nobody else's claim makes it less true.
+        target, baselines, chart = self._wr_vacancy_case(residual=0.0)
+        target["vacated_target_share"] = 0.05
+        pred = predict_rookies(target, baselines, [2026], depth_chart=chart).iloc[0]
+        self.assertLess(pred["rookie_vacancy_scale"], 1.0)
+
     def test_rookie_depth_rate_ladder_is_neutral_until_rookie_validated(self):
         rows = pd.DataFrame([dict(
             player_id="backup", position="QB", nfl_depth_rank=2,
