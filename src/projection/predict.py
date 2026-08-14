@@ -2725,7 +2725,109 @@ def project_season(conn, target_season):
     combined = reconcile_team_pass_receive_counts(combined)
     combined = add_team_pass_catch_coherence_flag(combined, depth_chart)
     combined = add_projected_season_totals(combined)
+    _warn_board_level_allocation(conn, combined, depth_chart)
     return combined
+
+
+# Board-level tripwires. Same contract as _warn_discounted_high_usage and
+# _warn_availability_chart_disagreement: stderr only, never changes a number.
+# These watch the finished board rather than any single stage, because the
+# failures they look for are products of the reconcilers agreeing with each
+# other and being wrong together - which is exactly what no per-stage
+# assertion can see.
+TRIPWIRE_CAP_TOLERANCE = 1e-6
+TRIPWIRE_RB_CARRY_SHARE = 0.70
+TRIPWIRE_NEWCOMER_MARGIN = 1.0
+
+
+def _warn_board_level_allocation(conn, combined, depth_chart):
+    """Four checks on the finished board, printed for a human to judge."""
+    warnings = []
+    names = pd.read_sql("select gsis_id as player_id, display_name from players", conn)
+    names = names.drop_duplicates("player_id").set_index("player_id")["display_name"]
+
+    def name(player_id):
+        return names.get(player_id, player_id)
+
+    # 1. A rate sitting exactly on a support ceiling. The allocator wanted
+    # to give more than the evidence allows and was clipped; the number is
+    # a bound, not a projection. This is what Josh Jacobs at exactly 25.00
+    # carries/game looked like before the rushing fix.
+    for stat, ceilings in (("carries", RUSH_ATTEMPTS_PER_APPEARANCE_MAX),
+                           ("attempts", {"QB": QB_ATTEMPTS_PER_VOLUME_GAME_MAX})):
+        rows = combined[combined["stat"].eq(stat)]
+        for _, r in rows.iterrows():
+            ceiling = ceilings.get(r["position"])
+            value = pd.to_numeric(pd.Series([r["pred_pg"]]), errors="coerce").iloc[0]
+            if ceiling and pd.notna(value) and value >= ceiling - TRIPWIRE_CAP_TOLERANCE:
+                warnings.append(
+                    f"  CAPPED: {name(r['player_id'])} "
+                    f"({r['position']}, {r['team']}) {stat} pinned at the "
+                    f"{ceiling:g}/game support ceiling")
+
+    # 2. A curated contributor with no row at all. Should be empty for
+    # RB/WR/TE now that they get a replacement-level prior, so anything here
+    # is either a QB (deliberately excluded - see REPLACEMENT_POSITIONS) or
+    # real drift, e.g. a newly curated player with no historical band.
+    if not depth_chart.empty:
+        present = set(combined["player_id"].dropna())
+        for _, r in depth_chart.iterrows():
+            if pd.notna(r.get("gsis_id")) and r["gsis_id"] not in present:
+                warnings.append(
+                    f"  MISSING: curated {r['position']} {r.get('player_name') or name(r['gsis_id'])} "
+                    f"({r['team']}, role={r.get('role')}) has no projection row")
+
+    # 3. One back taking a share of his team's carries that few real
+    # backfields concentrate. Legitimate for a genuine bell cow, which is
+    # why it warns rather than clips.
+    carries = combined[combined["stat"].eq("carries")].copy()
+    if not carries.empty:
+        carries["season"] = (
+            pd.to_numeric(carries["pred_pg"], errors="coerce").clip(lower=0)
+            * _row_exposure(carries))
+        anchor = carries.drop_duplicates("team").set_index("team")["team_carries_pg_pred"] * SEASON_GAMES
+        for _, r in carries[carries["position"].eq("RB")].iterrows():
+            total = anchor.get(r["team"], np.nan)
+            if pd.notna(total) and total > 0 and r["season"] / total >= TRIPWIRE_RB_CARRY_SHARE:
+                warnings.append(
+                    f"  RB SHARE: {name(r['player_id'])} ({r['team']}) "
+                    f"{r['season']:.0f} of {total:.0f} team carries "
+                    f"({r['season']/total:.0%})")
+
+    # 4. A rookie or new arrival projected past the established starter the
+    # curated chart puts ahead of him. The Makai Lemon case: real vacancy,
+    # real eligibility, wrong conclusion - and invisible to every check that
+    # looks at one player at a time.
+    if not depth_chart.empty:
+        starters = set(depth_chart[depth_chart["role"].eq("starter")]["gsis_id"].dropna())
+        for stat in ("targets", "carries"):
+            rows = combined[combined["stat"].eq(stat)].copy()
+            if rows.empty:
+                continue
+            rows["season"] = (
+                pd.to_numeric(rows["pred_pg"], errors="coerce").clip(lower=0)
+                * _row_exposure(rows))
+            newcomer = rows["source"].eq("rookie_rule") | rows["team_changed"].fillna(False)
+            for (team, position), group in rows.groupby(["team", "position"]):
+                incumbent = group[
+                    group["player_id"].isin(starters) & ~newcomer.reindex(group.index).fillna(False)]
+                if incumbent.empty:
+                    continue
+                best = incumbent["season"].max()
+                for _, r in group[newcomer.reindex(group.index).fillna(False)].iterrows():
+                    if r["season"] > best + TRIPWIRE_NEWCOMER_MARGIN:
+                        top = incumbent.loc[incumbent["season"].idxmax()]
+                        warnings.append(
+                            f"  NEWCOMER: {name(r['player_id'])} "
+                            f"({position}, {team}) {r['season']:.0f} {stat} exceeds curated "
+                            f"starter {name(top['player_id'])} "
+                            f"({best:.0f})")
+
+    if warnings:
+        print(f"CURATION TRIPWIRE: {len(warnings)} board-level allocation warning(s) - "
+              f"informational, no projection was changed:", file=sys.stderr)
+        for w in warnings:
+            print(w, file=sys.stderr)
 
 
 OUTPUT_DIR = os.path.join(REPO_ROOT, "output")

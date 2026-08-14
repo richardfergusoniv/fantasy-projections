@@ -1,4 +1,7 @@
+import contextlib
+import io
 import os
+import sqlite3
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -15,6 +18,7 @@ from src.projection.predict import (
     USAGE_SHARE_BLEND_W,
     USAGE_SHARE_CURATED_W,
     _ensure_output_parent,
+    _warn_board_level_allocation,
     apply_usage_share_prior,
     add_projected_season_totals,
     add_team_pass_catch_coherence_flag,
@@ -419,6 +423,79 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         # evidence says otherwise.
         self.assertEqual(USAGE_SHARE_BLEND_W, 0.0)
         self.assertGreater(USAGE_SHARE_CURATED_W, 0.0)
+
+    def _tripwire_conn(self):
+        conn = sqlite3.connect(":memory:")
+        conn.execute("create table players (gsis_id text, display_name text)")
+        conn.executemany("insert into players values (?, ?)", [
+            ("vet", "Established Starter"), ("new", "Shiny Newcomer"),
+            ("bell", "Bell Cow"), ("ghost", "Absent Backup"),
+        ])
+        conn.commit()
+        return conn
+
+    def _tripwire_row(self, player_id, position, stat, pred_pg, **kw):
+        row = {
+            "player_id": player_id, "team": "TST", "position": position, "stat": stat,
+            "pred_pg": pred_pg, "projected_games": 17.0, "projected_volume_games": 17.0,
+            "team_carries_pg_pred": 27.0, "source": "veteran_model", "team_changed": False,
+        }
+        row.update(kw)
+        return row
+
+    def _run_tripwire(self, rows, chart):
+        conn = self._tripwire_conn()
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            _warn_board_level_allocation(conn, pd.DataFrame(rows), chart)
+        return err.getvalue()
+
+    def test_tripwire_flags_a_rate_pinned_to_its_support_ceiling(self):
+        rows = [self._tripwire_row(
+            "bell", "RB", "carries", RUSH_ATTEMPTS_PER_APPEARANCE_MAX["RB"])]
+        out = self._run_tripwire(rows, pd.DataFrame())
+        self.assertIn("CAPPED", out)
+        self.assertIn("Bell Cow", out)
+
+    def test_tripwire_flags_a_curated_player_with_no_row(self):
+        rows = [self._tripwire_row("vet", "WR", "targets", 5.0)]
+        chart = pd.DataFrame([dict(gsis_id="ghost", position="QB", team="TST",
+                                   player_name="Absent Backup", role="backup")])
+        out = self._run_tripwire(rows, chart)
+        self.assertIn("MISSING", out)
+        self.assertIn("Absent Backup", out)
+
+    def test_tripwire_flags_a_newcomer_passing_the_charted_starter(self):
+        # The Makai Lemon shape: real vacancy, real eligibility, wrong
+        # conclusion - invisible to any check that looks at one player.
+        rows = [
+            self._tripwire_row("vet", "WR", "targets", 5.0),
+            self._tripwire_row("new", "WR", "targets", 9.0, source="rookie_rule"),
+        ]
+        chart = pd.DataFrame([dict(gsis_id="vet", position="WR", team="TST",
+                                   player_name="Established Starter", role="starter")])
+        out = self._run_tripwire(rows, chart)
+        self.assertIn("NEWCOMER", out)
+        self.assertIn("Shiny Newcomer", out)
+
+    def test_tripwire_is_silent_on_a_healthy_board(self):
+        rows = [
+            self._tripwire_row("vet", "RB", "carries", 12.0),
+            self._tripwire_row("new", "RB", "carries", 6.0),
+        ]
+        chart = pd.DataFrame([dict(gsis_id="vet", position="RB", team="TST",
+                                   player_name="Established Starter", role="starter")])
+        self.assertEqual(self._run_tripwire(rows, chart), "")
+
+    def test_tripwire_never_changes_a_projection(self):
+        rows = [self._tripwire_row(
+            "bell", "RB", "carries", RUSH_ATTEMPTS_PER_APPEARANCE_MAX["RB"])]
+        df = pd.DataFrame(rows)
+        before = df.copy()
+        conn = self._tripwire_conn()
+        with contextlib.redirect_stderr(io.StringIO()):
+            _warn_board_level_allocation(conn, df, pd.DataFrame())
+        pd.testing.assert_frame_equal(df, before)
 
     def test_receiving_share_cap_uses_exposure_weights(self):
         shares = pd.DataFrame([
