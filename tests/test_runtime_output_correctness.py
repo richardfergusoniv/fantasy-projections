@@ -10,6 +10,7 @@ from src.projection.fantasy_points import DESCRIPTIVE_COLS, compute_fantasy_poin
 from src.projection.predict import (
     NAMED_RUSH_COVERAGE,
     QB_ATTEMPTS_PER_VOLUME_GAME_MAX,
+    REPLACEMENT_POSITIONS,
     RUSH_ATTEMPTS_PER_APPEARANCE_MAX,
     _ensure_output_parent,
     add_projected_season_totals,
@@ -328,6 +329,29 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         rb = out[out["position"] == "RB"].iloc[0]
         self.assertLess(rb["pred_pg"], RUSH_ATTEMPTS_PER_APPEARANCE_MAX["RB"])
         self.assertAlmostEqual(rb["pred_pg"], 28.0 * NAMED_RUSH_COVERAGE)
+
+    def test_replacement_prior_holds_a_missing_backs_share_open(self):
+        # A charted committee back with no row at all does not merely go
+        # unreported - the reconciler hands his share to whoever is present.
+        # With a floor row he holds it himself.
+        without = [self._carry_row("rb1", "TST", "RB", 15.0, 27.0, 120.0)]
+        alone = normalize_team_rushing_volume(pd.DataFrame(without))
+        lead_alone = alone[alone.player_id == "rb1"].iloc[0]["pred_pg"]
+
+        with_floor = without + [self._carry_row("rb2", "TST", "RB", 7.0, 27.0, 120.0)]
+        both = normalize_team_rushing_volume(pd.DataFrame(with_floor))
+        lead_both = both[both.player_id == "rb1"].iloc[0]["pred_pg"]
+        floor = both[both.player_id == "rb2"].iloc[0]["pred_pg"]
+
+        self.assertLess(lead_both, lead_alone)
+        self.assertGreater(floor, 0.0)
+
+    def test_replacement_positions_exclude_qb(self):
+        # A QB row is a claim against the room's fixed 17-game budget, not an
+        # extra claimant on a volume pool - filling one from a band mean
+        # takes exposure straight off the starter.
+        self.assertNotIn("QB", REPLACEMENT_POSITIONS)
+        self.assertEqual(set(REPLACEMENT_POSITIONS), {"RB", "WR", "TE"})
 
     def test_receiving_share_cap_uses_exposure_weights(self):
         shares = pd.DataFrame([
