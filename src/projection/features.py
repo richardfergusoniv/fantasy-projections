@@ -142,6 +142,23 @@ def build_player_season_features(conn, seasons=SEASONS):
         .sum()
         .rename(columns={"attempts": "team_qb_attempts"})
     )
+    # Official box-score rushing labels at the same week/team grain as the
+    # modeled player universe.  Build before resolving a player to one season
+    # team so traded-player production remains with the team that earned it.
+    team_rushing = (
+        wu[wu["position"].isin(TARGET_STATS)]
+        .groupby(["season", "team"], as_index=False)[["carries", "rushing_yards"]]
+        .sum()
+        .rename(columns={
+            "carries": "team_carries",
+            "rushing_yards": "team_rushing_yards_modeled",
+        })
+    )
+    schedule_games = team_rushing["season"].apply(_team_season_game_count)
+    team_rushing["team_carries_pg"] = team_rushing["team_carries"] / schedule_games
+    team_rushing["team_rushing_yards_pg"] = (
+        team_rushing["team_rushing_yards_modeled"] / schedule_games
+    )
     base = season_aggregate(wu)
 
     team_totals = team_season_pbp_totals(conn, seasons)
@@ -243,6 +260,15 @@ def build_player_season_features(conn, seasons=SEASONS):
     base["rz_target_monopoly"] = (
         base["rz_targets"] / base["team_rz_targets_pos_active"].replace(0, np.nan)
     ).fillna(0)
+    monopoly_cols = ["rz_carry_monopoly", "rz_target_monopoly"]
+    impossible_monopoly = (base[monopoly_cols] > 1.0 + 1e-9).any(axis=1)
+    if impossible_monopoly.any():
+        bad = base.loc[impossible_monopoly, ["player_id", "season", "position"] + monopoly_cols]
+        raise ValueError(
+            "red-zone monopoly exceeded 1; season-position numerator/denominator mismatch:\n"
+            + bad.to_string(index=False)
+        )
+    base[monopoly_cols] = base[monopoly_cols].clip(lower=0.0, upper=1.0)
     # Both ratios are 0/0 -> NaN exactly when the player's own count AND the
     # active-weeks position-group total are both 0 (a player's own red-zone
     # touch can only happen in a week they were active, so the denominator
@@ -269,7 +295,10 @@ def build_player_season_features(conn, seasons=SEASONS):
     # here, `_team_ay_full_season` - it has the identical injury-season
     # dilution bug carry_share/target_share had, found while validating
     # that fix; see player_active_team_opportunity's docstring).
-    base["air_yards_share"] = (base["player_air_yards"] / base["team_air_yards_active"]).fillna(0)
+    base["air_yards_share"] = (
+        base["player_air_yards"]
+        / base["team_air_yards_active"].replace(0, np.nan)
+    ).replace([np.inf, -np.inf], np.nan).fillna(0)
     # `adot` (player_adot from player_season_air_yards) is deliberately LEFT
     # AS NaN when a player has zero targets with a real air_yards value that
     # season (e.g. a QB, or a RB/WR/TE who genuinely never saw a target) -
@@ -296,7 +325,9 @@ def build_player_season_features(conn, seasons=SEASONS):
     # consensus-gap work): an injury-shortened rushing QB's design-run rate
     # was diluted by team plays from weeks they never took a snap.
     team_plays_active = base["team_pass_attempts_active"] + base["team_rush_attempts_active"]
-    base["qb_designed_run_rate"] = (base["designed_rush_attempts"] / team_plays_active).fillna(0)
+    base["qb_designed_run_rate"] = (
+        base["designed_rush_attempts"] / team_plays_active.replace(0, np.nan)
+    ).replace([np.inf, -np.inf], np.nan).fillna(0)
 
     # --- Opponent/schedule-strength: a team-season proxy (not player-
     # specific) for how tough the team's actual schedule was, built from
@@ -362,6 +393,10 @@ def build_player_season_features(conn, seasons=SEASONS):
     base["team_passing_yards_pg"] = base["team_passing_yards"] / base["season"].apply(_team_season_game_count)
     base = base.merge(team_qb_attempts, on=["season", "team"], how="left")
     base["team_pass_attempts_pg"] = base["team_qb_attempts"] / base["season"].apply(_team_season_game_count)
+    base = base.merge(
+        team_rushing[["season", "team", "team_carries_pg", "team_rushing_yards_pg"]],
+        on=["season", "team"], how="left",
+    )
 
     # --- Games-weighted two-season feature blending (Phase 4 of the
     # consensus-gap work): for a season with few active games, the

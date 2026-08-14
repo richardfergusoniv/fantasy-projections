@@ -8,10 +8,12 @@ import pandas as pd
 from src.comparison import sleeper_compare
 from src.projection.fantasy_points import DESCRIPTIVE_COLS, compute_fantasy_points
 from src.projection.predict import (
+    QB_ATTEMPTS_PER_VOLUME_GAME_MAX,
     _ensure_output_parent,
     add_projected_season_totals,
     add_team_pass_catch_coherence_flag,
     normalize_team_passing_volume,
+    normalize_team_rushing_volume,
     reconcile_qb_projected_volume_games,
     reconcile_stat_constraints,
 )
@@ -81,6 +83,21 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         self.assertAlmostEqual(out["team_pass_catch_ratio"].iloc[0], expected_ratio)
         self.assertFalse(bool(out["team_pass_catch_coherence_flag"].iloc[0]))
 
+    def test_coherence_includes_explicit_residuals_without_losing_series_names(self):
+        df = pd.DataFrame([
+            {"player_id": "q1", "team": "TST", "position": "QB", "stat": "passing_yards",
+             "pred_pg": 100.0, "projected_games": 10.0, "projected_volume_games": 10.0,
+             "team_unmodeled_qb_passing_yards_season": 700.0,
+             "team_unmodeled_receiving_yards_season": 850.0},
+            {"player_id": "w1", "team": "TST", "position": "WR", "stat": "receiving_yards",
+             "pred_pg": 50.0, "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_unmodeled_qb_passing_yards_season": 700.0,
+             "team_unmodeled_receiving_yards_season": 850.0},
+        ])
+        out = add_team_pass_catch_coherence_flag(df)
+        self.assertAlmostEqual(out["team_pass_catch_ratio"].iloc[0], 1.0)
+        self.assertFalse(bool(out["team_pass_catch_coherence_flag"].iloc[0]))
+
     def test_qb_volume_reconciliation_handles_10_17_and_25_marginal_games(self):
         rows = []
         for team, games in (("TEN", [6.0, 4.0]), ("SEV", [10.0, 7.0]), ("TWF", [15.0, 10.0])):
@@ -93,6 +110,19 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         self.assertAlmostEqual(totals["TEN"], 17.0)
         self.assertAlmostEqual(totals["SEV"], 17.0)
         self.assertAlmostEqual(totals["TWF"], 17.0)
+        residual = out.drop_duplicates("team").set_index("team")["team_unmodeled_qb_volume_games"]
+        self.assertAlmostEqual(residual["TEN"], 0.0)
+        self.assertAlmostEqual(residual["SEV"], 0.0)
+        self.assertAlmostEqual(residual["TWF"], 0.0)
+        self.assertEqual(
+            out.drop_duplicates("team").set_index("team")[
+                "team_qb_volume_allocation_direction"
+            ].to_dict(),
+            {"TEN": "upward", "SEV": "exact", "TWF": "downward"},
+        )
+        self.assertTrue((out["projected_games_raw"] == out["projected_games"]).all())
+        self.assertTrue(out[out.team == "TEN"]["qb_volume_allocation_adjusted"].all())
+        self.assertFalse(out[out.team == "SEV"]["qb_volume_allocation_adjusted"].any())
         self.assertEqual(out.groupby("team")["projected_games"].sum()["TWF"], 25.0)
 
     def test_qb_volume_reconciliation_preserves_singular_starter_first(self):
@@ -106,8 +136,12 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         ])
         out = reconcile_qb_projected_volume_games(df).set_index("player_id")
         self.assertAlmostEqual(out.loc["s", "projected_volume_games"], 14.0)
-        self.assertAlmostEqual(out.loc["b1", "projected_volume_games"], 2.0)
-        self.assertAlmostEqual(out.loc["b2", "projected_volume_games"], 1.0)
+        self.assertAlmostEqual(out["projected_volume_games"].sum(), 17.0)
+        self.assertGreater(out.loc["b1", "projected_volume_games"],
+                           out.loc["b2", "projected_volume_games"])
+        self.assertEqual(out.loc["s", "projected_games_raw"], 14.0)
+        self.assertEqual(out.loc["b1", "projected_games_raw"], 8.0)
+        self.assertEqual(out.loc["b2", "projected_games_raw"], 4.0)
 
     def test_team_attempt_anchor_scales_starved_qb_room(self):
         rows = []
@@ -120,6 +154,12 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
                 "team_pass_attempts_pg_pred": 34.0,
                 "team_passing_yards_pg_pred": 220.0,
             })
+        rows.append({
+            "player_id": "w", "team": "CLE", "position": "WR", "stat": "receiving_yards",
+            "pred_pg": 180.0, "pred_pg_low": 100.0, "pred_pg_high": 240.0,
+            "projected_games": 17.0, "projected_volume_games": 17.0,
+            "team_pass_attempts_pg_pred": 34.0, "team_passing_yards_pg_pred": 220.0,
+        })
         out = normalize_team_passing_volume(pd.DataFrame(rows))
         attempts = out[out["stat"] == "attempts"].iloc[0]
         yards = out[out["stat"] == "passing_yards"].iloc[0]
@@ -128,6 +168,10 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
 
     def test_team_yard_anchor_enforces_identity_and_preserves_pre_ratio(self):
         rows = [
+            {"player_id": "q", "team": "TST", "position": "QB", "stat": "attempts",
+             "pred_pg": 34.0, "pred_pg_low": 25.0, "pred_pg_high": 40.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_pass_attempts_pg_pred": 34.0, "team_passing_yards_pg_pred": 240.0},
             {"player_id": "q", "team": "TST", "position": "QB", "stat": "passing_yards",
              "pred_pg": 200.0, "pred_pg_low": 150.0, "pred_pg_high": 250.0,
              "projected_games": 17.0, "projected_volume_games": 17.0,
@@ -140,10 +184,81 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         out = normalize_team_passing_volume(pd.DataFrame(rows))
         qb = out[out["position"] == "QB"].iloc[0]
         wr = out[out["position"] == "WR"].iloc[0]
-        self.assertAlmostEqual(qb["pred_pg"], 240.0)
-        self.assertAlmostEqual(wr["pred_pg"], 240.0)
+        qb_yards = out[(out["position"] == "QB") & (out["stat"] == "passing_yards")].iloc[0]
+        self.assertAlmostEqual(qb_yards["pred_pg"], 240.0)
+        self.assertAlmostEqual(wr["pred_pg"], 100.0)
+        self.assertAlmostEqual(wr["team_unmodeled_receiving_yards_season"], 140.0 * 17.0)
         self.assertAlmostEqual(wr["team_pass_catch_ratio_pre_normalization"], 100 / 240)
         self.assertTrue(wr["team_pass_catch_pre_normalization_flag"])
+
+    def test_named_qb_attempt_rate_is_bounded_and_anchor_is_fully_allocated(self):
+        rows = []
+        for stat, rate in (("attempts", 20.0), ("completions", 12.0),
+                           ("passing_yards", 140.0)):
+            rows.append({
+                "player_id": "q", "team": "TST", "position": "QB", "stat": stat,
+                "pred_pg": rate, "pred_pg_low": rate * .5, "pred_pg_high": rate * 1.5,
+                "projected_games": 10.0,
+                "team_pass_attempts_pg_pred": 42.0, "team_passing_yards_pg_pred": 300.0,
+            })
+        rows.append({
+            "player_id": "w", "team": "TST", "position": "WR", "stat": "receiving_yards",
+            "pred_pg": 200.0, "pred_pg_low": 100.0, "pred_pg_high": 250.0,
+            "projected_games": 17.0,
+            "team_pass_attempts_pg_pred": 42.0, "team_passing_yards_pg_pred": 300.0,
+        })
+        reconciled = reconcile_qb_projected_volume_games(pd.DataFrame(rows))
+        out = normalize_team_passing_volume(reconciled)
+        attempts = out[out["stat"] == "attempts"].iloc[0]
+        self.assertLessEqual(attempts["pred_pg"], QB_ATTEMPTS_PER_VOLUME_GAME_MAX)
+        self.assertAlmostEqual(attempts["projected_volume_games"], 17.0)
+        self.assertAlmostEqual(attempts["pred_pg"], 42.0)
+        self.assertAlmostEqual(attempts["team_unmodeled_qb_attempts_season"], 0.0)
+        self.assertTrue(attempts["team_qb_attempt_anchor_fully_allocated"])
+        self.assertAlmostEqual(
+            attempts["pred_pg"] * attempts["projected_volume_games"], 42.0 * 17.0
+        )
+
+    def test_impossible_resolved_attempt_anchor_fails_loudly(self):
+        rows = [
+            {"player_id": "q", "team": "TST", "position": "QB", "stat": "attempts",
+             "pred_pg": 20.0, "pred_pg_low": 10.0, "pred_pg_high": 30.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_qb_roster_resolved": True,
+             "team_pass_attempts_pg_pred": 43.0, "team_passing_yards_pg_pred": 300.0},
+            {"player_id": "q", "team": "TST", "position": "QB", "stat": "passing_yards",
+             "pred_pg": 200.0, "pred_pg_low": 100.0, "pred_pg_high": 300.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_qb_roster_resolved": True,
+             "team_pass_attempts_pg_pred": 43.0, "team_passing_yards_pg_pred": 300.0},
+            {"player_id": "w", "team": "TST", "position": "WR", "stat": "receiving_yards",
+             "pred_pg": 200.0, "pred_pg_low": 100.0, "pred_pg_high": 250.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_qb_roster_resolved": True,
+             "team_pass_attempts_pg_pred": 43.0, "team_passing_yards_pg_pred": 300.0},
+        ]
+        with self.assertRaisesRegex(ValueError, "could not meet the team attempt anchor"):
+            normalize_team_passing_volume(pd.DataFrame(rows))
+
+    def test_receiver_shortfall_does_not_inflate_named_players(self):
+        rows = [
+            {"player_id": "q", "team": "TST", "position": "QB", "stat": "attempts",
+             "pred_pg": 34.0, "pred_pg_low": 30.0, "pred_pg_high": 38.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_pass_attempts_pg_pred": 34.0, "team_passing_yards_pg_pred": 240.0},
+            {"player_id": "q", "team": "TST", "position": "QB", "stat": "passing_yards",
+             "pred_pg": 240.0, "pred_pg_low": 200.0, "pred_pg_high": 280.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_pass_attempts_pg_pred": 34.0, "team_passing_yards_pg_pred": 240.0},
+            {"player_id": "w", "team": "TST", "position": "WR", "stat": "receiving_yards",
+             "pred_pg": 80.0, "pred_pg_low": 60.0, "pred_pg_high": 100.0,
+             "projected_games": 17.0, "projected_volume_games": 17.0,
+             "team_pass_attempts_pg_pred": 34.0, "team_passing_yards_pg_pred": 240.0},
+        ]
+        out = normalize_team_passing_volume(pd.DataFrame(rows))
+        wr = out[out["position"] == "WR"].iloc[0]
+        self.assertAlmostEqual(wr["pred_pg"], 80.0)
+        self.assertAlmostEqual(wr["team_unmodeled_receiving_yards_season"], 160.0 * 17.0)
 
     def test_receiving_share_cap_uses_exposure_weights(self):
         shares = pd.DataFrame([

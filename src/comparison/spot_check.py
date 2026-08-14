@@ -66,6 +66,11 @@ def spot_check_table(df, entries):
         rows.append({
             "player": name,
             "team": r["team"],
+            "sleeper_team": r.get("sleeper_team"),
+            "sleeper_name": r.get("sleeper_name"),
+            "sleeper_id": r.get("sleeper_id"),
+            "match_method": r.get("match_method"),
+            "match_collision": r.get("match_collision", False),
             "role": r["role"],
             "ours_fpts_season": round(r["fantasy_pts_season"], 1),
             "sleeper_fpts_season": round(r["sleeper_fantasy_pts_season"], 1),
@@ -108,6 +113,11 @@ def main():
     print(controls.to_string(index=False))
     print(f"\n=== Position bias, fantasy-relevant players (ours - Sleeper, season points) ===")
     print(position_bias(df).to_string(index=False))
+    if "match_method" in df.columns:
+        print("\n=== Sleeper match audit ===")
+        print(df["match_method"].value_counts(dropna=False).to_string())
+        collisions = int(df.get("match_collision", pd.Series(False, index=df.index)).fillna(False).sum())
+        print(f"ambiguous name collisions left unmatched: {collisions}")
 
     missing = [r["player"] for _, r in pd.concat([watch, controls]).iterrows() if r.get("MISSING")]
     if missing:

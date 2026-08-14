@@ -11,6 +11,7 @@ from src.projection.data_prep import (
     player_active_team_opportunity,
     player_season_receiving_yards_share,
     season_aggregate,
+    team_week_rz_position_totals,
 )
 
 
@@ -88,6 +89,20 @@ class DataPrepAppearanceTests(unittest.TestCase):
         self.assertEqual(season["games_played"], 2)
         self.assertEqual(season["opportunity_games"], 1)
 
+    def test_alias_rows_collapse_to_one_player_week_and_sum_stats(self):
+        _put_base_tables(self.conn, [
+            _weekly_row("p1", 1, targets=3),
+            _weekly_row("p1", 1, targets=2),
+        ])
+        _put_snap_table(self.conn, [(2024, 1, "pfr-p1", "LA", 0.5, "REG")])
+
+        usage = load_weekly_usage(self.conn)
+        self.assertEqual(len(usage), 1)
+        self.assertEqual(usage.iloc[0]["targets"], 5)
+        season = season_aggregate(usage).iloc[0]
+        self.assertEqual(season["games_played"], 1)
+        self.assertEqual(season["opportunity_games"], 1)
+
     def test_opportunity_games_never_exceed_appearance_games(self):
         _put_base_tables(self.conn, [
             _weekly_row("wr", 1, targets=1),
@@ -119,6 +134,43 @@ class DataPrepAppearanceTests(unittest.TestCase):
             share = player_season_receiving_yards_share(self.conn, [2024]).iloc[0]
 
         self.assertAlmostEqual(share["receiving_yards_share"], 0.25)
+
+    def test_receiving_share_sums_same_week_alias_rows(self):
+        usage = pd.DataFrame([
+            dict(player_id="wr", season=2024, week=1, team="LA", position="WR",
+                 receiving_yards=30, _appeared=True),
+            dict(player_id="wr", season=2024, week=1, team="LA", position="WR",
+                 receiving_yards=20, _appeared=True),
+        ])
+        team_weeks = pd.DataFrame([
+            dict(season=2024, week=1, team="LA", team_passing_yards=100),
+        ])
+        with patch("src.projection.data_prep.load_weekly_usage", return_value=usage), patch(
+            "src.projection.data_prep.team_week_yardage_totals", return_value=team_weeks
+        ):
+            share = player_season_receiving_yards_share(self.conn, [2024]).iloc[0]
+        self.assertAlmostEqual(share["receiving_yards_share"], 0.5)
+
+    def test_rz_position_totals_use_season_position_not_master_position(self):
+        pd.DataFrame([
+            dict(season=2024, week=1, player_id="hybrid", position="QB"),
+        ]).to_sql("weekly", self.conn, index=False)
+        pd.DataFrame([
+            dict(player_id="hybrid", season=2024, position="TE"),
+        ]).to_sql("seasonal_rosters", self.conn, index=False)
+        pd.DataFrame([
+            dict(gsis_id="hybrid", position="TE"),
+        ]).to_sql("players", self.conn, index=False)
+        pd.DataFrame([
+            dict(season=2024, week=1, posteam="NO", rush_attempt=1,
+                 pass_attempt=0, rusher_player_id="hybrid", receiver_player_id=None,
+                 yardline_100=5, season_type="REG"),
+        ]).to_sql("pbp", self.conn, index=False)
+
+        totals = team_week_rz_position_totals(self.conn, [2024])
+        row = totals.iloc[0]
+        self.assertEqual(row["position"], "QB")
+        self.assertEqual(row["team_rz_carries_pos"], 1)
 
     def test_all_team_share_denominators_include_zero_opportunity_appearances(self):
         usage = pd.DataFrame([

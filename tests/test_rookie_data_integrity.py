@@ -6,8 +6,10 @@ import pandas as pd
 
 from src.projection.data_prep import STAT_COLS, season_aggregate
 from src.projection.rookies import (
+    combine_athletic_scores_by_pfr_id,
     fit_rookie_baselines,
     identify_target_season_rookie_class,
+    load_combine_athletic_tier,
     predict_rookies,
 )
 from src.projection.predict import _apply_rookie_depth_rate_gating
@@ -140,3 +142,55 @@ class RookieDataIntegrityTests(unittest.TestCase):
         self.assertEqual(drafted["player_id"], "00-0000001")
         self.assertEqual(drafted["team"], "LA")
         self.assertEqual(len(rookies[rookies["player_id"] == "00-0000001"]), 1)
+
+    def test_null_draft_ids_are_conserved_and_name_pick_fallback_resolves(self):
+        conn = sqlite3.connect(":memory:")
+        self.addCleanup(conn.close)
+        pd.DataFrame([
+            dict(season=2026, gsis_id=None, round=2, pick=33, position="WR", team="SFO",
+                 pfr_player_name="De'Zhaun Stribling", pfr_player_id="StriDe01"),
+            dict(season=2026, gsis_id="LAW090280", round=5, pick=168, position="WR", team="DET",
+                 pfr_player_name="Kendrick Law", pfr_player_id="LawxKe00"),
+        ]).to_sql("draft_picks", conn, index=False)
+        pd.DataFrame([
+            dict(player_id="00-0041035", team="SF", position="WR", years_exp=0,
+                 draft_number=33, player_name="De'Zhaun Stribling", pfr_id="StriDe01", season=2026),
+            dict(player_id="00-0041446", team="DET", position="WR", years_exp=0,
+                 draft_number=168, player_name="Kendrick Law", pfr_id=None, season=2026),
+        ]).to_sql("seasonal_rosters", conn, index=False)
+        pd.DataFrame([
+            dict(gsis_id="00-0041035", pfr_id="StriDe01"),
+        ]).to_sql("players", conn, index=False)
+
+        rookies = identify_target_season_rookie_class(conn, 2026)
+        drafted = rookies[rookies["rookie_tier"] == "drafted"]
+        self.assertEqual(len(drafted), 2)
+        self.assertEqual(set(drafted["player_id"]), {"00-0041035", "00-0041446"})
+        self.assertFalse(drafted["rookie_id_unresolved"].any())
+
+    def test_historical_combine_tier_is_scored_as_of_player_season(self):
+        conn = sqlite3.connect(":memory:")
+        self.addCleanup(conn.close)
+        pd.DataFrame([
+            dict(season=2016, pos="WR", pfr_id="A", forty=4.40, vertical=40.0),
+            dict(season=2016, pos="WR", pfr_id="B", forty=4.80, vertical=30.0),
+            dict(season=2017, pos="WR", pfr_id="E", forty=4.60, vertical=35.0),
+            dict(season=2026, pos="WR", pfr_id="C", forty=4.20, vertical=45.0),
+            dict(season=2026, pos="WR", pfr_id="D", forty=5.00, vertical=20.0),
+        ]).to_sql("combine_data", conn, index=False)
+        pd.DataFrame([
+            dict(gsis_id="pA", pfr_id="A"),
+            dict(gsis_id="pB", pfr_id="B"),
+        ]).to_sql("players", conn, index=False)
+
+        asof = combine_athletic_scores_by_pfr_id(conn, max_reference_season=2016).set_index("pfr_id")
+        historical = load_combine_athletic_tier(conn).set_index("player_id")
+        self.assertAlmostEqual(historical.loc["pA", "athletic_score"], asof.loc["A", "athletic_score"])
+        self.assertAlmostEqual(historical.loc["pB", "athletic_score"], asof.loc["B", "athletic_score"])
+
+        before = combine_athletic_scores_by_pfr_id(conn).set_index("pfr_id").loc["E", "athletic_score"]
+        pd.DataFrame([
+            dict(season=2017, pos="WR", pfr_id="F", forty=4.10, vertical=50.0),
+        ]).to_sql("combine_data", conn, index=False, if_exists="append")
+        after = combine_athletic_scores_by_pfr_id(conn).set_index("pfr_id").loc["E", "athletic_score"]
+        self.assertAlmostEqual(before, after)

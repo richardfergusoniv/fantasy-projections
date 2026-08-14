@@ -37,10 +37,12 @@ from independent diagnostics.
   than capping 70 rows on a denominator production did not use.
 - A team model forecasts official QB attempts, aggregated at week/team grain so
   sacks are excluded and traded-QB attempts stay with the correct club.
-- Every QB room receives exactly 17 mutually exclusive `projected_volume_games`.
-  Team attempt and yard anchors then allocate physical season volume across the
-  room; marginal `projected_games` remains visible as the independent
-  appearance forecast.
+- The independently forecast QB appearances are preserved unchanged in
+  `projected_games_raw`. A separate, explicitly audited two-sided room
+  allocation reconciles every resolved team to exactly 17 mutually exclusive
+  `projected_volume_games`; its direction and player-level scale ship beside
+  the raw estimate. Attempt allocation then operates on those 17 games and
+  fails loudly if a resolved room cannot reach its anchor below 42 attempts/game.
 - Team receiving yards and QB passing yards use one shared team-yardage anchor.
   The pre-normalization ratio/flag remains visible as the diagnostic; the
   post-normalization ratio/flag is documented as an accounting assertion.
@@ -67,11 +69,12 @@ from independent diagnostics.
   and because the reframed path composes `share x team_total`, every held-out
   receiving prediction inherited the bias. The feature is now
   `team_naive_pred` so the same mistake raises `KeyError`, and player rows are
-  scored through `transitions.team_model_inputs`. `predict.py` was never
-  affected - it always built the team input explicitly - so shipped point
-  estimates were correct throughout; what was wrong was everything *calibrated*
-  on the held-out composition. Refit downstream: interval residuals and the
-  elite-shrinkage correction.
+  scored through `transitions.team_model_inputs`. A separate production defect
+  also existed: the live anchor selected an arbitrary first player after team
+  reassignment, so an arrival could contribute his old team's lag. Production
+  now scores a canonical, shuffle-invariant one-row-per-source-team frame and
+  fails loudly on missing or conflicting team inputs. Downstream interval
+  residuals and the elite-shrinkage correction were refit after both fixes.
 
 ## Verification
 
@@ -86,29 +89,30 @@ The completed sequence was:
 
 Current checks:
 
-- 33 focused tests pass.
-- 3,934 projection rows and 761 player-position fantasy rows ship.
+- 57 focused tests pass under the complete pytest suite.
+- 3,969 projection rows and 768 player-position fantasy rows ship.
 - Zero duplicate `(player_id, position, stat)` keys, negative point
   predictions, completion/attempt violations, or reception/target violations.
-- 23 stat rows were reconciled and explicitly flagged.
-- Every team has exactly 17 QB volume-games. Projected team attempts have mean
-  574.8, minimum 533.3, and maximum 615.6; zero teams fall below the historical
-  5th percentile (481.8). Cleveland is 575.0, Las Vegas 573.8, and Cincinnati
-  607.9.
-- Passing/receiving yardage identity error is below `4e-16` for every team.
-  Seven teams trigger the independent pre-normalization diagnostic; zero fail
+- 26 stat rows were reconciled and explicitly flagged.
+- Projected team attempts have mean 573.7, minimum 533.3, and maximum 615.6.
+  All 32 named QB rooms sum to exactly 17 allocated games and named attempt
+  rates are capped at 42.0/game. The four formerly underfilled rooms (CLE,
+  DAL, MIA, NE) reconcile upward while retaining their lower raw availability
+  totals; Cleveland now allocates its full 575-attempt anchor with no residual.
+- Passing/receiving yardage identity error is below `1e-12` for every team.
+  Eight teams trigger the independent pre-normalization diagnostic; zero fail
   the enforced post-normalization invariant.
-- Fantasy season-total formula error is below `6e-14` on every row. No negative
-  lower bound ships; 47 raw negative lower envelopes were floored and flagged.
-- All 1,099 rookie stat rows have a neutral 1.0 veteran-depth factor. One live
-  rookie uses the minimum-cell fallback: Kenyon Sadiq's rank-1 cell has n=2.
-- Kendrick Law and Seydou Traore remain unresolved in the upstream crosswalk;
-  both now warn and ship with `rookie_id_unresolved=True` rather than failing
-  silently.
+- Fantasy season-total formula error is below `9e-14` on every row. No negative
+  lower bound ships; 57 raw negative lower envelopes were floored and flagged.
+- The target rookie class contains all 80 drafted players and 147 UDFAs with
+  zero duplicate IDs. Three players use the minimum-cell fallback.
+- Kendrick Law resolves to canonical ID `00-0041446`; all seven formerly
+  omitted drafted players now ship. Only Seydou Traore remains explicitly
+  unresolved and warned.
 - Historical exposure-weighted receiving-yard share has a maximum team-season
   sum of 1.140 and no 1.2 cap breaches.
-- Sleeper matches 745/761 players (98%). Season-total correlation is 0.952 and
-  mean absolute season-total delta is 14.59 half-PPR points. Conditional-rate
+- Sleeper matches 752/768 players (98%). Season-total correlation is 0.949 and
+  mean absolute season-total delta is 14.67 half-PPR points. Conditional-rate
   comparison is correctly reported unavailable.
 
 Rolling-origin results after the grain fix. The model beats carry-forward in all
@@ -134,7 +138,7 @@ with nothing reading it. They are now 1.0x/1.3x/1.0x, and the non-reframed
 rows are bit-identical. In shipped terms, the median receiving upside/downside
 ratio moves 2.46 -> 1.65; Puka Nacua's season interval moves from
 [224.2, 326.6] around a 233.4 point estimate to [187.4, 286.7]. The
-elite-shrinkage beta, fit on the same composition, moves 0.4747 -> 0.3770.
+elite-shrinkage beta, fit on the same composition, is now 0.3577.
 
 ## Structural follow-ups
 
@@ -152,11 +156,9 @@ elite-shrinkage beta, fit on the same composition, moves 0.4747 -> 0.3770.
   does not. It is fit on ~32 rows per season. Damping it toward the team's own
   prior is the cheapest experiment worth running.
 - Replace componentwise fantasy intervals with correlated stat and availability
-  simulation and measure empirical interval coverage.
+  simulation. The current strictly-forward marginal coverage is 0.820 against
+  a nominal 0.800 target, but it is not a joint fantasy-score interval.
 - Add fantasy-rank and replacement-value evaluation beyond stat/season-total
   MAE.
-- Replace old-era depth-chart alphabetical tie-breaking with a tier-preserving
-  representation, then recalibrate availability rather than splitting tied
-  players by name.
 - Build explicit dated 2026 coordinator, offensive-line, and schedule context
   instead of relying primarily on 2025 team context.

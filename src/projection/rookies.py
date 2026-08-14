@@ -25,6 +25,7 @@ player's team's vacated opportunity to the bucket's historical average
 vacated opportunity (clipped to avoid small-sample blowups).
 """
 import warnings
+import re
 
 import numpy as np
 import pandas as pd
@@ -82,13 +83,97 @@ def _round_bucket(rnd):
     return ROUND_BUCKETS.get(int(rnd), "round_4_7")
 
 
+def _normalized_name(value):
+    if pd.isna(value):
+        return ""
+    return re.sub(r"[^a-z0-9]", "", str(value).lower())
+
+
+def _canonical_gsis_mask(values):
+    return values.astype(str).str.match(r"^00-\d{7}$")
+
+
+def _canonicalize_drafted_ids(drafted, roster, players):
+    """Resolve draft-feed IDs without dropping null/placeholder rows.
+
+    Resolution order is stable PFR id, then an exact normalized-name + pick
+    + position roster match (team is a tie-breaker, not a hard condition,
+    because drafted players can be traded). Every input row survives; a row
+    that still cannot resolve receives an explicit deterministic placeholder.
+    """
+    out = drafted.copy()
+    roster = roster.copy()
+    players = players.copy()
+    out["_input_order"] = np.arange(len(out))
+    out["_norm_name"] = out["name"].map(_normalized_name)
+    roster["_norm_name"] = roster["name"].map(_normalized_name)
+
+    canonical_roster = roster[_canonical_gsis_mask(roster["player_id"])].copy()
+    canonical_players = players[_canonical_gsis_mask(players["canonical_player_id"])].copy()
+    roster_by_pfr = (
+        canonical_roster.dropna(subset=["pfr_id", "player_id"])
+        .drop_duplicates("pfr_id").set_index("pfr_id")["player_id"]
+    )
+    players_by_pfr = (
+        canonical_players.dropna(subset=["pfr_id", "canonical_player_id"])
+        .drop_duplicates("pfr_id").set_index("pfr_id")["canonical_player_id"]
+    )
+    canonical = out["pfr_id"].map(roster_by_pfr)
+    canonical = canonical.fillna(out["pfr_id"].map(players_by_pfr))
+
+    unresolved_idx = out.index[canonical.isna()]
+    for idx in unresolved_idx:
+        row = out.loc[idx]
+        candidates = canonical_roster[
+            canonical_roster["_norm_name"].eq(row["_norm_name"])
+            & canonical_roster["position"].eq(row["position"])
+        ]
+        if "season" in out.columns and "season" in roster.columns:
+            candidates = candidates[candidates["season"].eq(row["season"])]
+        if pd.notna(row.get("pick")) and "draft_number" in candidates.columns:
+            candidates = candidates[
+                pd.to_numeric(candidates["draft_number"], errors="coerce").eq(float(row["pick"]))
+            ]
+        candidates = candidates.dropna(subset=["player_id"]).drop_duplicates("player_id")
+        if len(candidates) > 1 and pd.notna(row.get("draft_team")):
+            same_team = candidates[candidates["team"].eq(row["draft_team"])]
+            if len(same_team) == 1:
+                candidates = same_team
+        if len(candidates) == 1:
+            canonical.loc[idx] = candidates.iloc[0]["player_id"]
+
+    original = out["player_id"] if "player_id" in out.columns else pd.Series(index=out.index, dtype=object)
+    # Keep a feed placeholder only after every canonical route failed; this
+    # makes the unresolved state explicit without discarding the source key.
+    resolved = canonical.fillna(original.where(_canonical_gsis_mask(original)))
+    deterministic = "UNRESOLVED:" + out["pfr_id"].fillna(out["_norm_name"]).astype(str)
+    unresolved_fallback = original.fillna(deterministic)
+    out["player_id"] = resolved.fillna(unresolved_fallback)
+    out = out.sort_values("_input_order").drop(columns=["_input_order", "_norm_name"])
+    if len(out) != len(drafted):
+        raise AssertionError("drafted-input conservation failed during ID canonicalization")
+    return out
+
+
 def load_draft_capital(conn):
     dp = pd.read_sql(
         "select season as draft_season, gsis_id as player_id, round, pick, position, "
         "team, pfr_player_id as pfr_id, pfr_player_name as name "
-        "from draft_picks where gsis_id is not null and position in ('QB','RB','WR','TE')", conn,
+        "from draft_picks where position in ('QB','RB','WR','TE')", conn,
     )
     dp["team"] = dp["team"].replace(TEAM_ABBR_FIX)
+    roster = pd.read_sql(
+        "select player_id, season, team, position, draft_number, player_name as name, pfr_id "
+        "from seasonal_rosters", conn,
+    ).rename(columns={"season": "draft_season"})
+    players = pd.read_sql(
+        "select gsis_id as canonical_player_id, pfr_id from players", conn,
+    )
+    canonical_input = dp.rename(columns={"draft_season": "season", "team": "draft_team"})
+    canonical_roster = roster.rename(columns={"draft_season": "season"})
+    dp = _canonicalize_drafted_ids(canonical_input, canonical_roster, players).rename(
+        columns={"season": "draft_season", "draft_team": "team"}
+    )
     dp["round_bucket"] = dp["round"].apply(_round_bucket)
     return dp
 
@@ -159,12 +244,12 @@ def load_combine_athletic_tier(conn):
     QB/RB/WR/TE - a 4.5 forty is elite for a guard-sized TE prospect and
     mediocre for a WR): 40-time percentile (faster => higher percentile) and
     vertical-jump percentile (higher => higher percentile). The percentile
-    population is EVERY combine tester at that position in the table, not
-    just the subset who made an NFL roster - using only "players who made
-    it" as the reference population would bias the percentile scale itself
-    (the same kind of survivorship-bias trap the full-cohort availability
-    path now avoids), so the wider raw
-    combine-invitee population is used instead. A player missing one of the
+    reference population is every PRIOR-SEASON combine tester at that
+    position, not the held-out player's own cohort and not only players who
+    made an NFL roster. This makes a historical/held-out score invariant to
+    peers from its own or future cohorts while avoiding roster survivorship
+    bias. The earliest available season uses its own cohort once because no
+    prior reference exists. A player missing one of the
     two metrics still gets a score from whichever one they have (mean with
     skipna); missing both (or no combine_data row/pfr_id join at all)
     produces athletic_tier='no_data' - a real, explicit fallback tier, not
@@ -187,27 +272,66 @@ def load_combine_athletic_tier(conn):
     return out[["player_id", "athletic_score", "athletic_tier"]]
 
 
-def combine_athletic_scores_by_pfr_id(conn):
+def _load_combine_frame(conn):
+    return pd.read_sql(
+        "select season, pos, pfr_id, forty, vertical from combine_data "
+        "where pos in ('QB','RB','WR','TE') and pfr_id is not null", conn,
+    )
+
+
+def _score_combine_rows(rows, reference):
+    """Score rows against a strictly earlier empirical reference sample."""
+    scored = rows.copy()
+    scored["forty_pctile"] = np.nan
+    scored["vertical_pctile"] = np.nan
+    for pos, idx in scored.groupby("pos").groups.items():
+        ref = reference[reference["pos"].eq(pos)]
+        # The earliest available combine season has no prior reference. It
+        # uses its own cohort once; every later/held-out season is strictly
+        # invariant to the composition of its own cohort.
+        if ref.empty:
+            ref = scored.loc[idx]
+        forty_ref = ref["forty"].dropna().to_numpy()
+        vertical_ref = ref["vertical"].dropna().to_numpy()
+        if len(forty_ref):
+            scored.loc[idx, "forty_pctile"] = scored.loc[idx, "forty"].map(
+                lambda value: np.nan if pd.isna(value) else float(np.mean(forty_ref >= value))
+            )
+        if len(vertical_ref):
+            scored.loc[idx, "vertical_pctile"] = scored.loc[idx, "vertical"].map(
+                lambda value: np.nan if pd.isna(value) else float(np.mean(vertical_ref <= value))
+            )
+    scored["athletic_score"] = scored[["forty_pctile", "vertical_pctile"]].mean(axis=1, skipna=True)
+    scored = scored.dropna(subset=["athletic_score"])
+    scored["athletic_tier"] = np.where(
+        scored["athletic_score"] >= 0.5, "above_median", "below_median"
+    )
+    return scored
+
+
+def combine_athletic_scores_by_pfr_id(conn, max_reference_season=None):
     """(pfr_id) -> athletic_score, athletic_tier - the pfr_id-keyed form of
     load_combine_athletic_tier's scoring logic, factored out so callers with
     their OWN real pfr_id in hand (e.g. draft_picks.pfr_player_id, which is
     unaffected by the 2026 draft class's placeholder-gsis_id bug - see
     identify_target_season_rookie_class's docstring) can join directly
     without going through the players.gsis_id crosswalk at all."""
-    combine = pd.read_sql(
-        "select season, pos, pfr_id, forty, vertical from combine_data "
-        "where pos in ('QB','RB','WR','TE') and pfr_id is not null", conn,
+    combine = _load_combine_frame(conn)
+    if max_reference_season is not None:
+        combine = combine[combine["season"] <= max_reference_season]
+    pieces = []
+    for season in sorted(combine["season"].dropna().unique()):
+        rows = combine[combine["season"].eq(season)]
+        reference = combine[combine["season"].lt(season)]
+        pieces.append(_score_combine_rows(rows, reference))
+    combine = pd.concat(pieces, ignore_index=True) if pieces else combine.assign(
+        athletic_score=np.nan, athletic_tier=None
     )
-    combine["forty_pctile"] = combine.groupby("pos")["forty"].rank(pct=True, ascending=False)
-    combine["vertical_pctile"] = combine.groupby("pos")["vertical"].rank(pct=True, ascending=True)
-    combine["athletic_score"] = combine[["forty_pctile", "vertical_pctile"]].mean(axis=1, skipna=True)
-    combine = combine.dropna(subset=["athletic_score"])
     # No duplicate pfr_id rows found in combine_data as of this data pull
     # (spot-checked directly) - drop_duplicates here is a defensive
     # backstop against a future data refresh introducing one, not a known
     # active case.
     combine = combine.sort_values("season").drop_duplicates(subset=["pfr_id"], keep="last")
-    combine["athletic_tier"] = np.where(combine["athletic_score"] >= 0.5, "above_median", "below_median")
     return combine[["pfr_id", "athletic_score", "athletic_tier"]]
 
 
@@ -391,9 +515,11 @@ def identify_target_season_rookie_class(conn, target_season):
     drafted = pd.read_sql(
         f"select gsis_id as player_id, round, pick, position, team as draft_team, "
         f"pfr_player_name as name, pfr_player_id as pfr_id "
-        f"from draft_picks where season = {target_season} and gsis_id is not null "
+        f"from draft_picks where season = {target_season} "
         f"and position in ('QB','RB','WR','TE')", conn,
     )
+    drafted["season"] = target_season
+    drafted_input_n = len(drafted)
     drafted["draft_team"] = drafted["draft_team"].replace(TEAM_ABBR_FIX)
     drafted["round_bucket"] = drafted["round"].apply(_round_bucket)
     drafted["rookie_tier"] = "drafted"
@@ -403,19 +529,11 @@ def identify_target_season_rookie_class(conn, target_season):
         f"from seasonal_rosters where season = {target_season}", conn,
     ).drop_duplicates(subset=["player_id"])
 
-    # Canonicalize draft-pick placeholder IDs through the stable PFR key.
-    # Prefer the target roster (it also supplies the current team/name), then
-    # the general players master for a drafted player not yet rostered.
-    roster_by_pfr = roster.dropna(subset=["pfr_id"]).drop_duplicates("pfr_id").set_index("pfr_id")
     players = pd.read_sql(
         "select gsis_id as canonical_player_id, pfr_id from players "
         "where gsis_id is not null and pfr_id is not null", conn,
-    ).drop_duplicates("pfr_id").set_index("pfr_id")
-    drafted["canonical_player_id"] = drafted["pfr_id"].map(roster_by_pfr["player_id"])
-    drafted["canonical_player_id"] = drafted["canonical_player_id"].fillna(
-        drafted["pfr_id"].map(players["canonical_player_id"]))
-    drafted["player_id"] = drafted["canonical_player_id"].fillna(drafted["player_id"])
-    drafted = drafted.drop(columns=["canonical_player_id"])
+    )
+    drafted = _canonicalize_drafted_ids(drafted, roster.assign(season=target_season), players)
 
     udfa = roster[
         (roster["years_exp"] == 0) & (roster["draft_number"].isna())
@@ -446,6 +564,12 @@ def identify_target_season_rookie_class(conn, target_season):
         warnings.warn(
             f"{len(unresolved)} target rookies retain unresolved placeholder IDs: {detail}",
             RuntimeWarning,
+        )
+    accounted_drafted_n = int(combined["rookie_tier"].eq("drafted").sum())
+    if accounted_drafted_n != drafted_input_n:
+        raise AssertionError(
+            f"drafted-input conservation failed: {drafted_input_n} eligible picks, "
+            f"{accounted_drafted_n} drafted rows emitted"
         )
     return combined
 

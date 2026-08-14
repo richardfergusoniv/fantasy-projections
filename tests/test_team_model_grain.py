@@ -20,7 +20,14 @@ import pandas as pd
 
 from src.projection.transitions import (
     TEAM_FEATURES, TEAM_MODEL_FEATURES, build_team_transition_pairs, team_model_inputs,
+    TEAM_TOTAL_LABEL, TEAM_ATTEMPTS_LABEL, TEAM_CARRIES_LABEL, TEAM_RUSH_YARDS_LABEL,
 )
+from src.projection.predict import canonical_team_anchor_frame
+
+
+class _LagEchoModel:
+    def predict(self, x):
+        return x["team_naive_pred"].to_numpy()
 
 
 def _feat():
@@ -69,6 +76,40 @@ class TeamModelGrainTest(unittest.TestCase):
         # `naive_pred` stays for baseline scoring; `team_naive_pred` is the
         # model feature. They are the same number at team grain.
         self.assertTrue((pairs["naive_pred"] == pairs["team_naive_pred"]).all())
+
+    def test_canonical_anchor_scoring_is_invariant_to_player_row_order(self):
+        rows = []
+        for n in range(32):
+            team = f"T{n:02d}"
+            for player in range(2):
+                row = {c: float(n + 1) for c in TEAM_FEATURES}
+                row.update({
+                    "season": 2025, "team": team, "player_id": f"{team}p{player}",
+                    TEAM_TOTAL_LABEL: 200.0 + n,
+                    TEAM_ATTEMPTS_LABEL: 30.0 + n / 10,
+                    TEAM_CARRIES_LABEL: 25.0 + n / 10,
+                    TEAM_RUSH_YARDS_LABEL: 110.0 + n,
+                })
+                rows.append(row)
+        feat = pd.DataFrame(rows)
+        models = {}
+        for label, key in (
+            (TEAM_TOTAL_LABEL, ("TEAM", "passing_yards")),
+            (TEAM_ATTEMPTS_LABEL, ("TEAM", "pass_attempts")),
+            (TEAM_CARRIES_LABEL, ("TEAM", "carries")),
+            (TEAM_RUSH_YARDS_LABEL, ("TEAM", "rushing_yards")),
+        ):
+            models[key] = {"model": _LagEchoModel(), "features": TEAM_MODEL_FEATURES,
+                           "label": label}
+        teams = feat["team"].unique()
+        first = canonical_team_anchor_frame(feat, 2025, teams, models).sort_values("team")
+        shuffled = canonical_team_anchor_frame(
+            feat.sample(frac=1, random_state=99), 2025, teams, models).sort_values("team")
+        cols = ["team_passing_yards_pg_pred", "team_pass_attempts_pg_pred",
+                "team_carries_pg_pred", "team_rushing_yards_pg_pred"]
+        pd.testing.assert_frame_equal(first[cols].reset_index(drop=True),
+                                      shuffled[cols].reset_index(drop=True))
+        self.assertTrue((first["team_anchor_lag_team"] == first["team"]).all())
 
 
 class IntervalResidualSymmetryTest(unittest.TestCase):

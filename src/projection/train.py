@@ -36,7 +36,7 @@ from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
     ALL_FEATURES, AVAILABILITY_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, REFRAMED_SHARE_STATS,
     RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, AVAILABILITY_LABEL,
-    TEAM_ATTEMPTS_LABEL,
+    TEAM_ATTEMPTS_LABEL, TEAM_CARRIES_LABEL, TEAM_RUSH_YARDS_LABEL,
 )
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -146,6 +146,25 @@ def main():
     )
     manifest.append(("TEAM", "pass_attempts", attempts_n))
     print(f"TEAM pass_attempts: trained on {attempts_n} rows -> {attempts_path}")
+
+    carries_model, carries_n = fit_team_total(feat, label_col=TEAM_CARRIES_LABEL)
+    carries_path = os.path.join(MODELS_DIR, "team_carries.joblib")
+    joblib.dump(
+        {"model": carries_model, "features": TEAM_MODEL_FEATURES, "label": TEAM_CARRIES_LABEL},
+        carries_path,
+    )
+    manifest.append(("TEAM", "carries", carries_n))
+    print(f"TEAM carries: trained on {carries_n} rows -> {carries_path}")
+
+    rush_yards_model, rush_yards_n = fit_team_total(feat, label_col=TEAM_RUSH_YARDS_LABEL)
+    rush_yards_path = os.path.join(MODELS_DIR, "team_rushing_yards.joblib")
+    joblib.dump(
+        {"model": rush_yards_model, "features": TEAM_MODEL_FEATURES,
+         "label": TEAM_RUSH_YARDS_LABEL},
+        rush_yards_path,
+    )
+    manifest.append(("TEAM", "rushing_yards", rush_yards_n))
+    print(f"TEAM rushing_yards: trained on {rush_yards_n} rows -> {rush_yards_path}")
 
     for position, stats in TARGET_STATS.items():
         for stat in stats:

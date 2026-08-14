@@ -88,6 +88,8 @@ REFRAMED_SHARE_STATS = {("WR", "receiving_yards"), ("TE", "receiving_yards"), ("
 RECEIVING_SHARE_LABEL = "receiving_yards_share"
 TEAM_TOTAL_LABEL = "team_passing_yards_pg"
 TEAM_ATTEMPTS_LABEL = "team_pass_attempts_pg"
+TEAM_CARRIES_LABEL = "team_carries_pg"
+TEAM_RUSH_YARDS_LABEL = "team_rushing_yards_pg"
 
 # Cap on a team's summed receiving-share predictions across WR+TE+RB before
 # composing with team_passing_yards_pg (joint/multi-output Phase A). Shares
@@ -246,11 +248,33 @@ def build_availability_pairs(feat, position, season_pairs):
     rows = []
     for season_from, season_to in season_pairs:
         a = pos_df[pos_df["season"] == season_from][["player_id", "team"] + ALL_FEATURES]
-        b = pos_df[pos_df["season"] == season_to][["player_id", "games_played"]].rename(
-            columns={"games_played": AVAILABILITY_LABEL})
+        # Availability follows the player, not the position label. A player
+        # moving from WR to TE (or RB to WR) still appeared in season_to and
+        # must not be silently relabeled as a zero-game attrition outcome for
+        # his source-position model. Collapse any rare multi-position target
+        # rows to the player's maximum appearance count, retaining the
+        # position attached to that target-season row.  The target chart is
+        # keyed by (player, position), so looking the player up under the
+        # source/model position would give position changers a false
+        # off-chart band even though their appearance outcome is now joined
+        # correctly.
+        b = (
+            feat[feat["season"] == season_to][
+                ["player_id", "position", "games_played"]
+            ]
+            .sort_values(["player_id", "games_played"], ascending=[True, False])
+            .drop_duplicates("player_id", keep="first")
+            .rename(columns={
+                "position": "target_position",
+                "games_played": AVAILABILITY_LABEL,
+            })
+        )
         merged = a.merge(b, on="player_id", how="left")
-        merged["position"] = position
+        merged["position"] = merged["target_position"].fillna(position)
         merged = attach_availability_depth_rank(merged, season_to)
+        # The row still trains the source-position availability model.  Only
+        # the held-out chart lookup above follows the target position.
+        merged["position"] = position
         merged["played_again"] = merged[AVAILABILITY_LABEL].notna()
         merged[AVAILABILITY_LABEL] = merged[AVAILABILITY_LABEL].fillna(0.0)
         # season_from's own games count = the carry-forward baseline this

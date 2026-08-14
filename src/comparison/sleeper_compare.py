@@ -16,13 +16,18 @@ Sleeper endpoints used:
 Usage: `python -m src.comparison.sleeper_compare --season 2026`
 """
 import argparse
+import hashlib
+import json
 import os
+from datetime import datetime, timezone
 
+import numpy as np
 import pandas as pd
 import requests
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUTPUT_DIR = os.path.join(REPO_ROOT, "output")
+SNAPSHOT_DIR = os.path.join(OUTPUT_DIR, "sleeper_snapshots")
 
 PLAYERS_URL = "https://api.sleeper.app/v1/players/nfl"
 SEASON_PROJ_URL = "https://api.sleeper.app/v1/projections/nfl/regular/{season}"
@@ -55,7 +60,42 @@ def _normalize_name(name):
     return name.strip()
 
 
-def fetch_sleeper_players():
+def _fetch_json(url, snapshot_label, snapshot_dir=SNAPSHOT_DIR):
+    """Fetch validated JSON and persist a content-addressed audit snapshot."""
+    response = requests.get(url, timeout=60)
+    response.raise_for_status()
+    payload = response.json()
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    digest = hashlib.sha256(raw).hexdigest()
+    fetched_at = datetime.now(timezone.utc).isoformat()
+    os.makedirs(snapshot_dir, exist_ok=True)
+    stem = f"{snapshot_label}_{digest[:16]}"
+    raw_path = os.path.join(snapshot_dir, f"{stem}.json")
+    metadata_path = os.path.join(snapshot_dir, f"{stem}.metadata.json")
+    if not os.path.exists(raw_path):
+        with open(raw_path, "wb") as fh:
+            fh.write(raw)
+    if not os.path.exists(metadata_path):
+        with open(metadata_path, "w", encoding="utf-8") as fh:
+            json.dump({
+                "fetched_at": fetched_at,
+                "endpoint": url,
+                "sha256": digest,
+                "raw_path": os.path.abspath(raw_path),
+            }, fh, indent=2, sort_keys=True)
+    else:
+        with open(metadata_path, encoding="utf-8") as fh:
+            fetched_at = json.load(fh)["fetched_at"]
+    return payload, {
+        "fetched_at": fetched_at,
+        "endpoint": url,
+        "sha256": digest,
+        "raw_path": os.path.abspath(raw_path),
+        "metadata_path": os.path.abspath(metadata_path),
+    }
+
+
+def fetch_sleeper_players(snapshot_dir=SNAPSHOT_DIR):
     """Full Sleeper player master, one row per sleeper_id: gsis_id (often
     null - see below), full_name, team, position.
 
@@ -66,24 +106,29 @@ def fetch_sleeper_players():
     Joining on gsis_id alone matched only ~14% of our players - too low to
     be a useful comparison. `build_join_key()` below adds a normalized-name
     fallback for exactly this gap."""
-    response = requests.get(PLAYERS_URL, timeout=60)
-    response.raise_for_status()
-    players = response.json()
+    players, snapshot = _fetch_json(
+        PLAYERS_URL, "players_nfl", snapshot_dir=snapshot_dir)
     if not isinstance(players, dict):
         raise ValueError("Sleeper players response was not a player-id mapping")
     rows = []
     for sid, p in players.items():
+        if not isinstance(p, dict):
+            continue
         rows.append({
             "sleeper_id": sid,
             "player_id": p.get("gsis_id"),
             "position": p.get("position"),
-            "team": p.get("team"),
+            "sleeper_team": p.get("team"),
+            "sleeper_name": p.get("full_name"),
             "name_key": _normalize_name(p.get("full_name")),
+            "players_snapshot_sha256": snapshot["sha256"],
+            "players_snapshot_fetched_at": snapshot["fetched_at"],
+            "players_snapshot_path": snapshot["raw_path"],
         })
     return pd.DataFrame(rows)
 
 
-def fetch_sleeper_season_projections(season):
+def fetch_sleeper_season_projections(season, snapshot_dir=SNAPSHOT_DIR):
     """Return Sleeper's season totals without inventing a rate denominator.
 
     `gp` is carried as `reported_gp` for auditability.  Conditional-rate
@@ -93,22 +138,25 @@ def fetch_sleeper_season_projections(season):
     rate columns null; 18 is the number of regular-season *weeks*, not a
     player-specific projection of games played.
     """
-    response = requests.get(SEASON_PROJ_URL.format(season=season), timeout=60)
-    response.raise_for_status()
-    proj = response.json()
+    endpoint = SEASON_PROJ_URL.format(season=season)
+    proj, snapshot = _fetch_json(
+        endpoint, f"projections_{season}", snapshot_dir=snapshot_dir)
     if not isinstance(proj, dict):
         raise ValueError("Sleeper projections response was not a player-id mapping")
     rows = []
     for sid, stats in proj.items():
+        if not isinstance(stats, dict):
+            continue
         gp = stats.get("gp")
         # A projection can have season totals even when no usable `gp`
         # denominator exists. Do not drop that valid season-level signal.
-        if not isinstance(stats, dict):
-            continue
         row = {
             "sleeper_id": sid,
             "reported_gp": gp,
             "pts_half_ppr_season": stats.get("pts_half_ppr", 0),
+            "projections_snapshot_sha256": snapshot["sha256"],
+            "projections_snapshot_fetched_at": snapshot["fetched_at"],
+            "projections_snapshot_path": snapshot["raw_path"],
         }
         for sleeper_field, our_stat in STAT_MAP.items():
             row[f"{our_stat}_season"] = stats.get(sleeper_field, 0)
@@ -141,7 +189,7 @@ NO_STATS_PLAY_PROB = 0.05
 HAS_STATS_PLAY_PROB = 1.0
 
 
-def fetch_sleeper_play_probability(season):
+def fetch_sleeper_play_probability(season, snapshot_dir=SNAPSHOT_DIR):
     """player_id (gsis, where resolvable) + name_key/position -> play_prob.
 
     Data-quality finding that changed this function's design: Sleeper's
@@ -164,10 +212,16 @@ def fetch_sleeper_play_probability(season):
     NO_SLEEPER_MATCH_PLAY_PROB for a player absent from Sleeper entirely -
     "Sleeper won't even project a number" is roughly as strong a signal
     either way)."""
-    players = fetch_sleeper_players()
-    proj = requests.get(SEASON_PROJ_URL.format(season=season), timeout=60).json()
+    players = fetch_sleeper_players(snapshot_dir=snapshot_dir)
+    endpoint = SEASON_PROJ_URL.format(season=season)
+    proj, _ = _fetch_json(
+        endpoint, f"projections_{season}", snapshot_dir=snapshot_dir)
+    if not isinstance(proj, dict):
+        raise ValueError("Sleeper projections response was not a player-id mapping")
     rows = []
     for sid, stats in proj.items():
+        if not isinstance(stats, dict):
+            continue
         has_stats = "pass_att" in stats
         rows.append({"sleeper_id": sid, "play_prob": HAS_STATS_PLAY_PROB if has_stats else NO_STATS_PLAY_PROB})
     proj_df = pd.DataFrame(rows)
@@ -175,9 +229,10 @@ def fetch_sleeper_play_probability(season):
     return merged[["player_id", "name_key", "position", "play_prob"]]
 
 
-def build_sleeper_comparison_table(season):
-    players = fetch_sleeper_players()
-    season_proj = fetch_sleeper_season_projections(season)
+def build_sleeper_comparison_table(season, snapshot_dir=SNAPSHOT_DIR):
+    players = fetch_sleeper_players(snapshot_dir=snapshot_dir)
+    season_proj = fetch_sleeper_season_projections(
+        season, snapshot_dir=snapshot_dir)
     sleeper = players.merge(season_proj, on="sleeper_id", how="inner")
     return sleeper
 
@@ -211,28 +266,67 @@ def compare(our_fantasy_points_path, season):
     })
     sleeper_stats = sleeper.rename(columns=rename)
     sleeper_cols = [
+        "sleeper_id", "sleeper_team", "sleeper_name",
         "sleeper_fantasy_pts_season", "sleeper_fantasy_pts", "sleeper_gp",
         "sleeper_rate_denominator_valid",
+        "players_snapshot_sha256", "players_snapshot_fetched_at",
+        "players_snapshot_path", "projections_snapshot_sha256",
+        "projections_snapshot_fetched_at", "projections_snapshot_path",
     ] + [f"sleeper_{c}_season" for c in stat_cols] + [f"sleeper_{c}" for c in stat_cols]
+    # Direct test callers and older cached comparison frames may omit newer
+    # audit metadata. Preserve the schema without inventing values.
+    for col in sleeper_cols:
+        if col not in sleeper_stats.columns:
+            sleeper_stats[col] = pd.NA
 
     # Tier 1: join on gsis_id (player_id) - exact, unambiguous, preferred.
-    by_id = sleeper_stats.dropna(subset=["player_id"]).drop_duplicates(subset=["player_id", "position"])
-    merged = ours.merge(by_id[["player_id", "position"] + sleeper_cols], on=["player_id", "position"], how="left")
-    matched_by_id = merged["sleeper_fantasy_pts_season"].notna()
+    id_candidates = sleeper_stats.dropna(subset=["player_id"])
+    id_counts = id_candidates.groupby(["player_id", "position"]).size().rename("id_candidate_count")
+    id_candidates = id_candidates.merge(
+        id_counts.reset_index(), on=["player_id", "position"], how="left")
+    by_id = id_candidates[id_candidates["id_candidate_count"] == 1]
+    merged = ours.merge(
+        id_counts.reset_index(), on=["player_id", "position"], how="left")
+    merged["id_candidate_count"] = merged["id_candidate_count"].fillna(0).astype(int)
+    merged = merged.merge(
+        by_id[["player_id", "position"] + sleeper_cols],
+        on=["player_id", "position"], how="left")
+    matched_by_id = merged["sleeper_id"].notna()
 
     # Tier 2: for rows gsis_id couldn't resolve, fall back to normalized
-    # name + position - the exact gap load_players() found (many real
-    # players have a null gsis_id in Sleeper's own data).
-    by_name = sleeper_stats.dropna(subset=["name_key"]).drop_duplicates(subset=["name_key", "position"])
-    fallback = merged.loc[~matched_by_id, ["name_key", "position"]].merge(
-        by_name[["name_key", "position"] + sleeper_cols], on=["name_key", "position"], how="left",
-    )
-    for c in sleeper_cols:
-        merged.loc[~matched_by_id, c] = fallback[c].values
+    # name + position. A name match is accepted only when the candidate is
+    # unique, or when team disambiguates multiple candidates to exactly one.
+    # Ambiguity stays unmatched and is explicit in match_collision.
+    name_groups = {
+        key: grp for key, grp in
+        sleeper_stats.dropna(subset=["name_key"]).groupby(["name_key", "position"], dropna=False)
+    }
+    merged["name_candidate_count"] = 0
+    merged["match_collision"] = merged["id_candidate_count"] > 1
+    merged["name_team_disambiguated"] = False
+    name_eligible = (~matched_by_id) & (merged["id_candidate_count"] <= 1)
+    for idx, row in merged.loc[name_eligible].iterrows():
+        candidates = name_groups.get((row["name_key"], row["position"]))
+        if candidates is None or candidates.empty:
+            continue
+        merged.at[idx, "name_candidate_count"] = len(candidates)
+        chosen = None
+        if len(candidates) == 1:
+            chosen = candidates.iloc[0]
+        elif pd.notna(row.get("team")) and "sleeper_team" in candidates.columns:
+            team_candidates = candidates[candidates["sleeper_team"] == row["team"]]
+            if len(team_candidates) == 1:
+                chosen = team_candidates.iloc[0]
+                merged.at[idx, "name_team_disambiguated"] = True
+        if chosen is None:
+            merged.at[idx, "match_collision"] = True
+            continue
+        for col in sleeper_cols:
+            merged.at[idx, col] = chosen[col]
 
     merged["match_method"] = "unmatched"
     merged.loc[matched_by_id, "match_method"] = "gsis_id"
-    matched_by_name = (~matched_by_id) & merged["sleeper_fantasy_pts_season"].notna()
+    matched_by_name = (~matched_by_id) & merged["sleeper_id"].notna()
     merged.loc[matched_by_name, "match_method"] = "name"
 
     merged["fantasy_pts_season_delta"] = (
@@ -261,8 +355,31 @@ def compare(our_fantasy_points_path, season):
     merged["fantasy_pts_delta"] = merged["fantasy_pts"] - merged["sleeper_fantasy_pts"]
     invalid_rate = ~merged["sleeper_rate_denominator_valid"].fillna(False).astype(bool)
     merged.loc[invalid_rate, "fantasy_pts_delta"] = float("nan")
-    merged["matched_sleeper"] = merged["sleeper_fantasy_pts_season"].notna()
+    merged["matched_sleeper"] = merged["sleeper_id"].notna()
     return merged.drop(columns=["name_key"]).sort_values("fantasy_pts", ascending=False)
+
+
+def comparison_summary_strata(merged):
+    """Evaluation strata that do not let zero projections dominate quality."""
+    matched = merged[merged["matched_sleeper"]].copy()
+    strata = {
+        "all_matched": matched,
+        "sleeper_positive": matched[matched["sleeper_fantasy_pts_season"] > 0],
+        "sleeper_50_plus": matched[matched["sleeper_fantasy_pts_season"] >= 50],
+    }
+    rows = []
+    for label, frame in strata.items():
+        rows.append({
+            "stratum": label,
+            "n": len(frame),
+            "season_corr": frame["fantasy_pts_season"].corr(
+                frame["sleeper_fantasy_pts_season"]) if len(frame) > 1 else np.nan,
+            "season_mae": frame["fantasy_pts_season_delta"].abs().mean(),
+            "season_bias": frame["fantasy_pts_season_delta"].mean(),
+            "our_mean": frame["fantasy_pts_season"].mean(),
+            "sleeper_mean": frame["sleeper_fantasy_pts_season"].mean(),
+        })
+    return pd.DataFrame(rows)
 
 
 def main():
@@ -289,6 +406,8 @@ def main():
           f"{matched['fantasy_pts_season'].corr(matched['sleeper_fantasy_pts_season']):.3f}")
     print(f"Mean absolute season-total delta (matched only): "
           f"{matched['fantasy_pts_season_delta'].abs().mean():.2f}")
+    print("\nSeason-total evaluation strata (zero-only rows cannot hide relevant-player error):")
+    print(comparison_summary_strata(merged).to_string(index=False))
     valid_rates = matched[matched["sleeper_rate_denominator_valid"].fillna(False).astype(bool)]
     if valid_rates.empty:
         print("Conditional-rate comparison: unavailable (Sleeper did not provide a credible player-level games denominator)")

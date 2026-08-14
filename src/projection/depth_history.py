@@ -36,11 +36,11 @@ range, and the two halves live in the same table:
              August snapshot is used, matching the timing of the live
              2026 run (2026-08-01) and of a week-1 chart.
 
-Both are reduced here to the same thing: a 1-based ordinal within (team,
-position). For the old schema that means ordering by `depth_team` and
-breaking ties alphabetically - arbitrary WITHIN a tier, but the tier
-boundaries (who is a 1, who is a 2) are exactly preserved, and the tier is
-what carries the signal.
+Both are reduced to a tier-preserving availability rank.  The old schema's
+`depth_team` is already a tier and is never split.  The new feed is a true
+ordinal; WR ordinals are paired (1-2 -> tier 1, 3-4 -> tier 2, etc.) because
+the old feed carries a median of two WR slots per tier. Other positions have
+a median of one player per tier and retain their ordinal.
 
 The truncation, and why it is not optional
 ------------------------------------------
@@ -52,17 +52,13 @@ the off-chart share of returning players runs 0.28-0.43 in 2022-2024 but
 new one would feed the model a feature whose definition moved underneath
 it (the same denominator-shift failure this project has hit before).
 
-PRESEASON_CHART_DEPTH truncates every season to a common per-position
-depth, chosen as the depth that equalizes the off-chart rate across the two
-eras (residual gap: QB -0.078, RB -0.045, WR -0.023, TE -0.025 - the best
-available at any integer depth). Those depths land on the old-era median
-chart depth AND on the empirical games cliff (QB rank 2 -> 4 games, RB rank
-3 -> 8, WR rank 4-5 -> 7-10, TE rank 3 -> 6), so the truncation discards
-tail resolution that was noise for this purpose anyway.
+PRESEASON_CHART_DEPTH truncates every season to a common per-position tier.
+Those boundaries must be revalidated by the rolling availability backtest
+whenever either source schema or the tier translation changes.
 
-`load_preseason_depth_chart` returns the chart UNtruncated - the full
-ordinal is the right input for volume/role work, which needs to tell a WR4
-from a WR8. Truncation is applied by `attach_availability_depth_rank`,
+`load_preseason_depth_chart` returns the chart UNtruncated: a full ordinal
+for the new feed and the source tier for the old feed (which has no honest
+within-tier ordering). Truncation is applied by `attach_availability_depth_rank`,
 which is the availability model's specific harmonization requirement.
 
 Relationship to the curated chart
@@ -85,7 +81,7 @@ POSITIONS = ["QB", "RB", "WR", "TE"]
 # Chosen to equalize the off-chart rate between the 2016-2024 and 2025-2026
 # feeds - see this module's docstring. Availability-model-specific; volume
 # work should use the untruncated ordinal.
-PRESEASON_CHART_DEPTH = {"QB": 2, "RB": 3, "WR": 5, "TE": 3}
+PRESEASON_CHART_DEPTH = {"QB": 2, "RB": 3, "WR": 3, "TE": 3}
 
 AVAILABILITY_DEPTH_FEATURE = "target_depth_rank"
 
@@ -105,11 +101,11 @@ def _load_old_schema(conn, season):
     df = df.dropna(subset=["depth_team", "team", "position"])
     df = df[df["position"].isin(POSITIONS)]
     # A player can be listed at more than one slot (a RB who is also the
-    # FB, a TE at FB); keep his best listing per position.
+    # FB, a TE at FB); keep his best listing per position.  depth_team is a
+    # tier, not an ordinal: tied players must retain the same rank.
     df = df.sort_values("depth_team").drop_duplicates(["player_id", "position"])
-    df["depth_rank"] = (
-        df.sort_values(["team", "position", "depth_team", "full_name"])
-        .groupby(["team", "position"]).cumcount() + 1)
+    df["depth_rank"] = df["depth_team"]
+    df["availability_rank"] = df["depth_team"]
     df["source"] = f"nflverse_week1_{season}"
     return df
 
@@ -129,6 +125,12 @@ def _load_new_schema(conn, season):
     if df.empty:
         return df
     df = df.sort_values("depth_rank").drop_duplicates(["player_id", "position"])
+    # Translate the true ordinal to the old feed's coarser tier semantics.
+    # Old WR tiers contain a median of two formation slots; all other
+    # positions contain a median of one.
+    df["availability_rank"] = df["depth_rank"]
+    wr = df["position"].eq("WR")
+    df.loc[wr, "availability_rank"] = ((df.loc[wr, "depth_rank"] - 1) // 2) + 1
     df["source"] = f"nflverse_{dt[:10]}"
     return df
 
@@ -156,7 +158,7 @@ def load_preseason_depth_chart(season, conn=None):
     finally:
         if own_conn:
             conn.close()
-    cols = ["player_id", "team", "position", "depth_rank", "full_name", "source"]
+    cols = ["player_id", "team", "position", "depth_rank", "availability_rank", "full_name", "source"]
     df = df[cols].reset_index(drop=True) if not df.empty else pd.DataFrame(columns=cols)
     _CHART_CACHE[season] = df
     return df.copy()
@@ -164,8 +166,9 @@ def load_preseason_depth_chart(season, conn=None):
 
 def attach_depth_rank(df, season, conn=None):
     """Add `nfl_depth_rank` to `df` (needs `player_id` and `position`): the
-    player's UNtruncated ordinal on the chart entering `season`, NaN when he
-    is not on it at all.
+    player's untruncated source rank on the chart entering `season`, NaN when
+    he is not on it at all. Old-feed ties remain tied; new-feed ranks are
+    true ordinals.
 
     Distinct from attach_availability_depth_rank, and the difference is the
     point: availability needs the two chart eras to mean the same thing and
@@ -211,8 +214,10 @@ def attach_availability_depth_rank(df, season, conn=None):
               file=sys.stderr)
         out[AVAILABILITY_DEPTH_FEATURE] = float("nan")
         return out
-    keep = chart[chart["depth_rank"] <= chart["position"].map(PRESEASON_CHART_DEPTH)]
-    ranks = keep.set_index(["player_id", "position"])["depth_rank"]
+    keep = chart[
+        chart["availability_rank"] <= chart["position"].map(PRESEASON_CHART_DEPTH)
+    ]
+    ranks = keep.set_index(["player_id", "position"])["availability_rank"]
     idx = pd.MultiIndex.from_arrays([out["player_id"], out["position"]])
     out[AVAILABILITY_DEPTH_FEATURE] = ranks.reindex(idx).to_numpy(dtype=float)
     return out

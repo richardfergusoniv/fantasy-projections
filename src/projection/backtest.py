@@ -37,7 +37,7 @@ from src.projection.rookies import build_rookie_dataset, fit_rookie_baselines, p
 from src.projection.train import LGBM_PARAMS
 from src.projection.corrections import (
     compute_loo_receiving_residuals, fit_elite_shrinkage, elite_shrinkage_adjustment,
-    injury_cohort_gate, load_suspension_weeks,
+    injury_cohort_gate, load_suspension_weeks, projected_participation_weight,
 )
 from src.projection.depth_history import attach_depth_rank
 
@@ -105,6 +105,7 @@ def _fit_team_total_model(feat, train_pairs):
 
 
 _REFRAMED_CACHE = {}
+_ROLLING_RESIDUAL_CACHE = {}
 
 
 def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
@@ -147,6 +148,12 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
     Memoized on (train_pairs, test_pairs) since three separate consumers
     (MAE table, interval residuals, coherence backtest) need the same
     fits."""
+    if len(test_pairs) != 1:
+        raise ValueError(
+            "receiving composition requires one held-out transition so its "
+            "availability weights can be fit strictly on prior folds"
+        )
+    held = tuple(test_pairs[0])
     key = (id(feat), tuple(map(tuple, train_pairs)), tuple(map(tuple, test_pairs)))
     if key in _REFRAMED_CACHE:
         return _REFRAMED_CACHE[key]
@@ -163,9 +170,13 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
         share_model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
         f = test[["team"]].copy()
         f["share"] = np.clip(share_model.predict(test[ALL_FEATURES]), 0, None)
-        f["weight"] = (
-            pd.to_numeric(test["games_played_to"], errors="coerce") / SEASON_GAMES
-        ).clip(0, 1)
+        # Production uses projected_games/17 in the share guard.  Using the
+        # held-out season's actual games_played_to here leaks the outcome and
+        # makes the historical composition easier than the live one.  Fit the
+        # availability model on prior folds only, exactly as corrections.py's
+        # cross-fitted residual path does.
+        f["weight"] = projected_participation_weight(
+            feat, test, position, train_pairs, held)
         # Team-grain inputs, looked up per (season_from, team). Scoring the
         # team model on `test` directly is what produced ~40%-low team
         # totals and dragged every reframed receiving residual with them.
@@ -273,16 +284,19 @@ def backtest_team_total(feat, train_pairs=TRAIN_PAIRS, test_pair=TEST_PAIR,
 
 
 def coherence_ratio_backtest(feat):
-    """The actual go/no-go signal for the joint/multi-output Phase A
-    reframing (see the plan this was built from) - computed on the SAME
-    2024-2025 held-out season used for every other backtest metric here,
-    not just the live 2026 output. For each team in the held-out set:
-    sum(predicted receiving_yards_pg across all WR/TE/RB test rows for that
-    team) / (predicted team_passing_yards_pg for that team), compared for
-    the CURRENT (independent, unreframed) models vs. the NEW (shared-anchor,
-    reframed) models, against the REAL 2025 ratio (actual receiving sum /
-    actual team passing) as ground truth for what "coherent" should look
-    like on real data."""
+    """Returning-veteran receiving coverage diagnostic on the 2025 fold.
+
+    This is *not* the physical team passing/receiving identity: transition
+    pairs contain only players with a season-N rate and a season-N+1 rate, so
+    rookies, arrivals without a prior rate, and attrition are absent.  The
+    numerator is therefore the returning-veteran portion of the receiving
+    room divided by the full team passing-yards anchor.  The explicit column
+    names below prevent this partial-roster diagnostic from being presented
+    as whole-team coherence again.
+
+    Predicted numerators use fold-trained projected availability.  Only the
+    observed comparison numerator uses held-out actual games, as ground truth.
+    """
     team_model = _fit_team_total_model(feat, TRAIN_PAIRS)
     if team_model is None:
         return pd.DataFrame()
@@ -300,8 +314,14 @@ def coherence_ratio_backtest(feat):
         old_test = old_test.copy()
         old_test["old_pred"] = old_model.predict(old_test[ALL_FEATURES])
         old_test["actual"] = old_test[f"{stat}_pg"]
-        old_test["weight"] = old_test["games_played_to"] / SEASON_GAMES
-        old_pred.append(old_test[["team", "old_pred", "actual", "weight"]])
+        old_test["weight"] = projected_participation_weight(
+            feat, old_test, position, TRAIN_PAIRS, TEST_PAIR)
+        old_test["actual_weight"] = (
+            pd.to_numeric(old_test["games_played_to"], errors="coerce")
+            / SEASON_GAMES
+        ).clip(0, 1)
+        old_pred.append(old_test[
+            ["team", "old_pred", "actual", "weight", "actual_weight"]])
 
         # NEW: reframed share model x team-total model.
         result = _predict_reframed_receiving(feat, position, stat, TRAIN_PAIRS, [TEST_PAIR])
@@ -310,7 +330,8 @@ def coherence_ratio_backtest(feat):
         new_test, new_reconstructed, _ = result
         new_test = new_test.copy()
         new_test["new_pred"] = new_reconstructed
-        new_test["weight"] = new_test["games_played_to"] / SEASON_GAMES
+        new_test["weight"] = projected_participation_weight(
+            feat, new_test, position, TRAIN_PAIRS, TEST_PAIR)
         new_pred.append(new_test[["team", "new_pred", "weight"]])
 
     if not old_pred or not new_pred:
@@ -325,67 +346,142 @@ def coherence_ratio_backtest(feat):
 
     old_df["old_expected"] = old_df["old_pred"] * old_df["weight"]
     new_df["new_expected"] = new_df["new_pred"] * new_df["weight"]
-    old_df["actual_expected"] = old_df["actual"] * old_df["weight"]
+    # Actual coverage is the observed returning-veteran contribution, so its
+    # held-out games are legitimately part of the target, not a predictor.
+    actual_df = old_df[["team", "actual", "actual_weight"]].copy()
     old_sum = old_df.groupby("team")["old_expected"].sum().rename("old_receiving_sum")
     new_sum = new_df.groupby("team")["new_expected"].sum().rename("new_receiving_sum")
-    actual_sum = old_df.groupby("team")["actual_expected"].sum().rename("actual_receiving_sum")
+    actual_df["actual_expected"] = actual_df["actual"] * actual_df["actual_weight"]
+    actual_sum = actual_df.groupby("team")["actual_expected"].sum().rename("actual_receiving_sum")
 
     out = team_test.set_index("team")[["team_total_pred", TEAM_TOTAL_LABEL]].join(
         [old_sum, new_sum, actual_sum], how="inner"
     ).reset_index()
-    out["old_ratio"] = out["old_receiving_sum"] / out["team_total_pred"]
-    out["new_ratio"] = out["new_receiving_sum"] / out["team_total_pred"]
-    out["actual_ratio"] = out["actual_receiving_sum"] / out[TEAM_TOTAL_LABEL]
+    out["old_returning_veteran_ratio"] = out["old_receiving_sum"] / out["team_total_pred"]
+    out["new_returning_veteran_ratio"] = out["new_receiving_sum"] / out["team_total_pred"]
+    out["actual_returning_veteran_ratio"] = out["actual_receiving_sum"] / out[TEAM_TOTAL_LABEL]
     return out
 
 
-def residual_quantiles(feat, quantiles=INTERVAL_QUANTILES):
-    """Empirical (position, stat) -> (resid_low, resid_high, resid_std) from
-    the SAME held-out 2025 backtest (train 2021-22/22-23/23-24, predict
-    2025) used for the MAE table above - genuine out-of-sample errors, not
-    train-fit residuals (which would be optimistically narrow). Used by
-    predict.py to build pred_pg_low/pred_pg_high = pred_pg + resid_low/high
-    for the veteran path. All 20 position/stat combos have n_test in
-    61-170 (see PHASE4_REPORT.md's backtest table) - above INTERVAL_MIN_N,
-    so no position/stat needs a parametric (normal-approximation) fallback;
-    resid_std is still carried through in case a future season's smaller
-    test set ever needs one."""
+def rolling_residual_rows(feat, test_pairs=ROLLING_TEST_PAIRS):
+    """One row per strictly forward, out-of-sample veteran rate residual."""
+    cache_key = (id(feat), tuple(map(tuple, test_pairs)))
+    if cache_key in _ROLLING_RESIDUAL_CACHE:
+        return _ROLLING_RESIDUAL_CACHE[cache_key].copy()
+    available = [(2021, 2022), (2022, 2023), (2023, 2024), (2024, 2025)]
     rows = []
-    for position, stats in TARGET_STATS.items():
-        for stat in stats:
-            y_col = f"{stat}_pg"
-            if (position, stat) in REFRAMED_SHARE_STATS:
-                # Reconstructed team_total x share prediction, same as
-                # backtest_position_stat - residuals must be in RATE units
-                # (predict.py adds resid_low/high directly onto pred_pg),
-                # not share units.
-                result = _predict_reframed_receiving(feat, position, stat, TRAIN_PAIRS, [TEST_PAIR])
-                if result is None:
-                    continue
-                test, pred, _ = result
-            else:
-                train = build_transition_pairs(feat, position, stat, TRAIN_PAIRS)
-                test = build_transition_pairs(feat, position, stat, [TEST_PAIR])
-                if train.empty or test.empty:
-                    continue
-                model = LGBMRegressor(**LGBM_PARAMS)
-                model.fit(train[ALL_FEATURES], train[y_col])
-                pred = model.predict(test[ALL_FEATURES])
-            resid = test[y_col].values - pred
-            lo, hi = np.quantile(resid, quantiles)
+    for test_pair in test_pairs:
+        train_pairs = [pair for pair in available if pair[1] <= test_pair[0]]
+        if not train_pairs:
+            continue
+        for position, stats in TARGET_STATS.items():
+            for stat in stats:
+                y_col = f"{stat}_pg"
+                if (position, stat) in REFRAMED_SHARE_STATS:
+                    result = _predict_reframed_receiving(
+                        feat, position, stat, train_pairs, [test_pair])
+                    if result is None:
+                        continue
+                    test, pred, _ = result
+                else:
+                    train = build_transition_pairs(
+                        feat, position, stat, train_pairs)
+                    test = build_transition_pairs(
+                        feat, position, stat, [test_pair])
+                    if train.empty or test.empty:
+                        continue
+                    model = LGBMRegressor(**LGBM_PARAMS)
+                    model.fit(train[ALL_FEATURES], train[y_col])
+                    pred = model.predict(test[ALL_FEATURES])
+                actual = pd.to_numeric(test[y_col], errors="coerce").to_numpy()
+                frame = pd.DataFrame({
+                    "position": position,
+                    "stat": stat,
+                    "test_season": test_pair[1],
+                    "n_train_transitions": len(train_pairs),
+                    "player_id": test["player_id"].to_numpy(),
+                    "pred": pred,
+                    "actual": actual,
+                })
+                frame["resid"] = frame["actual"] - frame["pred"]
+                rows.append(frame)
+    out = pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
+    _ROLLING_RESIDUAL_CACHE[cache_key] = out
+    return out.copy()
+
+
+def residual_quantiles(feat, quantiles=INTERVAL_QUANTILES):
+    """Cross-fitted residual quantiles pooled across rolling future folds.
+
+    Each underlying prediction is made using only earlier transitions.  The
+    pooled quantiles are the production calibration artifact; forward coverage
+    is reported separately by :func:`forward_interval_coverage`, where a fold's
+    interval is calibrated only on residuals from earlier test seasons.
+    """
+    residuals = rolling_residual_rows(feat)
+    if residuals.empty:
+        return pd.DataFrame()
+    rows = []
+    for (position, stat), grp in residuals.groupby(["position", "stat"]):
+        lo, hi = np.quantile(grp["resid"], quantiles)
+        rows.append({
+            "position": position,
+            "stat": stat,
+            "n_test": len(grp),
+            "n_crossfit_folds": grp["test_season"].nunique(),
+            "first_test_season": int(grp["test_season"].min()),
+            "last_test_season": int(grp["test_season"].max()),
+            "resid_low": float(lo),
+            "resid_high": float(hi),
+            "resid_std": float(np.std(grp["resid"])),
+            "low_n_flag": len(grp) < INTERVAL_MIN_N,
+            "calibration_basis": "pooled strictly-forward rolling residuals",
+        })
+    return pd.DataFrame(rows)
+
+
+def forward_interval_coverage(feat, quantiles=INTERVAL_QUANTILES):
+    """Coverage on untouched folds using only earlier-fold calibration."""
+    residuals = rolling_residual_rows(feat)
+    if residuals.empty:
+        return pd.DataFrame()
+    target = quantiles[1] - quantiles[0]
+    rows = []
+    for (position, stat), grp in residuals.groupby(["position", "stat"]):
+        seasons = sorted(grp["test_season"].unique())
+        for season in seasons[1:]:
+            calibration = grp[grp["test_season"] < season]["resid"]
+            test = grp[grp["test_season"] == season]
+            if calibration.empty or test.empty:
+                continue
+            lo, hi = np.quantile(calibration, quantiles)
+            covered = test["actual"].between(test["pred"] + lo, test["pred"] + hi)
             rows.append({
-                "position": position, "stat": stat, "n_test": len(test),
-                "resid_low": float(lo), "resid_high": float(hi), "resid_std": float(np.std(resid)),
-                "low_n_flag": len(test) < INTERVAL_MIN_N,
+                "position": position,
+                "stat": stat,
+                "test_season": int(season),
+                "n_calibration": len(calibration),
+                "n_test": len(test),
+                "resid_low": float(lo),
+                "resid_high": float(hi),
+                "coverage": float(covered.mean()),
+                "target_coverage": float(target),
+                "coverage_gap": float(covered.mean() - target),
+                "calibration_seasons": ",".join(
+                    map(str, sorted(grp.loc[grp["test_season"] < season, "test_season"].unique()))),
             })
     return pd.DataFrame(rows)
 
 
-def backtest_availability(feat):
-    """Held-out games-played MAE per position vs carrying season-N games
-    forward (Phase 11). Scored on ALL season-N players including those who
-    never played again - the rows build_transition_pairs drops and which
-    every other table here is therefore blind to.
+def backtest_availability(feat, conn=None, test_pairs=ROLLING_TEST_PAIRS):
+    """Rolling, causally trained games-played evaluation by eligibility.
+
+    Every fold is trained only on transitions ending no later than the source
+    season.  Results explicitly separate players found on the target season's
+    roster snapshot from source-season players absent from that snapshot
+    (attrition).  The all-player row remains useful for end-to-end season-value
+    accounting, but it must not be presented as the model's error among players
+    actually eligible for a preseason projection.
 
     Fits on AVAILABILITY_FEATURES (Gate A), which includes the TEST year's
     preseason depth chart. That is not leakage: a week-1/early-August chart
@@ -394,26 +490,68 @@ def backtest_availability(feat):
     gives src/depth_chart/starters_2026.csv. What the chart cannot see is
     the outcome being scored (games actually played), which is what would
     make it leakage."""
+    available = [(2021, 2022), (2022, 2023), (2023, 2024), (2024, 2025)]
     rows = []
-    for position in TARGET_STATS:
-        train = build_availability_pairs(feat, position, TRAIN_PAIRS)
-        test = build_availability_pairs(feat, position, [TEST_PAIR])
-        if train.empty or test.empty:
+    for test_pair in test_pairs:
+        train_pairs = [pair for pair in available if pair[1] <= test_pair[0]]
+        if not train_pairs:
             continue
-        model = LGBMRegressor(**LGBM_PARAMS)
-        model.fit(train[AVAILABILITY_FEATURES], train[AVAILABILITY_LABEL])
-        pred = np.clip(model.predict(test[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
-        actual, naive = test[AVAILABILITY_LABEL], test["naive_pred"]
-        rows.append({
-            "position": position, "stat": "games", "n_test": len(test),
-            "n_never_played_again": int((~test["played_again"]).sum()),
-            "model_mae": mae(pred, actual), "naive_mae": mae(naive, actual),
-            "model_wins": mae(pred, actual) < mae(naive, actual),
-        })
+        roster_ids = None
+        if conn is not None:
+            roster = pd.read_sql(
+                f"select distinct player_id from seasonal_rosters "
+                f"where season = {int(test_pair[1])} and player_id is not null",
+                conn,
+            )
+            roster_ids = set(roster["player_id"])
+        for position in TARGET_STATS:
+            train = build_availability_pairs(feat, position, train_pairs)
+            test = build_availability_pairs(feat, position, [test_pair])
+            if train.empty or test.empty:
+                continue
+            model = LGBMRegressor(**LGBM_PARAMS)
+            model.fit(train[AVAILABILITY_FEATURES], train[AVAILABILITY_LABEL])
+            scored = test[["player_id", AVAILABILITY_LABEL, "naive_pred", "played_again"]].copy()
+            scored["pred"] = np.clip(
+                model.predict(test[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
+            if roster_ids is None:
+                scopes = {
+                    "all_source_players": pd.Series(True, index=scored.index),
+                    "returning_players_outcome_stratum": scored["played_again"],
+                    "attrition_outcome_stratum": ~scored["played_again"],
+                }
+            else:
+                eligible = scored["player_id"].isin(roster_ids)
+                scopes = {
+                    "all_source_players": pd.Series(True, index=scored.index),
+                    "target_roster_eligible": eligible,
+                    "not_on_target_roster_attrition": ~eligible,
+                }
+            for scope, mask in scopes.items():
+                sub = scored[mask]
+                if sub.empty:
+                    continue
+                model_mae = mae(sub["pred"], sub[AVAILABILITY_LABEL])
+                naive_mae = mae(sub["naive_pred"], sub[AVAILABILITY_LABEL])
+                rows.append({
+                    "test_season": test_pair[1],
+                    "n_train_transitions": len(train_pairs),
+                    "scope": scope,
+                    "position": position,
+                    "stat": "games",
+                    "n_test": len(sub),
+                    "n_never_played_again": int((~sub["played_again"]).sum()),
+                    "model_mae": model_mae,
+                    "naive_mae": naive_mae,
+                    "model_bias": float((sub["pred"] - sub[AVAILABILITY_LABEL]).mean()),
+                    "naive_bias": float((sub["naive_pred"] - sub[AVAILABILITY_LABEL]).mean()),
+                    "model_wins": model_mae < naive_mae,
+                })
     return pd.DataFrame(rows)
 
 
-def backtest_season_totals(feat):
+def backtest_season_totals(feat, conn=None, train_pairs=TRAIN_PAIRS,
+                           test_pair=TEST_PAIR):
     """The question Phase 11 exists to answer: which framing best predicts
     SEASON value? Compares, on the held-out year and scored against actual
     season-N+1 totals for every season-N player (0 for those who never
@@ -423,33 +561,85 @@ def backtest_season_totals(feat):
       rate x pred games - the shipped decomposition
       naive             - carry season-N's actual total forward
     """
+    roster_ids = None
+    if conn is not None:
+        roster = pd.read_sql(
+            f"select distinct player_id from seasonal_rosters "
+            f"where season = {int(test_pair[1])} and player_id is not null",
+            conn,
+        )
+        roster_ids = set(roster["player_id"])
+
     rows = []
     for position, stat in [("WR", "receiving_yards"), ("RB", "rushing_yards"),
                            ("TE", "receiving_yards"), ("QB", "passing_yards")]:
-        av_train = build_availability_pairs(feat, position, TRAIN_PAIRS)
-        av_test = build_availability_pairs(feat, position, [TEST_PAIR])
-        rate_train = build_transition_pairs(feat, position, stat, TRAIN_PAIRS)
+        av_train = build_availability_pairs(feat, position, train_pairs)
+        av_test = build_availability_pairs(feat, position, [test_pair])
+        rate_train = build_transition_pairs(feat, position, stat, train_pairs)
         if av_train.empty or av_test.empty or rate_train.empty:
             continue
         gm = LGBMRegressor(**LGBM_PARAMS).fit(av_train[AVAILABILITY_FEATURES], av_train[AVAILABILITY_LABEL])
         rm = LGBMRegressor(**LGBM_PARAMS).fit(rate_train[ALL_FEATURES], rate_train[f"{stat}_pg"])
         games_hat = np.clip(gm.predict(av_test[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
         rate_hat = np.clip(rm.predict(av_test[ALL_FEATURES]), 0, None)
+        composed = pd.Series(np.nan, index=av_test.index, dtype=float)
+        parity_limit = "independent rate path; production room normalization unavailable"
+        if (position, stat) in REFRAMED_SHARE_STATS:
+            result = _predict_reframed_receiving(
+                feat, position, stat, train_pairs, [test_pair])
+            if result is not None:
+                composed_test, composed_pred, _ = result
+                by_player = pd.Series(
+                    composed_pred, index=composed_test["player_id"]
+                ).groupby(level=0).first()
+                composed = av_test["player_id"].map(by_player)
+                rate_hat = composed.fillna(pd.Series(rate_hat, index=av_test.index)).to_numpy()
+                parity_limit = (
+                    "production team-total×share composition for returning-rate rows; "
+                    "independent-rate fallback where the transition interface has no "
+                    "season-N+1 conditional-rate row; no historical curated role or rookies"
+                )
 
         # Actual season-N+1 total, and season-N's own total as the naive
         # carry-forward. Both looked up off the feature frame directly:
         # av_test keeps players who vanished, whose total is a real 0.
-        st = TEST_PAIR[1]
+        st = test_pair[1]
         actual_tot = feat[(feat.position == position) & (feat.season == st)].set_index("player_id")[stat]
-        prior_tot = feat[(feat.position == position) & (feat.season == TEST_PAIR[0])].set_index("player_id")[stat]
-        actual = av_test["player_id"].map(actual_tot).fillna(0.0).to_numpy()
-        naive = av_test["player_id"].map(prior_tot).fillna(0.0).to_numpy()
-        rows.append({
-            "position": position, "stat": stat, "n_test": len(av_test),
-            "rate_x17_mae": mae(rate_hat * SEASON_GAMES, actual),
-            "rate_x_games_mae": mae(rate_hat * games_hat, actual),
-            "naive_mae": mae(naive, actual),
-        })
+        prior_tot = feat[(feat.position == position) & (feat.season == test_pair[0])].set_index("player_id")[stat]
+        scored = av_test[["player_id", "played_again"]].copy()
+        scored["actual"] = av_test["player_id"].map(actual_tot).fillna(0.0).to_numpy()
+        scored["naive"] = av_test["player_id"].map(prior_tot).fillna(0.0).to_numpy()
+        scored["rate_hat"] = rate_hat
+        scored["games_hat"] = games_hat
+        scored["composed"] = composed.notna().to_numpy()
+        if roster_ids is None:
+            scopes = {"all_source_players": pd.Series(True, index=scored.index)}
+        else:
+            eligible = scored["player_id"].isin(roster_ids)
+            scopes = {
+                "all_source_players": pd.Series(True, index=scored.index),
+                "target_roster_eligible": eligible,
+                "not_on_target_roster_attrition": ~eligible,
+            }
+        for scope, mask in scopes.items():
+            sub = scored[mask]
+            if sub.empty:
+                continue
+            rows.append({
+                "test_season": test_pair[1],
+                "scope": scope,
+                "position": position,
+                "stat": stat,
+                "n_test": len(sub),
+                "n_composed_rate_rows": int(sub["composed"].sum()),
+                "composition_coverage": float(sub["composed"].mean()),
+                "rate_x17_mae": mae(
+                    sub["rate_hat"] * SEASON_GAMES, sub["actual"]),
+                "rate_x_games_mae": mae(
+                    sub["rate_hat"] * sub["games_hat"], sub["actual"]),
+                "naive_mae": mae(sub["naive"], sub["actual"]),
+                "parity_limit": parity_limit,
+            })
     return pd.DataFrame(rows)
 
 
@@ -560,7 +750,7 @@ def main():
     rook = run_rookie_backtest(conn, feat)
     print(rook.to_string(index=False))
 
-    print("\n=== Empirical residual quantiles (for predict.py's veteran prediction intervals) ===")
+    print("\n=== Cross-fitted rolling residual quantiles (production veteran intervals) ===")
     resid = residual_quantiles(feat)
     print(resid.to_string(index=False))
     os.makedirs(MODELS_DIR, exist_ok=True)
@@ -568,20 +758,31 @@ def main():
     resid.to_csv(resid_path, index=False)
     print(f"Saved -> {resid_path}")
 
-    print("\n=== Joint/multi-output Phase A go/no-go: coherence ratio on 2024-2025 holdout ===")
-    print("(old = today's independent receiving_yards models, new = team_total x share reframing,")
-    print(" actual = real 2025 outcomes - all three as sum(WR/TE/RB receiving_yards_pg) / team passing_yards_pg)")
+    print("\n=== Untouched forward interval coverage (calibrated on earlier folds only) ===")
+    coverage = forward_interval_coverage(feat)
+    print(coverage.to_string(index=False) if not coverage.empty else "(no forward coverage rows)")
+    if not coverage.empty:
+        coverage_path = os.path.join(MODELS_DIR, "interval_forward_coverage.csv")
+        coverage.to_csv(coverage_path, index=False)
+        print(f"Saved -> {coverage_path}")
+
+    print("\n=== Returning-veteran receiving coverage on 2024-2025 holdout ===")
+    print("(partial-roster diagnostic, NOT the whole-team passing/receiving identity;")
+    print(" predicted numerators use fold-trained availability, actual uses observed availability)")
     coh = coherence_ratio_backtest(feat)
     if coh.empty:
         print("(coherence backtest produced no rows - check TRAIN_PAIRS/TEST_PAIR data availability)")
     else:
-        print(coh[["team", "old_ratio", "new_ratio", "actual_ratio"]].to_string(index=False))
-        print(f"\nMean |ratio - actual_ratio| across teams: "
-              f"old={coh['old_ratio'].sub(coh['actual_ratio']).abs().mean():.3f}, "
-              f"new={coh['new_ratio'].sub(coh['actual_ratio']).abs().mean():.3f}")
+        cols = ["team", "old_returning_veteran_ratio",
+                "new_returning_veteran_ratio", "actual_returning_veteran_ratio"]
+        print(coh[cols].to_string(index=False))
+        actual_col = "actual_returning_veteran_ratio"
+        print(f"\nMean |returning-veteran ratio - observed| across teams: "
+              f"old={coh['old_returning_veteran_ratio'].sub(coh[actual_col]).abs().mean():.3f}, "
+              f"new={coh['new_returning_veteran_ratio'].sub(coh[actual_col]).abs().mean():.3f}")
 
-    print("\n=== Availability backtest (Phase 11): games played, vs carrying season-N games forward ===")
-    av = backtest_availability(feat)
+    print("\n=== Rolling availability: all source players vs target-roster eligibility/attrition ===")
+    av = backtest_availability(feat, conn=conn)
     print(av.to_string(index=False) if not av.empty else "(no availability rows)")
 
     print("\n=== Conditional rate by preseason depth (Gate B calibration) ===")
@@ -594,7 +795,7 @@ def main():
 
     print("\n=== Season-TOTAL framing (Phase 11): which produces the best season value? ===")
     print("(scored on actual season totals incl. 0 for players who never played again)")
-    st = backtest_season_totals(feat)
+    st = backtest_season_totals(feat, conn=conn)
     print(st.to_string(index=False) if not st.empty else "(no season-total rows)")
 
     print("\n=== Injury-cohort gate (Phase 6 diagnostic - see corrections.py) ===")

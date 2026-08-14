@@ -104,7 +104,7 @@ MIN_TRANSITIONS_FOR_CONSISTENCY = 3
 SUSPENSION_CODES = {"R40"}
 
 
-def _participation_weight(feat, test, position, train_pairs, held):
+def projected_participation_weight(feat, test, position, train_pairs, held):
     """Out-of-sample projected_games / SEASON_GAMES for the held-out fold's
     players, so the share-sum cap here uses the same participation-weighted
     denominator predict.py now ships (transitions.receiving_share_scale).
@@ -134,6 +134,12 @@ def _participation_weight(feat, test, position, train_pairs, held):
     x = test.join(x[[AVAILABILITY_FEATURES[-1]]])
     games = np.clip(model.predict(x[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
     return np.clip(games / SEASON_GAMES, 0, 1)
+
+
+# Backward-compatible private alias for callers outside this repository.  New
+# validation code imports the public name so it is explicit that the weights
+# are fold-trained predictions, not held-out outcomes.
+_participation_weight = projected_participation_weight
 
 
 def compute_loo_receiving_residuals(feat, pairs):
@@ -176,7 +182,8 @@ def compute_loo_receiving_residuals(feat, pairs):
             # ~40%-low team totals inflated its residuals and therefore beta.
             f["total"] = np.clip(team_model.predict(
                 team_model_inputs(feat, [held], test["season_from"], test["team"])), 0, None)
-            f["weight"] = _participation_weight(feat, test, position, train_pairs, held)
+            f["weight"] = projected_participation_weight(
+                feat, test, position, train_pairs, held)
             f["position"], f["row"] = position, test.index
             frames.append(f)
             tests[position] = test

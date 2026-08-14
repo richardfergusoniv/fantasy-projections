@@ -50,8 +50,10 @@ from src.projection.depth_history import attach_availability_depth_rank, attach_
 from src.projection.features import build_player_season_features, TARGET_STATS, OC_METRICS
 from src.projection.ol_quality import team_season_ol_quality
 from src.projection.transitions import (
-    ALL_FEATURES, TEAM_FEATURES, REFRAMED_SHARE_STATS,
+    ALL_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, REFRAMED_SHARE_STATS,
     RECEIVING_SHARE_SUM_CAP, receiving_share_scale, SEASON_GAMES,
+    TEAM_TOTAL_LABEL, TEAM_ATTEMPTS_LABEL, TEAM_CARRIES_LABEL,
+    TEAM_RUSH_YARDS_LABEL,
 )
 from src.projection.corrections import elite_shrinkage_adjustment
 from src.projection.rookies import (
@@ -95,13 +97,15 @@ TEAM_CHANGE_SHARE_CLIP = (0.3, 2.5)
 # backtest.depth_rate_calibration (2021-2025, four folds). The raw calibration
 # is saved to models/depth_rate_calibration.csv on every backtest run.
 #
-#   QB   rank 1 1.13, rank 2 .74, rank 3 .86, off 1.23
-#   RB   rank 1 1.06, rank 2 1.01, rank 3 .80, rank 4+ .65, off .82
-#   WR   rank 1-5 1.03-1.15, rank 6+ .89, off .80
-#   TE   rank 1 1.04, rank 2 .96, rank 3 .76, rank 4+ .93, off .78
+#   QB   rank 1 1.12, rank 2 .77, rank 3+ .84, off 1.22
+#   RB   rank 1 1.06, rank 2 .98, rank 3 .73, rank 4+ .70, off .86
+#   WR   rank 1 1.08, rank 2 1.02, rank 3 .97, rank 4 1.17,
+#        rank 5 .86, rank 6+ .94, off .79
+#   TE   rank 1 1.04, rank 2 .90, rank 3 .83, rank 4+ 1.10, off .77
 #
 # The headline: conditional on playing, the rate needs almost no discount.
-# Nothing fits below 0.66, against shipped values of 0.15. A WR4 (Troy
+# Nothing fits below 0.70 after pooling sparse deep rungs, against the old
+# shipped values of 0.15. A WR4 (Troy
 # Franklin's bucket) fits above 1.0 - the model was UNDER-predicting him
 # while he was being multiplied by 0.15. An off-chart QB fits above 1.0,
 # which is not a paradox: an off-chart QB who plays is playing precisely
@@ -126,15 +130,15 @@ TEAM_CHANGE_SHARE_CLIP = (0.3, 2.5)
 # and gave both 0.15. The curated chart remains authoritative for
 # membership, team assignment, and the displayed `role`.
 DEPTH_RATE_LADDER = {
-    "QB": {1: 1.00, 2: 0.75},
-    "RB": {1: 1.00, 2: 1.00, 3: 0.80},
-    "WR": {1: 1.00, 2: 1.00, 3: 1.00, 4: 1.00, 5: 1.00},
-    "TE": {1: 1.00, 2: 0.95, 3: 0.75},
+    "QB": {1: 1.00, 2: 0.77},
+    "RB": {1: 1.00, 2: 0.98, 3: 0.73},
+    "WR": {1: 1.00, 2: 1.00, 3: 0.97, 4: 1.00, 5: 0.86},
+    "TE": {1: 1.00, 2: 0.90, 3: 0.83},
 }
 # Applied to a player on the chart but deeper than the ladder's last rung.
-DEPTH_RATE_DEEP = {"QB": 0.85, "RB": 0.65, "WR": 0.90, "TE": 0.90}
+DEPTH_RATE_DEEP = {"QB": 0.84, "RB": 0.70, "WR": 0.94, "TE": 1.00}
 # Applied to a player absent from the preseason chart entirely.
-DEPTH_RATE_OFF_CHART = {"QB": 1.00, "RB": 0.80, "WR": 0.80, "TE": 0.80}
+DEPTH_RATE_OFF_CHART = {"QB": 1.00, "RB": 0.86, "WR": 0.79, "TE": 0.77}
 
 
 def depth_rate_factor(position, rank):
@@ -173,6 +177,8 @@ def load_models():
     # ("TEAM", "passing_yards") key backtest.py's own rows use.
     models[("TEAM", "passing_yards")] = joblib.load(os.path.join(MODELS_DIR, "team_passing_yards.joblib"))
     models[("TEAM", "pass_attempts")] = joblib.load(os.path.join(MODELS_DIR, "team_pass_attempts.joblib"))
+    models[("TEAM", "carries")] = joblib.load(os.path.join(MODELS_DIR, "team_carries.joblib"))
+    models[("TEAM", "rushing_yards")] = joblib.load(os.path.join(MODELS_DIR, "team_rushing_yards.joblib"))
     return models
 
 
@@ -1015,10 +1021,7 @@ def project_veterans(conn, feat, source_season, models, resid, target_season):
     # incoming rookies' implied shares for the same denominator. Gating
     # multiplying a share by its role discount here is exactly what lets
     # the later renormalization see discounted shares.
-    combined = _attach_team_total_pred(
-        combined, base, models[("TEAM", "passing_yards")],
-        models[("TEAM", "pass_attempts")],
-    )
+    combined = _attach_team_total_pred(combined, feat, source_season, models)
 
     depth_chart = load_depth_chart(target_season)
     combined = apply_depth_chart_gating(combined, depth_chart)
@@ -1192,44 +1195,103 @@ def _warn_discounted_high_usage(conn, combined, base, source_season):
         )
 
 
-def _attach_team_total_pred(combined, base, yards_model, attempts_model):
-    """Attach the team_passing_yards_pg forecast (joint/multi-output Phase
-    A's shared anchor) as a helper column, drawn from `base`'s own
-    TEAM_FEATURES (already re-pointed to a team-changer's NEW team by
-    reassign_team_changers). Attached BEFORE depth-chart gating so the
-    composition itself can run AFTER gating, so its guard sees calibrated
-    veteran shares and the rookie path's implied shares.
-    _compose_reframed_receiving_predictions drops the column when done."""
-    team_feat = base.dropna(subset=TEAM_FEATURES).drop_duplicates(subset=["team"])[
-        ["team"] + TEAM_FEATURES + ["team_passing_yards_pg", "team_pass_attempts_pg"]]
-    yards_x = team_feat[TEAM_FEATURES].copy()
-    # Team-grain name (see transitions.TEAM_MODEL_FEATURES). This path was
-    # already correct; the rename is what makes the two broken call sites
-    # in backtest.py/corrections.py fail loudly rather than silently read a
-    # player's own prior rate out of a same-named column.
-    yards_x["team_naive_pred"] = team_feat["team_passing_yards_pg"]
-    attempts_x = team_feat[TEAM_FEATURES].copy()
-    attempts_x["team_naive_pred"] = team_feat["team_pass_attempts_pg"]
-    team_feat["team_passing_yards_pg_pred"] = np.clip(
-        yards_model["model"].predict(yards_x[yards_model["features"]]), 0, None)
-    team_feat["team_pass_attempts_pg_pred"] = np.clip(
-        attempts_model["model"].predict(attempts_x[attempts_model["features"]]), 0, None)
+TEAM_ANCHOR_SPECS = (
+    (TEAM_TOTAL_LABEL, ("TEAM", "passing_yards"), "team_passing_yards_pg_pred"),
+    (TEAM_ATTEMPTS_LABEL, ("TEAM", "pass_attempts"), "team_pass_attempts_pg_pred"),
+    (TEAM_CARRIES_LABEL, ("TEAM", "carries"), "team_carries_pg_pred"),
+    (TEAM_RUSH_YARDS_LABEL, ("TEAM", "rushing_yards"), "team_rushing_yards_pg_pred"),
+)
+
+
+def canonical_team_anchor_frame(source_feat, source_season, target_teams, models):
+    """Score team models from one canonical source-season row per target team.
+
+    Team anchors must never be derived from a reassigned player row.  A player
+    arriving at MIA still carries his old team's observed team-total labels;
+    selecting that row after changing only its ``team`` value silently makes
+    the anchor depend on player row order.  This function starts from the
+    unreassigned feature table, validates team-grain invariants, and returns a
+    deterministic one-row-per-team scoring frame.
+    """
+    teams = pd.Index(pd.Series(target_teams).dropna().unique(), name="team")
+    if len(teams) != 32:
+        raise ValueError(
+            f"Expected exactly 32 target teams for physical team anchors; found {len(teams)}: "
+            f"{sorted(map(str, teams))}"
+        )
+    labels = [spec[0] for spec in TEAM_ANCHOR_SPECS]
+    required = ["season", "team"] + TEAM_FEATURES + labels
+    missing_cols = [c for c in required if c not in source_feat.columns]
+    if missing_cols:
+        raise KeyError(f"Canonical team anchor frame is missing required columns: {missing_cols}")
+
+    raw = source_feat[(source_feat["season"] == source_season) & source_feat["team"].isin(teams)]
+    if raw.empty:
+        raise ValueError(f"No canonical team features found for source season {source_season}")
+    invariant_cols = TEAM_FEATURES + labels
+    nunique = raw.groupby("team")[invariant_cols].nunique(dropna=False)
+    bad = nunique.columns[(nunique > 1).any()].tolist()
+    if bad:
+        offenders = nunique.index[(nunique[bad] > 1).any(axis=1)].tolist()
+        raise ValueError(
+            f"Team-grain source features are not invariant for {offenders}; conflicting columns: {bad}"
+        )
+
+    team_feat = raw.drop_duplicates("team").set_index("team").reindex(teams).reset_index()
+    missing_teams = team_feat.loc[team_feat[invariant_cols].isna().all(axis=1), "team"].tolist()
+    if missing_teams:
+        raise ValueError(f"Missing canonical source-season anchors for teams: {missing_teams}")
+    if team_feat[TEAM_FEATURES].isna().any(axis=None):
+        cols = team_feat[TEAM_FEATURES].columns[team_feat[TEAM_FEATURES].isna().any()].tolist()
+        affected = team_feat.loc[team_feat[cols].isna().any(axis=1), "team"].tolist()
+        raise ValueError(f"NaN team-model inputs for teams {affected}; columns: {cols}")
+
+    for label, model_key, pred_col in TEAM_ANCHOR_SPECS:
+        artifact = models[model_key]
+        if artifact.get("label") != label:
+            raise ValueError(
+                f"Team model {model_key} label mismatch: expected {label}, got {artifact.get('label')}"
+            )
+        x = team_feat[TEAM_FEATURES].copy()
+        x["team_naive_pred"] = team_feat[label]
+        if list(artifact["features"]) != list(TEAM_MODEL_FEATURES):
+            raise ValueError(
+                f"Team model {model_key} feature schema mismatch: {artifact['features']}"
+            )
+        team_feat[pred_col] = np.clip(
+            artifact["model"].predict(x[artifact["features"]]), 0, None)
+
     team_feat["team_total_pred"] = team_feat["team_passing_yards_pg_pred"]
-    combined = combined.merge(
-        team_feat[["team", "team_total_pred", "team_passing_yards_pg_pred",
-                   "team_pass_attempts_pg_pred"]], on="team", how="left")
+    team_feat["team_anchor_source_season"] = int(source_season)
+    team_feat["team_anchor_lag_team"] = team_feat["team"]
+    team_feat["team_anchor_provenance"] = "canonical_source_team_frame"
+    pred_cols = [spec[2] for spec in TEAM_ANCHOR_SPECS]
+    if team_feat[pred_cols].isna().any(axis=None):
+        raise ValueError("At least one canonical team model emitted a missing anchor")
+    return team_feat
+
+
+def _attach_team_total_pred(combined, source_feat, source_season, models):
+    """Attach deterministic, canonical team anchors before composition."""
+    team_feat = canonical_team_anchor_frame(
+        source_feat, source_season, combined["team"], models)
+    anchor_cols = [
+        "team", "team_total_pred", "team_passing_yards_pg_pred",
+        "team_pass_attempts_pg_pred", "team_carries_pg_pred",
+        "team_rushing_yards_pg_pred", "team_anchor_source_season",
+        "team_anchor_lag_team", "team_anchor_provenance",
+    ]
+    combined = combined.merge(team_feat[anchor_cols], on="team", how="left", validate="many_to_one")
+    if combined["team_anchor_provenance"].isna().any():
+        missing = sorted(combined.loc[combined["team_anchor_provenance"].isna(), "team"].dropna().unique())
+        raise ValueError(f"Projection rows missing canonical team anchors: {missing}")
     # The player's OWN observed season-N receiving rate, carried alongside
     # so the Phase-7 elite-shrinkage correction can key on it (see
     # corrections.py for why the observed rate and not the predicted one).
-    observed = base[["player_id", "receiving_yards_pg"]].rename(
+    observed = source_feat[source_feat["season"] == source_season][
+        ["player_id", "receiving_yards_pg"]].rename(
         columns={"receiving_yards_pg": "_observed_recv_pg"})
     combined = combined.merge(observed.drop_duplicates("player_id"), on="player_id", how="left")
-    # A team with no resolvable TEAM_FEATURES row (the same rare team=NaN
-    # gap backtest.py's reframed path already documents) has no
-    # team_total_pred to compose with - falls back to 0 rather than
-    # NaN-propagating a whole player's row into an unusable prediction;
-    # genuinely rare (verified 0 occurrences in the 2026 live run).
-    combined["team_total_pred"] = combined["team_total_pred"].fillna(0)
     return combined
 
 
@@ -1443,26 +1505,35 @@ def reconcile_stat_constraints(df):
 
 
 def reconcile_qb_projected_volume_games(df, season_games=SEASON_GAMES):
-    """Add season-volume exposure without changing availability estimates.
+    """Reconcile marginal QB appearances to a 17-game team exposure budget.
 
-    ``projected_games`` remains the independently-modelled probability-like
-    count of offensive appearances for each player.  Quarterbacks are a
-    sequential position, however: summing those marginal appearance counts
-    can exceed the team's physical ``season_games`` budget.  This function
-    creates ``projected_volume_games`` for season-total arithmetic:
+    ``projected_games`` and ``projected_games_raw`` retain the independently
+    modeled, unconstrained appearance forecast. Quarterbacks are sequential,
+    so that marginal forecast is not itself a season-volume allocation. This
+    function creates a separate, mutually-exclusive
+    ``projected_volume_games`` allocation:
 
     * non-QBs retain projected_games;
-    * every resolvable QB room receives exactly the 17-game team budget;
+    * every resolved named-QB room is allocated exactly ``season_games``;
+    * underfilled rooms water-fill upward using raw availability plus
+      preseason role/depth priority, without erasing the raw forecast;
     * a team with exactly one curated starter preserves that starter's
-      marginal exposure first and allocates the remainder proportionally;
-    * without a singular curated starter, every positive marginal exposure is
-      scaled proportionally to 17.
+      marginal exposure first when an overfull room must be reduced;
+    * audit fields expose the raw room total, adjustment direction and each
+      player's allocation scale.
 
-    Appearance counts remain untouched. ``projected_volume_games`` answers a
-    different accounting question: how the team's mutually-exclusive QB game
-    budget is divided for season totals.
+    A named QB's allocated volume can exceed his raw marginal appearances in
+    an underfilled room; that is the intended distinction between the two
+    columns, not an overwrite of availability.
     """
     out = df.copy()
+    current_games = pd.to_numeric(out.get("projected_games"), errors="coerce")
+    if "projected_games_raw" in out.columns:
+        out["projected_games_raw"] = pd.to_numeric(
+            out["projected_games_raw"], errors="coerce"
+        ).fillna(current_games)
+    else:
+        out["projected_games_raw"] = current_games
     out["projected_volume_games"] = pd.to_numeric(
         out.get("projected_games"), errors="coerce"
     )
@@ -1470,128 +1541,417 @@ def reconcile_qb_projected_volume_games(df, season_games=SEASON_GAMES):
     if qb.empty or "player_id" not in out.columns or "team" not in out.columns:
         return out
 
-    player_cols = ["player_id", "team", "projected_games"]
-    for optional in ["role", "depth_chart_status"]:
+    player_cols = ["player_id", "team", "projected_games_raw"]
+    for optional in ["role", "depth_chart_status", "depth_rank", "nfl_depth_rank"]:
         if optional in qb.columns:
             player_cols.append(optional)
     players = qb[player_cols].drop_duplicates(["player_id", "team"]).copy()
-    players["raw"] = pd.to_numeric(players["projected_games"], errors="coerce").clip(0, season_games)
+    players["raw"] = pd.to_numeric(
+        players["projected_games_raw"], errors="coerce"
+    ).clip(0, season_games).fillna(0.0)
     players["volume"] = players["raw"]
+    players["priority"] = 1.0
+    if "role" in players.columns:
+        role_priority = players["role"].map({
+            "starter": 4.0, "backup": 1.5, "deep_bench": 0.5,
+        })
+        players["priority"] = role_priority.fillna(players["priority"])
+    # Depth is the fallback for rooms without a curated role.  Keep one
+    # ordinal rather than multiplying role and depth together, which would
+    # overstate noisy differences between feeds.
+    depth = pd.Series(np.nan, index=players.index, dtype=float)
+    for col in ["depth_rank", "nfl_depth_rank"]:
+        if col in players.columns:
+            depth = depth.fillna(pd.to_numeric(players[col], errors="coerce"))
+    no_role = players["role"].isna() if "role" in players.columns else pd.Series(True, index=players.index)
+    depth_priority = pd.cut(
+        depth, bins=[-np.inf, 1, 2, 3, np.inf], labels=[4.0, 1.5, 0.75, 0.5]
+    ).astype(float)
+    players.loc[no_role & depth_priority.notna(), "priority"] = depth_priority[
+        no_role & depth_priority.notna()
+    ]
+    players["priority"] = players["priority"].clip(lower=0.25)
+
+    room_raw = players.groupby("team")["raw"].sum(min_count=1)
+    directions = pd.Series(index=room_raw.index, dtype=object)
+    resolved = players.assign(
+        _resolved=players["player_id"].notna()
+        & players["player_id"].astype(str).str.strip().ne("")
+    ).groupby("team")["_resolved"].any()
 
     for team, idx in players.groupby("team").groups.items():
         idx = list(idx)
         vals = players.loc[idx, "raw"]
         total = vals.sum(min_count=1)
         if pd.isna(total):
+            directions.at[team] = "unresolved"
             continue
+        priority = players.loc[idx, "priority"]
+        # A small base retains role/depth ordering even if the availability
+        # model returned zero for every named player in a room.
+        weights = (vals + 0.25) * priority
         starter = pd.Series(False, index=idx)
         if "role" in players.columns:
             starter = players.loc[idx, "role"].eq("starter")
             if "depth_chart_status" in players.columns:
                 starter &= players.loc[idx, "depth_chart_status"].eq("curated")
         starter_idx = list(starter[starter].index)
-        if len(starter_idx) == 1:
+        if abs(float(total) - float(season_games)) <= 1e-9:
+            players.loc[idx, "volume"] = vals
+            directions.at[team] = "exact"
+        elif total < season_games:
+            extra_capacity = (float(season_games) - vals).clip(lower=0.0)
+            extra = _capped_proportional_allocation(
+                weights, extra_capacity, float(season_games) - float(total)
+            )
+            players.loc[idx, "volume"] = vals.to_numpy(dtype=float) + extra
+            directions.at[team] = "upward"
+        elif len(starter_idx) == 1:
             sidx = starter_idx[0]
             starter_volume = min(float(players.at[sidx, "raw"]), float(season_games))
             others = [i for i in idx if i != sidx]
             remaining = max(0.0, season_games - starter_volume)
-            other_total = players.loc[others, "raw"].sum() if others else 0.0
-            if others and other_total > 0:
+            if others and remaining > 0:
                 players.at[sidx, "volume"] = starter_volume
-                players.loc[others, "volume"] = (
-                    players.loc[others, "raw"] * remaining / other_total
+                players.loc[others, "volume"] = _capped_proportional_allocation(
+                    weights.reindex(others), players.loc[others, "raw"], remaining
                 )
             else:
                 players.loc[idx, "volume"] = 0.0
                 players.at[sidx, "volume"] = season_games
+            directions.at[team] = "downward"
         else:
-            if total > 0:
-                players.loc[idx, "volume"] = vals * season_games / total
-            elif idx:
-                players.loc[idx, "volume"] = 0.0
-                players.at[idx[0], "volume"] = season_games
+            players.loc[idx, "volume"] = _capped_proportional_allocation(
+                weights, vals, season_games
+            )
+            directions.at[team] = "downward"
 
     volume = players.set_index(["player_id", "team"])["volume"]
     key = pd.MultiIndex.from_frame(out[["player_id", "team"]])
     qb_volume = volume.reindex(key).to_numpy()
     is_qb = out["position"].eq("QB")
     out.loc[is_qb, "projected_volume_games"] = qb_volume[is_qb]
+    assigned = players.groupby("team")["volume"].sum(min_count=1)
+    residual = (float(season_games) - assigned).clip(lower=0.0)
+    out["team_unmodeled_qb_volume_games"] = out["team"].map(residual)
+    out["team_qb_raw_appearance_games"] = out["team"].map(room_raw)
+    out["team_qb_volume_allocation_direction"] = out["team"].map(directions)
+    out["team_qb_roster_resolved"] = out["team"].map(resolved)
+    out["qb_volume_games_scale"] = np.nan
+    raw_by_row = pd.to_numeric(out.loc[is_qb, "projected_games_raw"], errors="coerce")
+    out.loc[is_qb, "qb_volume_games_scale"] = (
+        pd.to_numeric(out.loc[is_qb, "projected_volume_games"], errors="coerce")
+        / raw_by_row.replace(0, np.nan)
+    )
+    out["qb_volume_allocation_adjusted"] = False
+    out.loc[is_qb, "qb_volume_allocation_adjusted"] = (
+        pd.to_numeric(out.loc[is_qb, "projected_volume_games"], errors="coerce")
+        - raw_by_row
+    ).abs() > 1e-9
+    resolved_assigned = assigned[resolved.reindex(assigned.index).fillna(False)]
+    if not np.allclose(resolved_assigned.to_numpy(dtype=float), season_games, atol=1e-8):
+        raise AssertionError("Resolved QB rooms must allocate exactly the team game budget")
     return out
 
 
-def normalize_team_passing_volume(df, season_games=SEASON_GAMES):
-    """Anchor QB passing rates to team-level attempts and yards forecasts.
+# Conservative ceiling just below the observed all-time full-season pace
+# (~42.4 attempts/game). Named players cannot be scaled beyond historical NFL
+# support merely because a room has unassigned team volume.
+QB_ATTEMPTS_PER_VOLUME_GAME_MAX = 42.0
 
-    Independent player-rate models allocate the team total poorly when an
-    entire room consists of backups or unproven players. Team Ridge models
-    forecast the physical totals; player projections determine only how that
-    total is divided. Attempts-related stats share one scale, passing yards a
-    second. Interval endpoints move with their point estimate.
+
+def _capped_proportional_allocation(raw, capacity, target):
+    """Allocate ``target`` proportional to raw weights without exceeding caps."""
+    raw = np.nan_to_num(np.asarray(raw, dtype=float), nan=0.0, posinf=0.0, neginf=0.0)
+    capacity = np.nan_to_num(np.asarray(capacity, dtype=float), nan=0.0, posinf=0.0, neginf=0.0)
+    raw, capacity = np.clip(raw, 0, None), np.clip(capacity, 0, None)
+    target = min(max(float(target), 0.0), float(capacity.sum()))
+    alloc = np.zeros(len(raw), dtype=float)
+    active = capacity > 0
+    remaining = target
+    while remaining > 1e-10 and active.any():
+        room = capacity - alloc
+        weights = np.where(active, raw, 0.0)
+        if weights.sum() <= 0:
+            weights = np.where(active, room, 0.0)
+        proposal = remaining * weights / weights.sum()
+        hit = active & (proposal >= room - 1e-10)
+        if not hit.any():
+            alloc += proposal
+            remaining = 0.0
+            break
+        alloc[hit] += room[hit]
+        remaining -= float(room[hit].sum())
+        active[hit] = False
+    return np.minimum(alloc, capacity)
+
+
+def _row_exposure(rows):
+    volume = pd.to_numeric(
+        rows["projected_volume_games"] if "projected_volume_games" in rows else
+        pd.Series(np.nan, index=rows.index), errors="coerce")
+    games = pd.to_numeric(
+        rows["projected_games"] if "projected_games" in rows else
+        pd.Series(np.nan, index=rows.index), errors="coerce")
+    return volume.fillna(games).clip(lower=0.0)
+
+
+def _map_team_field(out, values, column):
+    out[column] = out["team"].map(values)
+
+
+def normalize_team_passing_volume(df, season_games=SEASON_GAMES):
+    """Allocate team passing anchors while preserving named-player support.
+
+    Named QB attempt rates are water-filled only up to the historical-support
+    ceiling.  Any remainder belongs to an explicit replacement-QB bucket.
+    Receiver shortages likewise remain an unmodeled residual instead of being
+    spread back across named players and undoing depth/role discounts.
     """
     out = df.copy()
     out["team_passing_volume_scale"] = np.nan
     out["team_pass_catch_ratio_pre_normalization"] = np.nan
     out["team_pass_catch_pre_normalization_flag"] = np.nan
-    qb = out[out["position"].eq("QB")]
-    if qb.empty:
-        return out
+    qb_attempts = out[out["position"].eq("QB") & out["stat"].eq("attempts")].copy()
+    if qb_attempts.empty:
+        raise ValueError("Cannot allocate team passing anchors without named QB attempt rows")
 
-    exposure = pd.to_numeric(qb["projected_volume_games"], errors="coerce")
-    point = pd.to_numeric(qb["pred_pg"], errors="coerce") * exposure
-    attempt_rows = qb["stat"].eq("attempts")
-    yard_rows = qb["stat"].eq("passing_yards")
-    current_attempts = point[attempt_rows].groupby(qb.loc[attempt_rows, "team"]).sum(min_count=1)
-    current_yards = point[yard_rows].groupby(qb.loc[yard_rows, "team"]).sum(min_count=1)
+    qb_attempts["exposure"] = _row_exposure(qb_attempts)
+    qb_attempts["raw_season"] = pd.to_numeric(qb_attempts["pred_pg"], errors="coerce").clip(lower=0) * qb_attempts["exposure"]
+    qb_attempts["capacity"] = qb_attempts["exposure"] * QB_ATTEMPTS_PER_VOLUME_GAME_MAX
+    qb_attempts["allocated"] = 0.0
     attempt_anchor = (
-        qb[attempt_rows].drop_duplicates("team").set_index("team")["team_pass_attempts_pg_pred"]
+        qb_attempts.drop_duplicates("team").set_index("team")["team_pass_attempts_pg_pred"]
         * season_games
     )
-    yard_anchor = (
-        qb[yard_rows].drop_duplicates("team").set_index("team")["team_passing_yards_pg_pred"]
-        * season_games
-    )
-    attempt_scale = (attempt_anchor / current_attempts.replace(0, np.nan)).replace([np.inf, -np.inf], np.nan)
-    yard_scale = (yard_anchor / current_yards.replace(0, np.nan)).replace([np.inf, -np.inf], np.nan)
+    for team, idx in qb_attempts.groupby("team").groups.items():
+        rows = qb_attempts.loc[idx]
+        qb_attempts.loc[idx, "allocated"] = _capped_proportional_allocation(
+            rows["raw_season"], rows["capacity"], attempt_anchor.at[team])
 
+    key_cols = ["player_id", "team"]
+    attempt_alloc = qb_attempts.set_index(key_cols)["allocated"]
+    raw_attempt = qb_attempts.set_index(key_cols)["raw_season"]
+    attempt_factor = (attempt_alloc / raw_attempt.replace(0, np.nan)).replace([np.inf, -np.inf], np.nan)
     attempt_stats = {"attempts", "completions", "passing_tds", "interceptions"}
     for idx in out.index[out["position"].eq("QB") & out["stat"].isin(attempt_stats)]:
-        scale = attempt_scale.get(out.at[idx, "team"], np.nan)
-        if pd.notna(scale):
-            out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= scale
-            out.at[idx, "team_passing_volume_scale"] = scale
-    for idx in out.index[out["position"].eq("QB") & out["stat"].eq("passing_yards")]:
-        scale = yard_scale.get(out.at[idx, "team"], np.nan)
-        if pd.notna(scale):
-            out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= scale
-            out.at[idx, "team_passing_volume_scale"] = scale
+        key = (out.at[idx, "player_id"], out.at[idx, "team"])
+        factor = attempt_factor.get(key, np.nan)
+        exposure = float(pd.to_numeric(pd.Series([out.at[idx, "projected_volume_games"]]), errors="coerce").iloc[0])
+        if out.at[idx, "stat"] == "attempts" and exposure > 0:
+            old = float(out.at[idx, "pred_pg"])
+            new = float(attempt_alloc.get(key, 0.0)) / exposure
+            endpoint_factor = new / old if old > 0 else 0.0
+            out.loc[idx, ["pred_pg_low", "pred_pg_high"]] *= endpoint_factor
+            out.at[idx, "pred_pg"] = new
+            out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] = out.loc[
+                idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]].clip(upper=QB_ATTEMPTS_PER_VOLUME_GAME_MAX)
+            out.at[idx, "team_passing_volume_scale"] = endpoint_factor
+        elif pd.notna(factor):
+            out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= factor
+            out.at[idx, "team_passing_volume_scale"] = factor
 
-    recv_mask = out["position"].isin(["RB", "WR", "TE"]) & out["stat"].eq("receiving_yards")
-    recv = out[recv_mask]
-    if recv.empty:
-        return out
-    recv_exposure = pd.to_numeric(recv["projected_volume_games"], errors="coerce").fillna(
-        pd.to_numeric(recv["projected_games"], errors="coerce"))
-    current_receiving = (
-        pd.to_numeric(recv["pred_pg"], errors="coerce") * recv_exposure
-    ).groupby(recv["team"]).sum(min_count=1)
-    recv_anchor = (
-        recv.drop_duplicates("team").set_index("team")["team_passing_yards_pg_pred"]
+    named_attempts = qb_attempts.groupby("team")["allocated"].sum(min_count=1)
+    unmodeled_attempts = (attempt_anchor - named_attempts).clip(lower=0.0)
+    if "team_qb_roster_resolved" in qb_attempts.columns:
+        room_resolved = qb_attempts.drop_duplicates("team").set_index("team")[
+            "team_qb_roster_resolved"
+        ].fillna(False).astype(bool)
+    else:
+        room_resolved = qb_attempts.assign(
+            _resolved=qb_attempts["player_id"].notna()
+            & qb_attempts["player_id"].astype(str).str.strip().ne("")
+        ).groupby("team")["_resolved"].any()
+    impossible_resolved = unmodeled_attempts[
+        room_resolved.reindex(unmodeled_attempts.index).fillna(False)
+        & unmodeled_attempts.gt(1e-8)
+    ]
+    if not impossible_resolved.empty:
+        detail = ", ".join(
+            f"{team}={value:.2f}" for team, value in impossible_resolved.items()
+        )
+        raise ValueError(
+            "Resolved QB rooms could not meet the team attempt anchor within "
+            f"the {QB_ATTEMPTS_PER_VOLUME_GAME_MAX:.1f} attempts/game support cap: {detail}"
+        )
+    _map_team_field(out, unmodeled_attempts, "team_unmodeled_qb_attempts_season")
+    _map_team_field(
+        out, unmodeled_attempts.le(1e-8), "team_qb_attempt_anchor_fully_allocated"
+    )
+
+    qb_yards = out[out["position"].eq("QB") & out["stat"].eq("passing_yards")].copy()
+    qb_yards["exposure"] = _row_exposure(qb_yards)
+    current_yards = (
+        pd.to_numeric(qb_yards["pred_pg"], errors="coerce").clip(lower=0) * qb_yards["exposure"]
+    ).groupby(qb_yards["team"]).sum(min_count=1)
+    yard_anchor = (
+        qb_yards.drop_duplicates("team").set_index("team")["team_passing_yards_pg_pred"]
         * season_games
     )
-    recv_scale = (recv_anchor / current_receiving.replace(0, np.nan)).replace(
-        [np.inf, -np.inf], np.nan)
+    named_attempt_fraction = (named_attempts / attempt_anchor.replace(0, np.nan)).clip(0, 1).fillna(0)
+    named_yard_target = yard_anchor * named_attempt_fraction
+    yard_scale = (named_yard_target / current_yards.replace(0, np.nan)).replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    for idx in out.index[out["position"].eq("QB") & out["stat"].eq("passing_yards")]:
+        factor = yard_scale.get(out.at[idx, "team"], 0.0)
+        out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= factor
+        out.at[idx, "team_passing_volume_scale"] = factor
+    named_yards = named_yard_target.where(current_yards > 0, 0.0)
+    unmodeled_qb_yards = (yard_anchor - named_yards).clip(lower=0.0)
+    _map_team_field(out, unmodeled_qb_yards, "team_unmodeled_qb_passing_yards_season")
+
+    recv_mask = out["position"].isin(["RB", "WR", "TE"]) & out["stat"].eq("receiving_yards")
+    recv = out[recv_mask].copy()
+    if recv.empty:
+        raise ValueError("Cannot reconcile passing/receiving yards without receiver rows")
+    recv["exposure"] = _row_exposure(recv)
+    current_receiving = (
+        pd.to_numeric(recv["pred_pg"], errors="coerce").clip(lower=0) * recv["exposure"]
+    ).groupby(recv["team"]).sum(min_count=1)
+    recv_anchor = recv.drop_duplicates("team").set_index("team")["team_passing_yards_pg_pred"] * season_games
+    recv_scale = (recv_anchor / current_receiving.replace(0, np.nan)).clip(upper=1.0).fillna(0.0)
     pre_ratio = current_receiving / recv_anchor.where(recv_anchor > 0)
     low, high = PASS_CATCH_COHERENCE_BAND
-    pre_flag = ~pre_ratio.between(low, high)
-    pre_flag = pre_flag.astype(object)
+    pre_flag = (~pre_ratio.between(low, high)).astype(object)
     pre_flag.loc[pre_ratio.isna()] = np.nan
-    out["team_pass_catch_ratio_pre_normalization"] = out["team"].map(pre_ratio)
-    out["team_pass_catch_pre_normalization_flag"] = out["team"].map(pre_flag)
+    _map_team_field(out, pre_ratio, "team_pass_catch_ratio_pre_normalization")
+    _map_team_field(out, pre_flag, "team_pass_catch_pre_normalization_flag")
     for idx in out.index[recv_mask]:
-        scale = recv_scale.get(out.at[idx, "team"], np.nan)
-        if pd.notna(scale):
-            out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= scale
-            out.at[idx, "team_passing_volume_scale"] = scale
+        factor = recv_scale.get(out.at[idx, "team"], 0.0)
+        out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= factor
+        out.at[idx, "team_passing_volume_scale"] = factor
+    named_receiving = np.minimum(current_receiving, recv_anchor)
+    unmodeled_receiving = (recv_anchor - named_receiving).clip(lower=0.0)
+    _map_team_field(out, unmodeled_receiving, "team_unmodeled_receiving_yards_season")
+    return out
+
+
+RUSH_ATTEMPTS_PER_APPEARANCE_MAX = {"QB": 12.0, "RB": 25.0, "WR": 5.0, "TE": 3.0}
+RUSH_YARDS_PER_CARRY_MAX = {"QB": 10.0, "RB": 7.0, "WR": 15.0, "TE": 15.0}
+
+
+def normalize_team_rushing_volume(df, season_games=SEASON_GAMES):
+    """Water-fill team rushing anchors within position-specific support.
+
+    Post-role-gating raw projections are the allocation weights, preserving
+    the modeled pecking order. Named players may absorb an underfilled team
+    anchor only within projected appearances and historical rate support;
+    capacity shortfall remains an explicit residual.
+    """
+    out = df.copy()
+    out["team_rushing_volume_scale"] = np.nan
+    carry_mask = out["stat"].eq("carries") & out["position"].isin(RUSH_ATTEMPTS_PER_APPEARANCE_MAX)
+    carries = out[carry_mask].copy()
+    if carries.empty:
+        raise ValueError("Cannot reconcile team carries: no modeled carry rows")
+    carries["exposure"] = _row_exposure(carries)
+    carries["raw_season"] = pd.to_numeric(carries["pred_pg"], errors="coerce").clip(lower=0) * carries["exposure"]
+    carries["capacity"] = carries["exposure"] * carries["position"].map(RUSH_ATTEMPTS_PER_APPEARANCE_MAX)
+    carries["allocated"] = 0.0
+    carry_anchor = carries.drop_duplicates("team").set_index("team")["team_carries_pg_pred"] * season_games
+    for team, idx in carries.groupby("team").groups.items():
+        rows = carries.loc[idx]
+        carries.loc[idx, "allocated"] = _capped_proportional_allocation(
+            rows["raw_season"], rows["capacity"], carry_anchor.at[team])
+    keys = ["player_id", "team"]
+    carry_alloc = carries.set_index(keys)["allocated"]
+    raw_carries = carries.set_index(keys)["raw_season"]
+    carry_factor = (carry_alloc / raw_carries.replace(0, np.nan)).replace([np.inf, -np.inf], np.nan)
+    for idx in out.index[carry_mask]:
+        key = (out.at[idx, "player_id"], out.at[idx, "team"])
+        exposure = float(out.at[idx, "projected_volume_games"])
+        old = float(out.at[idx, "pred_pg"])
+        new = float(carry_alloc.get(key, 0.0)) / exposure if exposure > 0 else 0.0
+        factor = new / old if old > 0 else 0.0
+        out.loc[idx, ["pred_pg_low", "pred_pg_high"]] *= factor
+        out.at[idx, "pred_pg"] = new
+        ceiling = RUSH_ATTEMPTS_PER_APPEARANCE_MAX[out.at[idx, "position"]]
+        out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] = out.loc[
+            idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]].clip(upper=ceiling)
+        out.at[idx, "team_rushing_volume_scale"] = factor
+    named_carries = carries.groupby("team")["allocated"].sum(min_count=1)
+    _map_team_field(out, (carry_anchor - named_carries).clip(lower=0.0),
+                    "team_unmodeled_carries_season")
+
+    yard_mask = out["stat"].eq("rushing_yards") & out["position"].isin(RUSH_YARDS_PER_CARRY_MAX)
+    yards = out[yard_mask].copy()
+    yards["exposure"] = _row_exposure(yards)
+    yards["raw_season"] = pd.to_numeric(yards["pred_pg"], errors="coerce").clip(lower=0) * yards["exposure"]
+    yard_key = pd.MultiIndex.from_frame(yards[keys])
+    yards["allocated_carries"] = carry_alloc.reindex(yard_key).to_numpy()
+    yards["capacity"] = yards["allocated_carries"] * yards["position"].map(RUSH_YARDS_PER_CARRY_MAX)
+    yards["allocated"] = 0.0
+    yard_anchor = yards.drop_duplicates("team").set_index("team")["team_rushing_yards_pg_pred"] * season_games
+    for team, idx in yards.groupby("team").groups.items():
+        rows = yards.loc[idx]
+        yards.loc[idx, "allocated"] = _capped_proportional_allocation(
+            rows["raw_season"], rows["capacity"], yard_anchor.at[team])
+    yard_alloc = yards.set_index(keys)["allocated"]
+    raw_yards = yards.set_index(keys)["raw_season"]
+    yard_factor = (yard_alloc / raw_yards.replace(0, np.nan)).replace([np.inf, -np.inf], np.nan)
+    for idx in out.index[yard_mask]:
+        key = (out.at[idx, "player_id"], out.at[idx, "team"])
+        factor = yard_factor.get(key, 0.0)
+        out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= factor
+        out.at[idx, "team_rushing_volume_scale"] = factor
+    named_yards = yards.groupby("team")["allocated"].sum(min_count=1)
+    _map_team_field(out, (yard_anchor - named_yards).clip(lower=0.0),
+                    "team_unmodeled_rushing_yards_season")
+
+    td_mask = out["stat"].eq("rushing_tds") & out["position"].isin(RUSH_ATTEMPTS_PER_APPEARANCE_MAX)
+    for idx in out.index[td_mask]:
+        key = (out.at[idx, "player_id"], out.at[idx, "team"])
+        factor = carry_factor.get(key, 0.0)
+        out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= factor
+        out.at[idx, "team_rushing_volume_scale"] = factor
+    return out
+
+
+def reconcile_team_pass_receive_counts(df, season_games=SEASON_GAMES):
+    """Make completion/reception and pass-TD/rec-TD identities auditable.
+
+    Missing production remains in explicit QB/receiver residual buckets.  If
+    named receivers exceed the passing-side total, only then are their point
+    and interval rates scaled down together.
+    """
+    out = df.copy()
+    out["team_pass_receive_count_scale"] = np.nan
+
+    def season_sum(position_mask, stat):
+        rows = out[position_mask & out["stat"].eq(stat)].copy()
+        exposure = _row_exposure(rows)
+        return (
+            pd.to_numeric(rows["pred_pg"], errors="coerce").clip(lower=0) * exposure
+        ).groupby(rows["team"]).sum(min_count=1)
+
+    qb_mask = out["position"].eq("QB")
+    recv_position = out["position"].isin(["RB", "WR", "TE"])
+    named_attempts = season_sum(qb_mask, "attempts")
+    named_completions = season_sum(qb_mask, "completions")
+    named_pass_tds = season_sum(qb_mask, "passing_tds")
+    unmodeled_attempts = out.drop_duplicates("team").set_index("team")[
+        "team_unmodeled_qb_attempts_season"].reindex(named_attempts.index).fillna(0.0)
+    completion_rate = (named_completions / named_attempts.replace(0, np.nan)).clip(0, 1).fillna(0.0)
+    pass_td_rate = (named_pass_tds / named_attempts.replace(0, np.nan)).clip(lower=0).fillna(0.0)
+    unmodeled_completions = unmodeled_attempts * completion_rate
+    unmodeled_pass_tds = unmodeled_attempts * pass_td_rate
+    total_completions = named_completions + unmodeled_completions
+    total_pass_tds = named_pass_tds + unmodeled_pass_tds
+    _map_team_field(out, unmodeled_completions, "team_unmodeled_qb_completions_season")
+    _map_team_field(out, unmodeled_pass_tds, "team_unmodeled_qb_passing_tds_season")
+
+    for stat, total, residual_col in (
+        ("receptions", total_completions, "team_unmodeled_receptions_season"),
+        ("receiving_tds", total_pass_tds, "team_unmodeled_receiving_tds_season"),
+    ):
+        named = season_sum(recv_position, stat)
+        scale = (total / named.replace(0, np.nan)).clip(upper=1.0).fillna(0.0)
+        mask = recv_position & out["stat"].eq(stat)
+        for idx in out.index[mask]:
+            factor = scale.get(out.at[idx, "team"], 0.0)
+            out.loc[idx, ["pred_pg", "pred_pg_low", "pred_pg_high"]] *= factor
+            out.at[idx, "team_pass_receive_count_scale"] = factor
+        named_after = np.minimum(named, total)
+        _map_team_field(out, (total - named_after).clip(lower=0.0), residual_col)
     return out
 
 
@@ -1626,10 +1986,10 @@ def add_team_pass_catch_coherence_flag(df, depth_chart=None):
     ``team_pass_catch_ratio_pre_normalization`` and
     ``team_pass_catch_pre_normalization_flag``.
 
-    Receivers are weighted by projected offensive appearances, matching the
-    appearance-week definition of receiving_yards_share. QBs use reconciled
-    ``projected_volume_games`` so their mutually exclusive exposures consume
-    exactly the team's 17-game budget.
+    Receivers are weighted by projected offensive appearances and QBs by
+    reconciled volume-games. Explicit unmodeled QB/receiver residuals are then
+    included on their respective side; named players are never inflated merely
+    to make this assertion pass.
 
     A missing exposure value falls back to weight 1.0 for backward
     compatibility with pre-availability model artifacts. A missing or zero
@@ -1652,6 +2012,20 @@ def add_team_pass_catch_coherence_flag(df, depth_chart=None):
     recv_exposure = "projected_games"
     anchor = _expected_per_team_game(qb_rows, "qb_anchor_pg", qb_exposure)
     recv_sum = _expected_per_team_game(recv, "team_receiving_sum_pg", recv_exposure)
+
+    per_team = df.drop_duplicates("team").set_index("team")
+    if "team_unmodeled_qb_passing_yards_season" in per_team:
+        anchor = anchor.add(
+            pd.to_numeric(per_team["team_unmodeled_qb_passing_yards_season"], errors="coerce")
+            / SEASON_GAMES,
+            fill_value=0,
+        ).rename("qb_anchor_pg")
+    if "team_unmodeled_receiving_yards_season" in per_team:
+        recv_sum = recv_sum.add(
+            pd.to_numeric(per_team["team_unmodeled_receiving_yards_season"], errors="coerce")
+            / SEASON_GAMES,
+            fill_value=0,
+        ).rename("team_receiving_sum_pg")
 
     team_ratio = pd.concat([anchor, recv_sum], axis=1)
     valid_qb = team_ratio["qb_anchor_pg"].where(team_ratio["qb_anchor_pg"] > 0)
@@ -1691,6 +2065,31 @@ def _apply_rookie_depth_rate_gating(rookie_long):
     out["role_discount_factor"] = 1.0
     out["role_discount_applied"] = False
     out["low_confidence"] = True
+    return out
+
+
+TEAM_ANCHOR_OUTPUT_COLS = [
+    "team_passing_yards_pg_pred", "team_pass_attempts_pg_pred",
+    "team_carries_pg_pred", "team_rushing_yards_pg_pred",
+    "team_anchor_source_season", "team_anchor_lag_team",
+    "team_anchor_provenance",
+]
+
+
+def propagate_team_anchors(df):
+    """Map the canonical veteran-built team frame onto rookie rows as well."""
+    out = df.copy()
+    for col in TEAM_ANCHOR_OUTPUT_COLS:
+        if col not in out.columns:
+            raise KeyError(f"Missing canonical team anchor column {col}")
+        per_team = out.dropna(subset=[col]).drop_duplicates("team").set_index("team")[col]
+        out[col] = out[col].fillna(out["team"].map(per_team))
+    teams = out["team"].dropna().unique()
+    if len(teams) != 32:
+        raise ValueError(f"Expected projection rows for 32 anchored teams; found {len(teams)}")
+    missing = out.loc[out[TEAM_ANCHOR_OUTPUT_COLS].isna().any(axis=1), "team"].dropna().unique()
+    if len(missing):
+        raise ValueError(f"Rows missing canonical team anchor provenance: {sorted(missing)}")
     return out
 
 
@@ -1795,9 +2194,12 @@ def project_season(conn, target_season):
         vet, resid, rookie_receiving=rookie_receiving, corrections=load_corrections())
 
     combined = pd.concat([vet, rookie_long], ignore_index=True, sort=False)
+    combined = propagate_team_anchors(combined)
     combined = reconcile_qb_projected_volume_games(combined)
     combined = normalize_team_passing_volume(combined)
+    combined = normalize_team_rushing_volume(combined)
     combined = reconcile_stat_constraints(combined)
+    combined = reconcile_team_pass_receive_counts(combined)
     combined = add_team_pass_catch_coherence_flag(combined, depth_chart)
     combined = add_projected_season_totals(combined)
     return combined
@@ -1820,12 +2222,24 @@ OUTPUT_COLUMNS = [
     "team_pass_catch_ratio_pre_normalization", "team_pass_catch_pre_normalization_flag",
     "team_pass_catch_ratio", "team_pass_catch_coherence_flag",  # post-normalization accounting invariant
     "receiving_share_capped",  # joint/multi-output Phase A - see _compose_reframed_receiving_predictions
-    "receiving_share_normalized",  # two-sided accounting normalization
+    "receiving_share_normalized",  # model-stage downward cap; residual allocation is separate
     "elite_correction_pg",  # Phase 7 additive elite-shrinkage correction, in yards/game - see corrections.py
-    "projected_games",  # independent offensive-appearance estimate; see projected_volume_games for totals
-    "projected_volume_games",  # reconciled season-total exposure; QB team sums exactly 17
+    "projected_games",  # independent offensive-appearance estimate; retained for compatibility
+    "projected_games_raw",  # immutable unconstrained availability forecast
+    "projected_volume_games",  # mutually-exclusive named season-total exposure
+    "team_qb_raw_appearance_games", "team_qb_volume_allocation_direction",
+    "team_qb_roster_resolved", "qb_volume_games_scale", "qb_volume_allocation_adjusted",
     "team_pass_attempts_pg_pred", "team_passing_yards_pg_pred",  # physical team anchors
+    "team_carries_pg_pred", "team_rushing_yards_pg_pred",
+    "team_anchor_source_season", "team_anchor_lag_team", "team_anchor_provenance",
     "team_passing_volume_scale",  # player-room allocation scale for QB passing stats
+    "team_qb_attempt_anchor_fully_allocated",
+    "team_rushing_volume_scale", "team_pass_receive_count_scale",
+    "team_unmodeled_qb_volume_games", "team_unmodeled_qb_attempts_season",
+    "team_unmodeled_qb_completions_season", "team_unmodeled_qb_passing_yards_season",
+    "team_unmodeled_qb_passing_tds_season", "team_unmodeled_receiving_yards_season",
+    "team_unmodeled_receptions_season", "team_unmodeled_receiving_tds_season",
+    "team_unmodeled_carries_season", "team_unmodeled_rushing_yards_season",
     "coherence_receiver_exposure_basis",  # appearance-based receiver exposure
     "target_depth_rank", "rookie_depth_band",  # harmonized rookie availability input + interpretable band
     "rookie_availability_cell_n", "rookie_availability_fallback_used",  # min-cell audit

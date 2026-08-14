@@ -45,6 +45,37 @@ def _opportunity_mask(df):
     )
 
 
+def _canonicalize_player_weeks(df):
+    """Collapse source aliases to one row per player-season-week.
+
+    The 2025 PBP fallback can emit more than one display-name alias for the
+    same GSIS id in a week.  Stats belong to the canonical id and therefore
+    add; appearances do not.  Team/position conflicts are resolved
+    deterministically from the row carrying the most box-score volume.
+    """
+    if df.empty:
+        return df.copy()
+    w = df.copy()
+    w[STAT_COLS] = w[STAT_COLS].fillna(0.0)
+    w["_row_volume"] = w[STAT_COLS].abs().sum(axis=1)
+    identity = (
+        w.sort_values(["player_id", "season", "week", "_row_volume"], ascending=[True, True, True, False])
+        .drop_duplicates(["player_id", "season", "week"])
+        [["player_id", "season", "week", "season_type", "team", "position"]]
+    )
+    totals = w.groupby(["player_id", "season", "week"], as_index=False)[STAT_COLS].sum()
+    appeared = None
+    if "_appeared" in w.columns:
+        appeared = (
+            w.groupby(["player_id", "season", "week"], as_index=False)["_appeared"]
+            .max()
+        )
+    out = identity.merge(totals, on=["player_id", "season", "week"], how="inner")
+    if appeared is not None:
+        out = out.merge(appeared, on=["player_id", "season", "week"], how="left")
+    return out
+
+
 def _validate_snap_appearance_schema(conn):
     """Fail early, via sqlite itself, if the optional snap schema is old.
 
@@ -142,7 +173,6 @@ def load_weekly_usage(conn):
         w["recent_team"] = w["recent_team"].fillna(w["team"])
         w = w.drop(columns=["team"])
 
-    w = w[w["position"].isin(POSITIONS)].reset_index(drop=True)
     w = w.rename(columns={"recent_team": "team"})
 
     # `weekly` is a box-score table, not an appearance table. In particular,
@@ -162,11 +192,18 @@ def load_weekly_usage(conn):
         # missing values for fillna to replace.
         w = w.copy()
         w["_appeared"] = _opportunity_mask(w).astype(bool)
-        return w
+        augmented = w
+    else:
+        # No exception handling here by design. If SQL, crosswalking, merging,
+        # or augmentation is broken despite a compatible snap schema, fail loudly.
+        augmented = _augment_snap_appearances(w, conn)
 
-    # No exception handling here by design. If SQL, crosswalking, merging, or
-    # augmentation is broken despite a compatible snap schema, fail loudly.
-    return _augment_snap_appearances(w, conn)
+    # Filter only after snap augmentation.  This lets augmentation inherit a
+    # player's actual season position before the career/latest master position
+    # is considered, preventing historical FB/TE/QB rows from being re-added
+    # as zero-stat rows under a different modern position.
+    augmented = augmented[augmented["position"].isin(POSITIONS)].reset_index(drop=True)
+    return _canonicalize_player_weeks(augmented)
 
 
 def season_aggregate(weekly_usage):
@@ -182,8 +219,14 @@ def season_aggregate(weekly_usage):
 
     totals = df.groupby(["player_id", "season", "position"])[STAT_COLS].sum().reset_index()
     appeared_col = "_appeared" if "_appeared" in df.columns else "_active"
-    games = df[df[appeared_col]].groupby(["player_id", "season"]).size().rename("games_played").reset_index()
-    opp_games = df[df["_active"]].groupby(["player_id", "season"]).size().rename("opportunity_games").reset_index()
+    games = (
+        df[df[appeared_col]][["player_id", "season", "week"]].drop_duplicates()
+        .groupby(["player_id", "season"]).size().rename("games_played").reset_index()
+    )
+    opp_games = (
+        df[df["_active"]][["player_id", "season", "week"]].drop_duplicates()
+        .groupby(["player_id", "season"]).size().rename("opportunity_games").reset_index()
+    )
     totals = totals.merge(games, on=["player_id", "season"], how="left").merge(
         opp_games, on=["player_id", "season"], how="left")
     totals[["games_played", "opportunity_games"]] = totals[["games_played", "opportunity_games"]].fillna(0).astype(int)
@@ -191,7 +234,9 @@ def season_aggregate(weekly_usage):
     # season team: the team with the most offensive-appearance weeks; ties broken by the
     # most recent week played for that team (approximates "who they
     # finished the season with" for in-season trades).
-    active = df[df[appeared_col]].copy()
+    active = df[df[appeared_col]].drop_duplicates(
+        ["player_id", "season", "week", "team"]
+    ).copy()
     team_counts = (
         active.groupby(["player_id", "season", "team"])
         .agg(n_weeks=("week", "size"), last_week=("week", "max"))
@@ -387,8 +432,10 @@ def player_season_receiving_yards_share(conn, seasons=SEASONS):
     appeared_col = "_appeared" if "_appeared" in wu.columns else "_active"
     if appeared_col == "_active":
         wu["_active"] = _opportunity_mask(wu)
-    active = wu[wu[appeared_col]][["player_id", "season", "week", "team", "receiving_yards"]].drop_duplicates(
-        subset=["player_id", "season", "week", "team"]
+    active = (
+        wu[wu[appeared_col]][["player_id", "season", "week", "team", "receiving_yards"]]
+        .groupby(["player_id", "season", "week", "team"], as_index=False, dropna=False)["receiving_yards"]
+        .sum()
     )
 
     team_wk_yds = team_week_yardage_totals(conn, seasons)
@@ -403,7 +450,10 @@ def player_season_receiving_yards_share(conn, seasons=SEASONS):
     # vanishingly rare, but possible for e.g. a single garbage-time week) ->
     # NaN, left as NaN rather than filled: "no real team passing volume
     # existed to have a share of" is not the same as "confirmed 0 share."
-    out["receiving_yards_share"] = out["player_receiving_yards"] / out["team_passing_yards_active"]
+    out["receiving_yards_share"] = (
+        out["player_receiving_yards"]
+        / out["team_passing_yards_active"].where(out["team_passing_yards_active"].ne(0))
+    )
     return out[["player_id", "season", "receiving_yards_share"]]
 
 
@@ -589,6 +639,45 @@ def build_player_season_injury_durability(conn, seasons=SEASONS):
     return out[["season", "player_id", "injury_durability_rate"]]
 
 
+def player_season_positions(conn, seasons=SEASONS):
+    """Resolve the position a player actually carried in each season.
+
+    `players.position` is a career/latest value and is wrong for historical
+    hybrids and conversions (notably Devin Funchess and Taysom Hill).  Weekly
+    box-score position is preferred, then that season's roster position, and
+    only then the master value.  One deterministic row is returned per
+    player-season so PBP numerator and denominator grouping use the same
+    positional definition.
+    """
+    season_sql = ",".join(map(str, seasons))
+    weekly = pd.read_sql(
+        f"select player_id, season, position from weekly "
+        f"where season in ({season_sql}) and player_id is not null", conn,
+    )
+    roster = pd.read_sql(
+        f"select player_id, season, position from seasonal_rosters "
+        f"where season in ({season_sql}) and player_id is not null", conn,
+    )
+    candidates = pd.concat(
+        [weekly.assign(_source=0), roster.assign(_source=1)],
+        ignore_index=True,
+    ).dropna(subset=["position"])
+    if candidates.empty:
+        return pd.DataFrame(columns=["season", "player_id", "position"])
+    counts = (
+        candidates.groupby(["season", "player_id", "position", "_source"], as_index=False)
+        .size()
+        .sort_values(
+            ["season", "player_id", "_source", "size", "position"],
+            ascending=[True, True, True, False, True],
+        )
+    )
+    resolved = counts.drop_duplicates(["season", "player_id"])[
+        ["season", "player_id", "position"]
+    ]
+    return resolved
+
+
 def team_season_rz_position_totals(conn, seasons=SEASONS):
     """Team-season red-zone carries/targets, totaled by the CARRIER/RECEIVER's
     own position group (not the whole offense), used as the denominator for a
@@ -623,12 +712,12 @@ def team_season_rz_position_totals(conn, seasons=SEASONS):
           and (pass_attempt = 1 or rush_attempt = 1)
     """
     pbp = pd.read_sql(q, conn)
-    players_pos = pd.read_sql("select gsis_id as player_id, position from players", conn)
+    players_pos = player_season_positions(conn, seasons)
 
     rushes = pbp[pbp["rush_attempt"] == 1][["season", "team", "rusher_player_id"]].rename(
         columns={"rusher_player_id": "player_id"}
     )
-    rushes = rushes.merge(players_pos, on="player_id", how="left")
+    rushes = rushes.merge(players_pos, on=["season", "player_id"], how="left")
     rz_carries_pos = (
         rushes.groupby(["season", "team", "position"]).size().rename("team_rz_carries_pos").reset_index()
     )
@@ -636,7 +725,7 @@ def team_season_rz_position_totals(conn, seasons=SEASONS):
     targets = pbp[pbp["pass_attempt"] == 1][["season", "team", "receiver_player_id"]].rename(
         columns={"receiver_player_id": "player_id"}
     )
-    targets = targets.merge(players_pos, on="player_id", how="left")
+    targets = targets.merge(players_pos, on=["season", "player_id"], how="left")
     rz_targets_pos = (
         targets.groupby(["season", "team", "position"]).size().rename("team_rz_targets_pos").reset_index()
     )
@@ -662,12 +751,12 @@ def team_week_rz_position_totals(conn, seasons=SEASONS):
           and (pass_attempt = 1 or rush_attempt = 1)
     """
     pbp = pd.read_sql(q, conn)
-    players_pos = pd.read_sql("select gsis_id as player_id, position from players", conn)
+    players_pos = player_season_positions(conn, seasons)
 
     rushes = pbp[pbp["rush_attempt"] == 1][["season", "week", "team", "rusher_player_id"]].rename(
         columns={"rusher_player_id": "player_id"}
     )
-    rushes = rushes.merge(players_pos, on="player_id", how="left")
+    rushes = rushes.merge(players_pos, on=["season", "player_id"], how="left")
     rz_carries_pos = (
         rushes.groupby(["season", "week", "team", "position"]).size().rename("team_rz_carries_pos").reset_index()
     )
@@ -675,7 +764,7 @@ def team_week_rz_position_totals(conn, seasons=SEASONS):
     targets = pbp[pbp["pass_attempt"] == 1][["season", "week", "team", "receiver_player_id"]].rename(
         columns={"receiver_player_id": "player_id"}
     )
-    targets = targets.merge(players_pos, on="player_id", how="left")
+    targets = targets.merge(players_pos, on=["season", "player_id"], how="left")
     rz_targets_pos = (
         targets.groupby(["season", "week", "team", "position"]).size().rename("team_rz_targets_pos").reset_index()
     )
