@@ -6,7 +6,6 @@ __pycache__/
 ingest_log*.txt
 phase0_results.json
 .claude/
-models/
 
 # Test/tooling caches. .pytest_cache was previously ignored only by the
 # self-generated .pytest_cache/.gitignore; make it explicit here.
