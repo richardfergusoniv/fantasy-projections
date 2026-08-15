@@ -6,10 +6,16 @@ import os
 
 import pandas as pd
 
+from src.projection.contracts import (
+    WR_FORMATION_ROLE_PRIORS,
+    WR_FORMATION_ROLES,
+)
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEPTH_DIR = os.path.join(REPO_ROOT, "src", "depth_chart")
 
-WR_USAGE_SLOTS = [0.1554, 0.0667, 0.0386]
+# Rank-order defaults when formation_role is missing (legacy path).
+WR_USAGE_SLOTS = [WR_FORMATION_ROLE_PRIORS[r] for r in WR_FORMATION_ROLES]
 
 
 def curated_path(season: int) -> str:
@@ -35,13 +41,30 @@ def _renumber_room(room: pd.DataFrame) -> pd.DataFrame:
 
 
 def _recompute_wr_priors(room: pd.DataFrame) -> pd.DataFrame:
-    """Assign slot-mean usage priors by current depth_rank order after a removal."""
+    """Refresh unreviewed WR slot defaults after a removal.
+
+    Prefer stable ``formation_role`` (LWR/RWR/SWR) over renumbered depth_rank
+    so removing an LWR does not promote the RWR into the LWR prior. Rank-order
+    WR_USAGE_SLOTS remain the fallback when formation_role is absent.
+
+    Slot means are display/research starting points only. Hierarchical L2/L3
+    owns pass allocation, so never mark rows usage_share_reviewed — a reviewed
+    flag would re-enable the curated blend and fight room ordering.
+    """
     room = room.sort_values("depth_rank").copy()
+    has_role = "formation_role" in room.columns
     for i, idx in enumerate(room.index):
-        if i < len(WR_USAGE_SLOTS):
-            room.at[idx, "usage_share_prior"] = WR_USAGE_SLOTS[i]
+        prior = None
+        if has_role:
+            role = room.at[idx, "formation_role"]
+            if isinstance(role, str) and role in WR_FORMATION_ROLE_PRIORS:
+                prior = WR_FORMATION_ROLE_PRIORS[role]
+        if prior is None and i < len(WR_USAGE_SLOTS):
+            prior = WR_USAGE_SLOTS[i]
+        if prior is not None:
+            room.at[idx, "usage_share_prior"] = prior
         if "usage_share_reviewed" in room.columns:
-            room.at[idx, "usage_share_reviewed"] = True
+            room.at[idx, "usage_share_reviewed"] = False
     return room
 
 
@@ -55,8 +78,8 @@ def build_live_depth_chart(
     """Return (live_chart, applied_events).
 
     Removes charted players with remove_from_chart on auto_safe/confirmed
-    events, renumbers depth_rank within (team, position), and recomputes WR
-    usage priors for rooms that lost a WR.
+    events, renumbers depth_rank within (team, position), and refreshes
+    unreviewed WR slot defaults for rooms that lost a WR.
     """
     empty_events = pd.DataFrame()
     live = curated.copy()

@@ -26,9 +26,8 @@ The blend weight is keyed off `promotion_type`:
     profile at all - the observed profile from actual play-by-play is used
     directly.
 
-These are judgment-call weights (70/30 vs 30/70), not derived from any fit
-to outcome data - flagged here and in PHASE3_REPORT.md for the project
-owner to revisit.
+These blend weights live in ``src.coordinator.inheritance.INHERITANCE_WEIGHTS``
+(Phase C3 LOSO-fit; see OC_INHERITANCE_FIT_2026-08-14.md).
 """
 import os
 import sys
@@ -38,17 +37,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 import pandas as pd
 
 from src.coordinator.data_prep import get_conn
+from src.coordinator.inheritance import INHERITANCE_WEIGHTS
 from src.coordinator.tendencies import compute_team_season_tendencies
 
 ASSIGNMENTS_CSV = os.path.join(os.path.dirname(os.path.abspath(__file__)), "oc_assignments.csv")
 
-INHERITANCE_WEIGHTS = {
-    "internal": {"team": 0.70, "oc": 0.30},
-    "outside_hire": {"team": 0.30, "oc": 0.70},
-}
-
 METRICS = [
     "neutral_sec_per_play", "pass_oe", "pass_oe_neutral", "play_action_rate",
+    "screen_pass_rate", "rpo_rate", "offense_backfield_mean",
     "personnel_11_rate", "personnel_12_rate", "personnel_21_rate", "personnel_other_rate",
 ]
 

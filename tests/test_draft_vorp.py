@@ -20,9 +20,9 @@ def test_replacement_ranks_for_common_league_sizes():
 
 
 def test_vorp_ranks_scarce_rb_above_high_ppg_qb():
-    """Elite RB season surplus beats a high-PPG mid QB on overall VORP."""
+    """Elite RB PPG surplus beats a high-PPG mid QB on overall VORP."""
     rows = []
-    # 13 QBs so replacement is QB13 (~250 season)
+    # 13 QBs so replacement is QB13
     for i in range(13):
         rows.append(
             {
@@ -30,25 +30,22 @@ def test_vorp_ranks_scarce_rb_above_high_ppg_qb():
                 "display_name": f"QB {i}",
                 "position": "QB",
                 "fantasy_pts": 22.0 - i * 0.3,
-                "fantasy_pts_season": 330.0 - i * 5.0,
             }
         )
     # Mid QB still high PPG but only modest VORP vs QB13
     rows[6]["player_id"] = "mid_qb"
     rows[6]["display_name"] = "Mid QB"
-    rows[6]["fantasy_pts"] = 21.0
-    rows[6]["fantasy_pts_season"] = 300.0
+    rows[6]["fantasy_pts"] = 20.5
 
     # Enough RBs for RB29 replacement; elite RB far above
     for i in range(30):
-        season = 280.0 - i * 4.0 if i > 0 else 320.0
+        ppg = 18.5 if i == 0 else max(8.0, 14.0 - i * 0.15)
         rows.append(
             {
                 "player_id": "elite_rb" if i == 0 else f"rb{i}",
                 "display_name": "Elite RB" if i == 0 else f"RB {i}",
                 "position": "RB",
-                "fantasy_pts": 18.0 if i == 0 else 14.0 - i * 0.1,
-                "fantasy_pts_season": season,
+                "fantasy_pts": ppg,
             }
         )
 
@@ -73,10 +70,25 @@ def test_add_vorp_floors_negative_at_zero():
         {
             "player_id": ["a", "b"],
             "position": ["TE", "TE"],
-            "fantasy_pts_season": [100.0, 40.0],
+            "fantasy_pts": [12.0, 4.0],
         }
     )
     out = add_vorp_columns(df, team_count=12)
-    # Only 2 TEs; replacement is TE14 but kth clamps to last -> 40
+    # Only 2 TEs; replacement is TE14 but kth clamps to last -> 4.0
     assert out.loc[out.player_id == "b", "vorp"].iloc[0] == 0.0
-    assert out.loc[out.player_id == "a", "vorp"].iloc[0] == 60.0
+    assert out.loc[out.player_id == "a", "vorp"].iloc[0] == 8.0
+
+
+def test_add_vorp_defaults_to_fantasy_pts_column():
+    df = pd.DataFrame(
+        {
+            "player_id": ["a", "b"],
+            "position": ["WR", "WR"],
+            "fantasy_pts": [15.0, 10.0],
+            "fantasy_pts_season": [250.0, 50.0],
+        }
+    )
+    out = add_vorp_columns(df, team_count=12)
+    # Baseline clamps to WR2 = 10 PPG, not season totals
+    assert out.loc[out.player_id == "a", "vorp"].iloc[0] == 5.0
+    assert out.loc[out.player_id == "a", "replacement_pts"].iloc[0] == 10.0

@@ -1,3 +1,38 @@
+> ## ⚠ CORRECTION — 2026-08-15: the harness described below has been rewritten
+>
+> **This report is a historical record of a run made on 2026-08-13. Its numbers
+> were correct when produced. Do not quote them as current.** For the current
+> state of the build, read [`STATE_OF_BUILD.md`](STATE_OF_BUILD.md).
+>
+> Two things changed after this report was written:
+>
+> 1. **The evaluation harness was unified with the shipped pipeline.**
+>    `src/projection/composition.py` now holds one 15-stage
+>    composition/allocation sequence that both `predict.project_season` and this
+>    harness run, differing only in artifact provenance. The section
+>    **"Production parity and limits" below is therefore out of date in both
+>    directions**: it *understates* what is now measured (the hierarchical pass
+>    and rush mix layers, L2 and L3, are now inside the scored path), and the
+>    *specific* limits it names have changed — target-year coordinator context
+>    is no longer omitted, while prediction intervals are now explicitly
+>    excluded. Stages with no input for a historical fold now no-op visibly and
+>    are recorded in `metadata.composition_stage_coverage`. See
+>    `STATE_OF_BUILD.md` §3.2 for the current list.
+>
+> 2. **The published tables have been superseded three times over** — by the
+>    draft-capital removal, the RB age-effect shrink, and the depth-chart
+>    allocation remediation. The metrics currently in
+>    `output/fantasy_evaluation_summary_2025.json` match no published table, and
+>    that JSON itself predates the harness rewrite. See `STATE_OF_BUILD.md` §3.3.
+>
+> The harness has **not been re-run since the rewrite**. Until it is, the
+> honest statement of the headline result is unchanged in direction — the model
+> beats carry-forward and availability-adjusted baselines on Spearman and
+> season-point MAE at all four positions, and does not beat them on tier hits or
+> TE VORP — but no table in this repo currently states its level correctly.
+>
+> The body below is left exactly as written. The historical record has value.
+
 # Leakage-safe 2024 -> 2025 fantasy evaluation
 
 ## Result

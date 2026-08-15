@@ -129,12 +129,13 @@ def tier_summary(df: pd.DataFrame) -> dict:
         pos_df = df[df["position"] == pos]
         summary["by_position"][pos] = {}
         for tier, group in pos_df.groupby("pos_tier"):
+            top = group.sort_values("vorp", ascending=False).iloc[0]
             summary["by_position"][pos][str(int(tier))] = {
                 "count": int(len(group)),
-                "top": group.iloc[0]["display_name"],
-                "pts_range": [
-                    round(float(group["fantasy_pts"].max()), 2),
-                    round(float(group["fantasy_pts"].min()), 2),
+                "top": top["display_name"],
+                "vorp_range": [
+                    round(float(group["vorp"].max()), 2),
+                    round(float(group["vorp"].min()), 2),
                 ],
             }
     flex_df = df[df["position"].isin(["RB", "WR", "TE"])]
@@ -142,12 +143,10 @@ def tier_summary(df: pd.DataFrame) -> dict:
     for tier, group in flex_df.groupby("flex_tier"):
         summary["flex"][str(int(tier))] = {
             "count": int(len(group)),
-            "top": group.sort_values("fantasy_pts", ascending=False).iloc[0][
-                "display_name"
-            ],
-            "pts_range": [
-                round(float(group["fantasy_pts"].max()), 2),
-                round(float(group["fantasy_pts"].min()), 2),
+            "top": group.sort_values("vorp", ascending=False).iloc[0]["display_name"],
+            "vorp_range": [
+                round(float(group["vorp"].max()), 2),
+                round(float(group["vorp"].min()), 2),
             ],
         }
     return summary
@@ -163,6 +162,7 @@ def export_draft_data(
     df = add_vorp_columns(df, team_count=team_count)
     df = add_tier_columns(
         df,
+        points_col="vorp",
         config=tier_config,
         overall_points_col="vorp",
         overall_gap=OVERALL_VORP_TIER_GAP,

@@ -131,7 +131,7 @@ BLEND_FEATURES = [
 BLEND_GAMES_T = 8
 
 
-def build_player_season_features(conn, seasons=SEASONS):
+def build_player_season_features(conn, seasons=SEASONS, ol_trailing_for_seasons=None):
     wu = load_weekly_usage(conn)
     wu = wu[wu["season"].isin(seasons)]
     # The team-attempt model must predict the same official QB-attempt
@@ -197,7 +197,11 @@ def build_player_season_features(conn, seasons=SEASONS):
     oc = pd.read_sql(f"select season, team, {', '.join(OC_METRICS)} from oc_tendency_profiles", conn)
     base = base.merge(oc, on=["season", "team"], how="left")
 
-    olq = team_season_ol_quality(conn, seasons)
+    # Live predict: optional trailing average on the source season only
+    # (ol_trailing_for_seasons). Historical rows stay exact-season.
+    olq = team_season_ol_quality(
+        conn, seasons, trailing_for_seasons=ol_trailing_for_seasons,
+    )
     base = base.merge(olq, on=["season", "team"], how="left")
 
     injury = build_player_season_injury_durability(conn, seasons)

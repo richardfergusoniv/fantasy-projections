@@ -89,6 +89,32 @@ class DataPrepAppearanceTests(unittest.TestCase):
         self.assertEqual(season["games_played"], 2)
         self.assertEqual(season["opportunity_games"], 1)
 
+    def test_cb_master_keeps_roster_wr_usage_weeks(self):
+        # Dual-position: players master says CB, weekly position null (2025
+        # pbp fallback), weekly_rosters says WR with targets.
+        weekly = pd.DataFrame([{
+            **{c: 0.0 for c in STAT_COLS},
+            "player_id": "hunter", "season": 2025, "week": 1,
+            "season_type": "REG", "recent_team": None, "position": None,
+            "targets": 8.0, "receptions": 6.0, "receiving_yards": 33.0,
+        }])
+        weekly.to_sql("weekly", self.conn, index=False)
+        pd.DataFrame([{"gsis_id": "hunter", "position": "CB", "pfr_id": "pfr-hunter"}]).to_sql(
+            "players", self.conn, index=False)
+        pd.DataFrame([{
+            "season": 2025, "week": 1, "player_id": "hunter",
+            "team": "JAX", "position": "WR",
+        }]).to_sql("weekly_rosters", self.conn, index=False)
+        pd.DataFrame([{
+            "season": 2025, "player_id": "hunter", "team": "JAX", "position": "WR",
+        }]).to_sql("seasonal_rosters", self.conn, index=False)
+        _put_snap_table(self.conn, [(2025, 1, "pfr-hunter", "JAX", 0.64, "REG")])
+
+        usage = load_weekly_usage(self.conn)
+        self.assertEqual(len(usage), 1)
+        self.assertEqual(usage.iloc[0]["position"], "WR")
+        self.assertEqual(float(usage.iloc[0]["targets"]), 8.0)
+
     def test_alias_rows_collapse_to_one_player_week_and_sum_stats(self):
         _put_base_tables(self.conn, [
             _weekly_row("p1", 1, targets=3),

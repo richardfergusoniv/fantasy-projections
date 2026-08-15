@@ -152,10 +152,10 @@ def test_export_overall_rank_uses_vorp_not_raw_ppg(tmp_path, monkeypatch):
                 "display_name": "Top RB" if i == 0 else f"RB {i}",
                 "position": "RB",
                 "team": "TST",
-                "fantasy_pts": 17.0 if i == 0 else 12.0,
+                "fantasy_pts": 18.0 if i == 0 else max(8.0, 13.0 - i * 0.12),
                 "fantasy_pts_low": 15.0,
                 "fantasy_pts_high": 19.0,
-                "fantasy_pts_season": 310.0 if i == 0 else 200.0 - i,
+                "fantasy_pts_season": 200.0 if i == 0 else 150.0 - i,
                 "projected_games": 15.0,
                 "source": "test",
                 "low_confidence": False,
@@ -171,9 +171,9 @@ def test_export_overall_rank_uses_vorp_not_raw_ppg(tmp_path, monkeypatch):
 
     payload = json.loads(open(export_draft_data(2099), encoding="utf-8").read())
     by_id = {p["player_id"]: p for p in payload["players"]}
-    assert by_id["rb0"]["overall_rank"] < by_id["qb0"]["overall_rank"] or by_id[
-        "rb0"
-    ]["vorp"] >= by_id["qb0"]["vorp"]
+    assert by_id["rb0"]["vorp"] >= by_id["qb0"]["vorp"]
     assert by_id["rb0"]["fantasy_pts"] < by_id["qb0"]["fantasy_pts"]
     assert by_id["rb0"]["overall_rank"] == 1
+    # PPG-scale VORP should be well below old season-scale values
+    assert by_id["rb0"]["vorp"] < 50
 

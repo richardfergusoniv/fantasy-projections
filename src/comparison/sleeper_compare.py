@@ -13,6 +13,27 @@ Sleeper endpoints used:
       diagnostics, but is not assumed to be a player-level games forecast:
       in the 2026 feed it is an almost-universal bookkeeping value of 18.
 
+WHAT THIS IS AND IS NOT (framing fixed 2026-08-15)
+--------------------------------------------------
+This module is a **read-only diagnostic**. It has earned its place: comparing
+against Sleeper genuinely surfaced the share-denominator bug, the
+trade-vacancy bug and the Diggs/Okonkwo/White triple-boost. Keep running it.
+
+It is **not** an objective, and no number it prints is an acceptance
+criterion. Sleeper projects a full slate -- `gp` is 18 for ~9,370 of the
+9,402 players it tracks -- and allocates ~96.8% of team carries to named
+players against our ~83.8%. This system projects EXPECTED VALUE, including
+the probability a player does not play. Two differently-framed forecasts
+disagreeing is the expected result, not a defect, so **agreement is not
+accuracy** and a shrinking divergence is not evidence of an improvement.
+
+Consequently the summary columns here are named `divergence`, never `mae`,
+`error` or `bias`. To decide whether a change helps, score it on
+`src/projection/fantasy_evaluation.py`, which is gated on held-out actual
+fantasy outcomes. To gate the board itself, use
+`src.comparison.spot_check`, which fails on incoherence and never on
+disagreement.
+
 Usage: `python -m src.comparison.sleeper_compare --season 2026`
 """
 import argparse
@@ -28,6 +49,14 @@ import requests
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUTPUT_DIR = os.path.join(REPO_ROOT, "output")
 SNAPSHOT_DIR = os.path.join(OUTPUT_DIR, "sleeper_snapshots")
+
+DIAGNOSTIC_BANNER = (
+    "=== DIAGNOSTIC ONLY: divergence from Sleeper is not an error ===\n"
+    "Sleeper projects full slates (gp=18 for ~9,370 of 9,402 tracked players);\n"
+    "this system projects expected value. Nothing below is an acceptance\n"
+    "criterion, a loss, or a gap to close. Use it to find a player whose\n"
+    "difference you cannot explain -- then explain it.\n"
+)
 
 PLAYERS_URL = "https://api.sleeper.app/v1/players/nfl"
 SEASON_PROJ_URL = "https://api.sleeper.app/v1/projections/nfl/regular/{season}"
@@ -185,48 +214,19 @@ def fetch_sleeper_season_projections(season, snapshot_dir=SNAPSHOT_DIR):
     return out
 
 
-NO_STATS_PLAY_PROB = 0.05
-HAS_STATS_PLAY_PROB = 1.0
-
-
-def fetch_sleeper_play_probability(season, snapshot_dir=SNAPSHOT_DIR):
-    """player_id (gsis, where resolvable) + name_key/position -> play_prob.
-
-    Data-quality finding that changed this function's design: Sleeper's
-    `gp` (games-played) field is NOT a real per-player play-probability
-    signal - checked the distribution directly, 9370 of 9402 players with a
-    `gp` value have EXACTLY gp=18 (only 32 have gp=1), including players
-    with zero other projected stats at all (e.g. rookie QBs Athan
-    Kaliakmanis / Mark Gronowski have `gp=18` but no `pass_att`,
-    `pts_half_ppr`, or any other field - Sleeper is not projecting them to
-    play a full season, it's just a bookkeeping default for anyone Sleeper
-    tracks for ADP purposes). The real signal is whether Sleeper bothers
-    projecting any actual production for the player at all - that presence/
-    absence is lost by fetch_sleeper_season_projections (which fills
-    missing stat fields with 0), so this function re-reads the raw
-    projections JSON directly rather than reusing that helper.
-
-    play_prob is binary, not a smooth ratio: HAS_STATS_PLAY_PROB (1.0) if
-    Sleeper projects real pass-attempt volume for this player, else
-    NO_STATS_PLAY_PROB (0.05, same reasoning/value as rookies.py's
-    NO_SLEEPER_MATCH_PLAY_PROB for a player absent from Sleeper entirely -
-    "Sleeper won't even project a number" is roughly as strong a signal
-    either way)."""
-    players = fetch_sleeper_players(snapshot_dir=snapshot_dir)
-    endpoint = SEASON_PROJ_URL.format(season=season)
-    proj, _ = _fetch_json(
-        endpoint, f"projections_{season}", snapshot_dir=snapshot_dir)
-    if not isinstance(proj, dict):
-        raise ValueError("Sleeper projections response was not a player-id mapping")
-    rows = []
-    for sid, stats in proj.items():
-        if not isinstance(stats, dict):
-            continue
-        has_stats = "pass_att" in stats
-        rows.append({"sleeper_id": sid, "play_prob": HAS_STATS_PLAY_PROB if has_stats else NO_STATS_PLAY_PROB})
-    proj_df = pd.DataFrame(rows)
-    merged = players.merge(proj_df, on="sleeper_id", how="inner")
-    return merged[["player_id", "name_key", "position", "play_prob"]]
+# REMOVED 2026-08-15: `fetch_sleeper_play_probability`, `NO_STATS_PLAY_PROB`
+# and `HAS_STATS_PLAY_PROB`. These turned Sleeper's willingness to publish a
+# `pass_att` field into a binary multiplier on a rookie QB's entire projection
+# line (`f5a5d09`). The consumer in `rookies.py` was removed in `df37452` and
+# the function has had zero callers since -- verified repo-wide across `src/`,
+# `tests/`, `scripts/`, notebooks and the draft assistant, including a check
+# for dynamic dispatch (`getattr`/`importlib`), before deletion. It is deleted
+# rather than left dormant because a Sleeper-derived multiplier on our own
+# predictions is precisely what this module must never provide; keeping it
+# available made re-adoption a one-line import. See SLEEPER_RETIREMENT.md.
+# The surviving `sleeper_gp` / `reported_gp` diagnostics record the same
+# data-quality finding (gp=18 for ~9,370 of 9,402 tracked players) without
+# exposing it as a knob.
 
 
 def build_sleeper_comparison_table(season, snapshot_dir=SNAPSHOT_DIR):
@@ -360,7 +360,16 @@ def compare(our_fantasy_points_path, season):
 
 
 def comparison_summary_strata(merged):
-    """Evaluation strata that do not let zero projections dominate quality."""
+    """Describe how the two boards differ, stratified so the zero tail cannot
+    dominate the picture.
+
+    Deliberately NOT named `mae`/`bias`/`error`. Those words name a loss, and
+    a loss implies a target. Sleeper is not the target (see the module
+    docstring): these columns describe the SHAPE of a difference between two
+    differently-framed forecasts, and a smaller number here is not a better
+    model. Read them to find a player or position whose difference you cannot
+    explain, then explain it.
+    """
     matched = merged[merged["matched_sleeper"]].copy()
     strata = {
         "all_matched": matched,
@@ -374,8 +383,8 @@ def comparison_summary_strata(merged):
             "n": len(frame),
             "season_corr": frame["fantasy_pts_season"].corr(
                 frame["sleeper_fantasy_pts_season"]) if len(frame) > 1 else np.nan,
-            "season_mae": frame["fantasy_pts_season_delta"].abs().mean(),
-            "season_bias": frame["fantasy_pts_season_delta"].mean(),
+            "mean_abs_divergence": frame["fantasy_pts_season_delta"].abs().mean(),
+            "mean_signed_divergence": frame["fantasy_pts_season_delta"].mean(),
             "our_mean": frame["fantasy_pts_season"].mean(),
             "sleeper_mean": frame["sleeper_fantasy_pts_season"].mean(),
         })
@@ -396,17 +405,18 @@ def main():
     merged.to_csv(out_path, index=False)
 
     matched = merged[merged["matched_sleeper"]]
+    print(DIAGNOSTIC_BANNER)
     print(f"{len(merged)} of our rows, {len(matched)} matched to Sleeper "
           f"({len(matched) / len(merged):.0%}) - "
           f"{(merged.match_method == 'gsis_id').sum()} by gsis_id, "
           f"{(merged.match_method == 'name').sum()} by name fallback")
     print(f"\nSeason totals: our mean={matched['fantasy_pts_season'].mean():.2f}, "
           f"Sleeper mean={matched['sleeper_fantasy_pts_season'].mean():.2f}")
-    print(f"Correlation (matched only): "
+    print(f"Correlation with Sleeper (matched only, descriptive): "
           f"{matched['fantasy_pts_season'].corr(matched['sleeper_fantasy_pts_season']):.3f}")
-    print(f"Mean absolute season-total delta (matched only): "
+    print(f"Mean absolute season-total divergence (matched only): "
           f"{matched['fantasy_pts_season_delta'].abs().mean():.2f}")
-    print("\nSeason-total evaluation strata (zero-only rows cannot hide relevant-player error):")
+    print("\nSeason-total divergence strata (zero-only rows cannot hide the relevant players):")
     print(comparison_summary_strata(merged).to_string(index=False))
     valid_rates = matched[matched["sleeper_rate_denominator_valid"].fillna(False).astype(bool)]
     if valid_rates.empty:
@@ -419,10 +429,14 @@ def main():
         if len(p):
             print(f"  {pos}: n={len(p)}, "
                   f"season_corr={p['fantasy_pts_season'].corr(p['sleeper_fantasy_pts_season']):.3f}, "
-                  f"season_mean_abs_delta={p['fantasy_pts_season_delta'].abs().mean():.2f}, "
+                  f"mean_abs_divergence={p['fantasy_pts_season_delta'].abs().mean():.2f}, "
                   f"our_season_mean={p['fantasy_pts_season'].mean():.2f}, "
                   f"sleeper_season_mean={p['sleeper_fantasy_pts_season'].mean():.2f}")
     print(f"\nWritten -> {out_path}")
+    print("Reminder: nothing above is an acceptance criterion. To decide whether a "
+          "change\nis an improvement, use the leakage-safe outcome harness "
+          "(src/projection/fantasy_evaluation.py).\nFor a pass/fail gate on the "
+          "board itself, use `python -m src.comparison.spot_check`.")
 
 
 if __name__ == "__main__":

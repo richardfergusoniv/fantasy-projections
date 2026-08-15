@@ -541,7 +541,7 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
             "availability_rank": 1.0, "full_name": "Ricky Pearsall",
             "team": "SF", "source": "test",
         }])
-        with patch("src.projection.predict.load_preseason_depth_chart", return_value=nfl):
+        with patch("src.projection.depth_gating.load_preseason_depth_chart", return_value=nfl):
             with self.assertRaisesRegex(ValueError, "REVIEW FAILURE"):
                 enforce_availability_chart_review(
                     base, chart, overrides=pd.DataFrame(), target_season=2026)
@@ -558,11 +558,12 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
             "team": "SF", "source": "test",
         }])
         overrides = pd.DataFrame([{"gsis_id": "pear", "mode": "zero"}])
-        with patch("src.projection.predict.load_preseason_depth_chart", return_value=nfl):
+        with patch("src.projection.depth_gating.load_preseason_depth_chart", return_value=nfl):
             enforce_availability_chart_review(
                 base, chart, overrides=overrides, target_season=2026)
 
-    def test_all_wr_rooms_are_usage_share_reviewed(self):
+    def test_wr_usage_share_defaults_are_unreviewed(self):
+        """Most WR slot priors stay unreviewed; only curated rooms flip True."""
         path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
             "src", "depth_chart", "starters_2026.csv",
@@ -572,13 +573,29 @@ class RuntimeOutputCorrectnessTests(unittest.TestCase):
         reviewed = wr["usage_share_reviewed"].astype(str).str.strip().str.lower().isin(
             ("true", "1", "yes")
         )
-        self.assertEqual(int(reviewed.sum()), len(wr))
-        self.assertEqual(wr["team"].nunique(), 32)
-        dal = wr[wr["team"] == "DAL"].set_index("player_name")
+        # Phase C5: a few high-leverage rooms are researched; the rest stay defaults.
+        self.assertGreaterEqual(int((~reviewed).sum()), 80)
+        self.assertLessEqual(int(reviewed.sum()), 12)
+        curated_teams = set(wr.loc[reviewed, "team"])
+        self.assertIn("DAL", curated_teams)
+        dal = wr[wr["team"] == "DAL"].sort_values("depth_rank")
         self.assertGreater(
-            float(dal.loc["CeeDee Lamb", "usage_share_prior"]),
-            float(dal.loc["George Pickens", "usage_share_prior"]),
+            float(dal.iloc[0]["usage_share_prior"]),
+            float(dal.iloc[1]["usage_share_prior"]),
         )
+        self.assertEqual(wr["team"].nunique(), 32)
+        # Formation-order defaults: higher depth_rank → lower slot prior.
+        for _, room in wr.groupby("team"):
+            ordered = room.sort_values("depth_rank")
+            priors = ordered["usage_share_prior"].astype(float).tolist()
+            self.assertEqual(priors, sorted(priors, reverse=True))
+        # Ourlads columns: depth_rank 1/2/3 ↔ LWR/RWR/SWR on every WR.
+        self.assertTrue((wr.loc[wr["depth_rank"] == 1, "formation_role"] == "LWR").all())
+        self.assertTrue((wr.loc[wr["depth_rank"] == 2, "formation_role"] == "RWR").all())
+        self.assertTrue((wr.loc[wr["depth_rank"] == 3, "formation_role"] == "SWR").all())
+        non_wr = dc.loc[dc["position"] != "WR", "formation_role"]
+        blank = non_wr.isna() | non_wr.astype(str).str.strip().isin(("", "nan", "None"))
+        self.assertTrue(blank.all())
 
     def _tripwire_conn(self):
         conn = sqlite3.connect(":memory:")

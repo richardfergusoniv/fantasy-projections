@@ -20,23 +20,18 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.projection.composition import compose_board, leakage_safe_context
 from src.projection.data_prep import get_conn
 from src.projection.depth_history import (
     attach_availability_depth_rank,
     attach_depth_rank,
 )
+from src.projection.depth_rates import depth_rate_factor
 from src.projection.fantasy_points import SCORING
 from src.projection.features import TARGET_STATS, build_player_season_features
-from src.projection.predict import (
-    add_projected_season_totals,
-    apply_usage_share_prior,
-    depth_rate_factor,
-    fit_usage_share_priors,
-    normalize_team_passing_volume,
-    normalize_team_rushing_volume,
-    reconcile_qb_projected_volume_games,
-    reconcile_stat_constraints,
-    reconcile_team_pass_receive_counts,
+from src.projection.team_reconcile import (
+    TEAM_ANCHOR_SPECS,
+    _compose_reframed_receiving_predictions,
 )
 from src.projection.rookies import (
     TEAM_ABBR_FIX,
@@ -52,14 +47,19 @@ from src.projection.transitions import (
     AVAILABILITY_FEATURES,
     REFRAMED_SHARE_STATS,
     SEASON_GAMES,
-    TEAM_ATTEMPTS_LABEL,
     age_shrunk_predict,
-    TEAM_CARRIES_LABEL,
     TEAM_FEATURES,
     TEAM_MODEL_FEATURES,
-    TEAM_RUSH_YARDS_LABEL,
-    TEAM_TOTAL_LABEL,
-    receiving_share_scale,
+)
+
+# Interval residuals ship in models/interval_residuals.csv, fit by backtest.py
+# on every season including this fold's target. Reusing them here would leak, so
+# the shared receiving composition is handed an EMPTY residual table: composed
+# point predictions are identical, and the prediction interval is simply absent
+# on this path rather than borrowed from a leaky artifact. Nothing scored by
+# this harness reads pred_pg_low/high.
+_NO_LEAKAGE_SAFE_RESIDUALS = pd.DataFrame(
+    columns=["position", "stat", "resid_low", "resid_high", "low_n_flag"]
 )
 
 
@@ -275,12 +275,7 @@ def _actual_player_totals(feature_table: pd.DataFrame, season: int) -> pd.DataFr
 def _team_anchor_predictions(
     history: pd.DataFrame, source_season: int, pairs: list[tuple[int, int]]
 ) -> pd.DataFrame:
-    labels = {
-        TEAM_TOTAL_LABEL: "team_passing_yards_pg_pred",
-        TEAM_ATTEMPTS_LABEL: "team_pass_attempts_pg_pred",
-        TEAM_CARRIES_LABEL: "team_carries_pg_pred",
-        TEAM_RUSH_YARDS_LABEL: "team_rushing_yards_pg_pred",
-    }
+    labels = {label: pred_col for label, _key, pred_col in TEAM_ANCHOR_SPECS}
     source = (
         history[history["season"].eq(source_season)]
         .dropna(subset=["team"])
@@ -293,6 +288,14 @@ def _team_anchor_predictions(
         inputs = source[TEAM_FEATURES].copy()
         inputs["team_naive_pred"] = source[label]
         out[output_col] = np.clip(model.predict(inputs[TEAM_MODEL_FEATURES]), 0, None)
+    # Provenance columns carry the same meaning as canonical_team_anchor_frame's
+    # in the shipped path, so propagate_team_anchors validates this frame with
+    # the same invariants. The value differs only in how the model was fitted -
+    # here, refit on pairs bounded at source_season.
+    out["team_total_pred"] = out["team_passing_yards_pg_pred"]
+    out["team_anchor_source_season"] = int(source_season)
+    out["team_anchor_lag_team"] = out["team"]
+    out["team_anchor_provenance"] = "leakage_safe_source_team_frame"
     return out
 
 
@@ -400,48 +403,53 @@ def _rookie_forecasts(
 
 
 def _compose_and_reconcile(
-    long: pd.DataFrame, anchors: pd.DataFrame, target_season: int, conn=None
+    veteran_long: pd.DataFrame,
+    rookie_long: pd.DataFrame,
+    anchors: pd.DataFrame,
+    context,
 ) -> pd.DataFrame:
-    out = long.merge(anchors, on="team", how="left")
-    share_mask = out["is_receiving_share"].fillna(False)
-    if share_mask.any():
-        share = out.loc[share_mask, ["team", "pred_pg", "projected_games"]].copy()
-        share["share"] = share["pred_pg"]
-        share["weight"] = (share["projected_games"] / SEASON_GAMES).clip(0, 1)
-        rookie_recv = out[
-            ~share_mask & out["position"].isin(["RB", "WR", "TE"])
-            & out["stat"].eq("receiving_yards")
-        ].copy()
-        rookie_recv["anchor"] = rookie_recv["team_passing_yards_pg_pred"]
-        rookie_extra = (
-            rookie_recv["pred_pg"] / rookie_recv["anchor"].replace(0, np.nan)
-            * (rookie_recv["projected_games"] / SEASON_GAMES).clip(0, 1)
-        ).groupby(rookie_recv["team"]).sum()
-        scale, _ = receiving_share_scale(
-            share[["team", "share", "weight"]], extra_team_share=rookie_extra
-        )
-        out.loc[share_mask, "pred_pg"] = (
-            out.loc[share_mask, "pred_pg"].to_numpy()
-            * scale.to_numpy()
-            * out.loc[share_mask, "team_passing_yards_pg_pred"].to_numpy()
-        )
+    """Run the SHIPPED composition pipeline over leakage-safe artifacts.
+
+    This function no longer contains any allocation logic of its own. It
+    attaches the refit team anchors, hands the veteran share rows and the
+    rookies' implied shares to the same ``_compose_reframed_receiving_
+    predictions`` the shipped path uses, and then calls ``compose_board`` —
+    which is literally the stage list ``project_season`` runs. Anything this
+    harness scores is therefore something the shipped board also does.
+    """
+    veteran = veteran_long.merge(anchors, on="team", how="left")
+    rookie = (
+        rookie_long.merge(anchors, on="team", how="left")
+        if not rookie_long.empty else rookie_long
+    )
+
+    # Rookie receiving enters the veteran share denominator as implied share -
+    # the Robinson/Tate case: an incoming rookie consumes real target share the
+    # veteran share models cannot see. Same input the shipped path passes.
+    rookie_receiving = (
+        rookie.loc[rookie["stat"].eq("receiving_yards"),
+                   ["team", "pred_pg", "projected_games"]]
+        if not rookie.empty else None
+    )
+    veteran = _compose_reframed_receiving_predictions(
+        veteran,
+        _NO_LEAKAGE_SAFE_RESIDUALS,
+        rookie_receiving=rookie_receiving,
+        # Elite shrinkage ships in models/corrections.joblib, fit on residuals
+        # spanning the target season. There is no leakage-safe refit of it on
+        # this path, so it is omitted rather than leaked - see coverage_limits.
+        corrections=None,
+    )
+
+    out = pd.concat([veteran, rookie], ignore_index=True, sort=False)
     out["pred_pg"] = pd.to_numeric(out["pred_pg"], errors="coerce").clip(lower=0)
-    out["pred_pg_low"] = out["pred_pg"]
-    out["pred_pg_high"] = out["pred_pg"]
-    out = reconcile_stat_constraints(out)
-    out = reconcile_qb_projected_volume_games(out, season_games=SEASON_GAMES)
-    # Same room reordering predict.py applies, fit strictly on seasons before
-    # this fold's target so the evaluation stays leakage-safe. This is the
-    # only place the blend can be scored against real outcomes rather than
-    # against consensus.
-    if conn is not None:
-        out = apply_usage_share_prior(
-            out, fit_usage_share_priors(conn, list(range(2016, target_season))))
-    out = normalize_team_passing_volume(out, season_games=SEASON_GAMES)
-    out = normalize_team_rushing_volume(out, season_games=SEASON_GAMES)
-    out = reconcile_team_pass_receive_counts(out, season_games=SEASON_GAMES)
-    out = reconcile_stat_constraints(out)
-    return add_projected_season_totals(out)
+    # No leakage-safe interval residuals exist for this fold, so the endpoints
+    # collapse onto the point prediction rather than being borrowed. Nothing in
+    # the scoring path reads them; they exist so the reconcilers, which scale
+    # all three together, have a defined value to scale.
+    for col in ("pred_pg_low", "pred_pg_high"):
+        out[col] = pd.to_numeric(out.get(col), errors="coerce").fillna(out["pred_pg"])
+    return compose_board(out, context)
 
 
 def _forecast_from_history(
@@ -465,8 +473,8 @@ def _forecast_from_history(
     rookie_long, rookie_games = _rookie_forecasts(
         rookie_cohort, source_season, target_season
     )
-    long = pd.concat([veteran_long, rookie_long], ignore_index=True, sort=False)
-    long = _compose_and_reconcile(long, anchors, target_season, conn=conn)
+    context = leakage_safe_context(conn, target_season, source_season)
+    long = _compose_and_reconcile(veteran_long, rookie_long, anchors, context)
     scored_stats = long.pivot_table(
         index="player_id", columns="stat", values="pred_season", aggfunc="first"
     )
@@ -492,6 +500,11 @@ def _forecast_from_history(
         scored["forecast_component_count"].eq(scored["forecast_expected_component_count"])
         & scored["model_forecast_points"].notna()
     )
+    # Carried out so run_evaluation can publish exactly which composition stages
+    # ran on real inputs for this fold and which degraded to pass-throughs.
+    # Coverage must never be readable as performance.
+    scored.attrs["stage_coverage"] = context.describe_coverage()
+    scored.attrs["artifact_provenance"] = context.artifact_provenance
     return scored
 
 
@@ -547,6 +560,12 @@ def build_leakage_safe_forecasts(
         "population_n": int(len(out)),
         "rookie_n": int(out["is_rookie"].sum()),
         "forecast_covered_n": int(out["forecast_covered"].sum()),
+        "composition_pipeline": (
+            "src.projection.composition.compose_board - the same stage sequence "
+            "src.projection.predict.project_season ships"
+        ),
+        "composition_artifact_provenance": forecasts.attrs.get("artifact_provenance"),
+        "composition_stage_coverage": forecasts.attrs.get("stage_coverage", {}),
     }
     return out, metadata
 
@@ -701,7 +720,24 @@ def run_evaluation(
     metadata["coverage_limits"] = [
         "Week-1 contracted roster snapshot excludes August camp cuts.",
         "Veterans without a source-season feature row remain in all_eligible and score as zero model points.",
-        "The shipped veteran depth-rate ladder and current team/QB/stat reconciliation are applied; historical curated roles, target-year coordinator context, and elite residual correction remain unavailable.",
+        "Composition/allocation is the shipped pipeline itself (composition.compose_board), "
+        "run over artifacts refit on seasons <= source_season. See "
+        "composition_stage_coverage for the per-stage active/degraded map.",
+        "STAGES THAT CANNOT BE MEASURED ON A HISTORICAL FOLD, and why: "
+        "(a) curated depth-chart membership, roles, formation roles and reviewed "
+        "usage-share priors - src/depth_chart/starters_<season>.csv is hand-researched "
+        "and exists for 2026 only, so apply_curated_availability_override, "
+        "apply_depth_chart_gating's curated branch, replacement-level rows for curated "
+        "players neither model path reaches, and the LWR/RWR/SWR within-WR split all "
+        "no-op; (b) dated status overrides (IR/PUP) - status_overrides_<season>.csv is "
+        "likewise 2026-only; (c) elite residual correction - models/corrections.joblib "
+        "is fit on residuals spanning the target season; (d) prediction intervals - "
+        "models/interval_residuals.csv is fit by backtest.py across the target season. "
+        "None of these are faked or silently skipped: each degrades to an explicit "
+        "pass-through recorded in composition_stage_coverage.",
+        "Roster reassignment (reassign_team_changers) is not run: the target team comes "
+        "from the frozen Week-1 roster, which is a stricter preseason source than the "
+        "seasonal_rosters lookup the shipped path uses.",
         "No Sleeper or other external projection is used.",
     ]
     return ranked, summary, metadata

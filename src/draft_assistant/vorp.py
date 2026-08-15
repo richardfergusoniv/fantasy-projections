@@ -1,6 +1,6 @@
 """Value Over Replacement Player (VORP) for draft rankings.
 
-Ranks overall boards by surplus season points over a position-specific
+Ranks overall boards by surplus points-per-game over a position-specific
 replacement baseline for a 1QB / 2RB / 3WR / 1TE / 1FLEX roster.
 """
 
@@ -28,8 +28,8 @@ FLEX_SHARE: dict[str, float] = {
     "TE": 0.10,
 }
 
-# Absolute season-VORP drop that helps start a new overall tier (with 4% relative).
-OVERALL_VORP_TIER_GAP = 12.0
+# Absolute PPG-VORP drop that helps start a new overall tier (with 4% relative).
+OVERALL_VORP_TIER_GAP = 0.75
 
 
 def replacement_rank(position: str, team_count: int) -> int:
@@ -58,10 +58,10 @@ def add_vorp_columns(
     df: pd.DataFrame,
     *,
     team_count: int = DEFAULT_TEAM_COUNT,
-    points_col: str = "fantasy_pts_season",
+    points_col: str = "fantasy_pts",
     position_col: str = "position",
 ) -> pd.DataFrame:
-    """Add replacement_pts and vorp (floored at 0) using season points."""
+    """Add replacement_pts and vorp (floored at 0) using points per game."""
     out = df.copy()
     ranks = replacement_ranks(team_count)
     replacement_pts = pd.Series(index=out.index, dtype=float)

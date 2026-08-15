@@ -32,11 +32,11 @@ import pandas as pd
 
 from src.projection.data_prep import SEASONS, load_weekly_usage, season_aggregate
 from src.projection.depth_history import attach_availability_depth_rank, attach_depth_rank
+from src.projection.contracts import VACATED_CLIP
 from src.projection.features import TARGET_STATS
 
 ROUND_BUCKETS = {1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7", 5: "round_4_7",
                   6: "round_4_7", 7: "round_4_7"}
-VACATED_CLIP = (0.3, 2.5)
 # A curated listing alone does not make a rookie the player who absorbs an
 # opening. Match the veteran vacancy rule: backups can be scaled down by a
 # poor landing spot, but only confirmed starters/committee players may be
@@ -406,14 +406,40 @@ def team_vacated_opportunity(conn, seasons=SEASONS):
         # turnover specifically) - the right signal for "is the starting job
         # actually open," not receiver churn.
         merged["vacated_attempts_share"] = 1 - merged["returning_attempts"] / merged["prev_team_attempts"].replace(0, np.nan)
-        merged["season"] = season
-        rows.append(merged.reset_index()[
-            ["season", "team", "vacated_carry_share", "vacated_target_share", "vacated_attempts_share"]
-        ])
 
-    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(
-        columns=["season", "team", "vacated_carry_share", "vacated_target_share", "vacated_attempts_share"]
-    )
+        # Position-group target vacancy for hierarchical L2 (WR vacancy must
+        # not inflate TE/RB arrivals and vice versa).
+        for position in ("WR", "TE", "RB"):
+            col = f"vacated_target_share_{position.lower()}"
+            pos_prev = prev[prev["position"] == position]
+            if pos_prev.empty:
+                merged[col] = np.nan
+                continue
+            pos_team = pos_prev.groupby("team")["targets"].sum().rename("prev_pos_targets")
+            pos_ret = (
+                pos_prev[pos_prev["returning_same_team"]]
+                .groupby("team")["targets"].sum()
+                .rename("returning_pos_targets")
+            )
+            pos_m = pos_team.to_frame().join(pos_ret, how="left").fillna(0)
+            pos_m[col] = 1 - pos_m["returning_pos_targets"] / pos_m["prev_pos_targets"].replace(0, np.nan)
+            merged = merged.join(pos_m[[col]], how="left")
+
+        merged["season"] = season
+        out = merged.reset_index()
+        cols = [
+            "season", "team", "vacated_carry_share", "vacated_target_share",
+            "vacated_attempts_share",
+            "vacated_target_share_wr", "vacated_target_share_te", "vacated_target_share_rb",
+        ]
+        rows.append(out[[c for c in cols if c in out.columns]])
+
+    empty_cols = [
+        "season", "team", "vacated_carry_share", "vacated_target_share",
+        "vacated_attempts_share",
+        "vacated_target_share_wr", "vacated_target_share_te", "vacated_target_share_rb",
+    ]
+    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=empty_cols)
 
 
 def build_rookie_dataset(conn, feature_table, seasons=SEASONS):

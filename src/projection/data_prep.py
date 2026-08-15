@@ -99,6 +99,50 @@ def _supported_snap_schema_error(exc):
     return missing in _SNAP_APPEARANCE_COLUMNS
 
 
+def _offensive_master_position(series):
+    """Keep career/master position only when it is already QB/RB/WR/TE.
+
+    Dual-threat players (e.g. Travis Hunter) are often stored as CB in
+    ``players`` while rostering and snapping as WR. Filling null weekly
+    positions from that master value drops their entire offensive season.
+    """
+    return series.where(series.isin(POSITIONS))
+
+
+def _table_exists(conn, name):
+    row = conn.execute(
+        "select 1 from sqlite_master where type='table' and name=?", (name,)
+    ).fetchone()
+    return row is not None
+
+
+def _load_roster_offensive_positions(conn, seasons):
+    """Week then season roster offensive positions for usage backfill."""
+    season_sql = ",".join(map(str, seasons))
+    pos_sql = ",".join(repr(p) for p in POSITIONS)
+    empty_week = pd.DataFrame(columns=["season", "week", "player_id", "pos_week"])
+    empty_season = pd.DataFrame(columns=["season", "player_id", "pos_season"])
+    if _table_exists(conn, "weekly_rosters"):
+        week = pd.read_sql(
+            f"select season, week, player_id, position as pos_week from weekly_rosters "
+            f"where season in ({season_sql}) and position in ({pos_sql}) "
+            f"and player_id is not null",
+            conn,
+        )
+    else:
+        week = empty_week
+    if _table_exists(conn, "seasonal_rosters"):
+        season = pd.read_sql(
+            f"select season, player_id, position as pos_season from seasonal_rosters "
+            f"where season in ({season_sql}) and position in ({pos_sql}) "
+            f"and player_id is not null",
+            conn,
+        ).drop_duplicates(["season", "player_id"])
+    else:
+        season = empty_season
+    return week, season
+
+
 def _augment_snap_appearances(base, conn):
     """Return a fully snap-augmented copy; never mutate ``base`` in place."""
     w = base.copy()
@@ -112,7 +156,14 @@ def _augment_snap_appearances(base, conn):
         "where gsis_id is not null and pfr_id is not null", conn,
     )
     snaps = snaps.merge(xwalk, left_on="pfr_player_id", right_on="pfr_id", how="inner")
-    snaps = snaps[snaps["master_position"].isin(POSITIONS)]
+    # Prefer roster/season offensive position over career master so CB-listed
+    # players who snap on offense (Travis Hunter) are not filtered out.
+    _, season_roster = _load_roster_offensive_positions(conn, SEASONS)
+    snaps = snaps.merge(season_roster, on=["player_id", "season"], how="left")
+    snaps["offense_position"] = snaps["pos_season"].fillna(
+        _offensive_master_position(snaps["master_position"])
+    )
+    snaps = snaps[snaps["offense_position"].isin(POSITIONS)].copy()
     appeared = snaps[["player_id", "season", "week"]].drop_duplicates()
     appeared["_appeared"] = True
     w = w.merge(appeared, on=["player_id", "season", "week"], how="left")
@@ -121,9 +172,8 @@ def _augment_snap_appearances(base, conn):
     missing = snaps.merge(existing, on=["player_id", "season", "week"], how="left", indicator=True)
     missing = missing[missing["_merge"] == "left_only"].copy()
     if not missing.empty:
-        # The players master is career/latest-position data. Reusing it for
-        # a historical zero-opportunity week can split one player-season
-        # across positions. Prefer the position observed that season.
+        # Prefer the position already resolved on usage weeks this season,
+        # then roster offensive position, then offensive-only master.
         season_pos = (
             w.sort_values("week")
             .dropna(subset=["position"])
@@ -132,7 +182,12 @@ def _augment_snap_appearances(base, conn):
             .rename(columns={"position": "season_position"})
         )
         missing = missing.merge(season_pos, on=["player_id", "season"], how="left")
-        missing["position"] = missing["season_position"].fillna(missing["master_position"])
+        missing["position"] = (
+            missing["season_position"]
+            .fillna(missing["offense_position"])
+            .fillna(_offensive_master_position(missing["master_position"]))
+        )
+        missing = missing[missing["position"].isin(POSITIONS)]
         add = missing[["player_id", "season", "week", "team", "position"]].drop_duplicates()
         add["season_type"] = "REG"
         for c in STAT_COLS:
@@ -161,8 +216,22 @@ def load_weekly_usage(conn):
         columns={"gsis_id": "player_id", "position": "pos_master"}
     )
     w = w.merge(players_pos, on="player_id", how="left")
-    w["position"] = w["position"].fillna(w["pos_master"])
-    w = w.drop(columns=["pos_master"])
+    # Prefer week/season roster offensive position over career master. The
+    # 2025 pbp fallback ships null weekly.position; filling from players
+    # alone tagged Travis Hunter as CB and dropped his receiving weeks.
+    week_rosters, season_rosters = _load_roster_offensive_positions(conn, SEASONS)
+    if not week_rosters.empty:
+        w = w.merge(week_rosters, on=["season", "week", "player_id"], how="left")
+    else:
+        w["pos_week"] = pd.NA
+    w = w.merge(season_rosters, on=["season", "player_id"], how="left")
+    w["position"] = (
+        w["position"]
+        .fillna(w["pos_week"])
+        .fillna(w["pos_season"])
+        .fillna(_offensive_master_position(w["pos_master"]))
+    )
+    w = w.drop(columns=["pos_master", "pos_week", "pos_season"], errors="ignore")
 
     needs_team = w["recent_team"].isna()
     if needs_team.any():

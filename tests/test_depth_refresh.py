@@ -39,32 +39,32 @@ class DetectAndLiveDepthTests(unittest.TestCase):
         return pd.DataFrame([
             dict(season=2026, team="SF", position="TE", depth_rank=1,
                  player_name="George Kittle", gsis_id="00-kittle",
-                 role="starter", confidence="high", notes="",
+                 role="starter", formation_role=None, confidence="high", notes="",
                  usage_share_prior=0.1, usage_share_reviewed=False),
             dict(season=2026, team="SF", position="TE", depth_rank=2,
                  player_name="Backup Te", gsis_id="00-te2",
-                 role="backup", confidence="high", notes="",
+                 role="backup", formation_role=None, confidence="high", notes="",
                  usage_share_prior=0.02, usage_share_reviewed=False),
             dict(season=2026, team="SEA", position="RB", depth_rank=1,
                  player_name="Zach Charbonnet", gsis_id="00-charb",
-                 role="starter", confidence="high", notes="",
+                 role="starter", formation_role=None, confidence="high", notes="",
                  usage_share_prior=0.3, usage_share_reviewed=False),
             dict(season=2026, team="SEA", position="RB", depth_rank=2,
                  player_name="Other Back", gsis_id="00-rb2",
-                 role="committee", confidence="high", notes="",
+                 role="committee", formation_role=None, confidence="high", notes="",
                  usage_share_prior=0.2, usage_share_reviewed=False),
             dict(season=2026, team="SF", position="WR", depth_rank=1,
                  player_name="Mike Evans", gsis_id="00-evans",
-                 role="starter", confidence="high", notes="",
-                 usage_share_prior=0.1554, usage_share_reviewed=True),
+                 role="starter", formation_role="LWR", confidence="high", notes="",
+                 usage_share_prior=0.1554, usage_share_reviewed=False),
             dict(season=2026, team="SF", position="WR", depth_rank=2,
                  player_name="Deebo Samuel Sr.", gsis_id="00-deebo",
-                 role="starter", confidence="high", notes="",
-                 usage_share_prior=0.0667, usage_share_reviewed=True),
+                 role="starter", formation_role="RWR", confidence="high", notes="",
+                 usage_share_prior=0.0667, usage_share_reviewed=False),
             dict(season=2026, team="SF", position="WR", depth_rank=3,
                  player_name="Injured Wr", gsis_id="00-irwr",
-                 role="starter", confidence="high", notes="",
-                 usage_share_prior=0.0386, usage_share_reviewed=True),
+                 role="starter", formation_role="SWR", confidence="high", notes="",
+                 usage_share_prior=0.0386, usage_share_reviewed=False),
         ])
 
     def _status(self):
@@ -97,7 +97,34 @@ class DetectAndLiveDepthTests(unittest.TestCase):
         self.assertEqual(list(sf_wr["depth_rank"]), [1, 2])
         self.assertAlmostEqual(sf_wr.iloc[0]["usage_share_prior"], 0.1554)
         self.assertAlmostEqual(sf_wr.iloc[1]["usage_share_prior"], 0.0667)
+        # Injury renumber must not mark the room reviewed (would fight L2/L3).
+        self.assertFalse(bool(sf_wr.iloc[0]["usage_share_reviewed"]))
+        self.assertFalse(bool(sf_wr.iloc[1]["usage_share_reviewed"]))
         self.assertIn("00-irwr", set(applied["gsis_id"]))
+
+    def test_lwr_injury_keeps_rwr_formation_prior(self):
+        """Removing LWR must not hand the LWR usage prior to the RWR."""
+        chart = self._chart()
+        status = self._status()
+        status.loc[status["gsis_id"] == "00-irwr", "gsis_id"] = "00-evans"
+        status.loc[status["gsis_id"] == "00-evans", "display_name"] = "Mike Evans"
+        status.loc[status["gsis_id"] == "00-evans", "name_key"] = "mike evans"
+        events = detect_injury_events(status, chart, as_of="2026-08-14")
+        live, _ = build_live_depth_chart(chart, events, as_of_date="2026-08-14")
+        sf_wr = live[(live.team == "SF") & (live.position == "WR")].sort_values("depth_rank")
+        self.assertEqual(list(sf_wr["gsis_id"]), ["00-deebo", "00-irwr"])
+        self.assertEqual(list(sf_wr["formation_role"]), ["RWR", "SWR"])
+        # Rank 1 is now Deebo, but he stays RWR — not the LWR prior.
+        self.assertAlmostEqual(float(sf_wr.iloc[0]["usage_share_prior"]), 0.0667)
+        self.assertAlmostEqual(float(sf_wr.iloc[1]["usage_share_prior"]), 0.0386)
+
+    def test_wr_injury_clears_reviewed_flag(self):
+        chart = self._chart()
+        chart.loc[chart["position"] == "WR", "usage_share_reviewed"] = True
+        events = detect_injury_events(self._status(), chart, as_of="2026-08-14")
+        live, _ = build_live_depth_chart(chart, events, as_of_date="2026-08-14")
+        sf_wr = live[(live.team == "SF") & (live.position == "WR")]
+        self.assertTrue((~sf_wr["usage_share_reviewed"].astype(bool)).all())
 
     def test_pup_caps_without_removing(self):
         events = detect_injury_events(self._status(), self._chart(), as_of="2026-08-14")
@@ -161,7 +188,7 @@ class StatusOverrideAsOfTests(unittest.TestCase):
                 dict(season=2026, gsis_id="p2", player_name="B", as_of_date="2026-08-20",
                      mode="zero", projected_games="", reason="future"),
             ]).to_csv(path, index=False)
-            with patch("src.projection.predict.STATUS_OVERRIDES_PATH", path):
+            with patch("src.projection.depth_gating.STATUS_OVERRIDES_PATH", path):
                 all_rows = load_status_overrides(2026)
                 self.assertEqual(len(all_rows), 2)  # latest per gsis+mode
                 self.assertEqual(

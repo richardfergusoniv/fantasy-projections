@@ -67,8 +67,12 @@ def _volume(plays):
 def _play_action(plays, ftn):
     merged = plays.merge(ftn, on=["game_id", "play_id"], how="inner")
     rate = merged.groupby(["season", "posteam"])["is_play_action"].mean().rename("play_action_rate")
+    screen = merged.groupby(["season", "posteam"])["is_screen_pass"].mean().rename("screen_pass_rate")
+    rpo = merged.groupby(["season", "posteam"])["is_rpo"].mean().rename("rpo_rate")
+    backfield = merged.groupby(["season", "posteam"])["n_offense_backfield"].mean().rename(
+        "offense_backfield_mean")
     n = merged.groupby(["season", "posteam"]).size().rename("n_ftn_matched_plays")
-    return rate, n
+    return rate, screen, rpo, backfield, n
 
 
 def _personnel(plays, personnel):
@@ -95,14 +99,21 @@ def compute_team_season_tendencies(conn=None):
     games, n_plays = _volume(plays)
     pace = _neutral_pace(plays)
     pass_oe, pass_oe_neutral = _pass_oe(plays)
-    pa_rate, n_ftn = _play_action(plays, ftn)
+    pa_rate, screen, rpo, backfield, n_ftn = _play_action(plays, ftn)
     pers = _personnel(plays, personnel)
 
-    pieces = [games, n_plays, pace, pass_oe, pass_oe_neutral, pa_rate, n_ftn] + list(pers.values())
+    pieces = [
+        games, n_plays, pace, pass_oe, pass_oe_neutral,
+        pa_rate, screen, rpo, backfield, n_ftn,
+    ] + list(pers.values())
     df = pd.concat(pieces, axis=1).reset_index()
     df = df.rename(columns={"posteam": "team"})
     df["ftn_available"] = df["season"] >= 2022
-    df.loc[~df["ftn_available"], ["play_action_rate", "n_ftn_matched_plays"]] = np.nan
+    ftn_cols = [
+        "play_action_rate", "screen_pass_rate", "rpo_rate",
+        "offense_backfield_mean", "n_ftn_matched_plays",
+    ]
+    df.loc[~df["ftn_available"], ftn_cols] = np.nan
 
     if own_conn:
         conn.close()

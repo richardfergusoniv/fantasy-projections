@@ -17,7 +17,7 @@ from src.ol_model.churn import team_season_churn, player_confidence_flags
 
 SEASONS = list(range(2021, 2026))
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-REPORT_PATH = os.path.join(REPO_ROOT, "PHASE2_REBUILD_REPORT.md")
+REPORT_PATH = os.path.join(REPO_ROOT, "docs", "history", "PHASE2_REBUILD_REPORT.md")
 
 # old per-season year-over-year / split-half numbers, from PHASE2_REPORT.md
 # and PHASE2_STABILITY_INVESTIGATION.md, for the honesty check in the report
@@ -268,6 +268,7 @@ def write_report(results, churn, stability, player_coef_df):
         "not be interpreted as directly comparable to the player coefficients.\n"
     )
 
+    os.makedirs(os.path.dirname(REPORT_PATH), exist_ok=True)
     with open(REPORT_PATH, "w") as f:
         f.write("\n".join(lines))
 

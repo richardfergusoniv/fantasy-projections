@@ -13,7 +13,7 @@ from src.ol_model.fit import fit_submodel, PASS_CONTROLS, RUN_CONTROLS
 
 SEASONS = list(range(2021, 2026))
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-REPORT_PATH = os.path.join(REPO_ROOT, "PHASE2_REPORT.md")
+REPORT_PATH = os.path.join(REPO_ROOT, "docs", "history", "PHASE2_REPORT.md")
 
 
 def run_all(conn):
@@ -207,6 +207,7 @@ def write_report(sample_sizes, drop_reports, stability, coef_df):
     )
     lines.append("")
 
+    os.makedirs(os.path.dirname(REPORT_PATH), exist_ok=True)
     with open(REPORT_PATH, "w") as f:
         f.write("\n".join(lines))
 

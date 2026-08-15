@@ -332,14 +332,6 @@ body {
   width: 52px;
 }
 
-.col-pts,
-.col-season,
-.col-vorp {
-  width: 72px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
 .player-name {
   font-weight: 600;
 }

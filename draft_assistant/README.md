@@ -11,7 +11,7 @@ Local static app with two views powered by your projection pipeline:
 
 - **VORP overall board** — All tab ranks by value over replacement for **1QB / 2RB / 3WR / 1TE / 1FLEX**, not raw PPG (so elite RBs/WRs outrank high-scoring QBs).
 - **Player cards** — hover or click a name for fantasy drivers, volume scales, VORP, and context (same cards as Team Projections).
-- **Tiered rankings** — overall tiers use season VORP cliffs; position tabs still use PPG tiers.
+- **Tiered rankings** — All, position, and FLEX tiers use PPG VORP cliffs.
 - **Draft checkboxes** — mark players drafted; state persists in your browser.
 - **Snake draft tracking** — set league size, your draft slot, and current pick to see who is on the clock.
 - **Suggested picks** — blends VORP, positional need, and tier.
@@ -48,7 +48,7 @@ Open http://127.0.0.1:8765/ (Draft) or http://127.0.0.1:8765/teams/ (Team Projec
 
 ## VORP baselines
 
-`VORP = max(0, fantasy_pts_season − replacement season points)`.
+`VORP = max(0, fantasy_pts − replacement pts/game)`.
 
 Replacement rank for an N-team league:
 
@@ -67,12 +67,12 @@ Defaults live in `src/draft_assistant/vorp.py`. The browser recomputes when you 
 
 | Scope   | Rule                                      |
 |---------|-------------------------------------------|
-| Overall (VORP) | 12.0 season-VORP drop or 4% relative |
-| QB      | 0.85 PPG or 3%                            |
-| RB      | 0.75 PPG or 3%                            |
-| WR      | 0.55 PPG or 3%                            |
-| TE      | 0.50 PPG or 3%                            |
-| FLEX    | 0.65 PPG or 3% (RB/WR/TE combined)        |
+| Overall (VORP) | 0.75 PPG-VORP drop or 4% relative |
+| QB (VORP) | 0.85 PPG-VORP or 3%                    |
+| RB (VORP) | 0.75 PPG-VORP or 3%                    |
+| WR (VORP) | 0.55 PPG-VORP or 3%                    |
+| TE (VORP) | 0.50 PPG-VORP or 3%                    |
+| FLEX (VORP) | 0.65 PPG-VORP or 3% (RB/WR/TE)       |
 
 Adjust in `src/draft_assistant/tiers.py` / `vorp.py` and re-run `prepare`.
 

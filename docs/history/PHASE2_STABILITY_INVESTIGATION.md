@@ -3,10 +3,8 @@
 This is a diagnostic follow-up to `PHASE2_REPORT.md`'s honest but un-root-caused finding
 that year-over-year correlation of OL coefficients averages 0.144 (range 0.025-0.218)
 across the pass-protection and run-blocking sub-models. Four hypotheses were tested against
-the actual 2021-2025 data in `data/projections.db`. All diagnostic code lives in
-`scratch_stability_diag.py` at the repo root (ad hoc, read-only, does not touch
-`src/ol_model/` or the `ol_coefficients` table) and its full run log is in
-`scratch_stability_output.txt`.
+the actual 2021-2025 data in `data/projections.db`. Diagnostics originally lived in
+`scratch_stability_diag.py` (deleted; findings below are retained).
 
 ## 1. Split-half reliability (the decisive check)
 

@@ -11,7 +11,9 @@ const ROSTER_TEMPLATE = [
 
 const STARTERS = { QB: 1, RB: 2, WR: 3, TE: 1 };
 const FLEX_SHARE = { QB: 0, RB: 0.4, WR: 0.5, TE: 0.1 };
-const OVERALL_VORP_TIER_GAP = 12;
+const OVERALL_VORP_TIER_GAP = 0.75;
+const POS_VORP_TIER_GAPS = { QB: 0.85, RB: 0.75, WR: 0.55, TE: 0.5 };
+const FLEX_VORP_TIER_GAP = 0.65;
 const SKILL_STARTER_SLOTS = 7; // 2 RB + 3 WR + 1 TE + 1 FLEX
 const SEASON = 2026;
 
@@ -62,7 +64,7 @@ async function init() {
     document.getElementById("seasonBadge").textContent = state.data.meta.season;
   } catch (err) {
     document.getElementById("rankingsBody").innerHTML =
-      `<tr><td colspan="9" class="empty-state">${err.message}. Run: python -m src.draft_assistant.prepare --season ${SEASON}</td></tr>`;
+      `<tr><td colspan="6" class="empty-state">${err.message}. Run: python -m src.draft_assistant.prepare --season ${SEASON}</td></tr>`;
     return;
   }
 
@@ -237,20 +239,20 @@ function applyLiveVorp(teamCount = state.teamCount) {
 
   const baselines = {};
   for (const pos of Object.keys(byPos)) {
-    const pts = byPos[pos].map((p) => Number(p.fantasy_pts_season) || 0);
+    const pts = byPos[pos].map((p) => Number(p.fantasy_pts) || 0);
     baselines[pos] = kthScore(pts, replacementRank(pos, teamCount));
   }
 
   for (const p of players) {
     const baseline = baselines[p.position] ?? 0;
-    const season = Number(p.fantasy_pts_season) || 0;
+    const ppg = Number(p.fantasy_pts) || 0;
     p.live_replacement_pts = baseline;
-    p.live_vorp = Math.max(0, season - baseline);
+    p.live_vorp = Math.max(0, ppg - baseline);
   }
 
   const ordered = players.slice().sort((a, b) => {
     if (b.live_vorp !== a.live_vorp) return b.live_vorp - a.live_vorp;
-    return (b.fantasy_pts_season || 0) - (a.fantasy_pts_season || 0);
+    return (b.fantasy_pts || 0) - (a.fantasy_pts || 0);
   });
   const tiers = assignTiers(
     ordered.map((p) => p.live_vorp),
@@ -259,6 +261,43 @@ function applyLiveVorp(teamCount = state.teamCount) {
   ordered.forEach((p, i) => {
     p.live_overall_rank = i + 1;
     p.live_overall_tier = tiers[i];
+  });
+
+  for (const pos of Object.keys(byPos)) {
+    const group = byPos[pos]
+      .slice()
+      .sort((a, b) => {
+        if (b.live_vorp !== a.live_vorp) return b.live_vorp - a.live_vorp;
+        return (b.fantasy_pts || 0) - (a.fantasy_pts || 0);
+      });
+    const posTiers = assignTiers(
+      group.map((p) => p.live_vorp),
+      { gap: POS_VORP_TIER_GAPS[pos] ?? OVERALL_VORP_TIER_GAP, pctGap: 0.03 }
+    );
+    group.forEach((p, i) => {
+      p.live_pos_rank = i + 1;
+      p.live_pos_tier = posTiers[i];
+    });
+  }
+
+  const flexPool = players
+    .filter((p) => FLEX_POSITIONS.has(p.position))
+    .slice()
+    .sort((a, b) => {
+      if (b.live_vorp !== a.live_vorp) return b.live_vorp - a.live_vorp;
+      return (b.fantasy_pts || 0) - (a.fantasy_pts || 0);
+    });
+  const flexTiers = assignTiers(
+    flexPool.map((p) => p.live_vorp),
+    { gap: FLEX_VORP_TIER_GAP, pctGap: 0.03 }
+  );
+  for (const p of players) {
+    p.live_flex_rank = null;
+    p.live_flex_tier = null;
+  }
+  flexPool.forEach((p, i) => {
+    p.live_flex_rank = i + 1;
+    p.live_flex_tier = flexTiers[i];
   });
 
   state.vorpTeamCount = teamCount;
@@ -326,15 +365,15 @@ function rankingView(player) {
 
   if (positionFilter === "FLEX") {
     return {
-      rank: player.flex_rank,
-      tier: player.flex_tier,
+      rank: player.live_flex_rank ?? player.flex_rank,
+      tier: player.live_flex_tier ?? player.flex_tier,
       vorp: player.live_vorp ?? player.vorp ?? 0,
     };
   }
   if (usePosTiers && positionFilter !== "ALL") {
     return {
-      rank: player.pos_rank,
-      tier: player.pos_tier,
+      rank: player.live_pos_rank ?? player.pos_rank,
+      tier: player.live_pos_tier ?? player.pos_tier,
       vorp: player.live_vorp ?? player.vorp ?? 0,
     };
   }
@@ -364,7 +403,7 @@ function buildSuggestions() {
 
   const scored = avail.map((p) => {
     const { score, tier, rank, vorp } = scoreSuggestion(p, needs);
-    let reason = `VORP ${Math.round(vorp ?? 0)} · Tier ${tier}, #${rank}`;
+    let reason = `VORP ${formatVorp(vorp)} · Tier ${tier}, #${rank}`;
     if (needs.includes(p.position)) reason = `Need ${p.position} · ${reason}`;
     else if (onClock && tier === 1) reason = `Top tier value · ${reason}`;
     return { player: p, score, reason, vorp };
@@ -410,7 +449,7 @@ function renderRankings() {
 
   els.rankingsBody.innerHTML = rows
     .map((p) => {
-      const { rank, tier, vorp } = rankingView(p);
+      const { rank, tier } = rankingView(p);
 
       const drafted = state.drafted.get(p.player_id);
       const classes = [];
@@ -421,7 +460,7 @@ function renderRankings() {
       if (tier !== lastTier) {
         lastTier = tier;
         classes.push("tier-break");
-        tierHeader = `<tr class="tier-header"><td colspan="9">Tier ${tier}</td></tr>`;
+        tierHeader = `<tr class="tier-header"><td colspan="6">Tier ${tier}</td></tr>`;
       }
 
       const conf = p.low_confidence
@@ -442,9 +481,6 @@ function renderRankings() {
           </td>
           <td class="col-pos"><span class="pos-badge pos-${p.position}">${p.position}</span></td>
           <td class="col-team">${p.team}</td>
-          <td class="col-pts">${p.fantasy_pts.toFixed(1)}</td>
-          <td class="col-season">${Math.round(p.fantasy_pts_season)}</td>
-          <td class="col-vorp">${Math.round(vorp ?? 0)}</td>
         </tr>`;
     })
     .join("");
@@ -487,7 +523,7 @@ function renderSuggestions() {
           </div>
           <div class="reason">${reason}</div>
         </div>
-        <span class="pts">${Math.round(vorp ?? 0)}</span>
+        <span class="pts">${formatVorp(vorp)}</span>
       </li>`
     )
     .join("");
@@ -631,6 +667,10 @@ function fmt(n, digits = 1) {
   if (n == null || Number.isNaN(n)) return "—";
   if (Math.abs(n) >= 100) return Math.round(n).toLocaleString();
   return Number(n).toFixed(digits);
+}
+
+function formatVorp(v) {
+  return (Number(v) || 0).toFixed(1);
 }
 
 function cardPlayer(playerId) {
@@ -788,8 +828,8 @@ function buildCardHtml(p, { full = false } = {}) {
       </div>
       <div class="card-stat">
         <span class="label">VORP</span>
-        <span class="value">${Math.round(vorp)}</span>
-        <span class="hint">vs replacement</span>
+        <span class="value">${formatVorp(vorp)}</span>
+        <span class="hint">vs replacement / G</span>
       </div>
       ${
         full

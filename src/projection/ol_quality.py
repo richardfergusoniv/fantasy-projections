@@ -20,13 +20,26 @@ to weight it down if the aggregate turns out to be less reliable in
 practice. This does NOT protect against a systematic bias in how well the
 whole unit (vs. another team's whole unit) is captured by the model -
 that's a real, unresolved limitation, not fixed by this weighting scheme.
+
+Live-only trailing average (Phase C4): when ``trailing_seasons`` > 0 and
+``trailing_for_seasons`` is set, those seasons' OL scores are replaced by a
+snap-weighted average of exact-season scores over the trailing window ending
+at that season. Historical/backtest rows stay exact-season (no pooled
+leakage). Kill-switch: ``OL_TRAILING_SEASONS`` in contracts (0 = off).
 """
+import numpy as np
 import pandas as pd
 
 from src.projection.data_prep import SEASONS
 
+try:
+    from src.projection.contracts import OL_TRAILING_SEASONS
+except ImportError:  # pragma: no cover - contracts always present in-repo
+    OL_TRAILING_SEASONS = 0
+
 OL_POSITIONS = ["G", "T", "C", "OT", "OG", "OL"]
 SUBMODELS = ["pass_protection", "run_blocking"]
+_SCORE_COLS = ["ol_pass_protection_score", "ol_run_blocking_score"]
 
 
 def team_season_ol_snap_shares(conn, seasons=SEASONS):
@@ -47,15 +60,80 @@ def team_season_ol_snap_shares(conn, seasons=SEASONS):
     return player_snaps
 
 
-def team_season_ol_quality(conn, seasons=SEASONS):
+def _apply_trailing_average(out, shares, trailing_seasons, trailing_for_seasons):
+    """Replace scores for live seasons with snap-weighted trailing averages."""
+    if trailing_seasons <= 0 or not trailing_for_seasons:
+        return out
+    team_snaps = (
+        shares.groupby(["season", "team"])["offense_snaps"]
+        .sum()
+        .rename("team_ol_snaps")
+        .reset_index()
+    )
+    base = out.merge(team_snaps, on=["season", "team"], how="left")
+    base["team_ol_snaps"] = base["team_ol_snaps"].fillna(0.0)
+
+    for season in sorted(set(trailing_for_seasons)):
+        window = list(range(season - trailing_seasons + 1, season + 1))
+        hist = base[base["season"].isin(window)].copy()
+        if hist.empty:
+            continue
+        rows = []
+        for team, g in hist.groupby("team"):
+            w = g["team_ol_snaps"].to_numpy(dtype=float)
+            if w.sum() <= 0:
+                w = np.ones(len(g))
+            row = {"season": season, "team": team}
+            for c in _SCORE_COLS:
+                if c not in g.columns:
+                    continue
+                vals = pd.to_numeric(g[c], errors="coerce").to_numpy(dtype=float)
+                ok = np.isfinite(vals) & np.isfinite(w)
+                if not ok.any():
+                    row[c] = np.nan
+                else:
+                    row[c] = float(np.average(vals[ok], weights=w[ok]))
+            rows.append(row)
+        if not rows:
+            continue
+        trail = pd.DataFrame(rows)
+        keep = base.loc[base["season"] != season].copy()
+        patched = base.loc[base["season"] == season].drop(columns=_SCORE_COLS, errors="ignore")
+        patched = patched.merge(trail, on=["season", "team"], how="left")
+        base = pd.concat([keep, patched], ignore_index=True, sort=False)
+
+    return base.drop(columns=["team_ol_snaps"], errors="ignore")
+
+
+def team_season_ol_quality(
+    conn,
+    seasons=SEASONS,
+    trailing_seasons=None,
+    trailing_for_seasons=None,
+):
     """One row per (season, team): weighted-average pass-pro and run-block
     OL quality score (exact-season player coefficient, snap-share
     weighted), plus n_ol_with_coef (how many of the team's OL snap-takers
     actually resolved to an exact-season coefficient) and the team-season churn
     confidence flag. Only meaningful for 2021-2025 (`ol_coefficients`'s
     window) - seasons outside that range are simply absent from the output.
+
+    ``trailing_seasons`` / ``trailing_for_seasons``: live-only smoothing. Pass
+    ``trailing_for_seasons={source_season}`` from predict so historical feature
+    rows stay exact-season. Default ``trailing_seasons`` reads
+    ``OL_TRAILING_SEASONS`` from contracts (0 = off).
     """
+    if trailing_seasons is None:
+        trailing_seasons = OL_TRAILING_SEASONS
+
     seasons = [s for s in seasons if s >= 2021]
+    # Pull enough history for trailing windows when smoothing live seasons.
+    if trailing_seasons and trailing_for_seasons:
+        need = set(seasons)
+        for s in trailing_for_seasons:
+            need.update(range(s - trailing_seasons + 1, s + 1))
+        seasons = sorted(s for s in need if s >= 2021)
+
     shares = team_season_ol_snap_shares(conn, seasons)
 
     # IMPORTANT: do not use ``ol_coefficients_pooled`` here.  That table is
@@ -67,7 +145,10 @@ def team_season_ol_quality(conn, seasons=SEASONS):
     coefs = pd.read_sql(
         "select season, gsis_id, coef, submodel from ol_coefficients", conn
     )
-    churn = pd.read_sql("select season, team, confidence_flag as team_churn_flag from ol_team_season_churn", conn)
+    churn = pd.read_sql(
+        "select season, team, confidence_flag as team_churn_flag from ol_team_season_churn",
+        conn,
+    )
 
     frames = []
     for submodel in SUBMODELS:
@@ -76,7 +157,9 @@ def team_season_ol_quality(conn, seasons=SEASONS):
         merged["fitted"] = merged["coef"]
 
         resolved = merged.dropna(subset=["fitted"]).copy()
-        resolved["renorm_weight"] = resolved.groupby(["season", "team"])["snap_share"].transform(lambda s: s / s.sum())
+        resolved["renorm_weight"] = resolved.groupby(["season", "team"])["snap_share"].transform(
+            lambda s: s / s.sum()
+        )
         resolved["weighted"] = resolved["renorm_weight"] * resolved["fitted"]
 
         agg = resolved.groupby(["season", "team"]).agg(
@@ -94,4 +177,9 @@ def team_season_ol_quality(conn, seasons=SEASONS):
     out = frames[0].merge(frames[1], on=["season", "team"], how="outer")
     out = out.merge(churn, on=["season", "team"], how="left")
     out["ol_confidence_low_churn"] = (out["team_churn_flag"] == "unit_level").astype(int)
-    return out.drop(columns=["team_churn_flag"])
+    out = out.drop(columns=["team_churn_flag"])
+
+    if trailing_seasons and trailing_for_seasons:
+        out = _apply_trailing_average(out, shares, trailing_seasons, trailing_for_seasons)
+
+    return out

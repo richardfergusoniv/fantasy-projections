@@ -7,7 +7,7 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 
-from src.comparison import sleeper_compare
+from src.comparison import sleeper_compare, spot_check
 from src.projection import backtest, corrections
 from src.projection.fantasy_points import compute_fantasy_points
 from src.projection.transitions import AVAILABILITY_FEATURES
@@ -200,6 +200,90 @@ class ValidationEvaluationIntegrityTests(unittest.TestCase):
                                  "n_calibration"].iloc[0], 2)
         self.assertEqual(out.loc[out["test_season"] == 2025,
                                  "n_calibration"].iloc[0], 3)
+
+
+def _coherent_board():
+    """A small, structurally sane two-team board."""
+    rows = []
+    for team, players in (("AAA", ["Alpha One", "Alpha Two"]),
+                          ("BBB", ["Beta One", "Beta Two"])):
+        for i, name in enumerate(players):
+            rows.append({
+                "player_id": f"{team}-{i}", "display_name": name, "team": team,
+                "position": "WR", "role": "starter", "depth_rank": i + 1,
+                "projected_games": 15.0, "projected_volume_games": 15.0,
+                "fantasy_pts": 10.0, "fantasy_pts_season": 150.0,
+                "pg_carries": 1.0, "pg_rushing_yards": 4.0,
+                "pg_targets": 5.0, "pg_receiving_yards": 60.0,
+                "pg_attempts": 0.0, "pg_passing_yards": 0.0,
+                # 15 games x 2 players x 5 targets = 150; anchor 34 x 17 = 578.
+                "team_carries_pg_pred": 25.0,
+                "team_rushing_yards_pg_pred": 110.0,
+                "team_pass_attempts_pg_pred": 34.0,
+                "team_passing_yards_pg_pred": 240.0,
+            })
+    return pd.DataFrame(rows)
+
+
+class SleeperIsNotATargetTests(unittest.TestCase):
+    """The retirement contract: incoherence fails, disagreement never does."""
+
+    def test_sleeper_derived_play_probability_multiplier_is_gone(self):
+        # This turned Sleeper's willingness to publish a field into a binary
+        # multiplier on our own projections. It must not come back by import.
+        for name in ("fetch_sleeper_play_probability",
+                     "NO_STATS_PLAY_PROB", "HAS_STATS_PLAY_PROB"):
+            self.assertFalse(
+                hasattr(sleeper_compare, name),
+                f"{name} must stay deleted: Sleeper may not scale our predictions")
+
+    def test_coherent_board_passes_however_far_it_diverges_from_sleeper(self):
+        board = _coherent_board()
+        watched = [(name, "test") for name in board["display_name"]]
+        self.assertEqual(spot_check.coherence_violations(board, watched), [])
+        # Disagreement is reported, never adjudicated: the divergence table is
+        # descriptive and no coherence rule reads a `sleeper_` column.
+        comparison = board.assign(
+            matched_sleeper=True, match_method="gsis_id",
+            sleeper_fantasy_pts_season=999.0,
+            fantasy_pts_season_delta=board["fantasy_pts_season"] - 999.0)
+        table = spot_check.divergence_table(comparison, watched)
+        self.assertTrue((table["divergence"].abs() > 800).all())
+        self.assertEqual(
+            spot_check.coherence_violations(board, watched), [],
+            "a wild divergence from Sleeper must not make the board incoherent")
+
+    def test_missing_watched_player_is_a_failure(self):
+        board = _coherent_board()
+        violations = spot_check.coherence_violations(
+            board, [("Ghost Player", "never shipped")])
+        self.assertEqual([v["rule"] for v in violations], ["missing_from_output"])
+
+    def test_negative_volume_is_incoherent(self):
+        board = _coherent_board()
+        board.loc[0, "pg_targets"] = -1.0
+        rules = {v["rule"] for v in spot_check.coherence_violations(board, [])}
+        self.assertIn("negative_volume", rules)
+
+    def test_player_above_his_own_team_total_is_incoherent(self):
+        board = _coherent_board()
+        # 60 targets/game over 15 games = 900 vs a team budget of 34 x 17.
+        board.loc[0, "pg_targets"] = 60.0
+        rules = {v["rule"] for v in spot_check.coherence_violations(board, [])}
+        self.assertIn("player_exceeds_team_total", rules)
+        self.assertIn("team_over_allocated", rules)
+
+    def test_team_allocated_past_its_own_budget_is_incoherent(self):
+        board = _coherent_board()
+        # Push AAA's two receivers past the team's carry budget together,
+        # while each stays individually under it.
+        board.loc[board["team"] == "AAA", "pg_carries"] = 15.0
+        violations = spot_check.coherence_violations(board, [])
+        rules = {v["rule"] for v in violations}
+        self.assertIn("team_over_allocated", rules)
+        self.assertNotIn("player_exceeds_team_total", rules)
+        self.assertEqual({v["subject"] for v in violations
+                          if v["rule"] == "team_over_allocated"}, {"AAA"})
 
 
 if __name__ == "__main__":

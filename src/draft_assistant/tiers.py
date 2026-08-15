@@ -1,7 +1,7 @@
-"""Assign draft tiers from projected fantasy points.
+"""Assign draft tiers from projected fantasy points or VORP.
 
-Players whose projections are within a configurable gap of the tier anchor
-stay grouped together; a larger drop starts a new tier. Position-specific
+Players whose values are within a configurable gap of the tier anchor stay
+grouped together; a larger drop starts a new tier. Position-specific
 thresholds reflect how tightly clustered each position board is.
 """
 
@@ -81,7 +81,7 @@ def add_tier_columns(
     """Add overall_tier and pos_tier columns to a player dataframe.
 
     Positional / FLEX ranks use `points_col` (typically PPG). Overall ranks use
-    `overall_points_col` when provided (typically season VORP).
+    `overall_points_col` when provided (typically PPG VORP).
     """
     cfg = config or TierConfig(position_gaps=DEFAULT_TIER_GAPS)
     out = df.copy()
