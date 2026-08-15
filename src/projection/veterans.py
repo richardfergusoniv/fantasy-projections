@@ -37,6 +37,44 @@ from src.projection.transitions import (
 )
 
 
+def _attach_veteran_intervals(combined, resid):
+    """Empirical 80% endpoints for NON-reframed veteran rows, post-discount.
+
+    Runs after ``apply_depth_chart_gating`` so the residual is added to the
+    prediction that ships. ``models/interval_residuals.csv`` is fit by
+    ``backtest.py`` as ``actual - depth-discounted pred``, so the band is
+    already the band for a discounted player and must not be rescaled by the
+    factor a second time.
+
+    Reframed receiving rows are untouched here: their endpoints are built in
+    ``_compose_reframed_receiving_predictions``, after the share has been
+    composed into a rate, and on the same absolute-residual convention.
+
+    A (position, stat) with no residual row keeps NaN endpoints and
+    ``interval_low_n_flag = True`` — the pre-existing contract for "we have
+    no calibration for this cell", never a silently borrowed band.
+    """
+    if combined.empty:
+        return combined
+    out = combined.copy()
+    reframed = pd.MultiIndex.from_tuples(REFRAMED_SHARE_STATS, names=["position", "stat"])
+    is_reframed = out.set_index(["position", "stat"]).index.isin(reframed)
+    target = ~is_reframed
+    if not target.any():
+        return out
+    r = resid[["position", "stat", "resid_low", "resid_high", "low_n_flag"]]
+    keys = out.loc[target, ["position", "stat"]].merge(r, on=["position", "stat"], how="left")
+    keys.index = out.index[target]
+    has = keys["resid_low"].notna()
+    idx = keys.index[has]
+    out.loc[idx, "pred_pg_low"] = (
+        out.loc[idx, "pred_pg"] + keys.loc[has, "resid_low"]).clip(lower=0)
+    out.loc[idx, "pred_pg_high"] = out.loc[idx, "pred_pg"] + keys.loc[has, "resid_high"]
+    out.loc[keys.index, "interval_low_n_flag"] = (
+        keys["low_n_flag"].fillna(True).astype(bool))
+    return out
+
+
 def project_veterans(conn, feat, source_season, models, resid, target_season, as_of=None):
     """source_season's feature rows -> next-season per-game rate
     predictions, for every player with real source_season production.
@@ -169,14 +207,17 @@ def project_veterans(conn, feat, source_season, models, resid, target_season, as
                 out["pred_pg_low"], out["pred_pg_high"], out["interval_low_n_flag"] = np.nan, np.nan, False
             else:
                 out["pred_pg"] = np.clip(preds, 0, None)  # a per-game rate can't be negative; LightGBM isn't constrained
-                r = resid[(resid["position"] == position) & (resid["stat"] == stat)]
-                if r.empty:
-                    out["pred_pg_low"], out["pred_pg_high"], out["interval_low_n_flag"] = np.nan, np.nan, True
-                else:
-                    r = r.iloc[0]
-                    out["pred_pg_low"] = (out["pred_pg"] + r["resid_low"]).clip(lower=0)
-                    out["pred_pg_high"] = out["pred_pg"] + r["resid_high"]
-                    out["interval_low_n_flag"] = bool(r["low_n_flag"])
+                # Endpoints are deferred to _attach_veteran_intervals below,
+                # AFTER the Gate B ladder. backtest.py now fits
+                # interval_residuals.csv as (actual - discounted pred), so
+                # the residual belongs on a discounted prediction. Computing
+                # it here and letting the ladder scale the whole interval
+                # would apply the discount to the band a second time - a QB2
+                # would carry an 0.77x-narrow version of a band already
+                # calibrated for him. Reframed rows have always deferred
+                # theirs for the same reason (see
+                # _compose_reframed_receiving_predictions' interval note).
+                out["pred_pg_low"], out["pred_pg_high"], out["interval_low_n_flag"] = np.nan, np.nan, False
             rows.append(out)
     combined = pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
     if combined.empty:
@@ -193,6 +234,7 @@ def project_veterans(conn, feat, source_season, models, resid, target_season, as
 
     depth_chart = load_depth_chart(target_season)
     combined = apply_depth_chart_gating(combined, depth_chart)
+    combined = _attach_veteran_intervals(combined, resid)
     combined = apply_deep_bench_games_cap(combined)
     # Status overrides re-applied after the deep-bench cap so mode=zero wins.
     combined = apply_status_overrides(

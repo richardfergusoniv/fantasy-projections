@@ -40,6 +40,7 @@ from src.projection.corrections import (
     injury_cohort_gate, load_suspension_weeks, projected_participation_weight,
 )
 from src.projection.depth_history import attach_depth_rank
+from src.projection.depth_rates import depth_rate_factors
 
 TRAIN_PAIRS = [(2021, 2022), (2022, 2023), (2023, 2024)]
 TEST_PAIR = (2024, 2025)
@@ -54,6 +55,30 @@ DEPTH_VOLUME_STATS = {"QB": "attempts", "RB": "carries", "WR": "targets", "TE": 
 
 def mae(a, b):
     return float(np.mean(np.abs(a - b)))
+
+
+def depth_ladder_factors(test, position, season, conn=None):
+    """Gate B multipliers for a held-out fold's rows, one per row of ``test``.
+
+    Why this is here at all: until GATE_B_UNIFICATION.md, backtest.py never
+    applied the ladder. Production ships ``pred_pg * depth_rate_factor``, so
+    ``interval_residuals.csv`` and the elite-shrinkage coefficients in
+    ``corrections.joblib`` were being fit as ``actual - pred_UNDISCOUNTED``
+    and then consumed by a path that predicts ``pred_DISCOUNTED``. The
+    elite correction is the sharper half of that: it is an ADDITIVE
+    yards/game term, so a beta fit against undiscounted residuals is added
+    to a discounted prediction.
+
+    The preseason chart is a legitimate input here for the same reason Gate
+    A's availability backtest gives: an early-August chart is public before
+    the season it describes, and it cannot see the outcome being scored.
+
+    ``conn=None`` is fine — ``load_preseason_depth_chart`` caches per season
+    and only opens a connection on a cache miss.
+    """
+    ranked = attach_depth_rank(
+        test[["player_id"]].assign(position=position), int(season), conn=conn)
+    return depth_rate_factors(ranked["position"], ranked["nfl_depth_rank"])
 
 
 def depth_rate_calibration(feat, conn, pairs=TRAIN_PAIRS + [TEST_PAIR]):
@@ -170,6 +195,13 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
         share_model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
         f = test[["team"]].copy()
         f["share"] = np.clip(age_shrunk_predict(share_model, test, position), 0, None)
+        # Gate B, applied to the SHARE before renormalization — the exact
+        # order production uses (apply_depth_chart_gating runs on share-unit
+        # pred_pg, then _compose_reframed_receiving_predictions caps and
+        # composes), so the team-level cap here sees discounted shares just
+        # as the shipped one does.
+        f["depth_factor"] = depth_ladder_factors(test, position, held[1])
+        f["share"] = f["share"] * f["depth_factor"]
         # Production uses projected_games/17 in the share guard.  Using the
         # held-out season's actual games_played_to here leaks the outcome and
         # makes the historical composition easier than the live one.  Fit the
@@ -210,6 +242,10 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
                 test.loc[rows_idx, "naive_pred"].to_numpy(),
                 corr_params,
             )
+            # Scaled by the row's own Gate B factor, exactly as
+            # team_reconcile._compose_reframed_receiving_predictions does, so
+            # a discounted player cannot be handed an undiscounted bonus.
+            adj = adj * allf.loc[m, "depth_factor"].to_numpy()
             allf.loc[m, "capped"] = allf.loc[m, "capped"].to_numpy() + adj
 
     out = {}
@@ -242,7 +278,9 @@ def backtest_position_stat(feat, position, stat, train_pairs=TRAIN_PAIRS, test_p
             return None
         model = LGBMRegressor(**LGBM_PARAMS)
         model.fit(train[ALL_FEATURES], train[y_col])
-        pred = age_shrunk_predict(model, test, position)
+        # Gate B, same rule as the shipped path (see depth_ladder_factors).
+        pred = age_shrunk_predict(model, test, position) * depth_ladder_factors(
+            test, position, test_pair[1])
         pred_uncapped = None
 
     naive = test["naive_pred"]  # season_from's own pg rate, carried forward unchanged
@@ -312,7 +350,11 @@ def coherence_ratio_backtest(feat):
         old_model = LGBMRegressor(**LGBM_PARAMS)
         old_model.fit(old_train[ALL_FEATURES], old_train[f"{stat}_pg"])
         old_test = old_test.copy()
-        old_test["old_pred"] = age_shrunk_predict(old_model, old_test, position)
+        # Gate B on both arms, so old-vs-new stays a comparison of FRAMINGS
+        # rather than of whether the depth ladder ran.
+        old_test["old_pred"] = age_shrunk_predict(
+            old_model, old_test, position) * depth_ladder_factors(
+                old_test, position, TEST_PAIR[1])
         old_test["actual"] = old_test[f"{stat}_pg"]
         old_test["weight"] = projected_participation_weight(
             feat, old_test, position, TRAIN_PAIRS, TEST_PAIR)
@@ -392,7 +434,10 @@ def rolling_residual_rows(feat, test_pairs=ROLLING_TEST_PAIRS):
                         continue
                     model = LGBMRegressor(**LGBM_PARAMS)
                     model.fit(train[ALL_FEATURES], train[y_col])
-                    pred = age_shrunk_predict(model, test, position)
+                    # Gate B. These residuals ARE models/interval_residuals.csv,
+                    # so they must be actual - pred on the basis that ships.
+                    pred = age_shrunk_predict(model, test, position) * (
+                        depth_ladder_factors(test, position, test_pair[1]))
                 actual = pd.to_numeric(test[y_col], errors="coerce").to_numpy()
                 frame = pd.DataFrame({
                     "position": position,
@@ -581,7 +626,10 @@ def backtest_season_totals(feat, conn=None, train_pairs=TRAIN_PAIRS,
         gm = LGBMRegressor(**LGBM_PARAMS).fit(av_train[AVAILABILITY_FEATURES], av_train[AVAILABILITY_LABEL])
         rm = LGBMRegressor(**LGBM_PARAMS).fit(rate_train[ALL_FEATURES], rate_train[f"{stat}_pg"])
         games_hat = np.clip(gm.predict(av_test[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
-        rate_hat = np.clip(age_shrunk_predict(rm, av_test, position), 0, None)
+        # Gate B on the independent-rate arm. The composed arm below arrives
+        # already discounted from _predict_reframed_receiving.
+        rate_hat = np.clip(age_shrunk_predict(rm, av_test, position), 0, None) * (
+            depth_ladder_factors(av_test, position, test_pair[1]))
         composed = pd.Series(np.nan, index=av_test.index, dtype=float)
         parity_limit = "independent rate path; production room normalization unavailable"
         if (position, stat) in REFRAMED_SHARE_STATS:

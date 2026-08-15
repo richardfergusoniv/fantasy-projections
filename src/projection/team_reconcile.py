@@ -203,9 +203,12 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
 
     Interval note: pred_pg_low/high = composed pred +/- empirical residual,
     with the residual in absolute rate units NOT scaled by any role
-    discount (pre-Phase-2, gating ran after compose and scaled the whole
-    interval; the residuals were calibrated on undiscounted backtest
-    predictions, so keeping them absolute is the more faithful reading).
+    discount. This used to be the least-bad reading of a mismatch (the
+    residuals were calibrated on UNDISCOUNTED backtest predictions); since
+    backtest.py started applying the Gate B ladder it is simply correct -
+    the band is calibrated on discounted predictions and is added to one.
+    veterans._attach_veteran_intervals now uses the same convention for the
+    non-reframed rows, which previously took (pred + resid) * factor.
 
     Non-reframed rows pass through unchanged (minus the helper column)."""
     reframed_index = pd.MultiIndex.from_tuples(REFRAMED_SHARE_STATS, names=["position", "stat"])

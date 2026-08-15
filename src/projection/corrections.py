@@ -41,7 +41,8 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMRegressor
 
-from src.projection.depth_history import attach_availability_depth_rank
+from src.projection.depth_history import attach_availability_depth_rank, attach_depth_rank
+from src.projection.depth_rates import depth_rate_factors
 from src.projection.train import LGBM_PARAMS, fit_team_total, fit_availability
 from src.projection.transitions import (
     build_transition_pairs, ALL_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
@@ -177,6 +178,15 @@ def compute_loo_receiving_residuals(feat, pairs):
             model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
             f = test[["team"]].copy()
             f["share"] = np.clip(age_shrunk_predict(model, test, position), 0, None)
+            # Gate B, on the SHARE and before renormalization - the order the
+            # shipped path uses. beta is an ADDITIVE yards/game term that
+            # team_reconcile then scales by this same factor, so fitting it
+            # against undiscounted residuals meant fitting a bonus for one
+            # prediction and adding it to another. See GATE_B_UNIFICATION.md.
+            ranked = attach_depth_rank(
+                test[["player_id"]].assign(position=position), int(held[1]))
+            f["share"] = f["share"] * depth_rate_factors(
+                ranked["position"], ranked["nfl_depth_rank"])
             # Team-grain inputs - see transitions.team_model_inputs. Fitting
             # the elite-shrinkage correction on a composition built from
             # ~40%-low team totals inflated its residuals and therefore beta.

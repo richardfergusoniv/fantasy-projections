@@ -26,7 +26,7 @@ from src.projection.depth_history import (
     attach_availability_depth_rank,
     attach_depth_rank,
 )
-from src.projection.depth_rates import depth_rate_factor
+from src.projection.depth_rates import depth_rate_factors
 from src.projection.fantasy_points import SCORING
 from src.projection.features import TARGET_STATS, build_player_season_features
 from src.projection.team_reconcile import (
@@ -345,10 +345,14 @@ def _veteran_forecasts(
             # Production applies the veteran-only depth ladder before share
             # composition.  The held-out chart is available preseason; the
             # factor is deterministic and contains no target outcome.
-            factors = np.array([
-                depth_rate_factor(position, rank)
-                for rank in base.loc[idx, "nfl_depth_rank"]
-            ], dtype=float)
+            #
+            # Same shared rule the shipped path and backtest.py now use -
+            # depth_rates.depth_rate_factors, keyed on nfl_depth_rank alone
+            # and never on the curated chart.  This harness was already the
+            # only one applying it unconditionally; unifying moved the other
+            # two onto what was being measured here, not the reverse.
+            factors = depth_rate_factors(
+                base.loc[idx, "position"], base.loc[idx, "nfl_depth_rank"])
             pred = pred * factors
             rates.append(pd.DataFrame({
                 "player_id": base.loc[idx, "player_id"].to_numpy(),

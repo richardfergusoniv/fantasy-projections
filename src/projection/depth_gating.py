@@ -21,7 +21,7 @@ from src.projection.depth_history import (
     PRESEASON_CHART_DEPTH,
     load_preseason_depth_chart,
 )
-from src.projection.depth_rates import depth_rate_factor
+from src.projection.depth_rates import apply_depth_rate_ladder
 
 
 def load_depth_chart(target_season):
@@ -247,26 +247,40 @@ def apply_depth_chart_gating(df, depth_chart):
          player wasn't in the curated top-N - confirmed outside the
          relevant depth, not merely unresearched.
       - 'not_curated_no_table': target_season has no curated table at all
-         (any season other than 2026) - gating is a no-op, not a claim
-         about this player's role.
+         (any season other than 2026) - the CURATED half is a no-op, not a
+         claim about this player's role. The Gate B rate ladder still
+         applies, because it is not read off this table (see below).
+
+    Curated table vs. Gate B ladder - the split that used to be wrong.
+    Before Gate B (720fa8e) the multiplier came from the curated `role`
+    column, so an empty curated chart correctly meant "no multiplier", and
+    this function early-returned role_discount_factor = 1.0 whenever the
+    chart was empty. Gate B re-keyed the multiplier onto `nfl_depth_rank`,
+    which depth_history.py reconstructs from nflverse for EVERY season -
+    and the early return was not revisited, so the calibrated ladder was
+    silently disabled everywhere except the one season with a hand-curated
+    file. It is now applied unconditionally, through the single shared rule
+    in depth_rates.apply_depth_rate_ladder. Everything the curated chart is
+    genuinely authoritative for - membership, team, displayed role,
+    formation role, depth_chart_status, low_confidence - stays gated on the
+    chart existing. See GATE_B_UNIFICATION.md.
 
     Rookie rows do not call this function: the veteran-only ladder was
     harmful in the dedicated rookie test, so rookie conditional rates remain
     neutral and depth affects their availability only."""
     df = df.copy()
     if depth_chart.empty:
+        # No curated research file for this season: every CURATED field is
+        # unknown and says so. The rate ladder still runs, keyed on the
+        # nflverse rank, which exists here.
         df["depth_rank"] = np.nan
         df["role"] = None
         df["formation_role"] = None
         df["depth_chart_status"] = "not_curated_no_table"
-        df["role_discount_applied"] = False
-        df["role_discount_factor"] = 1.0
+        df = apply_depth_rate_ladder(df)
+        df["role_discount_applied"] = df["role_discount_factor"] < 1.0
+        df.loc[df["role_discount_applied"], "low_confidence"] = True
         return df
-    if "nfl_depth_rank" not in df.columns:
-        raise ValueError(
-            "apply_depth_chart_gating needs nfl_depth_rank (Gate B) - call "
-            "depth_history.attach_depth_rank(df, target_season) first. Defaulting "
-            "it to NaN would silently apply the off-chart factor to every player.")
 
     keep = ["position", "gsis_id", "depth_rank", "role"]
     if "formation_role" in depth_chart.columns:
@@ -282,23 +296,21 @@ def apply_depth_chart_gating(df, depth_chart):
 
     # The net multiplier this row received, recorded as it is applied.
     # Consumed by _compose_reframed_receiving_predictions so the Phase-7
-    # elite-shrinkage correction (an ADDITIVE yards/game term, fit on
-    # undiscounted out-of-sample residuals) can be scaled by the same
-    # factor the rest of the row was: without it, a discounted player with
-    # an elite season-N rate would have a full-size bonus added on top of
-    # a depth-discounted prediction, quietly undoing the discount.
+    # elite-shrinkage correction (an ADDITIVE yards/game term) can be scaled
+    # by the same factor the rest of the row was: without it, a discounted
+    # player with an elite season-N rate would have a full-size bonus added
+    # on top of a depth-discounted prediction, quietly undoing the discount.
+    # corrections.compute_loo_receiving_residuals now fits that term against
+    # discounted residuals too, so the scaling and the fit finally agree.
     #
     # Gate B: the factor comes from the nflverse preseason rank via
     # DEPTH_RATE_LADDER, not from the curated `role`. One lookup now covers
     # the calibrated ladder is authoritative; curated role does not select a
-    # second, asserted multiplier.
-    df["role_discount_factor"] = [
-        depth_rate_factor(p, r) for p, r in zip(df["position"], df["nfl_depth_rank"])
-    ]
+    # second, asserted multiplier. Identical call to the empty-chart branch
+    # above, and to fantasy_evaluation and backtest - that is the point.
+    df = apply_depth_rate_ladder(df)
 
     discounted = df["role_discount_factor"] < 1.0
-    for col in ["pred_pg", "pred_pg_low", "pred_pg_high"]:
-        df[col] = df[col] * df["role_discount_factor"]
     # low_confidence tracks the CURATED table, not the new factor: a WR4 now
     # keeps a full-size rate (fit 1.11), but "the hand-verified table does
     # not carry him" is still the honest confidence statement about him, and
