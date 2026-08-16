@@ -30,10 +30,29 @@ import re
 import numpy as np
 import pandas as pd
 
-from src.projection.data_prep import SEASONS, load_weekly_usage, season_aggregate
+from src.projection.data_prep import (
+    ELIGIBLE_ROSTER_STATUSES,
+    SEASONS,
+    load_weekly_usage,
+    player_dominant_roster_status,
+    player_eligible_weeks,
+    season_aggregate,
+)
 from src.projection.depth_history import attach_availability_depth_rank, attach_depth_rank
 from src.projection.contracts import VACATED_CLIP
 from src.projection.features import TARGET_STATS
+
+# Minimum eligible weeks for a rookie season to be evidence about a role.
+# Mirrors transitions.MIN_ELIGIBLE_WEEKS; duplicated rather than imported
+# because transitions imports features which would close a cycle, and pinned
+# to it by a test.
+ROOKIE_MIN_ELIGIBLE_WEEKS = 4
+ROOKIE_ROLE_ELIGIBLE = "role_rate_eligible"
+
+
+def rookie_role_label(stat):
+    """Per-eligible-week rookie label, matching transitions.role_rate_label."""
+    return f"{stat}_per_elig"
 
 ROUND_BUCKETS = {1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7", 5: "round_4_7",
                   6: "round_4_7", 7: "round_4_7"}
@@ -475,7 +494,12 @@ def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
 
     stat_cols = sorted({s for stats in TARGET_STATS.values() for s in stats})
     pg_cols = [f"{s}_pg" for s in stat_cols]
-    actual_cols = ["player_id", "season", "team", "games_played"] + pg_cols
+    # Raw season totals come along now: the role-rate label is built here from
+    # totals over eligible weeks, because a rookie who never took a snap has
+    # no feature row at all and so no rate to average - which is exactly the
+    # row the old conditional rate silently dropped.
+    actual_cols = (["player_id", "season", "team", "games_played"]
+                   + pg_cols + [c for c in stat_cols if c in feature_table.columns])
     if "opportunity_games" in feature_table.columns:
         actual_cols.append("opportunity_games")
     actuals = feature_table[actual_cols].rename(columns={"team": "actual_team"})
@@ -492,6 +516,41 @@ def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
         df["opportunity_games"] = df["games_played"]
     else:
         df["opportunity_games"] = df["opportunity_games"].fillna(0.0)
+    # --- Role rates: season total over ELIGIBLE weeks, zeros included.
+    #
+    # The `{stat}_pg` columns above divide by games_played (weeks with an
+    # offensive snap) and are NaN for a rookie who never played. Averaging
+    # them - which pandas does by skipping NaN - estimates "what a rookie who
+    # played did", not "what a rookie in this bucket does". Measured on
+    # 2016-2025 drafted skill players, that inflates the rookie QB rate from
+    # 10.28 to 27.04 attempts per week, a factor of 2.63, and it is why the
+    # board projected 3,177 rookie QB attempts against an 18,361 team anchor.
+    # 30% of eligible rookie QBs never take a snap (47% on day 3); at RB/WR/TE
+    # it is 9%/8%/5%.
+    #
+    # Dividing season totals by eligible weeks makes the zero a real 0.0
+    # instead of a NaN, so `rate * SEASON_GAMES` is a full-season projection
+    # for the role - the same basis the veteran path now uses.
+    seasons_present = sorted(df["season"].dropna().astype(int).unique())
+    elig = player_eligible_weeks(conn, seasons_present)
+    status = player_dominant_roster_status(conn, seasons_present)
+    df = df.merge(elig, on=["season", "player_id"], how="left")
+    df = df.merge(status, on=["season", "player_id"], how="left")
+    for stat in stat_cols:
+        if stat in df.columns:
+            df[stat] = pd.to_numeric(df[stat], errors="coerce").fillna(0.0)
+            df[rookie_role_label(stat)] = df[stat] / df["eligible_weeks"].where(
+                df["eligible_weeks"] > 0)
+    # A rookie season is evidence about a ROLE only when he was rostered and
+    # available. Reserve/IR belongs to the status-override gate and a cut
+    # player is out of the population - the same split the veteran pair
+    # builder makes. Rows failing this keep their columns but are excluded
+    # from the fit.
+    df[ROOKIE_ROLE_ELIGIBLE] = (
+        df["status"].isin(ELIGIBLE_ROSTER_STATUSES)
+        & (df["eligible_weeks"] >= ROOKIE_MIN_ELIGIBLE_WEEKS)
+    )
+
     df = df.merge(vacated, on=["season", "team"], how="left")
     df = df.merge(athletic, on="player_id", how="left")
     df["athletic_tier"] = df["athletic_tier"].fillna("no_data")
@@ -605,16 +664,23 @@ def fit_rookie_baselines(rookie_df, train_seasons):
     vacated_carry/target_share, fit ONLY on train_seasons (so the backtest
     holdout season's own rookies never inform their own baseline)."""
     train = rookie_df[rookie_df["season"].isin(train_seasons)].copy()
-    pg_cols = [c for c in rookie_df.columns if c.endswith("_pg")]
+    role_cols = [c for c in rookie_df.columns if c.endswith("_per_elig")]
     vacated_cols = ["vacated_carry_share", "vacated_target_share", "vacated_attempts_share"]
-    # Pandas means skip NaN, so per-game rates remain conditional on recording
-    # an opportunity while games_played is averaged over the full cohort,
-    # including never-played rookies. This separates rate from availability
-    # instead of shrinking rate with an external consensus probability.
-    baselines = train.groupby(["position", "round_bucket"])[pg_cols + vacated_cols + ["games_played"]].mean()
+    # Fit the RATE on rookies who were rostered and available, zeros included.
+    # Averaging the conditional `{stat}_pg` columns instead - which is what
+    # this did - skipped every never-played rookie via NaN and estimated the
+    # wrong quantity by 2.63x at QB. See build_rookie_dataset.
+    #
+    # Availability (`mean_games_played` and the depth-band variants below)
+    # still averages over the FULL cohort, because it answers a different
+    # question and feeds projected_games_raw rather than the rate.
+    rate_pop = train[train[ROOKIE_ROLE_ELIGIBLE]] if ROOKIE_ROLE_ELIGIBLE in train.columns else train
+    rates = rate_pop.groupby(["position", "round_bucket"])[role_cols].mean()
+    other = train.groupby(["position", "round_bucket"])[vacated_cols + ["games_played"]].mean()
+    baselines = rates.join(other, how="outer")
     baselines = baselines.rename(columns={"games_played": "mean_games_played"})
     counts = train.groupby(["position", "round_bucket"]).size().rename("n_train_rookies")
-    rate_counts = train[train["opportunity_games"] > 0].groupby(
+    rate_counts = rate_pop.groupby(
         ["position", "round_bucket"]).size().rename("n_rate_rookies")
 
     if "target_depth_rank" in train.columns:
@@ -689,7 +755,11 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
     UPWARD half of the scale: a below-average opening is a real fact about
     this rookie's situation and no other player's claim makes it less true.
     """
-    pg_cols = [c for c in baselines.columns if c.endswith("_pg")]
+    # The baselines carry `{stat}_per_elig` role rates. The board's column
+    # convention is `{stat}_pg`, and on the veteran path pred_pg is now a role
+    # rate too, so the two agree in meaning - the rename happens once, here.
+    role_cols = [c for c in baselines.columns if c.endswith("_per_elig")]
+    pg_cols = [c.replace("_per_elig", "_pg") for c in role_cols]
     target = rookie_df[rookie_df["season"].isin(target_seasons)].copy()
     boost_eligible_players = set()
     if depth_chart is not None and not depth_chart.empty:
@@ -710,7 +780,8 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
         np.where(target["position"] == "QB", "attempts", "target"))
     claim_weight = {}
     for (position, bucket), _ in baselines.iterrows():
-        primary = {"RB": "carries_pg", "QB": "attempts_pg"}.get(position, "targets_pg")
+        primary = {"RB": "carries_per_elig", "QB": "attempts_per_elig"}.get(
+            position, "targets_per_elig")
         if primary in baselines.columns:
             claim_weight[(position, bucket)] = max(
                 float(baselines.loc[(position, bucket), primary]), 0.0)
@@ -760,7 +831,7 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
                 if pd.isna(claim):
                     claim = 1.0
                 scale = 1.0 + (scale - 1.0) * float(residual) * float(claim)
-        preds = {c: b[c] * scale for c in pg_cols}
+        preds = {out: b[src] * scale for out, src in zip(pg_cols, role_cols)}
         preds["rookie_vacancy_scale"] = scale
 
         # Combine-athleticism scale (Addendum 4, Part 3) - a modest,
@@ -842,9 +913,22 @@ def rookie_interval_ratios(rookie_df, baselines, train_seasons, quantiles=ROOKIE
     so buckets below ROOKIE_INTERVAL_MIN_N are flagged via
     interval_low_n_flag rather than silently presented at equal
     confidence to a well-sampled bucket."""
-    train = rookie_df[rookie_df["season"].isin(train_seasons) & (rookie_df["games_played"] > 0)]
-    pg_cols = [c for c in rookie_df.columns if c.endswith("_pg")]
-    stat_names = [c[:-3] for c in pg_cols]
+    # Ratios are taken on the ROLE-RATE population the point estimate is fit
+    # on - rostered, available, zeros included - not on `games_played > 0`.
+    # The old filter made every published rookie interval conditional on the
+    # player having played, which is wrong exactly where uncertainty is
+    # largest: 56% of round 4-7 rookie QBs score zero, so their true p10 is 0
+    # and no ratio band computed off the played-only subset can produce it.
+    #
+    # NOTE this leaves the band still multiplicative and still unable to
+    # represent a point mass at zero. Dropping the filter fixes the
+    # population; representing the zero mass properly needs the hurdle that
+    # measured worthless for the POINT estimate and is deferred.
+    train = rookie_df[rookie_df["season"].isin(train_seasons)]
+    if ROOKIE_ROLE_ELIGIBLE in train.columns:
+        train = train[train[ROOKIE_ROLE_ELIGIBLE]]
+    role_cols = [c for c in rookie_df.columns if c.endswith("_per_elig")]
+    stat_names = [c[: -len("_per_elig")] for c in role_cols]
 
     rows = []
     for (position, bucket), grp in train.groupby(["position", "round_bucket"]):
@@ -852,7 +936,7 @@ def rookie_interval_ratios(rookie_df, baselines, train_seasons, quantiles=ROOKIE
         if (position, bucket) not in baselines.index:
             continue
         b = baselines.loc[(position, bucket)]
-        for stat, pg_col in zip(stat_names, pg_cols):
+        for stat, pg_col in zip(stat_names, role_cols):
             mean = b[pg_col]
             vals = grp[pg_col].dropna()
             if pd.isna(mean) or mean == 0 or len(vals) < 3:

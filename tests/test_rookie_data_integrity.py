@@ -34,11 +34,15 @@ class RookieDataIntegrityTests(unittest.TestCase):
         cohort = pd.DataFrame(
             [
                 dict(player_id="a", season=2024, team="A", position="QB", round_bucket="round_4_7",
-                     games_played=8, opportunity_games=4, attempts_pg=10.0, vacated_carry_share=0.2,
+                     games_played=8, opportunity_games=4, attempts_pg=10.0,
+                     attempts_per_elig=10.0, eligible_weeks=17, status='ACT',
+                     role_rate_eligible=True, vacated_carry_share=0.2,
                      vacated_target_share=0.2, vacated_attempts_share=0.5,
                      target_depth_rank=1, nfl_depth_rank=8),
                 dict(player_id="b", season=2024, team="B", position="QB", round_bucket="round_4_7",
-                     games_played=0, opportunity_games=0, attempts_pg=np.nan, vacated_carry_share=0.2,
+                     games_played=0, opportunity_games=0, attempts_pg=np.nan,
+                     attempts_per_elig=0.0, eligible_weeks=17, status='ACT',
+                     role_rate_eligible=True, vacated_carry_share=0.2,
                      vacated_target_share=0.2, vacated_attempts_share=0.5,
                      target_depth_rank=np.nan, nfl_depth_rank=2),
             ]
@@ -46,9 +50,17 @@ class RookieDataIntegrityTests(unittest.TestCase):
         baselines = fit_rookie_baselines(cohort, [2024])
         b = baselines.loc[("QB", "round_4_7")]
         self.assertEqual(b["mean_games_played"], 4)
-        self.assertEqual(b["attempts_pg"], 10)
+        # 10.0 for the rookie who played, 0.0 for the one who did not: the
+        # role rate is the mean over both, because "he was available and did
+        # nothing" is evidence about the bucket. Averaging the conditional
+        # rate would return 10 and over-project the bucket 2x.
+        self.assertEqual(b["attempts_per_elig"], 5.0)
         self.assertEqual(b["n_train_rookies"], 2)
-        self.assertEqual(b["n_rate_rookies"], 1)
+        # Both rookies now count toward the RATE, not just the one who
+        # recorded an opportunity: n_rate_rookies tracks the role-eligible
+        # cohort (rostered, available, zeros included), which is the
+        # population the rate is fit on.
+        self.assertEqual(b["n_rate_rookies"], 2)
 
         target = pd.DataFrame([dict(
             player_id="rook", season=2025, team="A", position="QB", round_bucket="round_4_7",
@@ -57,7 +69,7 @@ class RookieDataIntegrityTests(unittest.TestCase):
             target_depth_rank=1, nfl_depth_rank=8,
         )])
         pred = predict_rookies(target, baselines, [2025])
-        self.assertEqual(pred.loc[0, "attempts_pg"], 10)
+        self.assertEqual(pred.loc[0, "attempts_pg"], 5.0)
         # Rank-1 cell has n=1, so availability falls back to the full
         # draft-bucket mean instead of shipping the tiny cell's 8 games.
         self.assertEqual(pred.loc[0, "projected_games"], 4)
@@ -71,7 +83,7 @@ class RookieDataIntegrityTests(unittest.TestCase):
         idx = pd.MultiIndex.from_tuples(
             [("QB", "round_1")], names=["position", "round_bucket"])
         baselines = pd.DataFrame([dict(
-            attempts_pg=10.0,
+            attempts_per_elig=10.0,
             vacated_carry_share=0.2,
             vacated_target_share=0.2,
             vacated_attempts_share=0.2,
@@ -107,7 +119,7 @@ class RookieDataIntegrityTests(unittest.TestCase):
         idx = pd.MultiIndex.from_tuples(
             [("WR", "round_1")], names=["position", "round_bucket"])
         baselines = pd.DataFrame([dict(
-            targets_pg=6.0,
+            targets_per_elig=6.0,
             vacated_carry_share=0.2,
             vacated_target_share=0.2,
             vacated_attempts_share=0.2,
