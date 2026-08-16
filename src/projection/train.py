@@ -34,7 +34,7 @@ from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
-    build_role_transition_pairs, role_rate_label,
+    build_role_transition_pairs, role_rate_label, role_label_for,
     ALL_FEATURES, AVAILABILITY_FEATURES, ROLE_FEATURES, TEAM_FEATURES,
     TEAM_MODEL_FEATURES, REFRAMED_SHARE_STATS,
     RECEIVING_SHARE_LABEL, RECEIVING_SHARE_ELIG_LABEL, TEAM_TOTAL_LABEL,
@@ -57,13 +57,6 @@ LGBM_PARAMS = dict(
     min_child_samples=10, subsample=0.8, subsample_freq=1, colsample_bytree=0.8,
     reg_alpha=0.1, reg_lambda=0.1, verbosity=-1, random_state=0,
 )
-
-
-def role_label_for(position, stat):
-    """The label a volume model is fit on: a role rate, or a role share."""
-    if (position, stat) in REFRAMED_SHARE_STATS:
-        return RECEIVING_SHARE_ELIG_LABEL
-    return role_rate_label(stat)
 
 
 def fit_one(feat, position, stat, pairs=ALL_PAIRS, conn=None):

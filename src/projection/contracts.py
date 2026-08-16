@@ -89,6 +89,12 @@ OUTPUT_COLUMNS = [
     "depth_rank", "role", "formation_role", "depth_chart_status",
     "role_discount_applied",
     "nfl_depth_rank",
+    # The tier the model actually consumed, and where it came from. These are
+    # the audit surface that role_discount_factor used to be: depth reaches
+    # the projection as a model INPUT now, so the input has to be visible or
+    # nobody can tell why a player was projected the way he was.
+    # depth_tier_source = 'curated' means the hand chart overrode the feed.
+    "depth_tier", "depth_tier_source",
     "role_discount_factor",
     "athletic_tier",
     "receiving_share_capped",

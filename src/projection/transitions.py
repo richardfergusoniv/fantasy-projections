@@ -303,6 +303,17 @@ def role_rate_label(stat):
     return f"{stat}_per_elig"
 
 
+def role_label_for(position, stat):
+    """The label a volume model is fit on: a role rate, or a role share.
+
+    Lives here rather than in train.py so the predict path can ask the same
+    question without importing the trainer.
+    """
+    if (position, stat) in REFRAMED_SHARE_STATS:
+        return RECEIVING_SHARE_ELIG_LABEL
+    return role_rate_label(stat)
+
+
 def build_role_transition_pairs(feat, position, stat, season_pairs, conn=None,
                                 label_col=None):
     """Season N features -> season N+1 ROLE RATE, per eligible week.

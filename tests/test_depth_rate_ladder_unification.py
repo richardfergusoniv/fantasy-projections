@@ -91,16 +91,26 @@ class DepthRateLadderRule(unittest.TestCase):
 class LadderIsNotGatedOnTheCuratedChart(unittest.TestCase):
     """The regression itself: an empty curated chart must not disable Gate B."""
 
-    def test_empty_curated_chart_still_applies_the_ladder(self):
+    def test_gating_no_longer_scales_anything(self):
+        """SUPERSEDED CONTRACT, kept as a guard rather than deleted.
+
+        This class used to assert that an empty curated chart still applied
+        the Gate B ladder - the regression the unification fixed. The ladder
+        itself is now retired: depth reaches a projection as a model INPUT
+        (the depth tier in ROLE_FEATURES), not as a multiplier on the model's
+        output, because a post-hoc factor keyed on rank cannot condition on
+        the player's own usage history and its rungs were calibrated
+        rate-to-rate while being applied to a season total.
+
+        What must stay true is that NOTHING here scales a prediction. A future
+        edit that reintroduces a multiplier on this path fails here.
+        """
         out = apply_depth_chart_gating(_rows(), EMPTY_CHART)
-        expected = depth_rate_factors(_rows()["position"], _rows()["nfl_depth_rank"])
-        np.testing.assert_allclose(out["role_discount_factor"], expected)
-        np.testing.assert_allclose(out["pred_pg"], 10.0 * expected)
-        np.testing.assert_allclose(out["pred_pg_low"], 8.0 * expected)
-        np.testing.assert_allclose(out["pred_pg_high"], 12.0 * expected)
-        # ... and at least one row really is discounted, so the assertions
-        # above cannot pass vacuously on an all-1.0 ladder.
-        self.assertTrue((out["role_discount_factor"] < 1.0).any())
+        np.testing.assert_allclose(out["pred_pg"], 10.0)
+        np.testing.assert_allclose(out["pred_pg_low"], 8.0)
+        np.testing.assert_allclose(out["pred_pg_high"], 12.0)
+        np.testing.assert_allclose(out["role_discount_factor"], 1.0)
+        self.assertFalse(out["role_discount_applied"].any())
 
     def test_empty_curated_chart_still_reports_no_curated_knowledge(self):
         """Only the CURATED half no-ops. Those fields must stay honest."""
@@ -109,17 +119,20 @@ class LadderIsNotGatedOnTheCuratedChart(unittest.TestCase):
         self.assertTrue(out["role"].isna().all())
         self.assertTrue((out["depth_chart_status"] == "not_curated_no_table").all())
 
-    def test_discount_flags_agree_with_the_factor_on_the_empty_branch(self):
+    def test_discount_flags_are_inert_on_the_empty_branch(self):
         out = apply_depth_chart_gating(_rows(), EMPTY_CHART)
-        pd.testing.assert_series_equal(
-            out["role_discount_applied"],
-            out["role_discount_factor"] < 1.0,
-            check_names=False)
-        self.assertTrue(out.loc[out["role_discount_applied"], "low_confidence"].all())
+        self.assertTrue((out["role_discount_factor"] == 1.0).all())
+        self.assertFalse(out["role_discount_applied"].any())
 
     def test_curated_and_uncurated_seasons_agree_on_the_factor(self):
-        """Same player, same rank: the curated file must not change his rate
-        multiplier. It governs membership and role, never the ladder."""
+        """Same player: this stage must not scale him either way.
+
+        NOTE the deliberate reversal elsewhere. The curated chart DOES now
+        change a player's projection - it supplies the model's depth tier via
+        depth_gating.apply_curated_depth_tier, which is the whole point of a
+        hand-verified chart. What it must not do is select a post-hoc
+        multiplier here, which is what this asserts.
+        """
         chart = pd.DataFrame({
             "team": ["AAA"] * 4,
             "position": ["QB", "QB", "WR", "TE"],
@@ -139,11 +152,17 @@ class EveryPathGoesThroughTheSharedHelper(unittest.TestCase):
     on one path is exactly how the three-way disagreement happened; these fail
     when a path stops importing the shared rule."""
 
-    def test_depth_gating_uses_the_shared_application(self):
+    def test_depth_gating_applies_no_multiplier_on_either_branch(self):
+        """The shared-helper guard, inverted for the retired ladder.
+
+        Its purpose is unchanged: stop a future edit from re-implementing a
+        depth multiplier inline on one path, which is how the original
+        three-way disagreement happened. There is now no multiplier to share,
+        so the guard is that neither branch calls one.
+        """
         src = inspect.getsource(apply_depth_chart_gating)
-        self.assertIn("apply_depth_rate_ladder(df)", src)
-        # Both branches, not just the curated one.
-        self.assertEqual(src.count("apply_depth_rate_ladder(df)"), 2)
+        self.assertNotIn("apply_depth_rate_ladder", src)
+        self.assertNotIn("depth_rate_factors", src)
 
     def test_fantasy_evaluation_uses_the_shared_lookup(self):
         src = inspect.getsource(fe._veteran_forecasts)
