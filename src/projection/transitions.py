@@ -22,7 +22,8 @@ import numpy as np
 import pandas as pd
 
 from src.projection.depth_history import (
-    AVAILABILITY_DEPTH_FEATURE, attach_availability_depth_rank,
+    AVAILABILITY_DEPTH_FEATURE, DEPTH_TIER_COLUMN, attach_availability_depth_rank,
+    attach_depth_tier, load_preseason_depth_chart,
 )
 from src.projection.features import FEATURE_COLS, TARGET_STATS, OC_METRICS
 
@@ -86,6 +87,10 @@ TEAM_MODEL_FEATURES = TEAM_FEATURES + ["team_naive_pred"]
 # combos are reframed, rather than re-deriving/duplicating this set.
 REFRAMED_SHARE_STATS = {("WR", "receiving_yards"), ("TE", "receiving_yards"), ("RB", "receiving_yards")}
 RECEIVING_SHARE_LABEL = "receiving_yards_share"
+# The role-rate counterpart of RECEIVING_SHARE_LABEL: the same share with the
+# appearance-week denominator replaced by full-season team passing yards
+# scaled to the player's eligibility. See features.py.
+RECEIVING_SHARE_ELIG_LABEL = "receiving_yards_share_elig"
 TEAM_TOTAL_LABEL = "team_passing_yards_pg"
 TEAM_ATTEMPTS_LABEL = "team_pass_attempts_pg"
 TEAM_CARRIES_LABEL = "team_carries_pg"
@@ -267,6 +272,108 @@ def build_transition_pairs(feat, position, stat, season_pairs, label_col=None):
 SEASON_GAMES = 17
 
 AVAILABILITY_LABEL = "games_played_to"
+
+# A rate over fewer than this many eligible weeks is division by a number too
+# small to mean anything (a player signed for the last two weeks of a season
+# is not evidence about a full-season role). Such rows leave the population
+# rather than being clipped, so nothing silently smuggles a 2-week sample in
+# at full weight.
+MIN_ELIGIBLE_WEEKS = 4
+
+ROLE_ZERO_FLAG = "is_role_zero"
+
+
+def role_rate_label(stat):
+    """The per-eligible-week label name for `stat` - see features.py."""
+    return f"{stat}_per_elig"
+
+
+def build_role_transition_pairs(feat, position, stat, season_pairs, conn=None,
+                                label_col=None):
+    """Season N features -> season N+1 ROLE RATE, per eligible week.
+
+    Two deliberate differences from build_transition_pairs, and they are the
+    whole point:
+
+    1. The label is `{stat}_per_elig`, not `{stat}_pg`. See features.py for
+       why the appearance-week denominator was survivorship-selected.
+
+    2. The population KEEPS zero-production seasons whose cause is role, and
+       drops the ones whose cause is not. A charted player who was rostered
+       and off reserve all year and never took an offensive snap has a true
+       role rate of zero, and excluding him is exactly what taught the models
+       that a third-stringer produces like a starter. But a player on IR
+       belongs to the status-override gate, and a player who was cut is out
+       of the population, so neither may enter as a zero - including them
+       would bake injury attrition and roster churn back into a rate that is
+       supposed to describe a role. `is_role_zero` marks the rows that were
+       added this way.
+
+    Requires `conn` to resolve roster status and the preseason chart. Passing
+    `conn=None` yields the played-only population and is only appropriate for
+    unit tests that supply their own frame.
+
+    `label_col` overrides the label the same way build_transition_pairs does,
+    for the reframed receiving-share models.
+    """
+    pos_df = feat[feat["position"] == position]
+    y_col = label_col or role_rate_label(stat)
+    rate_col = f"{stat}_pg"
+
+    rows = []
+    for season_from, season_to in season_pairs:
+        a = pos_df[pos_df["season"] == season_from][
+            ["player_id", "team"] + ALL_FEATURES + [rate_col]]
+        a = a.rename(columns={rate_col: "naive_pred"})
+        cols_to = ["player_id", "games_played", "eligible_weeks", y_col]
+        b = pos_df[pos_df["season"] == season_to][cols_to].rename(columns={
+            "games_played": "games_played_to", "eligible_weeks": "eligible_weeks_to"})
+        merged = a.merge(b, on="player_id", how="left")
+        merged[ROLE_ZERO_FLAG] = False
+
+        if conn is not None:
+            merged = _admit_role_zeros(merged, position, season_to, conn)
+        merged = merged[merged[y_col].notna()]
+        merged = merged[merged["eligible_weeks_to"] >= MIN_ELIGIBLE_WEEKS]
+
+        # The chart is keyed by (player, position); ALL_FEATURES carries no
+        # position column, so name it before the lookup. Models are strictly
+        # per-position, so this is the model's position by construction.
+        merged["position"] = position
+        merged = attach_depth_tier(merged, season_to, conn=conn)
+        merged["season_from"] = season_from
+        merged["season_to"] = season_to
+        rows.append(merged)
+
+    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
+
+
+def _admit_role_zeros(merged, position, season_to, conn):
+    """Fill a genuine role zero, drop every other kind of missing outcome."""
+    from src.projection.data_prep import (
+        ELIGIBLE_ROSTER_STATUSES, player_dominant_roster_status, player_eligible_weeks)
+
+    y_cols = [c for c in merged.columns if c.endswith("_per_elig")
+              or c == RECEIVING_SHARE_ELIG_LABEL]
+    chart = load_preseason_depth_chart(season_to, conn=conn)
+    charted = set(chart[chart["position"] == position]["player_id"]) if not chart.empty else set()
+    status = player_dominant_roster_status(conn, [season_to]).set_index("player_id")["status"]
+    elig = player_eligible_weeks(conn, [season_to]).set_index("player_id")["eligible_weeks"]
+
+    # A missing outcome row, or a row with no offensive snap, is a candidate.
+    no_output = merged["games_played_to"].isna() | merged["games_played_to"].eq(0)
+    is_zero = (
+        no_output
+        & merged["player_id"].isin(charted)
+        & merged["player_id"].map(status).isin(ELIGIBLE_ROSTER_STATUSES)
+    )
+    merged.loc[is_zero, y_cols] = 0.0
+    merged.loc[is_zero, "games_played_to"] = 0.0
+    merged.loc[is_zero, "eligible_weeks_to"] = merged.loc[is_zero, "player_id"].map(elig)
+    merged.loc[is_zero, ROLE_ZERO_FLAG] = True
+    # Everything else that produced nothing leaves the population: rows still
+    # carrying a NaN label are dropped by the caller.
+    return merged
 
 
 def build_availability_pairs(feat, position, season_pairs):

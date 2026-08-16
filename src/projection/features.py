@@ -36,7 +36,7 @@ from src.projection.data_prep import (
     player_season_designed_rushes, team_season_opponent_strength,
     player_active_team_opportunity, team_season_yardage_totals,
     player_season_receiving_yards_share, _team_season_game_count,
-    player_season_age,
+    player_season_age, player_eligible_weeks, SEASON_GAMES_CAP,
 )
 from src.projection.ol_quality import team_season_ol_quality
 
@@ -362,6 +362,12 @@ def build_player_season_features(conn, seasons=SEASONS, ol_trailing_for_seasons=
     recv_share = player_season_receiving_yards_share(conn, seasons)
     base = base.merge(recv_share, on=["season", "player_id"], how="left")
 
+    # Weeks rostered and off reserve - the denominator of the role-rate
+    # labels built at the end of this function. A LABEL input, never a
+    # FEATURE: it is only known after the season it describes.
+    base = base.merge(
+        player_eligible_weeks(conn, seasons), on=["season", "player_id"], how="left")
+
     # --- peak_receiving_yards_share (FEATURE_COLS input, not a label):
     # max(this season's own receiving_yards_share, the immediately PRIOR
     # season's) - built from the age/injury investigation (Malik Nabers'
@@ -456,6 +462,42 @@ def build_player_season_features(conn, seasons=SEASONS, ol_trailing_for_seasons=
     for stat_group in TARGET_STATS.values():
         for stat in stat_group:
             base[f"{stat}_pg"] = base[stat] / base["games_played"].replace(0, np.nan)
+
+    # --- Role-rate labels (per ELIGIBLE week, not per appearance week).
+    #
+    # `{stat}_pg` above divides by games_played, which counts weeks with an
+    # offensive snap. That denominator is survivorship-selected and it is the
+    # reason the board over-projected backups: measured 2021-2025, a QB2's
+    # appearance-conditional rate is 2.47x his per-team-game rate and a QB3's
+    # is 3.07x, because the only weeks a backup registers a snap are the weeks
+    # he was effectively starting. The gradient it destroys is real - actual
+    # attempts per team game run 25.6 / 5.5 / 5.2 / 3.7 by preseason rank.
+    #
+    # `{stat}_per_elig` divides by weeks the player was rostered and off
+    # reserve instead, so `pred * SEASON_GAMES` is "what he does in this role
+    # over a full season". Measured on held-out folds, dividing by a flat 17
+    # instead under-projects a HEALTHY starter by 6-11% at every position
+    # (it silently prices in the 44% of starter seasons that end early);
+    # dividing by eligibility lands within 1-6%. Games actually missed are the
+    # status-override gate's job, not the rate's.
+    #
+    # eligible_weeks is NaN for a player-season with no weekly_rosters row at
+    # all. Left NaN rather than filled: the pair builder drops those rows
+    # explicitly (out of the league is not a role), and a silent fill would
+    # turn "no roster evidence" into a confident rate.
+    elig = base["eligible_weeks"].where(base["eligible_weeks"].gt(0))
+    for stat_group in TARGET_STATS.values():
+        for stat in stat_group:
+            base[f"{stat}_per_elig"] = base[stat] / elig
+    # Same correction on the reframed receiving-share label. The shipped
+    # `receiving_yards_share` divides by team passing yards DURING APPEARANCE
+    # WEEKS (data_prep.player_season_receiving_yards_share), carrying the
+    # identical bias; this divides by the team's full-season passing yards
+    # scaled to the player's eligibility.
+    team_season_pass = base["team_passing_yards"].where(base["team_passing_yards"].gt(0))
+    base["receiving_yards_share_elig"] = (
+        base["receiving_yards"] / (team_season_pass * elig / SEASON_GAMES_CAP)
+    )
 
     # These are named ``prior_*`` from the perspective of the target season:
     # a season-N feature row is paired with a season-N+1 label downstream.
