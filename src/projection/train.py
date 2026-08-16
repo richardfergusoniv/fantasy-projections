@@ -34,8 +34,11 @@ from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
-    ALL_FEATURES, AVAILABILITY_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, REFRAMED_SHARE_STATS,
-    RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, AVAILABILITY_LABEL,
+    build_role_transition_pairs, role_rate_label,
+    ALL_FEATURES, AVAILABILITY_FEATURES, ROLE_FEATURES, TEAM_FEATURES,
+    TEAM_MODEL_FEATURES, REFRAMED_SHARE_STATS,
+    RECEIVING_SHARE_LABEL, RECEIVING_SHARE_ELIG_LABEL, TEAM_TOTAL_LABEL,
+    AVAILABILITY_LABEL,
     TEAM_ATTEMPTS_LABEL, TEAM_CARRIES_LABEL, TEAM_RUSH_YARDS_LABEL,
 )
 
@@ -56,19 +59,44 @@ LGBM_PARAMS = dict(
 )
 
 
-def fit_one(feat, position, stat, pairs=ALL_PAIRS):
-    """(position, stat) in REFRAMED_SHARE_STATS (joint/multi-output Phase A
-    - see transitions.py) trains on RECEIVING_SHARE_LABEL instead of the
-    default `{stat}_pg` rate - everything else about fitting (same
-    LGBM_PARAMS, same ALL_FEATURES input) is unchanged, since this is a
-    label swap, not a capacity change."""
-    label_col = RECEIVING_SHARE_LABEL if (position, stat) in REFRAMED_SHARE_STATS else None
-    data = build_transition_pairs(feat, position, stat, pairs, label_col=label_col)
-    y_col = label_col or f"{stat}_pg"
-    X = data[ALL_FEATURES]
-    y = data[y_col]
+def role_label_for(position, stat):
+    """The label a volume model is fit on: a role rate, or a role share."""
+    if (position, stat) in REFRAMED_SHARE_STATS:
+        return RECEIVING_SHARE_ELIG_LABEL
+    return role_rate_label(stat)
+
+
+def fit_one(feat, position, stat, pairs=ALL_PAIRS, conn=None):
+    """Season N features -> season N+1 ROLE rate (or role share).
+
+    Three changes from the per-appearance fit this replaces, all measured:
+
+    * the label divides by ELIGIBLE weeks, so `pred * SEASON_GAMES` is a
+      full-season projection for the player's role rather than a rate
+      conditional on the weeks he happened to be pressed into service;
+    * the population keeps role zeros, which is what teaches the model that
+      a third-stringer is a third-stringer;
+    * the depth tier is an input, which is what the Gate B ladder was trying
+      to be as a post-hoc multiplier and could not be.
+
+    Off-chart (tier 5) rows stay IN the fit, and an earlier pass of this work
+    was wrong to take them out. The concern was real - off-chart history looks
+    upward-selected, because a player absent from the August chart seems to
+    reach the data only by being signed and playing - but the cause was the
+    population rule, not the tier. 30-46% of rostered, eligible, off-chart
+    players never take an offensive snap, and those rows are observable; they
+    were being dropped by a depth-chart membership test that
+    build_role_transition_pairs no longer applies. With them restored, letting
+    the model predict tier 5 beats substituting a replacement level fit on the
+    listed-deep tier: off-chart |1 - calibration| 0.226 vs 0.300 averaged over
+    seven position/stat combos, and lower label-scale MAE on all seven.
+    """
+    y_col = role_label_for(position, stat)
+    label_col = y_col if (position, stat) in REFRAMED_SHARE_STATS else None
+    data = build_role_transition_pairs(
+        feat, position, stat, pairs, conn=conn, label_col=label_col)
     model = LGBMRegressor(**LGBM_PARAMS)
-    model.fit(X, y)
+    model.fit(data[ROLE_FEATURES], data[y_col])
     return model, len(data)
 
 
@@ -122,9 +150,11 @@ def fit_availability(feat, position, pairs=ALL_PAIRS):
 
 
 def main():
+    # The connection stays open past feature building: the role-rate pair
+    # builder needs roster status and the preseason chart to tell a role zero
+    # from an injury or a cut.
     conn = get_conn()
     feat = build_player_season_features(conn)
-    conn.close()
 
     os.makedirs(MODELS_DIR, exist_ok=True)
     manifest = []
@@ -168,16 +198,21 @@ def main():
 
     for position, stats in TARGET_STATS.items():
         for stat in stats:
-            model, n = fit_one(feat, position, stat)
+            model, n = fit_one(feat, position, stat, conn=conn)
             path = os.path.join(MODELS_DIR, f"{position}_{stat}.joblib")
             reframed = (position, stat) in REFRAMED_SHARE_STATS
-            label = RECEIVING_SHARE_LABEL if reframed else f"{stat}_pg"
+            label = role_label_for(position, stat)
+            # `features` and `label` are read back by every consumer rather
+            # than assumed, so a model fit on the role basis cannot be scored
+            # as if it were the old per-appearance one.
             joblib.dump(
-                {"model": model, "features": ALL_FEATURES, "position": position, "stat": stat, "label": label},
+                {"model": model, "features": ROLE_FEATURES, "position": position,
+                 "stat": stat, "label": label},
                 path,
             )
             manifest.append((position, stat, n))
-            note = " (reframed: predicts receiving_yards_share, composed with team_passing_yards at predict time)" if reframed else ""
+            note = (" (reframed: predicts receiving_yards_share_elig, composed with "
+                    "team_passing_yards at predict time)" if reframed else "")
             print(f"{position} {stat}: trained on {n} rows -> {path}{note}")
 
     # Post-hoc correction parameters (Phase 7 of the consensus-gap work).
@@ -220,6 +255,7 @@ def main():
         print(f"{position} games (availability): trained on {n} rows "
               f"(includes never-played-again rows) -> {path}")
 
+    conn.close()
     joblib.dump(manifest, os.path.join(MODELS_DIR, "manifest.joblib"))
     print("Done.")
 

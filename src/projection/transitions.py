@@ -23,7 +23,7 @@ import pandas as pd
 
 from src.projection.depth_history import (
     AVAILABILITY_DEPTH_FEATURE, DEPTH_TIER_COLUMN, attach_availability_depth_rank,
-    attach_depth_tier, load_preseason_depth_chart,
+    attach_depth_tier,
 )
 from src.projection.features import FEATURE_COLS, TARGET_STATS, OC_METRICS
 
@@ -282,6 +282,21 @@ MIN_ELIGIBLE_WEEKS = 4
 
 ROLE_ZERO_FLAG = "is_role_zero"
 
+# Season N's own value of whatever label season N+1 is being fit on. The
+# existing LAG_RATE_FEATURES carry the prior rate per APPEARANCE week, which
+# is a different unit from the role-rate label; handing the model the prior in
+# the label's own units is what the prototype validated. Doubles as the
+# carry-forward baseline a role-rate backtest has to beat.
+ROLE_PRIOR_FEATURE = "prior_role_rate"
+
+# What the volume models consume once they predict a role rate. The depth tier
+# is admitted here and deliberately NOT in ALL_FEATURES: the justification for
+# excluding the chart from the rate models was that they "are trained only on
+# players who actually played, which is the population where the chart has
+# least to say" - true when written, and untrue the moment role zeros enter
+# the population.
+ROLE_FEATURES = ALL_FEATURES + [DEPTH_TIER_COLUMN, ROLE_PRIOR_FEATURE]
+
 
 def role_rate_label(stat):
     """The per-eligible-week label name for `stat` - see features.py."""
@@ -323,8 +338,8 @@ def build_role_transition_pairs(feat, position, stat, season_pairs, conn=None,
     rows = []
     for season_from, season_to in season_pairs:
         a = pos_df[pos_df["season"] == season_from][
-            ["player_id", "team"] + ALL_FEATURES + [rate_col]]
-        a = a.rename(columns={rate_col: "naive_pred"})
+            ["player_id", "team"] + ALL_FEATURES + [rate_col, y_col]]
+        a = a.rename(columns={rate_col: "naive_pred", y_col: ROLE_PRIOR_FEATURE})
         cols_to = ["player_id", "games_played", "eligible_weeks", y_col]
         b = pos_df[pos_df["season"] == season_to][cols_to].rename(columns={
             "games_played": "games_played_to", "eligible_weeks": "eligible_weeks_to"})
@@ -355,16 +370,23 @@ def _admit_role_zeros(merged, position, season_to, conn):
 
     y_cols = [c for c in merged.columns if c.endswith("_per_elig")
               or c == RECEIVING_SHARE_ELIG_LABEL]
-    chart = load_preseason_depth_chart(season_to, conn=conn)
-    charted = set(chart[chart["position"] == position]["player_id"]) if not chart.empty else set()
     status = player_dominant_roster_status(conn, [season_to]).set_index("player_id")["status"]
     elig = player_eligible_weeks(conn, [season_to]).set_index("player_id")["eligible_weeks"]
 
     # A missing outcome row, or a row with no offensive snap, is a candidate.
+    # Roster status is the ONLY membership test. Requiring a depth-chart row
+    # as well - which an earlier pass did - silently excluded the off-chart
+    # zeros, and they are the whole tier: 30-46% of rostered, eligible,
+    # off-chart players never take an offensive snap (QB 46%, WR 36%, TE 32%,
+    # RB 30%, 2020-2025), so dropping them left the off-chart population
+    # containing nothing but players who got signed and played. That is the
+    # survivorship this tier was over-projected by, and it is observable
+    # rather than structural: these players have prior-season production, are
+    # on a roster, and are off reserve. They are simply not playing, which is
+    # exactly what being off the chart predicts.
     no_output = merged["games_played_to"].isna() | merged["games_played_to"].eq(0)
     is_zero = (
         no_output
-        & merged["player_id"].isin(charted)
         & merged["player_id"].map(status).isin(ELIGIBLE_ROSTER_STATUSES)
     )
     merged.loc[is_zero, y_cols] = 0.0

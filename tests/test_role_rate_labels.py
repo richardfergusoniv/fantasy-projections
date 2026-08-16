@@ -141,6 +141,38 @@ class MinimumEligibility(unittest.TestCase):
         self.assertLess(MIN_ELIGIBLE_WEEKS, SEASON_GAMES)
 
 
+class OffChartZerosAreAdmitted(unittest.TestCase):
+    """The regression that cost a whole tier its honesty.
+
+    An earlier pass required a depth-chart row before admitting a role zero.
+    That silently excluded every OFF-CHART zero, leaving the off-chart
+    population containing only players who got signed and played - which is
+    exactly the survivorship that made the tier look productive. Measured
+    2020-2025, 30-46% of rostered, eligible, off-chart players never take an
+    offensive snap (QB 46%, WR 36%, TE 32%, RB 30%).
+    """
+
+    def test_admission_rule_does_not_consult_the_chart(self):
+        import inspect
+
+        from src.projection.transitions import _admit_role_zeros
+
+        src = inspect.getsource(_admit_role_zeros)
+        self.assertIn("ELIGIBLE_ROSTER_STATUSES", src)
+        self.assertNotIn("load_preseason_depth_chart", src)
+        self.assertNotIn("charted", src.split('"""')[-1])
+
+    def test_off_chart_zero_is_a_real_outcome_not_a_missing_one(self):
+        # A rostered, eligible player with prior production and no snaps has a
+        # role rate of exactly 0. Dropping him teaches the model that everyone
+        # off the chart produces like the ones who got called up.
+        appeared, never = 202, 112  # WR, 2020-2025
+        biased = 1.0                # mean over survivors only, normalised
+        honest = biased * appeared / (appeared + never)
+        self.assertLess(honest, biased)
+        self.assertAlmostEqual(honest, 0.643, places=2)
+
+
 class RoleZeroFlagContract(unittest.TestCase):
     def test_flag_name_is_exported(self):
         self.assertEqual(ROLE_ZERO_FLAG, "is_role_zero")
