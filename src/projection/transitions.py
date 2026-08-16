@@ -158,11 +158,9 @@ def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_S
     weight the denominator - are now done by the two quantities that
     actually answer them.
 
-    This model-stage guard is downward-only. Final production accounting uses
-    normalize_team_passing_volume after veterans and rookies are combined;
-    that later step fills named receiving up to NAMED_REC_YARDS_COVERAGE of
-    the pass-yardage anchor (and cuts only when over), leaving an explicit
-    unmodeled residual for the rest. Returns (scale, over_cap), both aligned
+    This model-stage guard is downward-only. Composition no longer fills
+    named receiving toward a team yardage coverage floor; season totals are
+    ``pred_pg × projected_games``. Returns (scale, over_cap), both aligned
     to share_df.index."""
     weight = share_df["weight"] if "weight" in share_df.columns else 1.0
     weighted = share_df["share"] * weight

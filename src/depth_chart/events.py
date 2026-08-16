@@ -17,8 +17,9 @@ PUP_GAMES_CAP = 8.0
 # Sleeper injury_status values → policy bucket.
 IR_STATUSES = {"IR", "Injured Reserve"}
 PUP_STATUSES = {"PUP"}
+SUSPENSION_STATUSES = {"Sus", "Suspension", "Suspended"}
 SHORT_TERM_STATUSES = {"Out", "Doubtful"}
-# Questionable / NA / Sus / COV / DNR: flag-only or ignored for season chart.
+# Questionable / NA / COV / DNR: ignored for season games.
 
 
 def policy_for_status(injury_status: str | None) -> dict | None:
@@ -40,6 +41,17 @@ def policy_for_status(injury_status: str | None) -> dict | None:
             "bucket": "uncertain",
             "override_mode": "cap",
             "override_games": PUP_GAMES_CAP,
+            "remove_from_chart": False,
+            "promote_next": False,
+            "auto_safe": True,
+        }
+    if status in SUSPENSION_STATUSES:
+        # Duration usually unknown at ingest — treat as unavailable for the
+        # draft board until a human sets an explicit games cap.
+        return {
+            "bucket": "suspension",
+            "override_mode": "zero",
+            "override_games": None,
             "remove_from_chart": False,
             "promote_next": False,
             "auto_safe": True,
@@ -141,18 +153,21 @@ def detect_injury_events(
         gsis = _resolve_gsis(row, chart, lookup if not lookup.empty else None)
         on_chart = bool(gsis and gsis in curated_ids)
         pos = row.get("position")
-        # Season-ending IR: keep even if off curated (Pearsall-shaped overrides),
-        # but only for fantasy skill positions — defensive IR would flood overrides.
-        # PUP/short-term: only if currently on the curated/live chart.
-        if not on_chart and policy["bucket"] != "season_ending":
+        # IR / suspension: keep even if off curated (Pearsall-shaped overrides),
+        # but only for fantasy skill positions — defensive statuses would flood
+        # overrides. PUP/short-term: only if currently on the curated/live chart.
+        hard_out = policy["bucket"] in ("season_ending", "suspension")
+        if not on_chart and not hard_out:
             continue
-        if not on_chart and policy["bucket"] == "season_ending" and pos not in SKILL_POSITIONS:
+        if not on_chart and hard_out and pos not in SKILL_POSITIONS:
             continue
         if not gsis:
             continue
         name = row.get("display_name") or row.get("player_name") or gsis
         if policy["bucket"] == "season_ending":
             action = "remove_and_zero" if on_chart else "override_zero"
+        elif policy["bucket"] == "suspension":
+            action = "override_zero"
         elif policy["bucket"] == "uncertain":
             action = "cap_availability"
         else:

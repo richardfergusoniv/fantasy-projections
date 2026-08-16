@@ -135,12 +135,12 @@ class ValidationEvaluationIntegrityTests(unittest.TestCase):
         self.assertIn("endpoint", metadata)
         self.assertEqual(len(metadata["sha256"]), 64)
 
-    def test_fantasy_output_preserves_normalization_provenance(self):
+    def test_fantasy_output_preserves_team_anchor_provenance(self):
         rows = []
-        for stat, point, low, high, scale in [
-            ("passing_yards", 250.0, 200.0, 300.0, 1.2),
-            ("passing_tds", 2.0, 1.0, 3.0, np.nan),
-            ("interceptions", 1.0, 0.0, 2.0, np.nan),
+        for stat, point, low, high in [
+            ("passing_yards", 250.0, 200.0, 300.0),
+            ("passing_tds", 2.0, 1.0, 3.0),
+            ("interceptions", 1.0, 0.0, 2.0),
         ]:
             rows.append({
                 "player_id": "q", "position": "QB", "season": 2026,
@@ -149,13 +149,6 @@ class ValidationEvaluationIntegrityTests(unittest.TestCase):
                 "interval_low_n_flag": False, "stat_constraint_applied": False,
                 "projected_games": 10.0, "projected_volume_games": 10.0,
                 "projected_games_raw": 8.0,
-                "team_qb_raw_appearance_games": 8.0,
-                "team_qb_volume_allocation_direction": "upward",
-                "team_qb_roster_resolved": True,
-                "qb_volume_games_scale": 1.25,
-                "qb_volume_allocation_adjusted": True,
-                "team_qb_attempt_anchor_fully_allocated": True,
-                "team_passing_volume_scale": scale,
                 "team_pass_attempts_pg_pred": 34.0,
                 "team_passing_yards_pg_pred": 250.0,
                 "team_carries_pg_pred": 26.0,
@@ -163,24 +156,17 @@ class ValidationEvaluationIntegrityTests(unittest.TestCase):
                 "team_anchor_source_season": 2025,
                 "team_anchor_lag_team": "TST",
                 "team_anchor_provenance": "canonical_source_team_frame",
-                "team_unmodeled_qb_attempts_season": 17.0,
-                "team_unmodeled_receiving_yards_season": 125.0,
                 "receiving_share_capped": False,
                 "receiving_share_normalized": False,
             })
         out = compute_fantasy_points(pd.DataFrame(rows)).iloc[0]
-        self.assertAlmostEqual(out["normalization_scale_passing_yards"], 1.2)
         self.assertAlmostEqual(out["team_pass_attempts_pg_pred"], 34.0)
         self.assertAlmostEqual(out["team_passing_yards_pg_pred"], 250.0)
         self.assertAlmostEqual(out["team_carries_pg_pred"], 26.0)
         self.assertAlmostEqual(out["team_rushing_yards_pg_pred"], 115.0)
         self.assertEqual(out["team_anchor_provenance"], "canonical_source_team_frame")
-        self.assertAlmostEqual(out["team_unmodeled_qb_attempts_season"], 17.0)
-        self.assertAlmostEqual(out["team_unmodeled_receiving_yards_season"], 125.0)
         self.assertAlmostEqual(out["projected_games_raw"], 8.0)
-        self.assertEqual(out["team_qb_volume_allocation_direction"], "upward")
-        self.assertAlmostEqual(out["qb_volume_games_scale"], 1.25)
-        self.assertTrue(bool(out["qb_volume_allocation_adjusted"]))
+        self.assertNotIn("normalization_scale_passing_yards", out.index)
 
     def test_forward_interval_coverage_uses_only_earlier_test_seasons(self):
         residuals = pd.DataFrame([

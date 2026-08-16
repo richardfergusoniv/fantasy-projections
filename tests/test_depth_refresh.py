@@ -28,6 +28,14 @@ class InjuryPolicyTests(unittest.TestCase):
         self.assertFalse(p["remove_from_chart"])
         self.assertFalse(p["promote_next"])
 
+    def test_suspension_is_auto_safe_zero_without_remove(self):
+        p = policy_for_status("Sus")
+        self.assertEqual(p["override_mode"], "zero")
+        self.assertEqual(p["bucket"], "suspension")
+        self.assertFalse(p["remove_from_chart"])
+        self.assertFalse(p["promote_next"])
+        self.assertTrue(p["auto_safe"])
+
     def test_out_is_flag_only(self):
         p = policy_for_status("Out")
         self.assertIsNone(p["override_mode"])

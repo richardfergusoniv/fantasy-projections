@@ -1,9 +1,16 @@
 # State of the build — 2026-08-15
 
+> **Update (volume composition retired):** `compose_board` no longer runs
+> hierarchical pass/rush, usage-share priors, QB volume-game reconcile, or
+> team volume normalizers. Shipped `pred_pg` is forecast rates after Gate A/B
+> plus availability hygiene. Sections below that list deleted stages are
+> historical until rewritten.
+
 The single current-state document. If you are new, or returning after three
 weeks, read this first and treat every other root markdown file as either a
 decision record or history — see [`DOC_INVENTORY.md`](DOC_INVENTORY.md) for
 which is which.
+
 
 **Scope of this document.** It describes what the pipeline *is* and what is
 *known about it*. It does not relitigate tuning decisions (those live in the

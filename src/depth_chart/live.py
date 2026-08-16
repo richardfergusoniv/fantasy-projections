@@ -6,13 +6,14 @@ import os
 
 import pandas as pd
 
-from src.projection.contracts import (
-    WR_FORMATION_ROLE_PRIORS,
-    WR_FORMATION_ROLES,
-)
-
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEPTH_DIR = os.path.join(REPO_ROOT, "src", "depth_chart")
+
+# Preseason WR formation columns (Ourlads LWR/RWR/SWR). Chart UX / research
+# priors only — they do not allocate projection volume.
+WR_FORMATION_ROLES = ("LWR", "RWR", "SWR")
+WR_FORMATION_ROLE_PRIORS = {"LWR": 0.1554, "RWR": 0.0667, "SWR": 0.0386}
+DEPTH_RANK_TO_WR_FORMATION_ROLE = {1: "LWR", 2: "RWR", 3: "SWR"}
 
 # Rank-order defaults when formation_role is missing (legacy path).
 WR_USAGE_SLOTS = [WR_FORMATION_ROLE_PRIORS[r] for r in WR_FORMATION_ROLES]
@@ -47,9 +48,9 @@ def _recompute_wr_priors(room: pd.DataFrame) -> pd.DataFrame:
     so removing an LWR does not promote the RWR into the LWR prior. Rank-order
     WR_USAGE_SLOTS remain the fallback when formation_role is absent.
 
-    Slot means are display/research starting points only. Hierarchical L2/L3
-    owns pass allocation, so never mark rows usage_share_reviewed — a reviewed
-    flag would re-enable the curated blend and fight room ordering.
+    Slot means are display/research starting points only. They do not move
+    projections; keep usage_share_reviewed False so chart renumber stays
+    research metadata.
     """
     room = room.sort_values("depth_rank").copy()
     has_role = "formation_role" in room.columns

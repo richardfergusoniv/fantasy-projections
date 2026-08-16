@@ -39,9 +39,10 @@ SCORING = {
 KEY_COLS = ["player_id", "position", "season"]
 DESCRIPTIVE_COLS = [
     "display_name", "team", "source", "low_confidence", "rookie_tier",
-    "team_changed", "roster_status", "depth_rank", "role", "depth_chart_status",
-    "projected_games",  # independent offensive-appearance forecast
-    "projected_games_raw",  # immutable pre-reconciliation QB availability
+    "team_changed", "roster_status", "depth_rank", "role", "formation_role",
+    "depth_chart_status",
+    "projected_games",
+    "projected_games_raw",
     # The volume discount, carried through so it is visible in the two
     # deliverables a reader actually opens. Both were computed upstream and
     # then dropped here, which meant a depth-scaled number arrived in
@@ -56,31 +57,14 @@ DESCRIPTIVE_COLS = [
     # unexplainable number on the row - rank is what determines it, and the
     # curated `depth_rank` beside it is a different, shallower chart.
     "nfl_depth_rank",
-    "projected_volume_games",  # canonical season-total multiplier (QB rooms sum to 17)
-    "team_qb_raw_appearance_games", "team_qb_volume_allocation_direction",
-    "team_qb_roster_resolved", "qb_volume_games_scale",
-    "qb_volume_allocation_adjusted", "team_qb_attempt_anchor_fully_allocated",
+    "projected_volume_games",
     "athletic_tier", "target_depth_rank", "rookie_depth_band",
     "rookie_vacancy_scale", "rookie_id_unresolved",
     "rookie_availability_cell_n", "rookie_availability_fallback_used",
-    "team_pass_catch_ratio_pre_normalization",
-    "team_pass_catch_pre_normalization_flag",
-    "team_pass_catch_ratio", "team_pass_catch_coherence_flag",
     "team_pass_attempts_pg_pred", "team_passing_yards_pg_pred",
     "team_carries_pg_pred", "team_rushing_yards_pg_pred",
     "team_anchor_source_season", "team_anchor_lag_team",
     "team_anchor_provenance",
-    "team_unmodeled_qb_volume_games",
-    "team_unmodeled_qb_attempts_season",
-    "team_unmodeled_qb_completions_season",
-    "team_unmodeled_qb_passing_yards_season",
-    "team_unmodeled_qb_passing_tds_season",
-    "team_unmodeled_receiving_yards_season",
-    "team_unmodeled_receptions_season",
-    "team_unmodeled_receiving_tds_season",
-    "team_unmodeled_carries_season",
-    "team_unmodeled_rushing_yards_season",
-    "coherence_receiver_exposure_basis",
 ]
 
 
@@ -158,36 +142,6 @@ def compute_fantasy_points(long_df, floor_low_at_zero=True):
         pieces.append(any_constraint)
     out = pd.concat(pieces, axis=1).reset_index()
 
-    # Team/room normalization is stat-specific, so it cannot safely be taken
-    # from an arbitrary drop_duplicates row. Preserve the scales used by the
-    # fantasy-scoring components under explicit names.
-    if "team_passing_volume_scale" in long_df.columns:
-        for stat in ("attempts", "passing_yards", "receiving_yards"):
-            scale = (
-                long_df[long_df["stat"] == stat]
-                .set_index(KEY_COLS)["team_passing_volume_scale"]
-                .rename(f"normalization_scale_{stat}")
-            )
-            pieces_scale = scale[~scale.index.duplicated(keep="first")]
-            out = out.merge(pieces_scale.reset_index(), on=KEY_COLS, how="left")
-    if "team_rushing_volume_scale" in long_df.columns:
-        for stat in ("carries", "rushing_yards"):
-            scale = (
-                long_df[long_df["stat"] == stat]
-                .set_index(KEY_COLS)["team_rushing_volume_scale"]
-                .rename(f"normalization_scale_{stat}")
-            )
-            scale = scale[~scale.index.duplicated(keep="first")]
-            out = out.merge(scale.reset_index(), on=KEY_COLS, how="left")
-    if "team_pass_receive_count_scale" in long_df.columns:
-        for stat in ("receptions", "receiving_tds"):
-            scale = (
-                long_df[long_df["stat"] == stat]
-                .set_index(KEY_COLS)["team_pass_receive_count_scale"]
-                .rename(f"normalization_scale_{stat}")
-            )
-            scale = scale[~scale.index.duplicated(keep="first")]
-            out = out.merge(scale.reset_index(), on=KEY_COLS, how="left")
     for flag in ("receiving_share_capped", "receiving_share_normalized"):
         if flag in long_df.columns:
             any_flag = (

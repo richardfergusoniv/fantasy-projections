@@ -58,16 +58,6 @@ from src.projection.rookies import (
     identify_target_season_rookie_class,
     team_vacated_opportunity, rookie_interval_ratios, combine_athletic_scores_by_pfr_id,
 )
-from src.projection.team_pass_mix import (
-    apply_hierarchical_pass_distribution,
-    attach_team_pass_mix,
-    build_team_pass_mix_profiles,
-)
-from src.projection.team_rush_mix import (
-    apply_hierarchical_rush_distribution,
-    attach_team_rush_mix,
-    build_team_rush_mix_profiles,
-)
 from src.projection.transitions import SEASON_GAMES
 from src.projection.composition import CompositionContext, compose_board, shipped_context
 from src.projection.contracts import (
@@ -95,19 +85,9 @@ from src.projection.contracts import (
     REPLACEMENT_POSITIONS,
     REPLACEMENT_MIN_CELL,
     REPLACEMENT_DEPTH_BANDS,
-    PASS_CATCH_COHERENCE_BAND,
-    NAMED_REC_YARDS_COVERAGE,
-    NAMED_REC_RECEPTIONS_COVERAGE,
-    NAMED_REC_TDS_COVERAGE,
-    QB_ATTEMPTS_PER_VOLUME_GAME_MAX,
     RUSH_ATTEMPTS_PER_APPEARANCE_MAX,
     RUSH_YARDS_PER_CARRY_MAX,
-    NAMED_RUSH_COVERAGE,
     OL_TRAILING_SEASONS,
-    USAGE_SHARE_BLEND_W,
-    USAGE_SHARE_CURATED_W,
-    USAGE_SHARE_FAMILIES,
-    USAGE_SHARE_MAX_RANK,
     TEAM_ANCHOR_OUTPUT_COLS,
     OUTPUT_COLUMNS,
 )
@@ -123,7 +103,7 @@ from src.projection.depth_gating import (
     load_status_overrides,
     apply_curated_availability_override,
     apply_status_overrides,
-    apply_deep_bench_games_cap,
+    apply_full_season_games_baseline,
     enforce_availability_chart_review,
     apply_depth_chart_gating,
 )
@@ -166,18 +146,8 @@ from src.projection.team_reconcile import (
     _propagate_elite_correction,
     _compose_reframed_receiving_predictions,
     reconcile_stat_constraints,
-    reconcile_qb_projected_volume_games,
-    _capped_proportional_allocation,
     _row_exposure,
-    _map_team_field,
-    normalize_team_passing_volume,
-    fit_usage_share_priors,
-    apply_usage_share_prior,
-    _named_supply_target,
-    normalize_team_rushing_volume,
-    reconcile_team_pass_receive_counts,
     add_projected_season_totals,
-    add_team_pass_catch_coherence_flag,
     _apply_rookie_depth_rate_gating,
     propagate_team_anchors,
 )
@@ -192,12 +162,8 @@ __all_contracts__ = [
     "BOOST_ELIGIBLE_ROLES", "INCUMBENT_VACANCY_ALPHA", "TEAM_CHANGE_VACANCY_ALPHA",
     "INCUMBENT_VACANCY_NET_CLIP", "INCUMBENT_VACANCY_SCALE_CAP",
     "REPLACEMENT_POSITIONS", "REPLACEMENT_MIN_CELL", "REPLACEMENT_DEPTH_BANDS",
-    "PASS_CATCH_COHERENCE_BAND", "NAMED_REC_YARDS_COVERAGE",
-    "NAMED_REC_RECEPTIONS_COVERAGE", "NAMED_REC_TDS_COVERAGE",
-    "QB_ATTEMPTS_PER_VOLUME_GAME_MAX", "RUSH_ATTEMPTS_PER_APPEARANCE_MAX",
-    "NAMED_RUSH_COVERAGE", "OL_TRAILING_SEASONS", "USAGE_SHARE_BLEND_W",
-    "USAGE_SHARE_CURATED_W", "USAGE_SHARE_FAMILIES", "USAGE_SHARE_MAX_RANK",
-    "TEAM_ANCHOR_OUTPUT_COLS", "OUTPUT_COLUMNS",
+    "RUSH_ATTEMPTS_PER_APPEARANCE_MAX", "RUSH_YARDS_PER_CARRY_MAX",
+    "OL_TRAILING_SEASONS", "TEAM_ANCHOR_OUTPUT_COLS", "OUTPUT_COLUMNS",
 ]
 
 
@@ -311,19 +277,16 @@ def project_season(conn, target_season, as_of=None):
         rookie_long["depth_rank"], rookie_long["role"] = np.nan, None
     rookie_long["depth_chart_status"] = "rookie_path"
     # projected_games was estimated on the full historical rookie cohort in
-    # rookies.py, by position/draft bucket and preseason depth band.
+    # rookies.py, by position/draft bucket and preseason depth band — keep
+    # that in projected_games_raw; draft exposure is a full season except
+    # IR/PUP/Sus overrides.
     rookie_long = _apply_rookie_depth_rate_gating(rookie_long)
-    # Curated-excluded rookies: same games cap as veterans. Status overrides
-    # (rare for rookies) still win after the cap.
     if not depth_chart.empty:
         curated_ids = set(depth_chart.dropna(subset=["gsis_id"])["gsis_id"])
         off = ~rookie_long["player_id"].isin(curated_ids)
         rookie_long.loc[off, "depth_chart_status"] = "deep_bench_discounted"
         rookie_long.loc[off, "role"] = "deep_bench"
-    rookie_long["projected_games_raw"] = pd.to_numeric(
-        rookie_long["projected_games"], errors="coerce"
-    )
-    rookie_long = apply_deep_bench_games_cap(rookie_long)
+    rookie_long = apply_full_season_games_baseline(rookie_long, season_games=SEASON_GAMES)
     rookie_long = apply_status_overrides(rookie_long, status_overrides)
 
     # Compose the veteran reframed receiving shares into real per-game
@@ -352,11 +315,9 @@ def project_season(conn, target_season, as_of=None):
             print(f"    {r['player_id']} ({r['position']}, {r['team']}, role={r['role']})")
 
     combined = pd.concat([vet, rookie_long, replacement], ignore_index=True, sort=False)
-    # One composition/allocation pipeline, shared with the leakage-safe
-    # evaluation harness - see composition.py. This call site supplies the
-    # SHIPPED artifact provenance (models/ binaries plus the curated 2026
-    # research files); the harness supplies refit-on-history-only artifacts and
-    # runs the identical stages over them.
+    # One composition pipeline, shared with the leakage-safe evaluation
+    # harness - see composition.py. Hygiene only (games caps, anchors,
+    # stat identities, season totals); no team-volume invent/redistribute.
     combined = compose_board(
         combined,
         shipped_context(conn, target_season, hist_seasons, as_of=as_of),
@@ -371,6 +332,7 @@ def project_season(conn, target_season, as_of=None):
 # failures they look for are products of the reconcilers agreeing with each
 # other and being wrong together - which is exactly what no per-stage
 # assertion can see.
+QB_ATTEMPTS_PER_GAME_CEILING = 42.0
 TRIPWIRE_CAP_TOLERANCE = 1e-6
 TRIPWIRE_RB_CARRY_SHARE = 0.70
 TRIPWIRE_NEWCOMER_MARGIN = 1.0
@@ -390,7 +352,7 @@ def _warn_board_level_allocation(conn, combined, depth_chart):
     # a bound, not a projection. This is what Josh Jacobs at exactly 25.00
     # carries/game looked like before the rushing fix.
     for stat, ceilings in (("carries", RUSH_ATTEMPTS_PER_APPEARANCE_MAX),
-                           ("attempts", {"QB": QB_ATTEMPTS_PER_VOLUME_GAME_MAX})):
+                           ("attempts", {"QB": QB_ATTEMPTS_PER_GAME_CEILING})):
         rows = combined[combined["stat"].eq(stat)]
         for _, r in rows.iterrows():
             ceiling = ceilings.get(r["position"])

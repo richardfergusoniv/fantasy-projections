@@ -12,7 +12,6 @@ import pandas as pd
 
 from src.projection.contracts import (
     CURATED_RESEARCH_DEPTH,
-    DEEP_BENCH_GAMES_CAP,
     DEPTH_CHART_PATH,
     LIVE_DEPTH_CHART_PATH,
     STATUS_OVERRIDES_PATH,
@@ -92,10 +91,32 @@ def apply_curated_availability_override(base, depth_chart):
     return out
 
 
-def apply_status_overrides(df, overrides):
-    """Write status overrides into ``projected_games``; keep ``projected_games_raw``.
+def apply_full_season_games_baseline(df, season_games=None):
+    """Assume a full season for draft exposure; keep Gate A in ``projected_games_raw``.
 
-    mode=zero → 0 games. mode=cap → min(projected_games, projected_games column).
+    Injury / suspension risk is treated as exogenous except for explicit
+    status overrides (IR → 0, PUP → cap, Sus → 0) applied afterward.
+    """
+    from src.projection.transitions import SEASON_GAMES
+
+    if season_games is None:
+        season_games = SEASON_GAMES
+    out = df.copy()
+    current = pd.to_numeric(out.get("projected_games"), errors="coerce")
+    if "projected_games_raw" in out.columns:
+        raw = pd.to_numeric(out["projected_games_raw"], errors="coerce")
+        out["projected_games_raw"] = raw.fillna(current)
+    else:
+        out["projected_games_raw"] = current
+    out["projected_games"] = float(season_games)
+    return out
+
+
+def apply_status_overrides(df, overrides):
+    """Write IR / PUP / suspension overrides into ``projected_games``.
+
+    Keeps ``projected_games_raw`` (Gate A or prior baseline). mode=zero → 0
+    games. mode=cap → min(current, override games).
     """
     out = df.copy()
     if "projected_games_raw" not in out.columns:
@@ -128,24 +149,14 @@ def apply_status_overrides(df, overrides):
 
 
 def apply_deep_bench_games_cap(df):
-    """Hard games cap for curated-excluded players; does not touch rates.
+    """No-op: deep-bench role is handled by Gate B rates, not games.
 
-    Skips rows already written by a status override (zero must stay zero;
-    an explicit status cap is the human’s number)."""
+    Kept as a named stage for call-site compatibility. Draft boards assume a
+    full season except IR / PUP / suspension status overrides.
+    """
     out = df.copy()
     if "projected_games_raw" not in out.columns:
         out["projected_games_raw"] = pd.to_numeric(out.get("projected_games"), errors="coerce")
-    if "depth_chart_status" not in out.columns:
-        return out
-    if "status_override_applied" in out.columns:
-        status_done = out["status_override_applied"].fillna(False).astype(bool)
-    else:
-        status_done = False
-    mask = out["depth_chart_status"].eq("deep_bench_discounted") & ~status_done
-    if not mask.any():
-        return out
-    cur = pd.to_numeric(out.loc[mask, "projected_games"], errors="coerce")
-    out.loc[mask, "projected_games"] = np.minimum(cur, DEEP_BENCH_GAMES_CAP)
     return out
 
 
@@ -156,8 +167,9 @@ def enforce_availability_chart_review(base, depth_chart, overrides, target_seaso
     won via ``apply_curated_availability_override``.
 
     Reverse (curated-off / nflverse-on within CURATED_RESEARCH_DEPTH, and the
-    player is in this projection frame): hard review failure unless a status
-    override row acknowledges the exclusion (Pearsall zero, or cap ack).
+    player is in this projection frame): stderr warning only. Membership is
+    the curated chart's job; status overrides are reserved for IR / PUP /
+    suspension games, not chart-ack caps.
     """
     if depth_chart.empty:
         return
@@ -190,9 +202,7 @@ def enforce_availability_chart_review(base, depth_chart, overrides, target_seaso
             file=sys.stderr,
         )
 
-    overridden = set()
-    if overrides is not None and not overrides.empty:
-        overridden = set(overrides["gsis_id"].dropna().astype(str))
+    del overrides  # no longer required to ack reverse membership conflicts
 
     frame_keys = set(zip(base["player_id"], base["position"]))
     nfl_rank = nfl.set_index(["player_id", "position"])["depth_rank"]
@@ -208,7 +218,7 @@ def enforce_availability_chart_review(base, depth_chart, overrides, target_seaso
         if key not in nfl_rank.index:
             continue
         rank = float(nfl_rank.loc[key])
-        if rank <= max_d and str(pid) not in overridden:
+        if rank <= max_d:
             reverse.append(
                 (nfl_name.get(key, pid), pos, int(rank), pid)
             )
@@ -216,12 +226,12 @@ def enforce_availability_chart_review(base, depth_chart, overrides, target_seaso
         detail = ", ".join(
             f"{n} ({p}{r}, {pid})" for n, p, r, pid in sorted(reverse)
         )
-        raise ValueError(
-            f"AVAILABILITY CHART REVIEW FAILURE: {len(reverse)} player(s) are on the "
-            f"nflverse chart within curated research depth but absent from the curated "
-            f"chart, with no status override acknowledging the exclusion. Resolve by "
-            f"editing starters_{target_season}.csv or status_overrides_{target_season}.csv: "
-            f"{detail}"
+        print(
+            f"AVAILABILITY CHART DISAGREEMENT (nflverse-on/curated-off): {len(reverse)} "
+            f"player(s) within researched depth are absent from the curated chart "
+            f"(membership only — games stay full-season unless IR/PUP/Sus override): "
+            f"{detail}",
+            file=sys.stderr,
         )
 
 

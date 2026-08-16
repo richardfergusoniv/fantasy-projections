@@ -35,7 +35,12 @@ Optional flags:
 |--------|----------|-------|
 | IR / Injured Reserve | `mode=zero` | Remove + promote next (auto-safe) |
 | PUP | `mode=cap` (8 games) | Stay on chart; no promote (auto-safe) |
+| Sus / Suspension | `mode=zero` (until a human sets a games cap) | Stay on chart (auto-safe) |
 | Out / Doubtful | none | Proposal flag only |
+
+Draft boards assume **17 games** for everyone else. Soft Gate A availability
+stays in `projected_games_raw` for audit only. Do not use status overrides to
+ack curated↔nflverse membership disagreements — those are chart edits.
 
 ## Files
 

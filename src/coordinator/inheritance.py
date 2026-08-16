@@ -1,7 +1,6 @@
 """First-year OC inheritance blend weights (single source of truth).
 
-Used by tendency profiles (``oc_profiles``) and hierarchical pass/rush mix
-(``team_pass_mix`` / ``team_rush_mix``). Default weights are judgment-call
+Used by tendency profiles (``oc_profiles``). Default weights are judgment-call
 70/30 internal and 30/70 outside; Phase C3 may replace them when a LOSO grid
 search beats these values and the team-only baseline.
 """
@@ -69,19 +68,18 @@ def loso_fit_inheritance_weights(conn, metrics=None, mix_cols=None):
     """Leave-one-season-out grid search over team weights.
 
     Constraint: ``internal_team_w >= outside_team_w``. Scores first-year seats
-    on tendency ``metrics`` and/or pass-mix ``mix_cols`` (MAE of blended prior
-    vs observed season values).
+    on tendency ``metrics`` (MAE of blended prior vs observed season values).
+
+    ``mix_cols`` is accepted for call-site compatibility but ignored — pass-mix
+    scoring was retired with hierarchical volume composition.
 
     Returns a summary dict. Updates are the caller's responsibility — this
     never mutates ``INHERITANCE_WEIGHTS``.
     """
-    from src.projection.team_pass_mix import MIX_COLS as PASS_MIX_COLS
-    from src.projection.team_pass_mix import observed_team_pass_mix
+    del mix_cols
 
     if metrics is None:
         metrics = list(METRICS)
-    if mix_cols is None:
-        mix_cols = list(PASS_MIX_COLS)
 
     assignments = _load_assignments()
     team_profiles = _load_team_profiles(conn)
@@ -92,8 +90,6 @@ def loso_fit_inheritance_weights(conn, metrics=None, mix_cols=None):
     if not available:
         return {"ok": False, "reason": "no metric columns in team profiles"}
     metrics = available
-
-    mix = observed_team_pass_mix(conn) if mix_cols else pd.DataFrame()
 
     first = assignments[assignments["first_year_in_seat"].astype(bool)].copy()
     first = first[first["promotion_type"].isin(("internal", "outside_hire"))]
@@ -150,39 +146,6 @@ def loso_fit_inheritance_weights(conn, metrics=None, mix_cols=None):
             ok = np.isfinite(act_vals) & np.isfinite(pred_vals) & (scales > 0)
             if ok.any():
                 errs.append(float(np.mean(np.abs(act_vals[ok] - pred_vals[ok]) / scales[ok])))
-
-            if mix_cols and not mix.empty:
-                act_m = mix[(mix["season"] == seat["season"]) & (mix["team"] == seat["team"])]
-                if act_m.empty:
-                    continue
-                act_m = act_m.iloc[0]
-                tkey = (seat["season"] - 1, seat["team"])
-                team_m = mix.set_index(["season", "team"])
-                tp = team_m.loc[tkey] if tkey in team_m.index else None
-                op = None
-                if not prior_rows.empty:
-                    last = prior_rows.sort_values("season").iloc[-1]
-                    okey = (int(last["season"]), last["team"])
-                    if okey in team_m.index:
-                        op = team_m.loc[okey]
-                if tp is None and op is None:
-                    continue
-                if tp is None:
-                    pred_m = [float(op[c]) for c in mix_cols]
-                elif op is None:
-                    pred_m = [float(tp[c]) for c in mix_cols]
-                else:
-                    pred_m = _blend_row(
-                        [tp[c] for c in mix_cols], [op[c] for c in mix_cols], tw
-                    )
-                    s = np.nansum(pred_m)
-                    if s > 0:
-                        pred_m = [float(x) / s for x in pred_m]
-                act_mv = np.asarray([act_m[c] for c in mix_cols], dtype=float)
-                pred_mv = np.asarray(pred_m, dtype=float)
-                okm = np.isfinite(act_mv) & np.isfinite(pred_mv)
-                if okm.any():
-                    errs.append(float(np.mean(np.abs(act_mv[okm] - pred_mv[okm]))))
         return float(np.mean(errs)) if errs else np.nan
 
     grid_rows = []

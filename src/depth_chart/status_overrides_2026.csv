@@ -1,24 +1,29 @@
 season,gsis_id,player_name,as_of_date,mode,projected_games,reason
-2026,00-0039916,Ricky Pearsall,2026-08-14,zero,,season-ending injury/IR
-2026,00-0039164,Anthony Richardson Sr.,2026-08-14,cap,6.0,curated depth exclusion (nflverse QB2; researched chart chooses different membership)
-2026,00-0039737,Tip Reiman,2026-08-14,cap,6.0,curated depth exclusion (nflverse TE2; researched chart chooses different membership)
-2026,00-0032392,Austin Hooper,2026-08-14,cap,6.0,curated depth exclusion (nflverse TE2; researched chart chooses different membership)
-2026,00-0039144,Luke Musgrave,2026-08-14,cap,6.0,curated depth exclusion (nflverse TE2; researched chart chooses different membership)
-2026,00-0040739,Elijah Arroyo,2026-08-14,cap,6.0,curated depth exclusion (nflverse TE2; researched chart chooses different membership)
-2026,00-0039391,Kimani Vidal,2026-08-14,cap,6.0,curated depth exclusion (nflverse RB2; researched chart chooses different membership)
-2026,00-0033885,David Njoku,2026-08-14,cap,6.0,curated depth exclusion (nflverse TE2; researched chart chooses different membership)
-2026,00-0027973,Andy Dalton,2026-08-14,cap,6.0,curated depth exclusion (nflverse QB2; researched chart chooses different membership)
-2026,00-0031237,Teddy Bridgewater,2026-08-14,cap,6.0,curated depth exclusion (nflverse QB2; researched chart chooses different membership)
-2026,00-0039875,Ray Davis,2026-08-14,cap,6.0,curated depth exclusion (nflverse RB2; researched chart chooses different membership)
-2026,00-0036988,Joshua Palmer,2026-08-14,cap,6.0,curated depth exclusion (nflverse WR3; researched chart chooses different membership)
-2026,00-0038608,Kayshon Boutte,2026-08-14,cap,6.0,curated depth exclusion (nflverse WR3; researched chart chooses different membership)
-2026,00-0036309,Darnell Mooney,2026-08-14,cap,6.0,curated depth exclusion (nflverse WR3; researched chart chooses different membership)
-2026,00-0039868,Troy Franklin,2026-08-14,cap,6.0,curated depth exclusion (nflverse WR3; researched chart chooses different membership)
-2026,00-0036849,Tutu Atwell,2026-08-14,cap,6.0,curated depth exclusion (nflverse WR3; researched chart chooses different membership)
-2026,00-0034775,Christian Kirk,2026-08-14,cap,6.0,curated depth exclusion (nflverse WR3; researched chart chooses different membership)
-2026,00-0041040,Antonio Williams,2026-08-14,cap,6.0,curated depth exclusion (nflverse WR2; researched chart chooses different membership)
-2026,00-0041483,Eli Stowers,2026-08-14,cap,6.0,curated depth exclusion (nflverse TE2; researched chart chooses different membership)
-2026,00-0041013,Emmett Johnson,2026-08-14,cap,6.0,curated depth exclusion (nflverse RB2; researched chart chooses different membership)
-2026,00-0041087,Joe Royer,2026-08-14,cap,6.0,curated depth exclusion (nflverse TE2; researched chart chooses different membership)
-2026,00-0041568,Ty Simpson,2026-08-14,cap,6.0,curated depth exclusion (nflverse QB2; researched chart chooses different membership)
-2026,00-0038606,Parker Washington,2026-08-14,cap,6.0,curated depth exclusion (nflverse WR3; researched chart chooses Hunter/BTJ/Meyers membership)
+2026,00-0033288,George Kittle,2026-08-16,cap,8.0,sleeper injury_status=PUP; Achilles
+2026,00-0035645,Gunner Olszewski,2026-08-16,zero,,sleeper injury_status=IR; Achilles
+2026,00-0035976,Dan Chisena,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0036510,Kenny Yeboah,2026-08-16,zero,,sleeper injury_status=IR; Hamstring
+2026,00-0037327,Skylar Thompson,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0037664,Alec Pierce,2026-08-16,cap,8.0,sleeper injury_status=PUP; Ankle
+2026,00-0038590,Justin Shorter,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0038720,Julian Hill,2026-08-16,zero,,sleeper injury_status=IR; Knee
+2026,00-0038735,Princeton Fant,2026-08-16,zero,,sleeper injury_status=IR; Knee - ACL + MCL
+2026,00-0039165,Zach Charbonnet,2026-08-16,cap,8.0,sleeper injury_status=PUP; Knee - ACL
+2026,00-0039244,Chris Collier,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0039379,Jamari Thrash,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0039399,Tanner McLachlan,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0039626,Cole Burgess,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0039916,Ricky Pearsall,2026-08-16,zero,,sleeper injury_status=IR; Knee - PCL
+2026,00-0040211,Graham Mertz,2026-08-16,zero,,sleeper injury_status=IR; Knee - ACL
+2026,00-0040570,Jeremiah Webb,2026-08-16,zero,,sleeper injury_status=IR; Arm
+2026,00-0040649,Robbie Ouzts,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0040955,John Michael Gyllenborg,2026-08-16,zero,,sleeper injury_status=IR; Knee
+2026,00-0041187,Le'Meke Brockington,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0041307,Joshua Pitsenberger,2026-08-16,zero,,sleeper injury_status=IR; Ankle
+2026,00-0041322,Jimmy Kibble,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0041323,Myles Montgomery,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0041366,Jameson Geers,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0041407,Kyron Hudson,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed
+2026,00-0041451,Brock Rechsteiner,2026-08-16,zero,,sleeper injury_status=Sus; Suspension
+2026,LAW090280,Kendrick Law,2026-08-16,zero,,sleeper injury_status=IR; Knee - ACL
+2026,RUC514959,Corey Rucker,2026-08-16,zero,,sleeper injury_status=IR; Undisclosed

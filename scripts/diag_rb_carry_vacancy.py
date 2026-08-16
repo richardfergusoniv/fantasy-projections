@@ -40,7 +40,6 @@ from src.projection.contracts import (  # noqa: E402
     INCUMBENT_VACANCY_ALPHA,
     INCUMBENT_VACANCY_NET_CLIP,
     INCUMBENT_VACANCY_SCALE_CAP,
-    NAMED_RUSH_COVERAGE,
 )
 from src.projection.roster_moves import team_vacated_opportunity  # noqa: E402
 
@@ -85,7 +84,7 @@ def main():
 
     lead = m[m.depth_rank == 1].copy()
     print("=== C1 RB lead-back diagnosis (depth_rank=1, matched Sleeper) ===")
-    print(f"n={len(lead)}  NAMED_RUSH_COVERAGE={NAMED_RUSH_COVERAGE}")
+    print(f"n={len(lead)}")
     print(f"current INCUMBENT_VACANCY_ALPHA carry={INCUMBENT_VACANCY_ALPHA['carry']}")
     print()
     print("Component means (lead RB1):")
@@ -101,10 +100,7 @@ def main():
     print(f"  season corr:                    {lead.pred_season.corr(lead.sleeper_carries_season):.3f}")
     print()
     print("Interpretation:")
-    print("  EV season totals are BELOW Sleeper on average (injury-aware games).")
-    print("  Per-game rates are ABOVE Sleeper/18; reconcile still UP-fills (~1.16x).")
-    print("  Pre-reconcile season is further under — fill closes gap but does not")
-    print("  pin ceilings after NAMED_RUSH_COVERAGE + replacement rows.")
+    print("  Quarantined Sleeper-delta script; rush volume normalize is retired.")
     print()
 
     conn = sqlite3.connect(os.path.join(REPO, "data", "projections.db"))

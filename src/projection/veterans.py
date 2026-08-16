@@ -12,7 +12,7 @@ import pandas as pd
 from src.projection.artifacts import load_availability_models
 from src.projection.depth_gating import (
     apply_curated_availability_override,
-    apply_deep_bench_games_cap,
+    apply_full_season_games_baseline,
     apply_depth_chart_gating,
     apply_status_overrides,
     enforce_availability_chart_review,
@@ -171,9 +171,11 @@ def project_veterans(conn, feat, source_season, models, resid, target_season, as
             # carry a wider schema than the rate models (AVAILABILITY_
             # FEATURES), and an older models/ directory predating Gate A
             # still carries the narrower one and must keep working.
+            # Gate A still runs for audit (projected_games_raw); draft
+            # exposure is a full season except IR/PUP/Sus overrides.
             base.loc[mask, "projected_games"] = np.clip(
                 am["model"].predict(base.loc[mask, am["features"]]), 0, SEASON_GAMES)
-    base["projected_games_raw"] = base["projected_games"]
+    base = apply_full_season_games_baseline(base, season_games=SEASON_GAMES)
     base = apply_status_overrides(base, status_overrides)
 
     rows = []
@@ -235,8 +237,7 @@ def project_veterans(conn, feat, source_season, models, resid, target_season, as
     depth_chart = load_depth_chart(target_season)
     combined = apply_depth_chart_gating(combined, depth_chart)
     combined = _attach_veteran_intervals(combined, resid)
-    combined = apply_deep_bench_games_cap(combined)
-    # Status overrides re-applied after the deep-bench cap so mode=zero wins.
+    # Status overrides re-applied after rate gating so mode=zero wins.
     combined = apply_status_overrides(
         combined, load_status_overrides(target_season, as_of=as_of))
     _warn_discounted_high_usage(conn, combined, base, source_season)

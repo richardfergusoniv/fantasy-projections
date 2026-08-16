@@ -63,47 +63,15 @@ REPLACEMENT_POSITIONS = ("RB", "WR", "TE")
 REPLACEMENT_MIN_CELL = 15
 REPLACEMENT_DEPTH_BANDS = ((1, "rank_1"), (2, "rank_2"), (99, "rank_3_plus"))
 
-PASS_CATCH_COHERENCE_BAND = (0.8, 1.35)
-NAMED_REC_YARDS_COVERAGE = 0.98
-NAMED_REC_RECEPTIONS_COVERAGE = 0.98
-NAMED_REC_TDS_COVERAGE = 0.96
-
-QB_ATTEMPTS_PER_VOLUME_GAME_MAX = 42.0
+# Board-level tripwire ceilings (warn only; not composition caps).
 RUSH_ATTEMPTS_PER_APPEARANCE_MAX = {"QB": 12.0, "RB": 25.0, "WR": 5.0, "TE": 3.0}
 RUSH_YARDS_PER_CARRY_MAX = {"QB": 10.0, "RB": 7.0, "WR": 15.0, "TE": 15.0}
-NAMED_RUSH_COVERAGE = 0.814
 
 # Live-only OL feature smoothing. 0 = exact-season only (historical/backtest
 # default). 3 = snap-weighted trailing average over the source season and the
 # two prior seasons, applied only to the live predict source season.
 # Ablation (OL score persistence MAE) favored trailing — see ol_quality note.
 OL_TRAILING_SEASONS = 3
-
-USAGE_SHARE_BLEND_W = 0.0
-USAGE_SHARE_CURATED_W = 0.5
-
-# Preseason WR formation columns (Ourlads LWR/RWR/SWR). Relative priors match
-# the curated WR_USAGE_SLOTS defaults and are renormalized within present roles
-# at L3. Blend pulls within-WR budget toward those columns so a vacated LWR
-# leaves volume in the LWR bucket instead of scaling every WR equally.
-WR_FORMATION_ROLES = ("LWR", "RWR", "SWR")
-WR_FORMATION_ROLE_PRIORS = {"LWR": 0.1554, "RWR": 0.0667, "SWR": 0.0386}
-FORMATION_ROLE_BLEND_W = 0.5
-DEPTH_RANK_TO_WR_FORMATION_ROLE = {1: "LWR", 2: "RWR", 3: "SWR"}
-
-USAGE_SHARE_FAMILIES = {
-    "receiving": {
-        "positions": ("WR", "TE", "RB"),
-        "stats": ("targets", "receptions", "receiving_yards", "receiving_tds"),
-        "prior": "target_share",
-    },
-    "rushing": {
-        "positions": ("RB",),
-        "stats": ("carries", "rushing_yards", "rushing_tds"),
-        "prior": "carry_share",
-    },
-}
-USAGE_SHARE_MAX_RANK = 5
 
 TEAM_ANCHOR_OUTPUT_COLS = [
     "team_passing_yards_pg_pred", "team_pass_attempts_pg_pred",
@@ -123,33 +91,15 @@ OUTPUT_COLUMNS = [
     "nfl_depth_rank",
     "role_discount_factor",
     "athletic_tier",
-    "team_pass_catch_ratio_pre_normalization", "team_pass_catch_pre_normalization_flag",
-    "team_pass_catch_ratio", "team_pass_catch_coherence_flag",
     "receiving_share_capped",
     "receiving_share_normalized",
     "elite_correction_pg",
     "projected_games",
     "projected_games_raw",
     "projected_volume_games",
-    "team_qb_raw_appearance_games", "team_qb_volume_allocation_direction",
-    "team_qb_roster_resolved", "qb_volume_games_scale", "qb_volume_allocation_adjusted",
     "team_pass_attempts_pg_pred", "team_passing_yards_pg_pred",
     "team_carries_pg_pred", "team_rushing_yards_pg_pred",
     "team_anchor_source_season", "team_anchor_lag_team", "team_anchor_provenance",
-    "wr_target_share", "te_target_share", "rb_target_share", "mix_source",
-    "hierarchical_pass_scale", "within_group_target_share",
-    "rb_carry_share", "qb_carry_share", "other_carry_share", "rush_mix_source",
-    "hierarchical_rush_scale", "within_group_carry_share",
-    "team_passing_volume_scale",
-    "team_qb_attempt_anchor_fully_allocated",
-    "team_rushing_volume_scale", "team_pass_receive_count_scale",
-    "usage_share_blend_factor",
-    "team_unmodeled_qb_volume_games", "team_unmodeled_qb_attempts_season",
-    "team_unmodeled_qb_completions_season", "team_unmodeled_qb_passing_yards_season",
-    "team_unmodeled_qb_passing_tds_season", "team_unmodeled_receiving_yards_season",
-    "team_unmodeled_receptions_season", "team_unmodeled_receiving_tds_season",
-    "team_unmodeled_carries_season", "team_unmodeled_rushing_yards_season",
-    "coherence_receiver_exposure_basis",
     "target_depth_rank", "rookie_depth_band",
     "rookie_availability_cell_n", "rookie_availability_fallback_used",
     "rookie_vacancy_scale",
