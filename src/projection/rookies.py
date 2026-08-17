@@ -103,6 +103,9 @@ ROOKIE_INTERVAL_MIN_N = 20  # bucket sample sizes below this get interval_low_n_
 TEAM_ABBR_FIX = {
     "GNB": "GB", "KAN": "KC", "LAR": "LA", "LVR": "LV",
     "NOR": "NO", "NWE": "NE", "SFO": "SF", "TAM": "TB",
+    # nflverse's 2026 preseason roster refresh changed Arizona from the
+    # historical ARI used by pbp/schedules/features to AZ.
+    "AZ": "ARI",
 }
 
 
@@ -206,6 +209,7 @@ def load_draft_capital(conn):
         "select player_id, season, team, position, draft_number, player_name as name, pfr_id "
         "from seasonal_rosters", conn,
     ).rename(columns={"season": "draft_season"})
+    roster["team"] = roster["team"].replace(TEAM_ABBR_FIX)
     players = pd.read_sql(
         "select gsis_id as canonical_player_id, pfr_id from players", conn,
     )
@@ -252,6 +256,7 @@ def identify_udfa_rookie_seasons(conn, seasons=SEASONS):
         f"and years_exp = 0 and draft_number is null", conn,
     )
     udfa = udfa[udfa["position"].isin(["QB", "RB", "WR", "TE"])].copy()
+    udfa["team"] = udfa["team"].replace(TEAM_ABBR_FIX)
     udfa = udfa.drop_duplicates(subset=["player_id", "season", "position"])
     udfa["round"] = np.nan
     udfa["pick"] = np.nan
@@ -413,6 +418,7 @@ def team_vacated_opportunity(conn, seasons=SEASONS):
             f"({','.join(map(str, missing))})", conn,
         ).drop_duplicates(subset=["player_id", "season"])
         roster_team = pd.concat([roster_team, fallback], ignore_index=True, sort=False)
+    roster_team["team"] = roster_team["team"].replace(TEAM_ABBR_FIX)
 
     rows = []
     for season in seasons:
@@ -627,6 +633,7 @@ def identify_target_season_rookie_class(conn, target_season):
         f"select player_id, team, position, years_exp, draft_number, player_name as name, pfr_id "
         f"from seasonal_rosters where season = {target_season}", conn,
     ).drop_duplicates(subset=["player_id"])
+    roster["team"] = roster["team"].replace(TEAM_ABBR_FIX)
 
     players = pd.read_sql(
         "select gsis_id as canonical_player_id, pfr_id from players "

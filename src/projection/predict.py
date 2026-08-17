@@ -49,8 +49,10 @@ import pandas as pd
 
 from src.projection.data_prep import get_conn
 from src.projection.depth_history import (
+    DEPTH_TIER_COLUMN,
     attach_availability_depth_rank,
     attach_depth_rank,
+    depth_tiers,
 )
 from src.projection.features import build_player_season_features, TARGET_STATS
 from src.projection.rookies import (
@@ -105,6 +107,7 @@ from src.projection.depth_gating import (
     apply_status_overrides,
     apply_full_season_games_baseline,
     enforce_availability_chart_review,
+    apply_curated_depth_tier,
     apply_depth_chart_gating,
 )
 from src.projection.roster_moves import (
@@ -267,6 +270,7 @@ def project_season(conn, target_season, as_of=None):
         rookie_long = rookie_long.merge(dc, on=["player_id", "position"], how="left")
     else:
         rookie_long["depth_rank"], rookie_long["role"] = np.nan, None
+    rookie_long = _attach_rookie_depth_tier(rookie_long, depth_chart)
     rookie_long["depth_chart_status"] = "rookie_path"
     # projected_games was estimated on the full historical rookie cohort in
     # rookies.py, by position/draft bucket and preseason depth band — keep
@@ -331,6 +335,25 @@ def _attach_rookie_intervals(rookie_long, ratios):
     out["pred_pg_high"] = out["pred_pg"] * out["ratio_high"]
     return out.drop(
         columns=["ratio_low", "ratio_high", "round_bucket", "n"], errors="ignore")
+
+
+def _attach_rookie_depth_tier(rookie_long, depth_chart):
+    """Materialize the tier consumed by team reconciliation for rookies.
+
+    Rookie availability already reads the curated chart, but the final
+    reconciler protects a QB starter only through ``depth_tier == 1``. Without
+    this bridge a genuine rookie QB1 is treated as bench volume even when the
+    curated chart names him the starter.
+    """
+    out = rookie_long.copy()
+    nfl_rank = (
+        out["nfl_depth_rank"]
+        if "nfl_depth_rank" in out
+        else pd.Series(np.nan, index=out.index)
+    )
+    out[DEPTH_TIER_COLUMN] = depth_tiers(nfl_rank)
+    out["depth_tier_source"] = "nflverse"
+    return apply_curated_depth_tier(out, depth_chart)
 
 
 # Board-level tripwires. Same contract as _warn_discounted_high_usage and

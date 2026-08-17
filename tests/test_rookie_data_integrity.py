@@ -14,10 +14,42 @@ from src.projection.rookies import (
     predict_rookies,
     rookie_interval_ratios,
 )
-from src.projection.predict import _apply_rookie_depth_rate_gating, _attach_rookie_intervals
+from src.projection.predict import (
+    _apply_rookie_depth_rate_gating,
+    _attach_rookie_depth_tier,
+    _attach_rookie_intervals,
+)
+from src.projection.roster_moves import load_target_roster_map
 
 
 class RookieDataIntegrityTests(unittest.TestCase):
+    def test_refreshed_arizona_roster_code_normalizes_to_feature_code(self):
+        conn = sqlite3.connect(":memory:")
+        self.addCleanup(conn.close)
+        pd.DataFrame([
+            dict(player_id="cardinal", season=2026, team="AZ", status="ACT")
+        ]).to_sql("seasonal_rosters", conn, index=False)
+
+        roster = load_target_roster_map(conn, 2026)
+
+        self.assertEqual(roster.loc["cardinal", "team"], "ARI")
+
+    def test_curated_rookie_qb1_materializes_reconcile_starter_tier(self):
+        rows = pd.DataFrame([
+            dict(player_id="rookie", position="QB", nfl_depth_rank=6.0),
+            dict(player_id="other", position="QB", nfl_depth_rank=5.0),
+        ])
+        chart = pd.DataFrame([
+            dict(gsis_id="rookie", position="QB", depth_rank=1.0, role="starter")
+        ])
+
+        out = _attach_rookie_depth_tier(rows, chart).set_index("player_id")
+
+        self.assertEqual(out.loc["rookie", "depth_tier"], 1.0)
+        self.assertEqual(out.loc["rookie", "depth_tier_source"], "curated")
+        self.assertEqual(out.loc["other", "depth_tier"], 4.0)
+        self.assertEqual(out.loc["other", "depth_tier_source"], "nflverse")
+
     def test_rookie_interval_zero_mass_and_missing_cell_both_have_zero_floor(self):
         cohort = pd.DataFrame([
             dict(season=2024, position="QB", round_bucket="round_4_7",
