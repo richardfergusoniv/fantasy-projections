@@ -7,7 +7,7 @@ specific pull (e.g. refreshing the current in-progress season).
 import os
 import pandas as pd
 
-RAW_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "raw")
+from src.paths import RAW_DIR
 
 
 def cached_season(source: str, season: int, fetch_fn, force: bool = False) -> pd.DataFrame:

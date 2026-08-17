@@ -14,12 +14,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.ingest import sources as src
-
-DB_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "data",
-    "projections.db",
-)
+from src.paths import DB_PATH
 
 SEASONS = list(range(2016, 2027))
 

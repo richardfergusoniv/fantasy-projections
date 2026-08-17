@@ -15,8 +15,7 @@ import sqlite3
 
 import pandas as pd
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DB_PATH = os.path.join(REPO_ROOT, "data", "projections.db")
+from src.paths import DB_PATH, REPO_ROOT
 
 POSITIONS = ["QB", "RB", "WR", "TE"]
 SEASONS = list(range(2016, 2026))
