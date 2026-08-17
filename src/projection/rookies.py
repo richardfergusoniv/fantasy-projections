@@ -82,20 +82,11 @@ LOG_PICK_EXCLUDED_STATS = frozenset({
 ROOKIE_BOOST_ELIGIBLE_ROLES = frozenset({"starter", "committee"})
 ROOKIE_AVAILABILITY_MIN_CELL = 5
 
-# Modest multiplicative scale applied to a rookie's whole projected line
-# based on a discrete combine-athleticism tier (Addendum 4, Part 3) - see
-# load_combine_athletic_tier's docstring for the full reasoning. Deliberately
-# small (+/-8%/6%, not a big swing) and applied as a THIRD discrete tier
-# rather than a continuous score, per the spec's own guidance to prefer
-# flags/tiers over precise continuous scaling on a sample this thin (11-132
-# historical rookies per bucket, ~85% combine pfr_id join coverage on top of
-# that) - fitting a continuous relationship between combine testing and NFL
-# per-game production on these sample sizes would be noise-fitting, not
-# signal. Chosen as a SCALE on the existing bucket-mean projection (not a
-# new bucketing dimension for fit_rookie_baselines) specifically so it does
-# NOT further fragment the already-thin (position, round_bucket) training
-# samples the way adding a third grouping key would.
-ATHLETIC_SCALE = {"above_median": 1.08, "below_median": 0.94, "no_data": 1.0}
+# Combine tiers remain output metadata for future efficiency work, but do not
+# alter rookie volume. Incremental R² over log(pick) was QB .0002, RB .0039,
+# WR .0000, TE .0127, with coefficient signs changing by target. In corrected
+# 2022-2025 rolling folds, deleting the +/-8%/6% multiplier changes mean MAE
+# by -0.07% across 23 outputs (13 improve, 10 worsen; primary stats split 2/2).
 ROOKIE_INTERVAL_QUANTILES = (0.10, 0.90)  # same width as the veteran empirical interval, for comparability
 ROOKIE_INTERVAL_MIN_N = 20  # bucket sample sizes below this get interval_low_n_flag=True
 
@@ -277,16 +268,12 @@ def load_combine_athletic_tier(conn):
     -scoped and known to drop many players - see Phase 1 findings, restated
     in PHASE4_REPORT.md's ingestion notes).
 
-    Not fed into the veteran LightGBM path as a continuous regressor and not
-    used to fit a new (position, round_bucket, tier) baseline - see
-    ATHLETIC_SCALE's comment for why: the per-(position, round_bucket)
-    rookie sample is already thin (11-132 rows, PHASE4_REPORT.md), and
-    combine_data's ~85% pfr_id join coverage would shrink any tier-specific
-    subgroup further. Instead this produces a simple discrete tier
-    (`athletic_tier` in {'above_median','below_median','no_data'}) that
-    predict_rookies applies as a modest multiplicative scale on the
-    existing bucket-mean x vacated-opportunity projection - refining the
-    point estimate without needing its own fitted sample.
+    Not fed into either volume model. The per-cell rookie sample is already
+    thin and combine_data has incomplete pfr_id coverage; more importantly,
+    corrected rolling evaluation found no stable incremental volume value.
+    This function retains a discrete metadata tier (`athletic_tier` in
+    {'above_median','below_median','no_data'}) so future efficiency work need
+    not reconstruct the historical join.
 
     athletic_score = mean of two units-normalized percentile ranks, WITHIN
     POSITION (raw 40 times and vertical jumps aren't comparable across
@@ -503,13 +490,10 @@ def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
     round_bucket='undrafted' essentially never occur - that requires a
     draft_picks row with a null round, which doesn't happen in practice).
 
-    Also merges the combine-athleticism tier (Addendum 4, Part 3,
-    load_combine_athletic_tier) onto every rookie row - both for
-    predict_rookies' target-season scaling AND so backtest.py's historical
-    rookie evaluation exercises the exact same combine-scaled code path
-    the real 2026 prediction uses, not a separate untested branch. Players
-    with no combine match get athletic_tier='no_data' (the real, explicit
-    fallback - not a dropped row) rather than NaN."""
+    Also merges the combine-athleticism tier onto every rookie row as
+    transparent metadata for future efficiency work. It is deliberately not
+    a volume input. Players with no combine match get athletic_tier='no_data'
+    rather than NaN."""
     rookies = identify_rookie_seasons(conn, seasons)
     udfa = identify_udfa_rookie_seasons(conn, seasons)
     rookies = pd.concat([rookies, udfa], ignore_index=True, sort=False)
@@ -905,20 +889,11 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
         }
         preds["rookie_vacancy_scale"] = scale
 
-        # Combine-athleticism scale (Addendum 4, Part 3) - a modest,
-        # discrete-tier multiplier on top of the vacated-opportunity scale
-        # above, same reasoning as ATHLETIC_SCALE's module-level comment.
-        # row.get(...) rather than row["athletic_tier"] so this stays a
-        # no-op (scale=1.0, tier reported as 'no_data') for any caller that
-        # hasn't merged load_combine_athletic_tier onto its rookie frame -
-        # defensive, but every real caller (build_rookie_dataset,
-        # project_season's target-class path) does merge it.
+        # Athletic testing remains visible for auditing and possible future
+        # efficiency work, but measured no stable incremental volume signal.
         athletic_tier = row.get("athletic_tier", "no_data")
         if pd.isna(athletic_tier):
             athletic_tier = "no_data"
-        athletic_scale = ATHLETIC_SCALE.get(athletic_tier, 1.0)
-        for c in pg_cols:
-            preds[c] = preds[c] * athletic_scale
 
         # Availability comes entirely from the internal full rookie cohort.
         # Draft bucket supplies the prior and preseason depth rank refines it.

@@ -47,6 +47,34 @@ class RookieDataIntegrityTests(unittest.TestCase):
         self.assertGreater(pred.loc["p40", "targets_pg"], pred.loc["p90", "targets_pg"])
         self.assertEqual(_effective_pick(np.nan), 270.0)
 
+    def test_athletic_tier_is_metadata_not_a_volume_multiplier(self):
+        idx = pd.MultiIndex.from_tuples(
+            [("WR", "round_1")], names=["position", "round_bucket"])
+        baselines = pd.DataFrame([dict(
+            targets_per_elig=6.0,
+            vacated_carry_share=0.2,
+            vacated_target_share=0.2,
+            vacated_attempts_share=0.2,
+            mean_games_played=10.0,
+            n_train_rookies=20,
+        )], index=idx)
+        common = dict(
+            season=2026, team="A", position="WR", round_bucket="round_1",
+            pick=10, rookie_tier="drafted", vacated_carry_share=0.2,
+            vacated_target_share=0.2, vacated_attempts_share=0.2,
+            target_depth_rank=np.nan,
+        )
+        target = pd.DataFrame([
+            dict(common, player_id="fast", athletic_tier="above_median"),
+            dict(common, player_id="slow", athletic_tier="below_median"),
+        ])
+
+        pred = predict_rookies(target, baselines, [2026]).set_index("player_id")
+
+        self.assertEqual(pred.loc["fast", "targets_pg"], pred.loc["slow", "targets_pg"])
+        self.assertEqual(pred.loc["fast", "athletic_tier"], "above_median")
+        self.assertEqual(pred.loc["slow", "athletic_tier"], "below_median")
+
     def test_season_aggregate_separates_appearance_and_opportunity_games(self):
         rows = []
         for week, targets in [(1, 1), (2, 0)]:
