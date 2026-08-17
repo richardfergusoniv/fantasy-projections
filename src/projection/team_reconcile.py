@@ -1,8 +1,11 @@
 """Team-anchor attach, elite receiving correction, and output hygiene.
 
-Attaches Ridge team-total anchors as metadata, applies the elite
-receiving-yards correction, enforces counting-stat identities, and adds
-season totals. Does not invent or redistribute team volume onto players.
+Attaches Ridge team-total anchors, applies the elite receiving-yards
+correction, pulls each team's summed volume partway toward its own anchor
+(reconcile_team_volume), enforces counting-stat identities, and adds season
+totals. It does not redistribute volume BETWEEN players - every scale is a
+single factor applied to a whole team-position group, so within-team ordering
+is untouched.
 
 Does not import predict.
 """
@@ -11,7 +14,13 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from src.projection.contracts import TEAM_ANCHOR_OUTPUT_COLS
+from src.projection.contracts import (
+    TEAM_ANCHOR_OUTPUT_COLS,
+    TEAM_RECONCILE_ALPHA,
+    TEAM_RECONCILE_CLIP,
+    TEAM_VOLUME_SHARES,
+    TEAM_VOLUME_SIBLINGS,
+)
 from src.projection.corrections import elite_shrinkage_adjustment
 from src.projection.transitions import (
     REFRAMED_SHARE_STATS,
@@ -331,6 +340,70 @@ def reconcile_stat_constraints(df):
                 out.loc[changed_index, col] = parent_values[changed]
                 out.loc[changed_index, "stat_constraint_applied"] = True
     return out
+def reconcile_team_volume(df, alpha=None):
+    """Pull each team's summed volume toward its own team anchor.
+
+    The player models are fit independently, so nothing ties a team's summed
+    output to what that team will run. Nothing downstream did either -
+    compose_board was explicitly hygiene-only - and the result was 22 of 32
+    teams projecting more QB pass attempts than any NFL team recorded in
+    2021-2024.
+
+    Partial by design. `TEAM_RECONCILE_ALPHA` is 0.5, not 1.0, and the reason
+    is measured rather than cautious: forcing the sum to the anchor is the
+    best setting when the projected population covers the whole team and the
+    WORST when it does not (+2.93% MAE on backtest folds averaging 85%
+    coverage, -7.31% on folds above 90%). 0.5 is the strongest setting that
+    improves in both regimes. See contracts.TEAM_RECONCILE_ALPHA.
+
+    This is deliberately NOT the "rescale receivers to match the QB's
+    predicted volume" idea that backtested worse (8.94 -> 9.47 MAE) earlier in
+    this project. That propagated one player model's error across a whole
+    team; this scales a position group toward a separately fitted TEAM-grain
+    forecast, and it is scored on player-level error, never on the team sum
+    that alpha=1 would fix by construction.
+
+    Runs on rates, before season totals are materialized, so pred_season
+    follows automatically. Interval endpoints take the same scale as the
+    point estimate.
+    """
+    if alpha is None:
+        alpha = TEAM_RECONCILE_ALPHA
+    out = df.copy()
+    out["team_volume_scale"] = 1.0
+    if not alpha or out.empty:
+        return out
+
+    exposure = _row_exposure(out)
+    lo, hi = TEAM_RECONCILE_CLIP
+    for (position, stat), (anchor_col, share) in TEAM_VOLUME_SHARES.items():
+        if anchor_col not in out.columns:
+            continue
+        group = [stat] + list(TEAM_VOLUME_SIBLINGS.get((position, stat), ()))
+        anchored = out["position"].eq(position) & out["stat"].eq(stat)
+        if not anchored.any():
+            continue
+        rows = out[anchored]
+        season = pd.to_numeric(rows["pred_pg"], errors="coerce") * exposure[anchored]
+        summed = season.groupby(rows["team"]).sum()
+        target = (
+            pd.to_numeric(rows.drop_duplicates("team").set_index("team")[anchor_col],
+                          errors="coerce")
+            * SEASON_GAMES * share
+        )
+        ratio = (target.reindex(summed.index) / summed.replace(0, np.nan)).clip(lo, hi)
+        scale = (ratio ** alpha).reindex(summed.index)
+
+        touched = out["position"].eq(position) & out["stat"].isin(group)
+        factor = out.loc[touched, "team"].map(scale).astype(float).fillna(1.0)
+        for col in ("pred_pg", "pred_pg_low", "pred_pg_high"):
+            if col in out.columns:
+                out.loc[touched, col] = (
+                    pd.to_numeric(out.loc[touched, col], errors="coerce") * factor)
+        out.loc[touched, "team_volume_scale"] = factor
+    return out
+
+
 def _row_exposure(rows):
     volume = pd.to_numeric(
         rows["projected_volume_games"] if "projected_volume_games" in rows else

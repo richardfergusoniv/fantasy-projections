@@ -1,7 +1,10 @@
 """The one post-forecast board pipeline, shared by ship and by measurement.
 
-Composition no longer invents or redistributes team volume. After veterans,
-rookies and replacement rows are concatenated, this module only:
+After veterans, rookies and replacement rows are concatenated, this module
+does post-forecast hygiene plus ONE volume step - a partial top-down pull of
+each team's summed output toward that team's own anchor (see
+team_reconcile.reconcile_team_volume). It does not invent or redistribute
+volume between players. Specifically it:
 
   * sets draft exposure to a full season (Gate A stays in projected_games_raw)
   * applies IR / PUP / suspension status overrides
@@ -30,6 +33,7 @@ from src.projection.team_reconcile import (
     add_projected_season_totals,
     propagate_team_anchors,
     reconcile_stat_constraints,
+    reconcile_team_volume,
 )
 from src.projection.transitions import SEASON_GAMES
 
@@ -120,5 +124,8 @@ def compose_board(rows, ctx):
     out = apply_status_overrides(out, ctx.status_overrides)
     out = propagate_team_anchors(out)
     out["projected_volume_games"] = pd.to_numeric(out.get("projected_games"), errors="coerce")
+    # Top-down: pull each team's summed volume toward its own anchor before
+    # the counting-stat identities and the season totals are materialised.
+    out = reconcile_team_volume(out)
     out = reconcile_stat_constraints(out)
     return add_projected_season_totals(out)

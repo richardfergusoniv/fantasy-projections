@@ -80,6 +80,63 @@ TEAM_ANCHOR_OUTPUT_COLS = [
     "team_anchor_provenance",
 ]
 
+# --- Team volume reconciliation -------------------------------------------
+#
+# Player predictions are made independently, so nothing stops a team's summed
+# volume from exceeding what that team will actually run. It did: before this,
+# 22 of 32 teams projected more QB pass attempts than any NFL team recorded in
+# 2021-2024. Every documented industry projection process is top-down for
+# exactly this reason.
+#
+# scale = (team_target / summed_prediction) ** TEAM_RECONCILE_ALPHA
+#
+# ALPHA is measured, not asserted. Rolling origin 2022-2025, refitting both
+# the player and team models per fold, scored on player-level season-total MAE
+# (never on the team sum, which alpha=1 fixes by construction):
+#
+#                    all team-folds      coverage >= 90%
+#     alpha=0.25         -1.01%              -2.91%
+#     alpha=0.50         -0.94%              -4.98%
+#     alpha=0.75         +0.14%              -6.58%
+#     alpha=1.00         +2.93%              -7.31%
+#
+# The two columns differ because the backtest population is only ~85% of a
+# real team (transition pairs only; p10 coverage 47%) while the shipped board
+# projects veterans + rookies + replacement rows and covers 96%/90%. Scaling a
+# partial population to a whole-team target inflates whoever is present, which
+# is why full reconciliation is harmful on the left and best on the right.
+#
+# 0.5 rather than 1.0 deliberately: it is the strongest setting that improves
+# in BOTH regimes, so a team whose coverage degrades (players dropped for
+# having no roster row) cannot be made worse by it. On the production-like
+# slice it captures about two thirds of the available gain, improving all four
+# position/stat combos and all four seasons. Raise it only against a measured
+# improvement on the shipped path.
+TEAM_RECONCILE_ALPHA = 0.5
+
+# Ratio clip, so a team whose summed prediction is near zero cannot produce an
+# unbounded rescale.
+TEAM_RECONCILE_CLIP = (0.25, 4.0)
+
+# Measured median share of each team total that the position actually takes,
+# 2016-2025. RB do NOT take every team carry - scoring that ratio against 1.00
+# was a real error in an earlier pass of this work.
+#   (position, stat) -> (team anchor column, share of it)
+TEAM_VOLUME_SHARES = {
+    ("QB", "attempts"): ("team_pass_attempts_pg_pred", 0.941),
+    ("QB", "passing_yards"): ("team_passing_yards_pg_pred", 0.942),
+    ("RB", "carries"): ("team_carries_pg_pred", 0.810),
+    ("RB", "rushing_yards"): ("team_rushing_yards_pg_pred", 0.806),
+}
+
+# Counting stats with no anchor of their own take the scale of the stat they
+# ride along with, so a reconciled line stays internally consistent instead of
+# gaining completions the reconciled attempts no longer support.
+TEAM_VOLUME_SIBLINGS = {
+    ("QB", "attempts"): ("completions", "passing_tds", "interceptions"),
+    ("RB", "carries"): ("rushing_tds",),
+}
+
 OUTPUT_COLUMNS = [
     "player_id", "display_name", "team", "position", "stat",
     "pred_pg", "pred_pg_low", "pred_pg_high",
@@ -95,6 +152,10 @@ OUTPUT_COLUMNS = [
     # nobody can tell why a player was projected the way he was.
     # depth_tier_source = 'curated' means the hand chart overrode the feed.
     "depth_tier", "depth_tier_source",
+    # What the top-down team reconciliation did to this row. 1.0 = untouched.
+    # Same rationale as depth_tier: the adjustment has to be visible or nobody
+    # can tell why a player's number differs from what his model produced.
+    "team_volume_scale",
     "role_discount_factor",
     "athletic_tier",
     "receiving_share_capped",
