@@ -12,10 +12,10 @@ itself carries the fallback methodology's caveats (no fumbles/2pt logic,
 built to match the same named fields but not a byte-for-byte replica of
 nflverse's own aggregation).
 
-Rookie evaluation is reported separately (fit_rookie_baselines on
-2016-2024, predict 2025) since rookies have no naive-baseline equivalent
-(no prior season to carry forward) - MAE is reported but there's no
-apples-to-apples baseline comparison to make for them.
+Rookie evaluation is reported separately since rookies have no
+naive-baseline equivalent (no prior season to carry forward).  It uses
+strictly-forward 2022-2025 holdouts and scores the role-rate predictions
+against the matching per-eligible-week actuals.
 """
 import os
 
@@ -36,7 +36,12 @@ from src.projection.transitions import (
     RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, AVAILABILITY_LABEL, SEASON_GAMES,
     TEAM_ATTEMPTS_LABEL, receiving_share_scale,
 )
-from src.projection.rookies import build_rookie_dataset, fit_rookie_baselines, predict_rookies
+from src.projection.rookies import (
+    build_rookie_dataset,
+    fit_rookie_baselines,
+    predict_rookies,
+    rookie_role_label,
+)
 from src.projection.train import LGBM_PARAMS
 from src.projection.corrections import (
     compute_loo_receiving_residuals, fit_elite_shrinkage, elite_shrinkage_adjustment,
@@ -46,6 +51,7 @@ from src.projection.corrections import (
 TRAIN_PAIRS = [(2021, 2022), (2022, 2023), (2023, 2024)]
 TEST_PAIR = (2024, 2025)
 ROLLING_TEST_PAIRS = [(2022, 2023), (2023, 2024), (2024, 2025)]
+ROOKIE_ROLLING_TEST_SEASONS = (2022, 2023, 2024, 2025)
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MODELS_DIR = os.path.join(REPO_ROOT, "models")
@@ -703,27 +709,65 @@ def run_rolling_origin_backtest(feat, test_pairs=ROLLING_TEST_PAIRS):
     return pd.DataFrame(rows)
 
 
-def run_rookie_backtest(conn, feat):
-    rdf = build_rookie_dataset(conn, feat)
-    train_seasons = list(range(2016, 2025))
-    baselines = fit_rookie_baselines(rdf, train_seasons)
-    preds = predict_rookies(rdf, baselines, [2025])
+def _score_rookie_fold(rdf, test_season):
+    """Fit on earlier rookie classes and score one held-out role-rate class."""
+    train_seasons = sorted(
+        int(season) for season in rdf["season"].dropna().unique()
+        if int(season) < test_season
+    )
+    if not train_seasons:
+        return pd.DataFrame()
 
-    actual_2025 = rdf[rdf["season"] == 2025][["player_id"] + [c for c in rdf.columns if c.endswith("_pg")]]
-    merged = preds.merge(actual_2025, on="player_id", suffixes=("_pred", "_actual"))
+    baselines = fit_rookie_baselines(rdf, train_seasons)
+    preds = predict_rookies(rdf, baselines, [test_season])
+
+    # predict_rookies keeps the historical public `{stat}_pg` output names,
+    # but since Phase 4a their values come from `{stat}_per_elig` baselines.
+    # Score them against those same role-rate labels.  The old code selected
+    # rdf's appearance-rate `_pg` columns instead, making every rookie MAE a
+    # cross-basis comparison.
+    actual_cols = {
+        stat: rookie_role_label(stat)
+        for stats in TARGET_STATS.values()
+        for stat in stats
+        if rookie_role_label(stat) in rdf.columns
+    }
+    actual = rdf[rdf["season"] == test_season][
+        ["player_id", "season", *actual_cols.values()]
+    ].rename(columns={label: f"{stat}_actual" for stat, label in actual_cols.items()})
+    merged = preds.merge(actual, on=["player_id", "season"], how="inner")
 
     rows = []
     for position, stats in TARGET_STATS.items():
         for stat in stats:
-            p_col, a_col = f"{stat}_pg_pred", f"{stat}_pg_actual"
-            sub = merged[(merged["position"] == position) & merged[p_col].notna() & merged[a_col].notna()]
+            p_col, a_col = f"{stat}_pg", f"{stat}_actual"
+            if p_col not in merged or a_col not in merged:
+                continue
+            sub = merged[
+                (merged["position"] == position)
+                & merged[p_col].notna()
+                & merged[a_col].notna()
+            ]
             if sub.empty:
                 continue
+            error = sub[p_col] - sub[a_col]
             rows.append({
-                "position": position, "stat": stat, "n_test": len(sub),
-                "model_mae": mae(sub[p_col], sub[a_col]),
+                "test_season": test_season,
+                "n_train_seasons": len(train_seasons),
+                "position": position,
+                "stat": stat,
+                "n_test": len(sub),
+                "model_mae": float(error.abs().mean()),
+                "model_bias": float(error.mean()),
             })
     return pd.DataFrame(rows)
+
+
+def run_rookie_backtest(conn, feat, test_seasons=ROOKIE_ROLLING_TEST_SEASONS):
+    rdf = build_rookie_dataset(conn, feat)
+    folds = [_score_rookie_fold(rdf, int(season)) for season in test_seasons]
+    folds = [fold for fold in folds if not fold.empty]
+    return pd.concat(folds, ignore_index=True) if folds else pd.DataFrame()
 
 
 def main():
