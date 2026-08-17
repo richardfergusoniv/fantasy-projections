@@ -72,6 +72,22 @@ class RookieDataIntegrityTests(unittest.TestCase):
         self.assertEqual(attached.loc[0, "pred_pg_high"], 30.0)
         self.assertTrue(attached.loc[0, "interval_low_n_flag"])
 
+    def test_rookie_interval_always_contains_point_prediction(self):
+        rows = pd.DataFrame([dict(
+            player_id="rook", position="WR", round_bucket="round_4_7",
+            stat="receiving_tds", pred_pg=0.01,
+        )])
+        ratios = pd.DataFrame([dict(
+            position="WR", round_bucket="round_4_7", stat="receiving_tds",
+            n=40, ratio_low=0.0, ratio_high=0.0,
+            interval_low_n_flag=False,
+        )])
+
+        attached = _attach_rookie_intervals(rows, ratios)
+
+        self.assertEqual(attached.loc[0, "pred_pg_low"], 0.0)
+        self.assertEqual(attached.loc[0, "pred_pg_high"], 0.01)
+
     def test_log_pick_rate_separates_players_inside_the_same_round_cell(self):
         cohort = pd.DataFrame([
             dict(player_id="early", season=2024, team="A", position="WR",

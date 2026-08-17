@@ -795,7 +795,7 @@ def main():
         print("\nRolling-origin fold-mean summary:")
         print(summary.to_string(index=False))
 
-    print("\n=== Rookie backtest: baselines from 2016-2024 rookies, test 2025 rookies ===")
+    print("\n=== Rookie rolling-origin backtest: expanding history, holdouts 2022-2025 ===")
     rook = run_rookie_backtest(conn, feat)
     print(rook.to_string(index=False))
 

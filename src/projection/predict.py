@@ -331,8 +331,10 @@ def _attach_rookie_intervals(rookie_long, ratios):
     out.loc[no_ratio, "ratio_high"] = ROOKIE_RATIO_FALLBACK[1]
     out.loc[no_ratio, "interval_low_n_flag"] = True
     out["interval_low_n_flag"] = out["interval_low_n_flag"].fillna(False)
-    out["pred_pg_low"] = (out["pred_pg"] * out["ratio_low"]).clip(lower=0)
-    out["pred_pg_high"] = out["pred_pg"] * out["ratio_high"]
+    out["pred_pg_low"] = np.minimum(
+        (out["pred_pg"] * out["ratio_low"]).clip(lower=0), out["pred_pg"])
+    out["pred_pg_high"] = np.maximum(
+        out["pred_pg"] * out["ratio_high"], out["pred_pg"])
     return out.drop(
         columns=["ratio_low", "ratio_high", "round_bucket", "n"], errors="ignore")
 
