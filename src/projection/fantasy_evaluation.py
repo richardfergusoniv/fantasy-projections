@@ -34,12 +34,25 @@ from src.projection.team_reconcile import (
     TEAM_ANCHOR_SPECS,
     _compose_reframed_receiving_predictions,
 )
+from src.projection.data_prep import (
+    ELIGIBLE_ROSTER_STATUSES,
+    player_dominant_roster_status,
+    player_eligible_weeks,
+)
+from src.projection.data_prep import (
+    ELIGIBLE_ROSTER_STATUSES,
+    player_dominant_roster_status,
+    player_eligible_weeks,
+)
 from src.projection.rookies import (
+    ROOKIE_MIN_ELIGIBLE_WEEKS,
+    ROOKIE_ROLE_ELIGIBLE,
     TEAM_ABBR_FIX,
     _round_bucket,
     fit_rookie_baselines,
     load_combine_athletic_tier,
     predict_rookies,
+    rookie_role_label,
     team_vacated_opportunity,
 )
 from src.projection.train import fit_availability, fit_one, fit_team_total
@@ -73,6 +86,10 @@ DEFAULT_TIER_RANKS = {"QB": 12, "RB": 24, "WR": 36, "TE": 12}
 DEFAULT_REPLACEMENT_RANKS = {"QB": 13, "RB": 25, "WR": 37, "TE": 13}
 OUTCOME_RATE_COLUMNS = sorted(
     {f"{stat}_pg" for stats in TARGET_STATS.values() for stat in stats}
+    # The role-rate labels carry the same held-out outcome as {stat}_pg and
+    # must be erased with them. Listing only the _pg columns left the target
+    # season's own role rates sitting in the sanitized frame.
+    | {rookie_role_label(stat) for stats in TARGET_STATS.values() for stat in stats}
 )
 OUTCOME_TOTAL_COLUMNS = sorted(
     {stat for stats in TARGET_STATS.values() for stat in stats}
@@ -173,9 +190,17 @@ def build_preseason_rookie_cohort(
     if rookies.empty:
         return rookies
 
+    # This harness builds its own cohort and never calls build_rookie_dataset,
+    # so every column fit_rookie_baselines needs has to be assembled here too.
+    # Missing the role-rate columns silently produced baselines with no rate
+    # at all, and therefore zero rookie forecasts - the second-call-site class
+    # of bug this project has hit before.
+    raw_stat_cols = [c for c in OUTCOME_TOTAL_COLUMNS if c in feature_table.columns]
     actual_cols = [
         "player_id", "season", "games_played", "opportunity_games",
         *[c for c in OUTCOME_RATE_COLUMNS if c in feature_table.columns],
+        *raw_stat_cols,
+        *(["eligible_weeks"] if "eligible_weeks" in feature_table.columns else []),
     ]
     actual = (
         feature_table[actual_cols]
@@ -186,6 +211,25 @@ def build_preseason_rookie_cohort(
     rookies[["games_played", "opportunity_games"]] = rookies[
         ["games_played", "opportunity_games"]
     ].fillna(0.0)
+    # Role rates on the same basis as build_rookie_dataset: season total over
+    # ELIGIBLE weeks, with a rookie who never played entering as a real 0.0
+    # rather than a NaN that averaging would skip.
+    elig = player_eligible_weeks(conn, list(seasons))
+    status = player_dominant_roster_status(conn, list(seasons)).rename(
+        columns={"status": "season_roster_status"})
+    if "eligible_weeks" in rookies.columns:
+        rookies = rookies.drop(columns=["eligible_weeks"])
+    rookies = rookies.merge(elig, on=["season", "player_id"], how="left")
+    rookies = rookies.merge(status, on=["season", "player_id"], how="left")
+    for stat in OUTCOME_TOTAL_COLUMNS:
+        if stat in rookies.columns:
+            rookies[stat] = pd.to_numeric(rookies[stat], errors="coerce").fillna(0.0)
+            rookies[rookie_role_label(stat)] = rookies[stat] / rookies[
+                "eligible_weeks"].where(rookies["eligible_weeks"] > 0)
+    rookies[ROOKIE_ROLE_ELIGIBLE] = (
+        rookies["season_roster_status"].isin(ELIGIBLE_ROSTER_STATUSES)
+        & (rookies["eligible_weeks"] >= ROOKIE_MIN_ELIGIBLE_WEEKS)
+    )
     rookies = rookies.merge(
         team_vacated_opportunity(conn, list(seasons)),
         on=["season", "team"],
