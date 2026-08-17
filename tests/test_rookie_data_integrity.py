@@ -6,6 +6,7 @@ import pandas as pd
 
 from src.projection.data_prep import STAT_COLS, season_aggregate
 from src.projection.rookies import (
+    _effective_pick,
     combine_athletic_scores_by_pfr_id,
     fit_rookie_baselines,
     identify_target_season_rookie_class,
@@ -16,6 +17,36 @@ from src.projection.predict import _apply_rookie_depth_rate_gating
 
 
 class RookieDataIntegrityTests(unittest.TestCase):
+    def test_log_pick_rate_separates_players_inside_the_same_round_cell(self):
+        cohort = pd.DataFrame([
+            dict(player_id="early", season=2024, team="A", position="WR",
+                 round_bucket="round_2_3", pick=33, games_played=10,
+                 targets_per_elig=8.0, role_rate_eligible=True,
+                 vacated_carry_share=0.2, vacated_target_share=0.2,
+                 vacated_attempts_share=0.2),
+            dict(player_id="late", season=2024, team="B", position="WR",
+                 round_bucket="round_2_3", pick=96, games_played=10,
+                 targets_per_elig=2.0, role_rate_eligible=True,
+                 vacated_carry_share=0.2, vacated_target_share=0.2,
+                 vacated_attempts_share=0.2),
+        ])
+        baselines = fit_rookie_baselines(cohort, [2024])
+        target = pd.DataFrame([
+            dict(player_id="p40", season=2025, team="A", position="WR",
+                 round_bucket="round_2_3", pick=40, rookie_tier="drafted",
+                 vacated_carry_share=0.2, vacated_target_share=0.2,
+                 vacated_attempts_share=0.2, target_depth_rank=np.nan),
+            dict(player_id="p90", season=2025, team="B", position="WR",
+                 round_bucket="round_2_3", pick=90, rookie_tier="drafted",
+                 vacated_carry_share=0.2, vacated_target_share=0.2,
+                 vacated_attempts_share=0.2, target_depth_rank=np.nan),
+        ])
+
+        pred = predict_rookies(target, baselines, [2025]).set_index("player_id")
+
+        self.assertGreater(pred.loc["p40", "targets_pg"], pred.loc["p90", "targets_pg"])
+        self.assertEqual(_effective_pick(np.nan), 270.0)
+
     def test_season_aggregate_separates_appearance_and_opportunity_games(self):
         rows = []
         for week, targets in [(1, 1), (2, 0)]:

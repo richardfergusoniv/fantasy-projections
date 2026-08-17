@@ -14,15 +14,13 @@ Allowed inputs only:
   rookie's or anyone's season-N production - so it doesn't leak forward
   information a real preseason projection wouldn't have.
 
-Model: rule-based, not LightGBM. Rookie sample sizes per position x
-draft-round-bucket are too small (see PHASE4_REPORT.md) for a tree model
-to learn anything but noise, and a rookie's feature vector is structurally
-incompatible with the veteran model's inputs anyway - this is exactly the
-"distinct path" the spec calls for, not a shrunken version of the same
-pipeline. Historical per-game rates for rookies in the same
-position/draft-round bucket are averaged, then scaled by the ratio of this
-player's team's vacated opportunity to the bucket's historical average
-vacated opportunity (clipped to avoid small-sample blowups).
+Model: rule-based, not LightGBM. Rookie sample sizes are too small (see
+PHASE4_REPORT.md) for a tree model to learn anything but noise, and a rookie's
+feature vector is structurally incompatible with the veteran model's inputs.
+Historical role rates use a per-position linear prior on log(draft pick),
+then scale by the ratio of this player's team vacancy to the coarse cell's
+historical average (clipped to avoid small-sample blowups). Coarse round cells
+remain for availability and empirical intervals, where pooling is necessary.
 """
 import warnings
 import re
@@ -54,8 +52,29 @@ def rookie_role_label(stat):
     """Per-eligible-week rookie label, matching transitions.role_rate_label."""
     return f"{stat}_per_elig"
 
-ROUND_BUCKETS = {1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7", 5: "round_4_7",
-                  6: "round_4_7", 7: "round_4_7"}
+# Coarse cells remain for availability and empirical interval calibration;
+# they no longer set the point estimate.  On the 2016-2025 eligible drafted
+# cohort, primary-stat R² for log(pick) vs these cells was QB .597/.506,
+# RB .437/.348, WR .482/.414, TE .496/.382 (n=104/189/289/121).  One
+# continuous parameter also matched or beat six round dummies at RB/WR/TE.
+INTERVAL_ROUND_BUCKETS = {
+    1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7",
+    5: "round_4_7", 6: "round_4_7", 7: "round_4_7",
+}
+UDFA_EFFECTIVE_PICK = 270.0
+
+# Rolling-origin 2022-2025 against the shipped bucket prior: log(pick)
+# improved mean MAE for 19/23 position/stat pairs (primary stats QB -3.6%,
+# RB -4.8%, WR -3.8%, TE -8.7%). It lost on all three QB rushing outputs
+# (+5.3% carries, +6.7% yards, +3.9% TDs) and was neutral-to-worse on TE
+# receiving TDs (+0.5%), so those retain the shipped bucket mean. This is a
+# point-estimate choice only; every stat keeps bucket-conditioned intervals.
+LOG_PICK_EXCLUDED_STATS = frozenset({
+    ("QB", "carries"),
+    ("QB", "rushing_yards"),
+    ("QB", "rushing_tds"),
+    ("TE", "receiving_tds"),
+})
 # A curated listing alone does not make a rookie the player who absorbs an
 # opening. Match the veteran vacancy rule: backups can be scaled down by a
 # poor landing spot, but only confirmed starters/committee players may be
@@ -99,7 +118,18 @@ TEAM_ABBR_FIX = {
 def _round_bucket(rnd):
     if pd.isna(rnd):
         return "undrafted"
-    return ROUND_BUCKETS.get(int(rnd), "round_4_7")
+    return INTERVAL_ROUND_BUCKETS.get(int(rnd), "round_4_7")
+
+
+def _effective_pick(pick):
+    """Positive draft slot for the continuous rate prior; UDFAs follow day 3."""
+    if pd.isna(pick):
+        return UDFA_EFFECTIVE_PICK
+    return max(float(pick), 1.0)
+
+
+def _log_pick_columns(role_col):
+    return f"{role_col}__log_intercept", f"{role_col}__log_slope"
 
 
 def _normalized_name(value):
@@ -660,9 +690,12 @@ def identify_target_season_rookie_class(conn, target_season):
 
 
 def fit_rookie_baselines(rookie_df, train_seasons):
-    """Historical (position, round_bucket) -> mean per-game rate + mean
-    vacated_carry/target_share, fit ONLY on train_seasons (so the backtest
-    holdout season's own rookies never inform their own baseline)."""
+    """Strictly historical rookie rate, availability, and interval priors.
+
+    Point rates use ``intercept + slope * log(effective_pick)`` per position.
+    The returned frame stays indexed by coarse round cell because vacancy,
+    availability, and empirical interval calibration remain cell-conditioned.
+    """
     train = rookie_df[rookie_df["season"].isin(train_seasons)].copy()
     role_cols = [c for c in rookie_df.columns if c.endswith("_per_elig")]
     vacated_cols = ["vacated_carry_share", "vacated_target_share", "vacated_attempts_share"]
@@ -679,6 +712,29 @@ def fit_rookie_baselines(rookie_df, train_seasons):
     other = train.groupby(["position", "round_bucket"])[vacated_cols + ["games_played"]].mean()
     baselines = rates.join(other, how="outer")
     baselines = baselines.rename(columns={"games_played": "mean_games_played"})
+
+    # Fit each stat independently so a sparse/undefined secondary stat cannot
+    # drop an otherwise usable rookie from the position's primary-rate fit.
+    # Coefficients are repeated across that position's round cells to keep the
+    # established DataFrame contract and its non-rate priors intact.
+    if "pick" in rate_pop.columns:
+        effective_pick = rate_pop["pick"].apply(_effective_pick)
+        for position in baselines.index.get_level_values("position").unique():
+            pos_mask = rate_pop["position"].eq(position)
+            for role_col in role_cols:
+                stat = role_col[: -len("_per_elig")]
+                if (position, stat) in LOG_PICK_EXCLUDED_STATS:
+                    continue
+                valid = pos_mask & rate_pop[role_col].notna() & effective_pick.notna()
+                if valid.sum() < 2 or effective_pick[valid].nunique() < 2:
+                    continue
+                x = np.log(effective_pick[valid].to_numpy(dtype=float))
+                y = rate_pop.loc[valid, role_col].to_numpy(dtype=float)
+                design = np.column_stack([np.ones(len(x)), x])
+                intercept, slope = np.linalg.lstsq(design, y, rcond=None)[0]
+                intercept_col, slope_col = _log_pick_columns(role_col)
+                baselines.loc[position, intercept_col] = float(intercept)
+                baselines.loc[position, slope_col] = float(slope)
     counts = train.groupby(["position", "round_bucket"]).size().rename("n_train_rookies")
     rate_counts = rate_pop.groupby(
         ["position", "round_bucket"]).size().rename("n_rate_rookies")
@@ -699,7 +755,7 @@ def fit_rookie_baselines(rookie_df, train_seasons):
 
 
 def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
-    """Rule-based projection: bucket mean per-game rate, scaled by this
+    """Rule-based projection: continuous log-pick rate, scaled by this
     player's team's vacated opportunity vs. the bucket's historical average
     vacated opportunity (RB: vacated carry share; WR/TE: vacated target
     share; QB: vacated ATTEMPTS share - see team_vacated_opportunity's
@@ -768,6 +824,18 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
         boost_eligible_players = set(zip(
             eligible_chart["gsis_id"], eligible_chart["position"]))
 
+    def base_rate(row, baseline, role_col):
+        intercept_col, slope_col = _log_pick_columns(role_col)
+        if (
+            intercept_col in baseline.index and slope_col in baseline.index
+            and pd.notna(baseline[intercept_col]) and pd.notna(baseline[slope_col])
+        ):
+            value = baseline[intercept_col] + baseline[slope_col] * np.log(
+                _effective_pick(row.get("pick")))
+            return max(float(value), 0.0)
+        # Compatibility for manually-constructed/legacy baseline frames.
+        return max(float(baseline[role_col]), 0.0)
+
     # Share of the residual each boost-eligible rookie may claim, when more
     # than one of them is competing for the same team's same opening.
     # Splitting proportionally to bucket-mean volume reduces to 1.0 for a
@@ -778,17 +846,17 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
     target["_vac_kind"] = np.where(
         target["position"] == "RB", "carry",
         np.where(target["position"] == "QB", "attempts", "target"))
-    claim_weight = {}
-    for (position, bucket), _ in baselines.iterrows():
+    def claim_weight(row):
+        key = (row["position"], row["round_bucket"])
+        if key not in baselines.index:
+            return 0.0
         primary = {"RB": "carries_per_elig", "QB": "attempts_per_elig"}.get(
-            position, "targets_per_elig")
-        if primary in baselines.columns:
-            claim_weight[(position, bucket)] = max(
-                float(baselines.loc[(position, bucket), primary]), 0.0)
-    target["_claim_weight"] = [
-        claim_weight.get((p, b), 0.0)
-        for p, b in zip(target["position"], target["round_bucket"])
-    ]
+            row["position"], "targets_per_elig")
+        if primary not in baselines.columns:
+            return 0.0
+        return base_rate(row, baselines.loc[key], primary)
+
+    target["_claim_weight"] = target.apply(claim_weight, axis=1)
     eligible_mask = [
         (pid, pos) in boost_eligible_players
         for pid, pos in zip(target["player_id"], target["position"])
@@ -831,7 +899,10 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
                 if pd.isna(claim):
                     claim = 1.0
                 scale = 1.0 + (scale - 1.0) * float(residual) * float(claim)
-        preds = {out: b[src] * scale for out, src in zip(pg_cols, role_cols)}
+        preds = {
+            out: base_rate(row, b, src) * scale
+            for out, src in zip(pg_cols, role_cols)
+        }
         preds["rookie_vacancy_scale"] = scale
 
         # Combine-athleticism scale (Addendum 4, Part 3) - a modest,
