@@ -114,6 +114,29 @@ TEAM_ANCHOR_OUTPUT_COLS = [
 # improvement on the shipped path.
 TEAM_RECONCILE_ALPHA = 0.5
 
+# QB rooms get a different reconciliation SHAPE, not just a different alpha.
+# The flat scale above found on the shipped 2026 board: 5 tier-1 starters cut
+# >10% (Burrow -23%, Mahomes -17%) despite their OWN model rate matching
+# their real career range almost exactly (Mahomes 34.6 att/g pre-reconcile vs
+# an 8-season range of 34.6-39.2) - punished by teams rostering backups whose
+# summed rate is implausible (Flacco projected 240 season attempts as CIN's
+# QB2). Measured on the same rolling-origin harness, protecting the tier-1
+# starter and making the bench absorb the deficit first improves QB
+# (attempts -3.78%, passing yards -5.42%, coverage>=90% slice) but WORSENS RB
+# (carries +2.70%, rushing yards +1.84%) over the flat scale. The reason is
+# structural, not a fitting accident: QB rooms have one dominant starter
+# (attempts share 0.941 of the team is essentially one player); RB rooms are
+# genuinely shared (measured earlier: RB carries are 0.810 of the team total,
+# real committees) - protecting an RB "starter" from correction fights real
+# committee variance instead of a modeling artifact.
+TEAM_RECONCILE_PROTECT_STARTER = {"QB": True, "RB": False}
+
+# A bench row can be pushed down to this fraction of its own prediction before
+# the protected starter is touched at all. Not fit; chosen as a floor loose
+# enough that a real committee/injury-replacement backup keeps meaningful
+# volume, tight enough to absorb the deficit before spilling onto the starter.
+TEAM_RECONCILE_BENCH_FLOOR = 0.15
+
 # Ratio clip, so a team whose summed prediction is near zero cannot produce an
 # unbounded rescale.
 TEAM_RECONCILE_CLIP = (0.25, 4.0)

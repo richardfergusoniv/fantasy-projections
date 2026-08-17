@@ -17,7 +17,9 @@ import pandas as pd
 from src.projection.contracts import (
     TEAM_ANCHOR_OUTPUT_COLS,
     TEAM_RECONCILE_ALPHA,
+    TEAM_RECONCILE_BENCH_FLOOR,
     TEAM_RECONCILE_CLIP,
+    TEAM_RECONCILE_PROTECT_STARTER,
     TEAM_VOLUME_SHARES,
     TEAM_VOLUME_SIBLINGS,
 )
@@ -391,11 +393,45 @@ def reconcile_team_volume(df, alpha=None):
                           errors="coerce")
             * SEASON_GAMES * share
         )
-        ratio = (target.reindex(summed.index) / summed.replace(0, np.nan)).clip(lo, hi)
-        scale = (ratio ** alpha).reindex(summed.index)
-
         touched = out["position"].eq(position) & out["stat"].isin(group)
-        factor = out.loc[touched, "team"].map(scale).astype(float).fillna(1.0)
+
+        if TEAM_RECONCILE_PROTECT_STARTER.get(position, False) and "depth_tier" in rows.columns:
+            # Bench absorbs the deficit first; the tier-1 starter is touched
+            # only if flooring the bench still can't reach the target. See
+            # contracts.TEAM_RECONCILE_PROTECT_STARTER for why this is a QB-
+            # only shape: a QB room has one dominant starter whose own rate
+            # is usually well calibrated, while an RB "starter" is often a
+            # real committee member and correcting him alongside the room is
+            # the right call, not a workaround for a miscalibrated bench.
+            is_starter = rows["depth_tier"].eq(1.0)
+            starter_pred = season[is_starter].groupby(rows.loc[is_starter, "team"]).sum().reindex(
+                summed.index).fillna(0.0)
+            bench_pred = season[~is_starter].groupby(rows.loc[~is_starter, "team"]).sum().reindex(
+                summed.index).fillna(0.0)
+            tgt = target.reindex(summed.index)
+            bench_floor_amt = bench_pred * TEAM_RECONCILE_BENCH_FLOOR
+            bench_alone_suffices = (starter_pred + bench_floor_amt) <= tgt
+            bench_scale = pd.Series(np.where(
+                bench_alone_suffices,
+                ((tgt - starter_pred) / bench_pred.replace(0, np.nan)).clip(lo, hi),
+                TEAM_RECONCILE_BENCH_FLOOR), index=summed.index).fillna(1.0)
+            starter_scale = pd.Series(np.where(
+                bench_alone_suffices, 1.0,
+                ((tgt - bench_floor_amt) / starter_pred.replace(0, np.nan)).clip(lo, hi)),
+                index=summed.index).fillna(1.0)
+
+            starter_ids = set(rows.loc[is_starter, "player_id"])
+            touched_team = out.loc[touched, "team"]
+            touched_is_starter = out.loc[touched, "player_id"].isin(starter_ids)
+            factor = pd.Series(
+                np.where(touched_is_starter,
+                        touched_team.map(starter_scale).astype(float),
+                        touched_team.map(bench_scale).astype(float)),
+                index=out.loc[touched].index).fillna(1.0)
+        else:
+            ratio = (target.reindex(summed.index) / summed.replace(0, np.nan)).clip(lo, hi)
+            scale = (ratio ** alpha).reindex(summed.index)
+            factor = out.loc[touched, "team"].map(scale).astype(float).fillna(1.0)
         for col in ("pred_pg", "pred_pg_low", "pred_pg_high"):
             if col in out.columns:
                 out.loc[touched, col] = (
