@@ -335,23 +335,59 @@ def build_role_transition_pairs(feat, position, stat, season_pairs, conn=None,
        supposed to describe a role. `is_role_zero` marks the rows that were
        added this way.
 
-    Requires `conn` to resolve roster status and the preseason chart. Passing
-    `conn=None` yields the played-only population and is only appropriate for
-    unit tests that supply their own frame.
+    Roster status and the preseason chart come from the DB. `conn=None` opens
+    and closes its own connection rather than degrading to the played-only
+    population - silently dropping the role zeros is the exact bug this
+    function exists to fix, so it must not be reachable by forgetting an
+    argument. Pass `conn=False` to opt out explicitly (unit tests supplying a
+    hand-built frame).
 
     `label_col` overrides the label the same way build_transition_pairs does,
     for the reframed receiving-share models.
     """
+    own_conn = conn is None
+    if own_conn:
+        from src.projection.data_prep import get_conn
+
+        conn = get_conn()
+    try:
+        return _build_role_transition_pairs(
+            feat, position, stat, season_pairs, conn or None, label_col)
+    finally:
+        if own_conn:
+            conn.close()
+
+
+def _build_role_transition_pairs(feat, position, stat, season_pairs, conn, label_col):
     pos_df = feat[feat["position"] == position]
     y_col = label_col or role_rate_label(stat)
     rate_col = f"{stat}_pg"
 
     rows = []
     for season_from, season_to in season_pairs:
+        role_from = role_rate_label(stat)
+        carry_cols = [rate_col, role_from] + ([y_col] if y_col not in (rate_col, role_from) else [])
         a = pos_df[pos_df["season"] == season_from][
-            ["player_id", "team"] + ALL_FEATURES + [rate_col, y_col]]
-        a = a.rename(columns={rate_col: "naive_pred", y_col: ROLE_PRIOR_FEATURE})
-        cols_to = ["player_id", "games_played", "eligible_weeks", y_col]
+            ["player_id", "team"] + ALL_FEATURES + carry_cols].copy()
+        # naive_pred must carry forward the SAME quantity being predicted.
+        # Using {stat}_pg here - a per-APPEARANCE rate - against a per-ELIGIBLE
+        # label silently rigs the comparison: a backup's appearance rate is
+        # multiples of his role rate, so the baseline over-predicts him wildly
+        # and the model "wins" on units rather than on skill. That produced a
+        # bogus 26-of-26 naive sweep on a project whose real record has
+        # standing losses. See feedback_fit_against_the_shipped_baseline.
+        a["appearance_naive_pred"] = a[rate_col]
+        a["naive_pred"] = a[role_from]
+        a[ROLE_PRIOR_FEATURE] = a[y_col]
+        a = a.drop(columns=[c for c in carry_cols if c in a.columns])
+        # Carry the stat's own ROLE rate alongside the label, mirroring what
+        # build_transition_pairs does with {stat}_pg: a caller composing
+        # share x team_total needs the real rate to score against, and for the
+        # reframed stats the label is a share, not a rate.
+        role_col = role_rate_label(stat)
+        cols_to = ["player_id", "games_played", "eligible_weeks", role_col]
+        if y_col != role_col:
+            cols_to.append(y_col)
         b = pos_df[pos_df["season"] == season_to][cols_to].rename(columns={
             "games_played": "games_played_to", "eligible_weeks": "eligible_weeks_to"})
         merged = a.merge(b, on="player_id", how="left")

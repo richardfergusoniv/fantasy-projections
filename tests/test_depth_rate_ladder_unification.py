@@ -164,35 +164,63 @@ class EveryPathGoesThroughTheSharedHelper(unittest.TestCase):
         self.assertNotIn("apply_depth_rate_ladder", src)
         self.assertNotIn("depth_rate_factors", src)
 
-    def test_fantasy_evaluation_uses_the_shared_lookup(self):
+    def test_fantasy_evaluation_applies_no_multiplier(self):
+        """This harness used to be the ONLY one applying the ladder
+        unconditionally - which is what made it the reference the other two
+        were unified onto. Now none of the three apply one, and this fold
+        must score the model that actually ships."""
         src = inspect.getsource(fe._veteran_forecasts)
-        self.assertIn("depth_rate_factors(", src)
+        self.assertNotIn("depth_rate_factors", src)
+        self.assertIn("ROLE_FEATURES", src)
 
-    def test_backtest_applies_the_ladder_on_every_prediction_path(self):
+    def test_backtest_applies_no_multiplier_on_any_prediction_path(self):
+        """Inverted, same purpose: the harness must measure what ships.
+
+        These four paths used to be REQUIRED to apply the ladder, because
+        interval_residuals.csv and the elite-shrinkage beta were being fit
+        against undiscounted predictions and consumed by a discounted one.
+        The ladder is gone, so the mismatch now runs the other way - a path
+        that still multiplied would be scoring a pipeline production no
+        longer has.
+        """
         for fn in (backtest.backtest_position_stat,
                    backtest._predict_all_reframed_receiving,
                    backtest.rolling_residual_rows,
                    backtest.backtest_season_totals):
             with self.subTest(fn=fn.__name__):
-                self.assertIn("depth_ladder_factors", inspect.getsource(fn))
+                src = inspect.getsource(fn)
+                self.assertNotIn("depth_ladder_factors", src)
+                self.assertNotIn("depth_rate_factors", src)
 
-    def test_backtest_ladder_helper_uses_the_shared_lookup(self):
-        self.assertIn(
-            "depth_rate_factors",
-            inspect.getsource(backtest.depth_ladder_factors))
+    def test_backtest_fits_on_the_role_basis(self):
+        """The harness has to build its folds the way training does, or the
+        held-out numbers describe a different model than the shipped one."""
+        for fn in (backtest.backtest_position_stat,
+                   backtest.rolling_residual_rows,
+                   backtest._predict_all_reframed_receiving):
+            with self.subTest(fn=fn.__name__):
+                src = inspect.getsource(fn)
+                self.assertIn("build_role_transition_pairs", src)
+                self.assertIn("ROLE_FEATURES", src)
 
-    def test_corrections_fit_on_discounted_residuals(self):
-        """beta is an ADDITIVE term that team_reconcile scales by this same
-        factor; fitting it on undiscounted residuals fits a bonus for one
-        prediction and adds it to another."""
+    def test_ladder_calibration_artifact_is_gone(self):
+        """depth_rate_calibration fit the ladder's own rungs. With no ladder
+        there is nothing to calibrate, and leaving it would keep writing an
+        authoritative-looking models/ artifact for a retired mechanism."""
+        self.assertFalse(hasattr(backtest, "depth_rate_calibration"))
+        self.assertFalse(hasattr(backtest, "depth_ladder_factors"))
+
+    def test_corrections_fit_on_the_shipped_basis(self):
+        """beta is an ADDITIVE yards/game term. It used to need the ladder
+        applied here so the basis it was FIT on matched the basis it was ADDED
+        to. With no multiplier on either side the two agree by construction -
+        but the label and feature set still have to match production."""
         src = inspect.getsource(corrections.compute_loo_receiving_residuals)
-        self.assertIn("depth_rate_factors", src)
+        self.assertNotIn("depth_rate_factors", src)
+        self.assertIn("RECEIVING_SHARE_ELIG_LABEL", src)
+        self.assertIn("ROLE_FEATURES", src)
 
-    def test_depth_rate_calibration_stays_undiscounted(self):
-        """The ladder's OWN calibration table must not be fed the ladder -
-        that would be circular. Explicitly pinned so nobody 'unifies' it."""
-        src = inspect.getsource(backtest.depth_rate_calibration)
-        self.assertNotIn("depth_ladder_factors", src)
+
 
 
 class IntervalsAreBuiltOnTheDiscountedPrediction(unittest.TestCase):

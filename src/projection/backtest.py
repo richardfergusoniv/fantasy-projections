@@ -26,9 +26,12 @@ from sklearn.linear_model import RidgeCV
 
 from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
+from src.projection.depth_history import attach_depth_tier
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
-    ALL_FEATURES, AVAILABILITY_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
+    build_role_transition_pairs, role_label_for, role_rate_label,
+    ALL_FEATURES, ROLE_FEATURES, ROLE_PRIOR_FEATURE, RECEIVING_SHARE_ELIG_LABEL,
+    AVAILABILITY_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
     REFRAMED_SHARE_STATS, age_shrunk_predict,
     RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, AVAILABILITY_LABEL, SEASON_GAMES,
     TEAM_ATTEMPTS_LABEL, receiving_share_scale,
@@ -39,8 +42,6 @@ from src.projection.corrections import (
     compute_loo_receiving_residuals, fit_elite_shrinkage, elite_shrinkage_adjustment,
     injury_cohort_gate, load_suspension_weeks, projected_participation_weight,
 )
-from src.projection.depth_history import attach_depth_rank
-from src.projection.depth_rates import depth_rate_factors
 
 TRAIN_PAIRS = [(2021, 2022), (2022, 2023), (2023, 2024)]
 TEST_PAIR = (2024, 2025)
@@ -50,74 +51,18 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 MODELS_DIR = os.path.join(REPO_ROOT, "models")
 INTERVAL_QUANTILES = (0.10, 0.90)  # 80% empirical interval width - see PHASE5_REPORT.md for why
 INTERVAL_MIN_N = 30  # veteran (position, stat) test-set n below this would need a parametric fallback (none do - min is 61)
-DEPTH_VOLUME_STATS = {"QB": "attempts", "RB": "carries", "WR": "targets", "TE": "targets"}
 
 
 def mae(a, b):
     return float(np.mean(np.abs(a - b)))
 
 
-def depth_ladder_factors(test, position, season, conn=None):
-    """Gate B multipliers for a held-out fold's rows, one per row of ``test``.
-
-    Why this is here at all: until GATE_B_UNIFICATION.md, backtest.py never
-    applied the ladder. Production ships ``pred_pg * depth_rate_factor``, so
-    ``interval_residuals.csv`` and the elite-shrinkage coefficients in
-    ``corrections.joblib`` were being fit as ``actual - pred_UNDISCOUNTED``
-    and then consumed by a path that predicts ``pred_DISCOUNTED``. The
-    elite correction is the sharper half of that: it is an ADDITIVE
-    yards/game term, so a beta fit against undiscounted residuals is added
-    to a discounted prediction.
-
-    The preseason chart is a legitimate input here for the same reason Gate
-    A's availability backtest gives: an early-August chart is public before
-    the season it describes, and it cannot see the outcome being scored.
-
-    ``conn=None`` is fine — ``load_preseason_depth_chart`` caches per season
-    and only opens a connection on a cache miss.
-    """
-    ranked = attach_depth_rank(
-        test[["player_id"]].assign(position=position), int(season), conn=conn)
-    return depth_rate_factors(ranked["position"], ranked["nfl_depth_rank"])
-
-
-def depth_rate_calibration(feat, conn, pairs=TRAIN_PAIRS + [TEST_PAIR]):
-    """LOTO calibration for predict.DEPTH_RATE_LADDER.
-
-    Uses one opportunity-volume rate per position and the current ``*_pg``
-    labels, so a games-played redefinition cannot leave the hard-coded ladder
-    silently calibrated to an obsolete denominator. Ratios are reported raw;
-    production may cap ratios above 1 because this gate is a discount, not a
-    general model-bias correction.
-    """
-    rows = []
-    for position, stat in DEPTH_VOLUME_STATS.items():
-        label = f"{stat}_pg"
-        for held_out in pairs:
-            train_pairs = [pair for pair in pairs if pair != held_out]
-            train = build_transition_pairs(feat, position, stat, train_pairs)
-            test = build_transition_pairs(feat, position, stat, [held_out])
-            if train.empty or test.empty:
-                continue
-            model = LGBMRegressor(**LGBM_PARAMS)
-            model.fit(train[ALL_FEATURES], train[label])
-            test = test.copy()
-            test["pred"] = np.clip(age_shrunk_predict(model, test, position), 0, None)
-            test["position"] = position
-            test = attach_depth_rank(test, held_out[1], conn=conn)
-            test["actual"] = test[label]
-            rows.append(test[["position", "nfl_depth_rank", "actual", "pred"]])
-    if not rows:
-        return pd.DataFrame()
-    out = pd.concat(rows, ignore_index=True)
-    out["depth_band"] = out["nfl_depth_rank"].apply(
-        lambda rank: "off_chart" if pd.isna(rank)
-        else (f"rank_{int(rank)}" if int(rank) <= 5 else "deep"))
-    summary = out.groupby(["position", "depth_band"]).agg(
-        n=("actual", "size"), actual_sum=("actual", "sum"), pred_sum=("pred", "sum")
-    ).reset_index()
-    summary["actual_over_pred"] = summary["actual_sum"] / summary["pred_sum"].replace(0, np.nan)
-    return summary
+# depth_ladder_factors and depth_rate_calibration lived here. Both are gone
+# with the Gate B multiplier they served: depth now reaches a prediction as a
+# model input (the tier in ROLE_FEATURES), so there is no factor to apply and
+# no ladder to calibrate. models/depth_rate_calibration.csv is no longer
+# written. See contracts.TEAM_RECONCILE_ALPHA for what replaced the
+# team-level half of what the ladder was informally doing.
 
 
 def _fit_team_total_model(feat, train_pairs):
@@ -186,22 +131,19 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
     team_model = _fit_team_total_model(feat, train_pairs)
     per_combo, frames = {}, []
     for position, stat in sorted(REFRAMED_SHARE_STATS):
-        train = build_transition_pairs(feat, position, stat, train_pairs, label_col=RECEIVING_SHARE_LABEL)
-        test = build_transition_pairs(feat, position, stat, test_pairs, label_col=RECEIVING_SHARE_LABEL)
+        train = build_role_transition_pairs(feat, position, stat, train_pairs, label_col=RECEIVING_SHARE_ELIG_LABEL)
+        test = build_role_transition_pairs(feat, position, stat, test_pairs, label_col=RECEIVING_SHARE_ELIG_LABEL)
         test = test.dropna(subset=TEAM_FEATURES).reset_index(drop=True)
         if train.empty or test.empty or team_model is None:
             continue
         share_model = LGBMRegressor(**LGBM_PARAMS)
-        share_model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
+        share_model.fit(train[ROLE_FEATURES], train[RECEIVING_SHARE_ELIG_LABEL])
         f = test[["team"]].copy()
-        f["share"] = np.clip(age_shrunk_predict(share_model, test, position), 0, None)
-        # Gate B, applied to the SHARE before renormalization — the exact
-        # order production uses (apply_depth_chart_gating runs on share-unit
-        # pred_pg, then _compose_reframed_receiving_predictions caps and
-        # composes), so the team-level cap here sees discounted shares just
-        # as the shipped one does.
-        f["depth_factor"] = depth_ladder_factors(test, position, held[1])
-        f["share"] = f["share"] * f["depth_factor"]
+        f["share"] = np.clip(
+            age_shrunk_predict(share_model, test, position, features=ROLE_FEATURES), 0, None)
+        # No depth multiplier on the share. Depth is inside the share model's
+        # own ROLE_FEATURES now, so the team-level cap below sees exactly the
+        # shares production composes.
         # Production uses projected_games/17 in the share guard.  Using the
         # held-out season's actual games_played_to here leaks the outcome and
         # makes the historical composition easier than the live one.  Fit the
@@ -242,10 +184,6 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
                 test.loc[rows_idx, "naive_pred"].to_numpy(),
                 corr_params,
             )
-            # Scaled by the row's own Gate B factor, exactly as
-            # team_reconcile._compose_reframed_receiving_predictions does, so
-            # a discounted player cannot be handed an undiscounted bonus.
-            adj = adj * allf.loc[m, "depth_factor"].to_numpy()
             allf.loc[m, "capped"] = allf.loc[m, "capped"].to_numpy() + adj
 
     out = {}
@@ -264,7 +202,7 @@ def _predict_reframed_receiving(feat, position, stat, train_pairs, test_pairs):
 
 
 def backtest_position_stat(feat, position, stat, train_pairs=TRAIN_PAIRS, test_pair=TEST_PAIR):
-    y_col = f"{stat}_pg"
+    y_col = role_label_for(position, stat)
 
     if (position, stat) in REFRAMED_SHARE_STATS:
         result = _predict_reframed_receiving(feat, position, stat, train_pairs, [test_pair])
@@ -272,15 +210,16 @@ def backtest_position_stat(feat, position, stat, train_pairs=TRAIN_PAIRS, test_p
             return None
         test, pred, pred_uncapped = result
     else:
-        train = build_transition_pairs(feat, position, stat, train_pairs)
-        test = build_transition_pairs(feat, position, stat, [test_pair])
+        train = build_role_transition_pairs(feat, position, stat, train_pairs)
+        test = build_role_transition_pairs(feat, position, stat, [test_pair])
         if train.empty or test.empty:
             return None
         model = LGBMRegressor(**LGBM_PARAMS)
-        model.fit(train[ALL_FEATURES], train[y_col])
-        # Gate B, same rule as the shipped path (see depth_ladder_factors).
-        pred = age_shrunk_predict(model, test, position) * depth_ladder_factors(
-            test, position, test_pair[1])
+        model.fit(train[ROLE_FEATURES], train[y_col])
+        # No multiplier. Depth reaches the prediction through the tier feature
+        # inside ROLE_FEATURES, exactly as the shipped path does since the
+        # Gate B ladder was retired.
+        pred = age_shrunk_predict(model, test, position, features=ROLE_FEATURES)
         pred_uncapped = None
 
     naive = test["naive_pred"]  # season_from's own pg rate, carried forward unchanged
@@ -350,11 +289,11 @@ def coherence_ratio_backtest(feat):
         old_model = LGBMRegressor(**LGBM_PARAMS)
         old_model.fit(old_train[ALL_FEATURES], old_train[f"{stat}_pg"])
         old_test = old_test.copy()
-        # Gate B on both arms, so old-vs-new stays a comparison of FRAMINGS
-        # rather than of whether the depth ladder ran.
-        old_test["old_pred"] = age_shrunk_predict(
-            old_model, old_test, position) * depth_ladder_factors(
-                old_test, position, TEST_PAIR[1])
+        # Deliberately still the per-appearance arm: this function exists to
+        # compare the independent-rate FRAMING against the composed-share one,
+        # and the old arm is the pre-reframing baseline. Neither arm applies a
+        # depth multiplier any more.
+        old_test["old_pred"] = age_shrunk_predict(old_model, old_test, position)
         old_test["actual"] = old_test[f"{stat}_pg"]
         old_test["weight"] = projected_participation_weight(
             feat, old_test, position, TRAIN_PAIRS, TEST_PAIR)
@@ -418,7 +357,7 @@ def rolling_residual_rows(feat, test_pairs=ROLLING_TEST_PAIRS):
             continue
         for position, stats in TARGET_STATS.items():
             for stat in stats:
-                y_col = f"{stat}_pg"
+                y_col = role_label_for(position, stat)
                 if (position, stat) in REFRAMED_SHARE_STATS:
                     result = _predict_reframed_receiving(
                         feat, position, stat, train_pairs, [test_pair])
@@ -426,18 +365,19 @@ def rolling_residual_rows(feat, test_pairs=ROLLING_TEST_PAIRS):
                         continue
                     test, pred, _ = result
                 else:
-                    train = build_transition_pairs(
+                    train = build_role_transition_pairs(
                         feat, position, stat, train_pairs)
-                    test = build_transition_pairs(
+                    test = build_role_transition_pairs(
                         feat, position, stat, [test_pair])
                     if train.empty or test.empty:
                         continue
                     model = LGBMRegressor(**LGBM_PARAMS)
-                    model.fit(train[ALL_FEATURES], train[y_col])
-                    # Gate B. These residuals ARE models/interval_residuals.csv,
-                    # so they must be actual - pred on the basis that ships.
-                    pred = age_shrunk_predict(model, test, position) * (
-                        depth_ladder_factors(test, position, test_pair[1]))
+                    model.fit(train[ROLE_FEATURES], train[y_col])
+                    # These residuals ARE models/interval_residuals.csv, so
+                    # they must be actual - pred on the basis that ships: a
+                    # role rate with no post-hoc multiplier.
+                    pred = age_shrunk_predict(
+                        model, test, position, features=ROLE_FEATURES)
                 actual = pd.to_numeric(test[y_col], errors="coerce").to_numpy()
                 frame = pd.DataFrame({
                     "position": position,
@@ -620,16 +560,26 @@ def backtest_season_totals(feat, conn=None, train_pairs=TRAIN_PAIRS,
                            ("TE", "receiving_yards"), ("QB", "passing_yards")]:
         av_train = build_availability_pairs(feat, position, train_pairs)
         av_test = build_availability_pairs(feat, position, [test_pair])
-        rate_train = build_transition_pairs(feat, position, stat, train_pairs)
+        rate_train = build_role_transition_pairs(feat, position, stat, train_pairs)
         if av_train.empty or av_test.empty or rate_train.empty:
             continue
         gm = LGBMRegressor(**LGBM_PARAMS).fit(av_train[AVAILABILITY_FEATURES], av_train[AVAILABILITY_LABEL])
-        rm = LGBMRegressor(**LGBM_PARAMS).fit(rate_train[ALL_FEATURES], rate_train[f"{stat}_pg"])
+        # role_rate_label, not role_label_for: this is the INDEPENDENT-rate
+        # arm of the comparison, so it fits the rate directly even for the
+        # reframed stats whose shipped path composes a share instead.
+        rm = LGBMRegressor(**LGBM_PARAMS).fit(
+            rate_train[ROLE_FEATURES], rate_train[role_rate_label(stat)])
         games_hat = np.clip(gm.predict(av_test[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
-        # Gate B on the independent-rate arm. The composed arm below arrives
-        # already discounted from _predict_reframed_receiving.
-        rate_hat = np.clip(age_shrunk_predict(rm, av_test, position), 0, None) * (
-            depth_ladder_factors(av_test, position, test_pair[1]))
+        # The availability frame carries AVAILABILITY_FEATURES, not the role
+        # ones. Attach the tier from the target season's chart and the prior in
+        # the label's own units, so the rate model is scored on the same inputs
+        # it was fit on rather than on a frame that happens to share a name.
+        av_scoring = attach_depth_tier(av_test, int(test_pair[1]), conn=conn)
+        prior = feat[feat["season"] == test_pair[0]].drop_duplicates("player_id").set_index(
+            "player_id")[role_rate_label(stat)]
+        av_scoring[ROLE_PRIOR_FEATURE] = av_scoring["player_id"].map(prior).to_numpy(dtype=float)
+        rate_hat = np.clip(
+            age_shrunk_predict(rm, av_scoring, position, features=ROLE_FEATURES), 0, None)
         composed = pd.Series(np.nan, index=av_test.index, dtype=float)
         parity_limit = "independent rate path; production room normalization unavailable"
         if (position, stat) in REFRAMED_SHARE_STATS:
@@ -834,12 +784,6 @@ def main():
     print(av.to_string(index=False) if not av.empty else "(no availability rows)")
 
     print("\n=== Conditional rate by preseason depth (Gate B calibration) ===")
-    depth_cal = depth_rate_calibration(feat, conn)
-    print(depth_cal.to_string(index=False) if not depth_cal.empty else "(no calibration rows)")
-    if not depth_cal.empty:
-        depth_path = os.path.join(MODELS_DIR, "depth_rate_calibration.csv")
-        depth_cal.to_csv(depth_path, index=False)
-        print(f"Saved -> {depth_path}")
 
     print("\n=== Season-TOTAL framing (Phase 11): which produces the best season value? ===")
     print("(scored on actual season totals incl. 0 for players who never played again)")

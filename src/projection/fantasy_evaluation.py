@@ -25,8 +25,9 @@ from src.projection.data_prep import get_conn
 from src.projection.depth_history import (
     attach_availability_depth_rank,
     attach_depth_rank,
+    attach_depth_tier,
+    DEPTH_TIER_COLUMN,
 )
-from src.projection.depth_rates import depth_rate_factors
 from src.projection.fantasy_points import SCORING
 from src.projection.features import TARGET_STATS, build_player_season_features
 from src.projection.team_reconcile import (
@@ -44,6 +45,9 @@ from src.projection.rookies import (
 from src.projection.train import fit_availability, fit_one, fit_team_total
 from src.projection.transitions import (
     ALL_FEATURES,
+    ROLE_FEATURES,
+    ROLE_PRIOR_FEATURE,
+    role_label_for,
     AVAILABILITY_FEATURES,
     REFRAMED_SHARE_STATS,
     SEASON_GAMES,
@@ -324,6 +328,8 @@ def _veteran_forecasts(
         base[col] = base["team"].map(team_context[col]).fillna(base[col])
     base = attach_availability_depth_rank(base, target_season, conn=conn)
     base = attach_depth_rank(base, target_season, conn=conn)
+    # The volume models consume the coarse tier, not the raw ordinal.
+    base = attach_depth_tier(base, target_season, conn=conn)
 
     games = []
     rates = []
@@ -340,20 +346,19 @@ def _veteran_forecasts(
             "projected_games": predicted_games,
         }))
         for stat in stats:
-            rate_model, _ = fit_one(history, position, stat, pairs=pairs)
-            pred = np.clip(age_shrunk_predict(rate_model, base.loc[idx], position), 0, None)
-            # Production applies the veteran-only depth ladder before share
-            # composition.  The held-out chart is available preseason; the
-            # factor is deterministic and contains no target outcome.
-            #
-            # Same shared rule the shipped path and backtest.py now use -
-            # depth_rates.depth_rate_factors, keyed on nfl_depth_rank alone
-            # and never on the curated chart.  This harness was already the
-            # only one applying it unconditionally; unifying moved the other
-            # two onto what was being measured here, not the reverse.
-            factors = depth_rate_factors(
-                base.loc[idx, "position"], base.loc[idx, "nfl_depth_rank"])
-            pred = pred * factors
+            rate_model, _ = fit_one(history, position, stat, pairs=pairs, conn=conn)
+            # The prior in the label's own units, same column the pair builder
+            # supplies at fit time, so training and scoring agree.
+            scoring = base.loc[idx].copy()
+            scoring[ROLE_PRIOR_FEATURE] = pd.to_numeric(
+                scoring.get(role_label_for(position, stat)), errors="coerce")
+            # No multiplier. Depth is an input to rate_model via ROLE_FEATURES,
+            # which is what the shipped path does since the Gate B ladder was
+            # retired. This harness used to be the ONLY one applying the ladder
+            # unconditionally; now none of the three do.
+            pred = np.clip(
+                age_shrunk_predict(rate_model, scoring, position, features=ROLE_FEATURES),
+                0, None)
             rates.append(pd.DataFrame({
                 "player_id": base.loc[idx, "player_id"].to_numpy(),
                 "position": position,
@@ -361,7 +366,7 @@ def _veteran_forecasts(
                 "season": int(target_season),
                 "stat": stat,
                 "pred_pg": pred,
-                "depth_rate_factor": factors,
+                "depth_tier": base.loc[idx, DEPTH_TIER_COLUMN].to_numpy(),
                 "is_receiving_share": (position, stat) in REFRAMED_SHARE_STATS,
             }))
     game_df = pd.concat(games, ignore_index=True).drop_duplicates("player_id")
@@ -397,7 +402,9 @@ def _rookie_forecasts(
                 "stat": stat,
                 "pred_pg": part[col].to_numpy(),
                 "is_receiving_share": False,
-                "depth_rate_factor": 1.0,
+                # Rookies carry no depth tier - their path is the rule-based
+                # one, keyed on draft bucket, not the tier feature.
+                "depth_tier": np.nan,
                 "projected_games": part["projected_games"].to_numpy(),
                 "target_depth_rank": part.get("target_depth_rank", pd.Series(np.nan, index=part.index)).to_numpy(),
                 "nfl_depth_rank": part.get("nfl_depth_rank", pd.Series(np.nan, index=part.index)).to_numpy(),
@@ -485,7 +492,7 @@ def _forecast_from_history(
     scored = _score_totals(scored_stats).rename("model_forecast_points").reset_index()
     games = pd.concat([veteran_games, rookie_games], ignore_index=True).drop_duplicates("player_id")
     exposure = long[["player_id", "projected_volume_games"]].drop_duplicates("player_id")
-    factors = long[["player_id", "depth_rate_factor"]].drop_duplicates("player_id")
+    factors = long[["player_id", "depth_tier"]].drop_duplicates("player_id")
     scored = (
         scored.merge(games, on="player_id", how="left")
         .merge(exposure, on="player_id", how="left")
