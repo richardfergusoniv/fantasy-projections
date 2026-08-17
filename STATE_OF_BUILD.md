@@ -51,7 +51,7 @@ until one exists.
 nflverse / Sleeper / FTN / PFR
         │  src/ingest/sources.py  →  src/cache.py  (per-season parquet)
         ▼
-data/projections.db                                    src/db/load.py
+data/projections.db (or configured external data dir)  src/db/load.py
         │
         ├── src/ol_model/pooled_pipeline.py   → pooled OL attribution coefficients
         ├── src/coordinator/tendencies.py     → OC tendency profiles
@@ -262,6 +262,11 @@ Staging commands are in `REPO_HYGIENE_AUDIT.md` §7.
 ## 4. How to run everything
 
 All commands from the repo root, with the project venv active.
+
+The database and raw parquet cache default to `data/`. Set
+`FANTASY_PROJECTIONS_DATA_DIR` to keep both on another drive; this workstation
+uses `D:\fantasy-projections-data`. `FANTASY_PROJECTIONS_DB_PATH` and
+`FANTASY_PROJECTIONS_RAW_DIR` can override the two locations independently.
 
 ```bash
 # 0. Data layer (slow; only when refreshing sources)
