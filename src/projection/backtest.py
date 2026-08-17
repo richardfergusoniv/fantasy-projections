@@ -202,7 +202,13 @@ def _predict_reframed_receiving(feat, position, stat, train_pairs, test_pairs):
 
 
 def backtest_position_stat(feat, position, stat, train_pairs=TRAIN_PAIRS, test_pair=TEST_PAIR):
-    y_col = role_label_for(position, stat)
+    # SCORING label, which is not always the FITTING label: the reframed
+    # receiving models are fit on a share but _predict_reframed_receiving
+    # returns a composed RATE, so the actual they are scored against must be
+    # the role rate too. Using role_label_for here compared a rate prediction
+    # against a share actual - a units mismatch that made every reframed MAE
+    # row and all three reframed interval residuals meaningless.
+    y_col = role_rate_label(stat)
 
     if (position, stat) in REFRAMED_SHARE_STATS:
         result = _predict_reframed_receiving(feat, position, stat, train_pairs, [test_pair])
@@ -357,7 +363,8 @@ def rolling_residual_rows(feat, test_pairs=ROLLING_TEST_PAIRS):
             continue
         for position, stats in TARGET_STATS.items():
             for stat in stats:
-                y_col = role_label_for(position, stat)
+                # Rate units on both sides - see backtest_position_stat.
+                y_col = role_rate_label(stat)
                 if (position, stat) in REFRAMED_SHARE_STATS:
                     result = _predict_reframed_receiving(
                         feat, position, stat, train_pairs, [test_pair])
