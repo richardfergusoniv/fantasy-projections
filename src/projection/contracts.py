@@ -21,7 +21,11 @@ STATUS_OVERRIDES_PATH = os.path.join(
 # Researched curated depths: QB1-2, RB1-2, WR1-3, TE1-2.
 CURATED_RESEARCH_DEPTH = {"QB": 2, "RB": 2, "WR": 3, "TE": 2}
 DEEP_BENCH_GAMES_CAP = 6.0
-ROOKIE_RATIO_FALLBACK = (0.2, 3.0)
+# An uncalibrated rookie cell cannot support a positive floor. The 2016-2025
+# eligible population already makes empirical p10 exactly zero in every
+# high-zero cell; the old 0.2 fallback contradicted that population whenever
+# a cell was absent/zero-mean. No 2026 target cell currently needs fallback.
+ROOKIE_RATIO_FALLBACK = (0.0, 3.0)
 
 # Same band as historical vacated-opportunity clip (rookies + team changers).
 VACATED_CLIP = (0.3, 2.5)

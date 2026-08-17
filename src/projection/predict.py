@@ -252,15 +252,7 @@ def project_season(conn, target_season, as_of=None):
         rookie_long.apply(lambda r: r["stat"] in TARGET_STATS.get(r["position"], []), axis=1)
     ]
 
-    rookie_long = rookie_long.merge(ratios, on=["position", "round_bucket", "stat"], how="left")
-    no_ratio = rookie_long["ratio_low"].isna()
-    rookie_long.loc[no_ratio, "ratio_low"] = ROOKIE_RATIO_FALLBACK[0]
-    rookie_long.loc[no_ratio, "ratio_high"] = ROOKIE_RATIO_FALLBACK[1]
-    rookie_long.loc[no_ratio, "interval_low_n_flag"] = True
-    rookie_long["interval_low_n_flag"] = rookie_long["interval_low_n_flag"].fillna(False)
-    rookie_long["pred_pg_low"] = (rookie_long["pred_pg"] * rookie_long["ratio_low"]).clip(lower=0)
-    rookie_long["pred_pg_high"] = rookie_long["pred_pg"] * rookie_long["ratio_high"]
-    rookie_long = rookie_long.drop(columns=["ratio_low", "ratio_high", "round_bucket", "n"], errors="ignore")
+    rookie_long = _attach_rookie_intervals(rookie_long, ratios)
 
     # Rookies already use the correct target-season team. Attach curated role
     # for transparency and for auditing the role-filtered vacancy gate that
@@ -324,6 +316,21 @@ def project_season(conn, target_season, as_of=None):
     )
     _warn_board_level_allocation(conn, combined, depth_chart)
     return combined
+
+
+def _attach_rookie_intervals(rookie_long, ratios):
+    """Attach empirical cell bands, with an honest zero-floor fallback."""
+    out = rookie_long.merge(
+        ratios, on=["position", "round_bucket", "stat"], how="left")
+    no_ratio = out["ratio_low"].isna()
+    out.loc[no_ratio, "ratio_low"] = ROOKIE_RATIO_FALLBACK[0]
+    out.loc[no_ratio, "ratio_high"] = ROOKIE_RATIO_FALLBACK[1]
+    out.loc[no_ratio, "interval_low_n_flag"] = True
+    out["interval_low_n_flag"] = out["interval_low_n_flag"].fillna(False)
+    out["pred_pg_low"] = (out["pred_pg"] * out["ratio_low"]).clip(lower=0)
+    out["pred_pg_high"] = out["pred_pg"] * out["ratio_high"]
+    return out.drop(
+        columns=["ratio_low", "ratio_high", "round_bucket", "n"], errors="ignore")
 
 
 # Board-level tripwires. Same contract as _warn_discounted_high_usage and

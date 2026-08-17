@@ -12,11 +12,34 @@ from src.projection.rookies import (
     identify_target_season_rookie_class,
     load_combine_athletic_tier,
     predict_rookies,
+    rookie_interval_ratios,
 )
-from src.projection.predict import _apply_rookie_depth_rate_gating
+from src.projection.predict import _apply_rookie_depth_rate_gating, _attach_rookie_intervals
 
 
 class RookieDataIntegrityTests(unittest.TestCase):
+    def test_rookie_interval_zero_mass_and_missing_cell_both_have_zero_floor(self):
+        cohort = pd.DataFrame([
+            dict(season=2024, position="QB", round_bucket="round_4_7",
+                 attempts_per_elig=value, role_rate_eligible=True)
+            for value in (0.0, 0.0, 0.0, 10.0)
+        ])
+        idx = pd.MultiIndex.from_tuples(
+            [("QB", "round_4_7")], names=["position", "round_bucket"])
+        baselines = pd.DataFrame([dict(attempts_per_elig=2.5)], index=idx)
+
+        ratios = rookie_interval_ratios(cohort, baselines, [2024])
+        self.assertEqual(ratios.loc[0, "ratio_low"], 0.0)
+
+        rows = pd.DataFrame([dict(
+            player_id="rook", position="QB", round_bucket="missing",
+            stat="attempts", pred_pg=10.0,
+        )])
+        attached = _attach_rookie_intervals(rows, ratios)
+        self.assertEqual(attached.loc[0, "pred_pg_low"], 0.0)
+        self.assertEqual(attached.loc[0, "pred_pg_high"], 30.0)
+        self.assertTrue(attached.loc[0, "interval_low_n_flag"])
+
     def test_log_pick_rate_separates_players_inside_the_same_round_cell(self):
         cohort = pd.DataFrame([
             dict(player_id="early", season=2024, team="A", position="WR",
