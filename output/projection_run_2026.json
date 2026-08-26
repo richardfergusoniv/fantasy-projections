@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "run_id": "a9aa92c4-23e4-4945-a009-c40422fb33c7",
+  "run_id": "b33c07a5-2a6e-4475-acb4-532cd9c99d21",
   "season": 2026,
-  "created_at": "2026-08-26T02:50:28.931748+00:00",
+  "created_at": "2026-08-26T03:02:36.744023+00:00",
   "as_of": null,
   "code_revision": {
-    "commit": "dba233c1735386bc5cf56cd16cfe0c3414a28663",
-    "dirty": true
+    "commit": "f78d4c0c63937013668003e22f8d636e4f310480",
+    "dirty": false
   },
   "artifact_hashes": {
     "models/corrections.joblib": "e44ee89c5f79cf327f576c96225de53e1227619e2a2c2237da7de436770fcfea",
@@ -58,7 +58,7 @@
     "season": 2026,
     "n_draws": 1000,
     "mode": "full",
-    "source_projection_run_id": "a9aa92c4-23e4-4945-a009-c40422fb33c7",
+    "source_projection_run_id": "b33c07a5-2a6e-4475-acb4-532cd9c99d21",
     "draws_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulations_2026.parquet",
     "summary_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulation_summary_2026.csv"
   },
@@ -66,19 +66,19 @@
   "files": {
     "projections": {
       "path": "output/projections_2026.csv",
-      "sha256": "aab6baf36a50de3acb44e878e5b4938ea8af4e9fa4bad3d6d818c522a1057b37"
+      "sha256": "7e37067cf67e6b9f78835f9dbe349ef1a1f56d5d50066852c676795d273ce87c"
     },
     "fantasy_points": {
       "path": "output/fantasy_points_2026.csv",
-      "sha256": "71d08cbebbcea1212deac7695287979a06b8ac7709b8768815c67018d5ad6acd"
+      "sha256": "48f476678b2abc3a9ae41d7c3833bfc799afaf85a81e4f659aea5ea09b6b7244"
     },
     "team_stats": {
       "path": "draft_assistant/data/team_stats_2026.json",
-      "sha256": "d45dcae4f7f63d0cff65879129d8687712bb97e88fd661694357d9d7f560a715"
+      "sha256": "d263b0213151838c7f9ebbac5e2782d2007bb2f2ed3e1d0ccb2bc3c354dd927f"
     },
     "draft_data": {
       "path": "draft_assistant/data/players_2026.json",
-      "sha256": "bde957dd7f4ca9617993dc4c7cfcdaafd70c6cb44313fa49c01d4e023d80bf7a"
+      "sha256": "cadff547c903783337af14a8ca0646a8e16b80e4bd43bb6e3d46599cc125c6d5"
     }
   }
 }
