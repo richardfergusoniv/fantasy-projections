@@ -1,6 +1,7 @@
 """Monte Carlo simulation for season outcome distributions."""
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -82,11 +83,11 @@ def simulate_season_distributions(
     summed spread by 31%. Held out on 2025 it loses to generative on every
     metric: coverage 0.505 vs 0.537, p50 MAE 34.56 vs 33.86, rho .696 vs .741.
 
-    KNOWN DEFECT, tracked and not fixed here: neither mode produces a
-    calibrated band. Generative covers 0.537 against a 0.80 target because
-    its uncertainty is sampling noise around a FIXED team volume and FIXED
-    conversion rates -- the chance that the projection itself is wrong is not
-    represented. See docs/decisions/SIMULATION_MODE_2026-08-26.md.
+    Projection-uncertainty parameters are applied only after the exact
+    season-outcome calibration gate selects them. A ``hold`` or missing
+    verdict runs the baseline full mechanism for diagnostics but cannot
+    authorize a published distributional overlay. See
+    docs/decisions/SIMULATION_MODE_2026-08-26.md.
     """
     if mode == "full":
         return _simulate_full_generative(
@@ -233,19 +234,35 @@ def write_simulation_outputs(
     effective_manifest = uncertainty_manifest
     if selected_mode not in ("generative_projection_uncertainty", "joint_bootstrap"):
         effective_manifest = {}
+    donor_path = None
+    donor_hash = None
+    if effective_manifest and selected_mode == "joint_bootstrap":
+        from src.projection.models.uncertainty import JOINT_DONORS_PATH
+
+        donor_meta = effective_manifest.get("joint_donors") or {}
+        donor_path = Path(donor_meta.get("path") or JOINT_DONORS_PATH)
+        expected_hash = donor_meta.get("sha256")
+        if donor_path.exists():
+            donor_hash = hashlib.sha256(donor_path.read_bytes()).hexdigest()
+        # A bootstrap verdict without its exact calibrated donor artifact is
+        # not permission to emit uncorrected generative draws under a
+        # bootstrap label. Fall back closed and let the promotion gate reject.
+        if not expected_hash or donor_hash != expected_hash:
+            effective_manifest = {}
+            donor_path = None
+            donor_hash = None
     draws = simulate_season_distributions(
         projections,
         n_draws=n_draws,
         mode=mode,
         uncertainty_manifest=effective_manifest,
     )
-    if mode == "full" and selected_mode == "joint_bootstrap":
-        from src.projection.models.uncertainty import JOINT_DONORS_PATH, joint_bootstrap_draws
+    if mode == "full" and effective_manifest and selected_mode == "joint_bootstrap":
+        from src.projection.models.uncertainty import joint_bootstrap_draws
 
-        if JOINT_DONORS_PATH.exists():
-            donors = pd.read_parquet(JOINT_DONORS_PATH)
-            draws = joint_bootstrap_draws(
-                draws, projections, donors, rng=np.random.default_rng(2026 + int(season)))
+        donors = pd.read_parquet(donor_path)
+        draws = joint_bootstrap_draws(
+            draws, projections, donors, rng=np.random.default_rng(2026 + int(season)))
     summary = summarize_simulations(draws)
     draws_path = out_dir / f"simulations_{season}.parquet"
     summary_path = out_dir / f"simulation_summary_{season}.csv"
@@ -275,6 +292,7 @@ def write_simulation_outputs(
         "uncertainty_version": effective_manifest.get("version") if effective_manifest else None,
         "uncertainty_artifact_hash": effective_manifest.get("artifact_hash") if effective_manifest else None,
         "uncertainty_training_cutoff": effective_manifest.get("training_cutoff") if effective_manifest else None,
+        "joint_donors_hash": donor_hash if effective_manifest else None,
         "source_projection_run_id": source_run_id,
         "draws_path": str(draws_path),
         "summary_path": str(summary_path),

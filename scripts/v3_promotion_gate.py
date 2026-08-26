@@ -68,6 +68,14 @@ def evaluate_promotion_gate(season: int = 2026) -> dict:
         uncertainty.get("artifact_hash")
         and simulation_manifest.get("uncertainty_artifact_hash") == uncertainty.get("artifact_hash")
     )
+    joint_donors_hash_ok = bool(
+        selected_mode != "joint_bootstrap"
+        or (
+            (uncertainty.get("joint_donors") or {}).get("sha256")
+            and simulation_manifest.get("joint_donors_hash")
+            == (uncertainty.get("joint_donors") or {}).get("sha256")
+        )
+    )
     simulation_ready = bool(
         v3_summary.exists()
         and calibration_ok
@@ -75,6 +83,7 @@ def evaluate_promotion_gate(season: int = 2026) -> dict:
         and simulation_mode_ok
         and simulation_distribution_ok
         and simulation_hash_ok
+        and joint_donors_hash_ok
     )
 
     summary = means_backtest.get("summary") or {}
@@ -156,6 +165,7 @@ def evaluate_promotion_gate(season: int = 2026) -> dict:
             "simulation_mode_full": simulation_mode_ok,
             "simulation_distribution_matches": simulation_distribution_ok,
             "simulation_uncertainty_hash_matches": simulation_hash_ok,
+            "simulation_joint_donors_hash_matches": joint_donors_hash_ok,
             "v3_simulation_exists": v3_summary.exists(),
             "means_backtest_exists": bool(means_backtest),
             "interim_beats_v1_and_blend": interim_ok,

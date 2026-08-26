@@ -2,6 +2,12 @@
   "season": 2026,
   "n_draws": 1000,
   "mode": "full",
+  "distribution_mode": "full",
+  "uncertainty_gate_verdict": "hold",
+  "uncertainty_applied": false,
+  "uncertainty_version": null,
+  "uncertainty_artifact_hash": null,
+  "uncertainty_training_cutoff": null,
   "source_projection_run_id": "b33c07a5-2a6e-4475-acb4-532cd9c99d21",
   "draws_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulations_2026.parquet",
   "summary_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulation_summary_2026.csv"

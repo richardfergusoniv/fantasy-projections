@@ -1,6 +1,7 @@
 """Tests for hardened v3 promotion gate and means cutover."""
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -310,6 +311,14 @@ def test_gate_fails_closed_on_non_full_simulation(tmp_path, monkeypatch):
     assert report["verdict"] == "hold_v1_default"
 
 
+def test_gate_fails_closed_on_joint_bootstrap_without_matching_donors(tmp_path, monkeypatch):
+    _gate_dirs(tmp_path, monkeypatch)
+    _write_exact_calibration(tmp_path, selected_mode="joint_bootstrap")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["simulation_joint_donors_hash_matches"] is False
+    assert report["verdict"] == "hold_v1_default"
+
+
 def test_blend_arm_uses_historical_v2_predictions_when_available(monkeypatch, tmp_path):
     """The arm must resolve v2 from a source that covers backtest seasons.
 
@@ -538,13 +547,35 @@ def test_accepted_verdict_does_apply_the_manifest(tmp_path, monkeypatch):
     assert out["distribution_mode"] == "generative_projection_uncertainty"
 
 
-def test_joint_bootstrap_verdict_still_applies_option_a_underneath(tmp_path, monkeypatch):
-    """joint_bootstrap corrects option_a draws; it needs them to run first."""
+def test_joint_bootstrap_fails_closed_without_its_hashed_donors(tmp_path, monkeypatch):
     from src.projection.inference import simulate as sim_mod
 
     monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
     manifest = _uncertainty_manifest(selected_mode="joint_bootstrap")
     out = sim_mod.write_simulation_outputs(
         _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
+    assert out["uncertainty_applied"] is False
+    assert out["distribution_mode"] == "full"
+
+
+def test_joint_bootstrap_applies_option_a_then_the_hashed_donor_draws(tmp_path, monkeypatch):
+    """The corrected band and probabilities must use the same donor draw set."""
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    donor_path = tmp_path / "donors.parquet"
+    pd.DataFrame({
+        "position": ["QB"] * 12,
+        "role_bucket": ["depth"] * 12,
+        "fantasy_resid": list(range(-60, 60, 10)),
+    }).to_parquet(donor_path, index=False)
+    donor_hash = hashlib.sha256(donor_path.read_bytes()).hexdigest()
+    manifest = _uncertainty_manifest(
+        selected_mode="joint_bootstrap",
+        joint_donors={"path": str(donor_path), "sha256": donor_hash},
+    )
+    out = sim_mod.write_simulation_outputs(
+        _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
     assert out["uncertainty_applied"] is True
     assert out["distribution_mode"] == "joint_bootstrap"
+    assert out["joint_donors_hash"] == donor_hash

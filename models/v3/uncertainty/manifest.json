@@ -334,8 +334,13 @@
     },
     "basis": "strictly_earlier_rolling_residuals"
   },
-  "artifact_hash": "29b99ea804e05ae77f7797809e7cc2cb079bd66e5d04dcac2d709bbc8907b585",
-  "selected_distribution_mode": "hold",
+  "artifact_hash": "4db01b46310219c40b01982659001fbd14b752a12cfee7f8019a153853a84938",
+  "selected_distribution_mode": "joint_bootstrap",
   "calibration_artifact": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\backtest\\v3_fantasy_interval_calibration.json",
-  "calibration_generated_at": "2026-08-26T05:21:39.942479+00:00"
+  "calibration_generated_at": "2026-08-26T06:38:00.791630+00:00",
+  "joint_donors": {
+    "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\models\\v3\\uncertainty\\joint_residual_donors.parquet",
+    "sha256": "31189f90bb90c49d63ecdf7c6cb73bfae3d03f8a204320bc9315682e76f0b3fa",
+    "n": 1952
+  }
 }
