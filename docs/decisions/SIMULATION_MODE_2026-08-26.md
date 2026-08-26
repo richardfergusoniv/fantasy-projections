@@ -160,21 +160,44 @@ occasionally hands a backup a large, unrealistic share — but real QB outcome
 variance (benchings, injuries, in-season role changes) may also just exceed
 what the fitted covariance captures. Not chased further here.
 
+## Step 5 also done, ahead of order, and it caught a live gap
+
+`scripts/v3_promotion_gate.py` now reads
+`output/backtest/v3_fantasy_interval_calibration.json` — the exact,
+production-path, fantasy-points-grain calibration from
+`scripts/calibrate_v3_distribution.py` — instead of the per-stat-rate
+`calibration_report.json`. It fails closed unless the calibration's
+`selected_distribution_mode`, the live uncertainty manifest's
+`artifact_hash`, and the simulation manifest's `uncertainty_artifact_hash`
+all agree.
+
+Wiring this up surfaced a real bug: `write_simulation_outputs` applied
+`uncertainty_manifest` whenever it was merely non-empty, with no check of
+`selected_distribution_mode`. A manifest the gate verdicts `hold` — which
+this one does, at 0.733 aggregate coverage, failing the QB position floor at
+0.579 — shipped to production anyway the instant it was fitted. Confirmed
+directly: a hold-verdicted manifest still injected real draw variance (std
+11.4 on attempts) before the fix. `effective_manifest` is now zeroed unless
+`selected_distribution_mode` is an accepted value, matching how the gate's
+own baseline arm was measured. Live gate verdict is now correctly
+`hold_v1_default`.
+
 ## Next, in order
 
 1. ~~Recalibrate the conversion sigmas for season aggregates.~~ Done; helps
    p50, not coverage on its own.
 2. ~~Add projection uncertainty.~~ Done; overall coverage 0.538 -> 0.72-0.73.
    RB/TE/WR land near or above target; QB remains under at ~0.57.
-3. Investigate the QB shortfall specifically — start with whether
+3. **Investigate the QB shortfall specifically** — start with whether
    `qb_attempts` concentration is a fitting artifact (only 3 pools total,
-   QB is the most top-heavy) versus genuine unmodeled QB variance.
+   QB is the most top-heavy) versus genuine unmodeled QB variance. The
+   two-fold exact calibration found joint_bootstrap alone gets QB to 0.793
+   (from a 0.317 baseline) — worth understanding why before choosing.
 4. Re-measure after any QB-specific fix; if overall coverage still falls
-   short, take the band from a joint bootstrap (0.757 on the old grain) for
-   the remaining gap and keep generative for p50 and rank.
-5. Re-point the calibration gate at fantasy-points coverage. It currently
-   reports 0.8013, which is genuine but per-stat-rate; the percentiles it
-   authorises cover ~0.72, not that number.
+   short, promote `joint_bootstrap` as `selected_distribution_mode` for the
+   remaining gap (it already nearly clears every gate except a 0.011 rho
+   regression) and keep generative for p50 and rank.
+5. ~~Re-point the calibration gate at fantasy-points coverage.~~ Done.
 
 ## Note on interim
 
