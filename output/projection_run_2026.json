@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "run_id": "5bd8ab98-ca63-499d-8364-e83ff02eeb9f",
+  "run_id": "0b8c9cb1-e3ed-4936-88ef-94b51df10e96",
   "season": 2026,
-  "created_at": "2026-08-26T07:20:00.788700+00:00",
+  "created_at": "2026-08-26T07:36:09.602643+00:00",
   "as_of": null,
   "code_revision": {
-    "commit": "5dd1b6b9b616a3ced19f7bc84ae3bd5f1d7db9b8",
-    "dirty": true
+    "commit": "4e269434be5a39d7baa1614d1a09a27924075180",
+    "dirty": false
   },
   "artifact_hashes": {
     "models/corrections.joblib": "e44ee89c5f79cf327f576c96225de53e1227619e2a2c2237da7de436770fcfea",
@@ -65,7 +65,7 @@
     "uncertainty_artifact_hash": "4db01b46310219c40b01982659001fbd14b752a12cfee7f8019a153853a84938",
     "uncertainty_training_cutoff": 2025,
     "joint_donors_hash": "31189f90bb90c49d63ecdf7c6cb73bfae3d03f8a204320bc9315682e76f0b3fa",
-    "source_projection_run_id": "5bd8ab98-ca63-499d-8364-e83ff02eeb9f",
+    "source_projection_run_id": "0b8c9cb1-e3ed-4936-88ef-94b51df10e96",
     "draws_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulations_2026.parquet",
     "summary_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulation_summary_2026.csv"
   },
@@ -73,19 +73,19 @@
   "files": {
     "projections": {
       "path": "output/projections_2026.csv",
-      "sha256": "3b807823a0b122e6dc651da93254b4e3d190442232cc3b904c4868d0e28d0312"
+      "sha256": "27c46dd9a6a5b3e03991cd575bc06769365203d350396bd9e9b1f79e7de69dde"
     },
     "fantasy_points": {
       "path": "output/fantasy_points_2026.csv",
-      "sha256": "f31a6738f78d9042560863b62308fa8f9ae2dee8490f49c92c3fc96ba87e3aea"
+      "sha256": "861acaecc8e84a780d68e8760d6166675e8c7a843ad63d9befb15004eb42d9a2"
     },
     "team_stats": {
       "path": "draft_assistant/data/team_stats_2026.json",
-      "sha256": "e1d33c534c21966e9f5aaef6df5ea99510674ec34dde39f18202e2b13ee2ea62"
+      "sha256": "b698dbfa859211b03cce4bdb1edd7fa803239336d08eae7d2eb33faf5236fddb"
     },
     "draft_data": {
       "path": "draft_assistant/data/players_2026.json",
-      "sha256": "06d68a7eb967b16b3e78b32ef2e8627ec7346257fd66b744843a20ae75ed9386"
+      "sha256": "958fb9ee58963a25246df9a8fbff1606417fc6c9c8de057a103d8efeb3e80b1e"
     }
   }
 }
