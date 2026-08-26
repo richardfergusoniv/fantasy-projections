@@ -389,12 +389,14 @@ def test_simulation_manifest_records_the_board_it_simulated(tmp_path, monkeypatc
     from src.projection.inference import simulate as sim_mod
 
     monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
-    monkeypatch.setattr(sim_mod, "_load_residuals", lambda: pd.DataFrame(
-        columns=["position", "stat", "team", "resid"]))
+    # Generative allocation keys off the volume stat, so the board needs one.
     projections = pd.DataFrame({
-        "player_id": ["a", "a"], "position": ["WR", "WR"], "team": ["KC", "KC"],
-        "stat": ["receiving_yards", "receptions"], "pred_pg": [60.0, 4.0],
-        "projected_games": [17.0, 17.0], "projection_run_id": ["run-XYZ", "run-XYZ"],
+        "player_id": ["a"] * 3, "position": ["WR"] * 3, "team": ["KC"] * 3,
+        "stat": ["targets", "receptions", "receiving_yards"],
+        "pred_pg": [9.0, 6.0, 60.0], "projected_games": [17.0] * 3,
+        "pred_season": [153.0, 102.0, 1020.0],
+        "projection_run_id": ["run-XYZ"] * 3,
     })
     manifest = sim_mod.write_simulation_outputs(projections, 2026, n_draws=5)
     assert manifest["source_projection_run_id"] == "run-XYZ"
+    assert manifest["mode"] == "full"

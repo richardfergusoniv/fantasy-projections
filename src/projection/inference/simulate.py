@@ -58,18 +58,33 @@ def _row_residual_pools(stat_rows: pd.DataFrame, residuals: pd.DataFrame) -> lis
     return pools
 
 
+SIMULATION_MODE = "full"
+
+
 def simulate_season_distributions(
     projections: pd.DataFrame,
     *,
     n_draws: int = 1000,
     seed: int = 42,
-    mode: str = "interim",
+    mode: str = SIMULATION_MODE,
 ) -> pd.DataFrame:
     """Draw season stat totals and fantasy points from projection board.
 
-    ``mode=interim`` bootstraps cross-fitted residuals by team-position room.
-    ``mode=full`` uses the v3 generative reconcile path when team environment
-    columns are present on the input frame.
+    ``mode=full`` (default) runs the v3 generative path: one team volume draw
+    feeds a player's whole stat line, so a player's stats move together.
+
+    ``mode=interim`` is RETIRED as a shipping mode and kept only so
+    scripts/compare_simulation_modes.py can still score it. It bootstraps
+    cross-fitted residuals per stat INDEPENDENTLY, which destroys the
+    +0.62..+0.88 correlation between a player's own stats and understates the
+    summed spread by 31%. Held out on 2025 it loses to generative on every
+    metric: coverage 0.505 vs 0.537, p50 MAE 34.56 vs 33.86, rho .696 vs .741.
+
+    KNOWN DEFECT, tracked and not fixed here: neither mode produces a
+    calibrated band. Generative covers 0.537 against a 0.80 target because
+    its uncertainty is sampling noise around a FIXED team volume and FIXED
+    conversion rates -- the chance that the projection itself is wrong is not
+    represented. See docs/decisions/SIMULATION_MODE_2026-08-26.md.
     """
     if mode == "full":
         return _simulate_full_generative(projections, n_draws=n_draws, seed=seed)
@@ -164,7 +179,7 @@ def write_simulation_outputs(
     season: int,
     *,
     n_draws: int = 1000,
-    mode: str = "interim",
+    mode: str = SIMULATION_MODE,
 ) -> dict:
     out_dir = Path(MODEL_V3_DIR)
     out_dir.mkdir(parents=True, exist_ok=True)

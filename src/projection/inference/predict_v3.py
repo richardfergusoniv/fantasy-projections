@@ -7,12 +7,23 @@ from pathlib import Path
 import pandas as pd
 
 from src.projection.contracts import MODEL_V3_DIR, V3_MODELS_DIR
-from src.projection.inference.simulate import write_simulation_outputs
+from src.projection.inference.simulate import SIMULATION_MODE, write_simulation_outputs
 
 
-def project_season_v3(projections: pd.DataFrame, season: int, *, n_draws: int = 1000) -> dict:
-    """Run interim/full simulation on an existing long projection board."""
-    manifest = write_simulation_outputs(projections, season, n_draws=n_draws)
+def project_season_v3(
+    projections: pd.DataFrame,
+    season: int,
+    *,
+    n_draws: int = 1000,
+    mode: str = SIMULATION_MODE,
+) -> dict:
+    """Run the season simulation on an existing long projection board.
+
+    ``mode`` is forwarded rather than swallowed; this used to accept no mode
+    at all, so the shipped percentiles were always the interim ones no matter
+    what the caller wanted.
+    """
+    manifest = write_simulation_outputs(projections, season, n_draws=n_draws, mode=mode)
     out_dir = Path(MODEL_V3_DIR)
     summary = pd.read_csv(manifest["summary_path"])
     summary.to_csv(out_dir / f"fantasy_points_{season}.csv", index=False)
