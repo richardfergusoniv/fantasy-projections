@@ -64,7 +64,14 @@ SEASON_SIGMA = {
 SEASON_SIGMA_DEFAULT = {"receiving": 0.279, "passing": 0.267, "rushing": 0.468}
 
 
-def _sigma(position: str, kind: str) -> float:
+def _sigma(position: str, kind: str, manifest: dict | None = None) -> float:
+    conversion = (manifest or {}).get("conversion_sigmas", {})
+    fitted = (
+        conversion.get("cells", {}).get(f"{position}:{kind}", {}).get("sigma")
+        or conversion.get("defaults", {}).get(kind, {}).get("sigma")
+    )
+    if fitted is not None and np.isfinite(float(fitted)):
+        return float(fitted)
     return SEASON_SIGMA.get(
         (position, kind), SEASON_SIGMA_DEFAULT.get(kind, 0.30))
 
@@ -120,6 +127,32 @@ def _season_volume(season_table: pd.DataFrame, player_id, stat: str) -> float:
     return 0.0 if pd.isna(value) or value <= 0 else float(value)
 
 
+def _allocation_room(
+    room: pd.DataFrame,
+    availability_games: pd.Series | None,
+) -> pd.DataFrame:
+    """Attach the exposure-weighted season claim used by the simplex draw."""
+    out = room.copy()
+    if out.empty:
+        out["_allocation_prior"] = pd.Series(dtype=float)
+        return out
+    if availability_games is None:
+        if "pred_season" in out.columns:
+            prior = pd.to_numeric(out["pred_season"], errors="coerce")
+        else:
+            prior = pd.Series(np.nan, index=out.index)
+        games = pd.to_numeric(
+            out.get("projected_games", pd.Series(SEASON_GAMES, index=out.index)),
+            errors="coerce",
+        ).fillna(SEASON_GAMES)
+    else:
+        games = out["player_id"].astype(str).map(availability_games).fillna(0.0)
+        prior = pd.Series(np.nan, index=out.index)
+    fallback = pd.to_numeric(out["pred_pg"], errors="coerce").fillna(0.0) * games
+    out["_allocation_prior"] = prior.fillna(fallback).clip(lower=0.0)
+    return out
+
+
 def _position_share(position: str, stat: str) -> float:
     """Fraction of the team anchor this position room actually owns.
 
@@ -151,6 +184,7 @@ def reconcile_v3_generative(
     *,
     rng: np.random.Generator,
     share_manifest: dict | None = None,
+    availability_games: pd.Series | None = None,
 ) -> pd.DataFrame:
     """One simulation draw through the v3 opportunity + conversion graph.
 
@@ -162,6 +196,7 @@ def reconcile_v3_generative(
     produce identical lines.
     """
     rows = []
+    replacement_sinks: dict[str, float] = {}
     env = (
         team_environment.set_index("team")
         if "team" in team_environment.columns
@@ -183,15 +218,20 @@ def reconcile_v3_generative(
             return _ratio(row.get(num_stat), row.get(den_stat), bound_key, default)
 
         # --- passing -------------------------------------------------------
-        qb_room = room[
+        qb_room = _allocation_room(room[
             room["position"].eq("QB") & room["stat"].eq(QB_VOLUME_STAT)
-        ]
+        ], availability_games)
         qb_alloc = allocate_opportunities(
             qb_room,
             pass_attempts * _position_share("QB", "attempts"),
             rng=rng,
             manifest=share_manifest,
+            pool_key="qb_attempts",
+            prior_col="_allocation_prior",
+            allow_replacement_sink=True,
         )
+        replacement_sinks[f"{team}:qb_attempts"] = qb_alloc.attrs.get(
+            "replacement_sink_volume", 0.0)
         for _, pl in qb_alloc.iterrows():
             pid = pl["player_id"]
             line = draw_passing_line(
@@ -201,7 +241,7 @@ def reconcile_v3_generative(
                     pid, "passing_yards", "completions", "yards_per_comp", 11.0),
                 td_rate=rate(pid, "passing_tds", "attempts", "pass_td_rate", 0.045),
                 int_rate=rate(pid, "interceptions", "attempts", "int_rate", 0.025),
-                sigma=_sigma("QB", "passing"),
+                sigma=_sigma("QB", "passing", share_manifest),
                 rng=rng,
             )
             # QB rushing. Not part of the RB carry pool -- RB owns 0.810 of
@@ -209,13 +249,20 @@ def reconcile_v3_generative(
             # from the QB's own projected carries rather than a team share.
             # Omitting it cost 18.4 fantasy points per QB, which was the whole
             # of the -19.6 gap between the simulated QB p50 and the board.
-            qb_carries = _season_volume(season, pid, "carries")
+            if availability_games is None:
+                qb_carries = _season_volume(season, pid, "carries")
+            else:
+                games = float(availability_games.get(str(pid), 0.0))
+                qb_carries = (
+                    float(stats.loc[pid].get("carries", 0.0)) * games
+                    if not stats.empty and pid in stats.index else 0.0
+                )
             if qb_carries > 0:
                 rush_line = draw_rushing_line(
                     qb_carries,
                     ypc=rate(pid, "rushing_yards", "carries", "ypc", 4.3),
                     td_rate=rate(pid, "rushing_tds", "carries", "rush_td_rate", 0.02),
-                    sigma=_sigma("QB", "rushing"),
+                    sigma=_sigma("QB", "rushing", share_manifest),
                     rng=rng,
                 )
                 line.update(rush_line)
@@ -223,10 +270,10 @@ def reconcile_v3_generative(
             rows.append(line)
 
         # --- receiving -----------------------------------------------------
-        recv_room = room[
+        recv_room = _allocation_room(room[
             room["position"].isin(["WR", "TE", "RB"])
             & room["stat"].eq(RECEIVING_VOLUME_STAT)
-        ]
+        ], availability_games)
         # WR, TE and RB compete for ONE pool of team targets, so the room is
         # keyed without position; splitting by position would hand each group
         # a full team's worth and allocate the team three times over.
@@ -236,7 +283,12 @@ def reconcile_v3_generative(
             rng=rng,
             manifest=share_manifest,
             group_cols=["team", "stat"],
+            pool_key="receiving_targets",
+            prior_col="_allocation_prior",
+            allow_replacement_sink=True,
         )
+        replacement_sinks[f"{team}:receiving_targets"] = recv.attrs.get(
+            "replacement_sink_volume", 0.0)
         for _, pl in recv.iterrows():
             pid = pl["player_id"]
             line = draw_receiving_line(
@@ -245,34 +297,41 @@ def reconcile_v3_generative(
                 yards_per_rec=rate(
                     pid, "receiving_yards", "receptions", "yards_per_rec", 12.0),
                 td_rate=rate(pid, "receiving_tds", "targets", "rec_td_rate", 0.04),
-                sigma=_sigma(str(pl["position"]), "receiving"),
+                sigma=_sigma(str(pl["position"]), "receiving", share_manifest),
                 rng=rng,
             )
             line.update({"player_id": pid, "position": pl["position"], "team": team})
             rows.append(line)
 
         # --- rushing -------------------------------------------------------
-        rush_room = room[
+        rush_room = _allocation_room(room[
             room["position"].eq("RB") & room["stat"].eq(RUSHING_VOLUME_STAT)
-        ]
+        ], availability_games)
         rush = allocate_opportunities(
             rush_room,
             rush_attempts * _position_share("RB", "carries"),
             rng=rng,
             manifest=share_manifest,
+            pool_key="rb_carries",
+            prior_col="_allocation_prior",
+            allow_replacement_sink=True,
         )
+        replacement_sinks[f"{team}:rb_carries"] = rush.attrs.get(
+            "replacement_sink_volume", 0.0)
         for _, pl in rush.iterrows():
             pid = pl["player_id"]
             line = draw_rushing_line(
                 pl["allocated_volume"],
                 ypc=rate(pid, "rushing_yards", "carries", "ypc", 4.3),
                 td_rate=rate(pid, "rushing_tds", "carries", "rush_td_rate", 0.02),
-                sigma=_sigma("RB", "rushing"),
+                sigma=_sigma("RB", "rushing", share_manifest),
                 rng=rng,
             )
             line.update({"player_id": pid, "position": "RB", "team": team})
             rows.append(line)
-    return pd.DataFrame(rows)
+    out = pd.DataFrame(rows)
+    out.attrs["replacement_sinks"] = replacement_sinks
+    return out
 
 
 def team_environment_from_board(long_board: pd.DataFrame) -> pd.DataFrame:

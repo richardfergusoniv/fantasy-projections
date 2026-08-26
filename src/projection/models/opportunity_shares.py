@@ -47,12 +47,18 @@ def draw_dirichlet_shares(
     concentration: float,
     *,
     rng: np.random.Generator,
+    prior_col: str | None = None,
+    allow_replacement_sink: bool = False,
 ) -> np.ndarray:
     """Draw compositional shares that sum to 1."""
     n = len(room_players)
     if n == 0:
         return np.array([])
     if n == 1:
+        if allow_replacement_sink and prior_col and prior_col in room_players.columns:
+            value = pd.to_numeric(room_players[prior_col], errors="coerce").fillna(0.0).iloc[0]
+            if value <= 0:
+                return np.array([0.0])
         return np.array([1.0])
     # Prefer the exposure-weighted season prior. Shares are claims on a
     # SEASON of team volume, so a per-game rate over-states a player who will
@@ -60,7 +66,12 @@ def draw_dirichlet_shares(
     # exposure and would otherwise claim a full share of the room. This is the
     # same weighting transitions.receiving_share_scale applies on the v1 path.
     prior = None
-    if "pred_season" in room_players.columns:
+    if prior_col and prior_col in room_players.columns:
+        candidate = pd.to_numeric(
+            room_players[prior_col], errors="coerce").fillna(0.0).to_numpy()
+        if candidate.sum() > 0:
+            prior = candidate
+    if prior is None and "pred_season" in room_players.columns:
         candidate = pd.to_numeric(
             room_players["pred_season"], errors="coerce").fillna(0.0).to_numpy()
         if candidate.sum() > 0:
@@ -69,9 +80,16 @@ def draw_dirichlet_shares(
         prior = pd.to_numeric(
             room_players.get("pred_pg"), errors="coerce").fillna(0.0).to_numpy()
     if prior.sum() <= 0:
+        if allow_replacement_sink:
+            return np.zeros(n)
         prior = np.ones(n)
-    alpha = prior / prior.sum() * concentration
-    return rng.dirichlet(alpha)
+    # Draw only over nonzero exposure. Dirichlet requires positive alpha, but
+    # adding epsilon would revive a player whose availability draw is zero.
+    active = prior > 0
+    shares = np.zeros(n)
+    alpha = prior[active] / prior[active].sum() * concentration
+    shares[active] = rng.dirichlet(alpha)
+    return shares
 
 
 def allocate_opportunities(
@@ -81,6 +99,9 @@ def allocate_opportunities(
     rng: np.random.Generator,
     manifest: dict | None = None,
     group_cols: list[str] | None = None,
+    pool_key: str | None = None,
+    prior_col: str | None = None,
+    allow_replacement_sink: bool = False,
 ) -> pd.DataFrame:
     """Allocate team volume across players with simplex-constrained shares.
 
@@ -104,7 +125,23 @@ def allocate_opportunities(
         )
         concentration = 10.0
         if manifest:
-            concentration = manifest.get("rooms", {}).get(key, {}).get("concentration", 10.0)
-        shares = draw_dirichlet_shares(grp, concentration, rng=rng)
+            concentration = (
+                manifest.get("opportunity_shares", {})
+                .get("pools", {})
+                .get(pool_key or "", {})
+                .get("concentration")
+                or manifest.get("pools", {}).get(pool_key or "", {}).get("concentration")
+                or manifest.get("rooms", {}).get(key, {}).get("concentration", 10.0)
+            )
+        shares = draw_dirichlet_shares(
+            grp,
+            float(concentration),
+            rng=rng,
+            prior_col=prior_col,
+            allow_replacement_sink=allow_replacement_sink,
+        )
         out.loc[grp.index, "allocated_volume"] = shares * team_volume
+    out.attrs["replacement_sink_volume"] = float(
+        max(float(team_volume) - float(out["allocated_volume"].sum()), 0.0)
+    )
     return out

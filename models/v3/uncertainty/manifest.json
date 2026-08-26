@@ -1,0 +1,179 @@
+{
+  "version": "v3_projection_uncertainty_v1",
+  "training_cutoff": 2025,
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "units": {
+    "team_environment": "season_total_counts",
+    "opportunity_shares": "simplex_share",
+    "availability": "games_out_of_17"
+  },
+  "team_environment": {
+    "stats": [
+      "pass_attempts",
+      "carries"
+    ],
+    "residual_mean": [
+      0.0,
+      0.0
+    ],
+    "residual_covariance": [
+      [
+        2613.8760127878622,
+        -1307.8546565473196
+      ],
+      [
+        -1307.8546565473193,
+        2243.2427065259917
+      ]
+    ],
+    "n": 96
+  },
+  "opportunity_shares": {
+    "pools": {
+      "qb_attempts": {
+        "concentration": 1.0,
+        "n": 272,
+        "fallback": false
+      },
+      "rb_carries": {
+        "concentration": 4.688056986226646,
+        "n": 455,
+        "fallback": false
+      },
+      "receiving_targets": {
+        "concentration": 29.69552695987708,
+        "n": 1680,
+        "fallback": false
+      }
+    },
+    "n": 2407
+  },
+  "availability": {
+    "cells": {
+      "QB:all": {
+        "concentration": 2.0707587142626664,
+        "rho": 0.3256524178716251,
+        "n": 272,
+        "fallback": false
+      },
+      "RB:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 455,
+        "fallback": false
+      },
+      "TE:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 424,
+        "fallback": false
+      },
+      "WR:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 801,
+        "fallback": false
+      },
+      "QB:fragile": {
+        "concentration": 2.6022712483364194,
+        "rho": 0.2776026376308598,
+        "n": 224,
+        "fallback": false
+      },
+      "QB:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 48,
+        "fallback": false
+      },
+      "RB:fragile": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 384,
+        "fallback": false
+      },
+      "RB:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 71,
+        "fallback": false
+      },
+      "TE:fragile": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 266,
+        "fallback": false
+      },
+      "TE:standard": {
+        "concentration": 1.9955035573463298,
+        "rho": 0.3338336880113354,
+        "n": 158,
+        "fallback": false
+      },
+      "WR:fragile": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 578,
+        "fallback": false
+      },
+      "WR:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 223,
+        "fallback": false
+      }
+    },
+    "n": 1952
+  },
+  "conversion_sigmas": {
+    "cells": {
+      "RB:receiving": {
+        "sigma": 0.4625997931114955,
+        "n": 264
+      },
+      "TE:receiving": {
+        "sigma": 0.6115833367121052,
+        "n": 277
+      },
+      "WR:receiving": {
+        "sigma": 0.36963899417218343,
+        "n": 473
+      },
+      "QB:passing": {
+        "sigma": 0.3109695832842341,
+        "n": 178
+      },
+      "QB:rushing": {
+        "sigma": 0.7944928857206134,
+        "n": 156
+      },
+      "RB:rushing": {
+        "sigma": 0.40033337627399596,
+        "n": 289
+      }
+    },
+    "defaults": {
+      "receiving": {
+        "sigma": 0.47675814315443127,
+        "n": 1014
+      },
+      "passing": {
+        "sigma": 0.3109695832842341,
+        "n": 178
+      },
+      "rushing": {
+        "sigma": 0.5705972997278648,
+        "n": 445
+      }
+    },
+    "basis": "strictly_earlier_rolling_residuals"
+  },
+  "artifact_hash": "10df9106af6caba9208ba883204f2cdb894e6beb8a0aa9afef91856dbe873cb1",
+  "selected_distribution_mode": "hold",
+  "calibration_artifact": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\backtest\\v3_fantasy_interval_calibration.json",
+  "calibration_generated_at": "2026-08-26T04:42:51.787614+00:00"
+}
