@@ -54,7 +54,20 @@ def draw_dirichlet_shares(
         return np.array([])
     if n == 1:
         return np.array([1.0])
-    prior = pd.to_numeric(room_players.get("pred_pg"), errors="coerce").fillna(0.0).to_numpy()
+    # Prefer the exposure-weighted season prior. Shares are claims on a
+    # SEASON of team volume, so a per-game rate over-states a player who will
+    # not be there for the season: on the 2026 board 18 players carry reduced
+    # exposure and would otherwise claim a full share of the room. This is the
+    # same weighting transitions.receiving_share_scale applies on the v1 path.
+    prior = None
+    if "pred_season" in room_players.columns:
+        candidate = pd.to_numeric(
+            room_players["pred_season"], errors="coerce").fillna(0.0).to_numpy()
+        if candidate.sum() > 0:
+            prior = candidate
+    if prior is None:
+        prior = pd.to_numeric(
+            room_players.get("pred_pg"), errors="coerce").fillna(0.0).to_numpy()
     if prior.sum() <= 0:
         prior = np.ones(n)
     alpha = prior / prior.sum() * concentration

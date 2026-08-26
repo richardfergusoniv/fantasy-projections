@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.projection.contracts import BACKTEST_DIR, MODEL_V3_DIR
+from src.projection.contracts import BACKTEST_DIR, MODEL_V3_DIR, V3_MODELS_DIR
 from src.projection.fantasy_points import SCORING
 
 
@@ -17,6 +17,17 @@ def _score_wide_totals(wide: pd.DataFrame) -> pd.Series:
         if stat in wide.columns:
             total = total + pd.to_numeric(wide[stat], errors="coerce").fillna(0.0) * weight
     return total
+
+
+def _load_share_manifest() -> dict:
+    """Fitted opportunity-share concentrations, when they exist on disk."""
+    path = Path(V3_MODELS_DIR) / "opportunity_shares" / "manifest.json"
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
 
 
 def _load_residuals() -> pd.DataFrame:
@@ -109,29 +120,30 @@ def _simulate_full_generative(
     n_draws: int = 1000,
     seed: int = 42,
 ) -> pd.DataFrame:
-    from src.projection.inference.reconcile import reconcile_v3_generative
-    from src.projection.models.availability import draw_games_played
+    from src.projection.inference.reconcile import (
+        reconcile_v3_generative,
+        team_environment_from_board,
+    )
 
     rng = np.random.default_rng(seed)
     players = projections.copy()
-    team_env = (
-        players[["team"]]
-        .drop_duplicates()
-        .assign(
-            team_pass_attempts_mean=600.0,
-            team_carries_mean=400.0,
-        )
-    )
+    # Each team's fitted RidgeCV anchors, already on the board. The 600/400
+    # constants this replaces gave every team the same volume draw.
+    team_env = team_environment_from_board(players)
+    share_manifest = _load_share_manifest()
     draws = []
     for draw_idx in range(n_draws):
-        generative = reconcile_v3_generative(players, team_env, rng=rng)
+        generative = reconcile_v3_generative(
+            players, team_env, rng=rng, share_manifest=share_manifest)
         if generative.empty:
             continue
-        games = draw_games_played(
-            players.groupby("player_id")["projected_games"].first(), rng=rng
-        )
-        generative["draw"] = draw_idx
-        wide = generative.groupby(["player_id", "position", "team"], observed=True).sum(numeric_only=True).reset_index()
+        # Availability is NOT drawn separately here. The generative path emits
+        # season totals allocated from a season of team volume, and the share
+        # prior is pred_season, which is already exposure-weighted -- drawing
+        # games again and multiplying would apply the same discount twice.
+        wide = generative.groupby(
+            ["player_id", "position", "team"], observed=True
+        ).sum(numeric_only=True).reset_index()
         wide["fantasy_pts_season"] = _score_wide_totals(wide)
         wide["draw"] = draw_idx
         draws.append(wide)
