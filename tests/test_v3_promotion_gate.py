@@ -143,3 +143,67 @@ def test_gate_does_not_assume_an_older_backtest_had_a_blend_arm(tmp_path, monkey
     }), encoding="utf-8")
     report = evaluate_promotion_gate(2026)
     assert report["gates"]["blend_arm_usable"] is False
+
+
+def _sim_summary(tmp_path, season=2026):
+    pd.DataFrame({
+        "player_id": ["a", "b"],
+        "p10": [80.0, 40.0], "p25": [90.0, 45.0], "p50": [100.0, 50.0],
+        "p75": [110.0, 55.0], "p90": [130.0, 60.0],
+    }).to_csv(tmp_path / f"simulation_summary_{season}.csv", index=False)
+
+
+def _board():
+    return pd.DataFrame({
+        "player_id": ["a", "b"],
+        "position": ["QB", "WR"],
+        "fantasy_pts_season": [100.0, 50.0],
+        "fantasy_pts": [10.0, 5.0],
+        "projected_games": [17.0, 17.0],
+    })
+
+
+def _write_gate(tmp_path, verdict):
+    (tmp_path / "promotion_gate.json").write_text(
+        json.dumps({"verdict": verdict}), encoding="utf-8")
+
+
+def test_percentile_overlay_requires_a_simulation_ready_gate(tmp_path, monkeypatch):
+    """v3 percentiles reach the published board, so they are gated too.
+
+    They used to attach on file presence alone: a simulation_summary CSV on
+    disk put fantasy_pts_p10/p90 and p_top12 onto the board with no check
+    that the run was ever calibrated.
+    """
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    _write_gate(tmp_path, "hold_v1_default")
+
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    out, meta = attach_v3_simulation_percentiles(_board(), 2026)
+    assert meta["applied"] is False
+    assert meta["reason"] == "gate_not_simulation_ready"
+    assert "fantasy_pts_p10" not in out.columns
+
+
+def test_percentile_overlay_attaches_when_gate_allows(tmp_path, monkeypatch):
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    _write_gate(tmp_path, "simulation_ready")
+
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    out, meta = attach_v3_simulation_percentiles(_board(), 2026)
+    assert meta["applied"] is True
+    assert out["fantasy_pts_p10"].notna().all()
+    # Overlay only -- it must not move the means the board ranks on.
+    pd.testing.assert_series_equal(out["fantasy_pts_season"], _board()["fantasy_pts_season"])
+
+
+def test_percentile_overlay_skips_when_gate_never_ran(tmp_path, monkeypatch):
+    """No gate file is not permission; it means the check has not happened."""
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    _, meta = attach_v3_simulation_percentiles(_board(), 2026)
+    assert meta["applied"] is False
+    assert meta["gate_verdict"] is None

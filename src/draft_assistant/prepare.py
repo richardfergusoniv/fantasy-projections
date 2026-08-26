@@ -249,11 +249,42 @@ def resolve_ensemble_weights_path(
     return None
 
 
-def attach_v3_simulation_percentiles(df: pd.DataFrame, season: int) -> tuple[pd.DataFrame, bool]:
-    """Merge v3 Monte Carlo percentiles when simulation summary exists."""
+# Verdicts that authorise the distributional overlay. promote_v3_means
+# implies simulation readiness, so it qualifies too; hold_v1_default does not.
+SIMULATION_READY_VERDICTS = ("simulation_ready", "promote_v3_means")
+
+
+def read_promotion_gate() -> dict | None:
+    """Load the v3 promotion gate report, or None when it has not been run."""
+    gate_path = os.path.join(MODEL_V3_DIR, "promotion_gate.json")
+    if not os.path.exists(gate_path):
+        return None
+    with open(gate_path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def attach_v3_simulation_percentiles(
+    df: pd.DataFrame, season: int, *, require_gate: bool = True
+) -> tuple[pd.DataFrame, dict]:
+    """Merge v3 Monte Carlo percentiles when the gate authorises them.
+
+    The percentiles are v3 output reaching the published board, so they are
+    gated like the means cutover rather than attaching on file presence
+    alone. Existence of simulation_summary_<season>.csv says a simulation
+    ran, not that it was calibrated -- only the gate says that.
+    """
+    if require_gate:
+        gate = read_promotion_gate()
+        verdict = (gate or {}).get("verdict")
+        if verdict not in SIMULATION_READY_VERDICTS:
+            return df, {
+                "applied": False,
+                "reason": "gate_not_simulation_ready",
+                "gate_verdict": verdict,
+            }
     path = os.path.join(MODEL_V3_DIR, f"simulation_summary_{season}.csv")
     if not os.path.exists(path):
-        return df, False
+        return df, {"applied": False, "reason": "missing_simulation_summary"}
     sim = pd.read_csv(path)
     rename = {
         "p10": "fantasy_pts_p10",
@@ -295,7 +326,12 @@ def attach_v3_simulation_percentiles(df: pd.DataFrame, season: int) -> tuple[pd.
                     .rename(col)
                 )
                 out = out.merge(probs.reset_index(), on="player_id", how="left")
-    return out, True
+    return out, {
+        "applied": True,
+        "source": path.replace("\\", "/"),
+        "gate_verdict": (read_promotion_gate() or {}).get("verdict") if require_gate else None,
+        "note": "Distributional overlay only; means/VORP/tiers unchanged",
+    }
 
 
 def apply_v3_means(
@@ -314,11 +350,7 @@ def apply_v3_means(
     """
     if not enabled:
         return df, None
-    gate_path = os.path.join(MODEL_V3_DIR, "promotion_gate.json")
-    gate = None
-    if os.path.exists(gate_path):
-        with open(gate_path, encoding="utf-8") as fh:
-            gate = json.load(fh)
+    gate = read_promotion_gate()
     if require_gate and (not gate or gate.get("verdict") != "promote_v3_means"):
         return df, {
             "applied": False,
@@ -399,7 +431,7 @@ def export_draft_data(
                 "weights": weights,
                 "note": "Draft post-process blend only; compose_board unchanged",
             }
-    df, v3_applied = attach_v3_simulation_percentiles(df, season)
+    df, v3_sim_meta = attach_v3_simulation_percentiles(df, season)
     df, v3_means_meta = apply_v3_means(
         df,
         season,
@@ -468,7 +500,7 @@ def export_draft_data(
             "vorp_flex_share": FLEX_SHARE,
             "rookie_rank_scale": float(rookie_rank_scale),
             "ensemble": ensemble_meta,
-            "v3_simulation": v3_applied,
+            "v3_simulation": v3_sim_meta,
             "v3_means": v3_means_meta,
         },
         "tier_gaps": {
