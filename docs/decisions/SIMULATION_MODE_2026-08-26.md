@@ -70,16 +70,54 @@ shaped within a player.
 Pinned by `test_season_scale_efficiency_noise_decorrelates_volume_stats`,
 which asserts the defect and fails once it is fixed.
 
+## Step 1 done: sigmas recalibrated, and it is NOT the coverage fix
+
+Measured with `scripts/fit_conversion_sigmas.py` as the SD of
+log(actual season efficiency / predicted) over held-out player-seasons. The
+earlier claim in this document — that the sigmas were uniformly too large for
+season scale — was wrong. Only receiving was:
+
+| conversion | was | measured |
+|---|---|---|
+| receiving | 0.35 | 0.279 (WR .273 / TE .242 / RB .315) |
+| passing | 0.20 | **0.267** (too small) |
+| rushing | 0.25 | **0.468** (RB .367 / **QB .636**) (much too small) |
+
+Held out on 2025, before → after:
+
+| metric | before | after |
+|---|---|---|
+| coverage | 0.5367 | **0.5383** |
+| p50 MAE | 33.863 | **33.098** |
+| rho | .7414 | **.7493** |
+| width | 60.60 | 60.93 |
+
+**Coverage moved 0.16pp — nothing.** Point accuracy and rank improved
+usefully (MAE −0.77, rho +0.008), so the recalibration earns its place, but
+it does not touch the interval defect.
+
+That isolates the cause. The band is not too narrow because efficiency
+dispersion was mis-set; it is too narrow because **volume carries only
+sampling uncertainty**. Measured on the same residuals, real volume
+dispersion is ~0.78 log-SD for WR targets (≈91% CV) against ~42% CV in the
+simulated draws — roughly a factor of two, and it accounts for essentially
+the whole remaining gap. (An earlier note in this work put that gap at an
+order of magnitude; that was wrong — the Dirichlet share draw contributes
+more spread than it credited.)
+
 ## Next, in order
 
-1. Recalibrate the conversion sigmas for season aggregates.
-2. Add projection uncertainty — `team_environment` already stores `resid_std`
-   per team stat and it is currently unused.
+1. ~~Recalibrate the conversion sigmas for season aggregates.~~ Done; helps
+   p50, not coverage.
+2. **Add projection uncertainty — this is the whole remaining gap.**
+   `team_environment` already stores `resid_std` per team stat and it is
+   unused; the player's share needs a matching widening, since a fixed
+   team volume and a tight Dirichlet together under-disperse volume ~2x.
 3. Re-measure; if coverage still falls short, take the band from a joint
-   bootstrap and keep generative for p50 and rank.
+   bootstrap (0.757 on the same grain) and keep generative for p50 and rank.
 4. Re-point the calibration gate at fantasy-points coverage. It currently
    reports 0.8013, which is genuine but per-stat-rate; the percentiles it
-   authorises cover 0.537.
+   authorises cover 0.538.
 
 ## Note on interim
 

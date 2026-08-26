@@ -47,6 +47,28 @@ RATE_BOUNDS = {
 }
 
 
+# Season-scale efficiency dispersion, measured as the SD of
+# log(actual season efficiency / predicted) on the rolling residuals
+# (scripts/fit_conversion_sigmas.py). These replace constants that were
+# picked when the path drew PER-GAME lines, and they do not all move the same
+# way: receiving tightens (0.35 -> ~0.28) while passing (0.20 -> 0.27) and
+# especially rushing (0.25 -> 0.37/0.64) were far too tight.
+SEASON_SIGMA = {
+    ("WR", "receiving"): 0.273,
+    ("TE", "receiving"): 0.242,
+    ("RB", "receiving"): 0.315,
+    ("QB", "passing"): 0.267,
+    ("RB", "rushing"): 0.367,
+    ("QB", "rushing"): 0.636,
+}
+SEASON_SIGMA_DEFAULT = {"receiving": 0.279, "passing": 0.267, "rushing": 0.468}
+
+
+def _sigma(position: str, kind: str) -> float:
+    return SEASON_SIGMA.get(
+        (position, kind), SEASON_SIGMA_DEFAULT.get(kind, 0.30))
+
+
 def _ratio(numerator, denominator, bound_key: str, default: float) -> float:
     """Rate implied by two of the board's own predictions, or the default."""
     num = pd.to_numeric(numerator, errors="coerce")
@@ -179,6 +201,7 @@ def reconcile_v3_generative(
                     pid, "passing_yards", "completions", "yards_per_comp", 11.0),
                 td_rate=rate(pid, "passing_tds", "attempts", "pass_td_rate", 0.045),
                 int_rate=rate(pid, "interceptions", "attempts", "int_rate", 0.025),
+                sigma=_sigma("QB", "passing"),
                 rng=rng,
             )
             # QB rushing. Not part of the RB carry pool -- RB owns 0.810 of
@@ -192,6 +215,7 @@ def reconcile_v3_generative(
                     qb_carries,
                     ypc=rate(pid, "rushing_yards", "carries", "ypc", 4.3),
                     td_rate=rate(pid, "rushing_tds", "carries", "rush_td_rate", 0.02),
+                    sigma=_sigma("QB", "rushing"),
                     rng=rng,
                 )
                 line.update(rush_line)
@@ -221,6 +245,7 @@ def reconcile_v3_generative(
                 yards_per_rec=rate(
                     pid, "receiving_yards", "receptions", "yards_per_rec", 12.0),
                 td_rate=rate(pid, "receiving_tds", "targets", "rec_td_rate", 0.04),
+                sigma=_sigma(str(pl["position"]), "receiving"),
                 rng=rng,
             )
             line.update({"player_id": pid, "position": pl["position"], "team": team})
@@ -242,6 +267,7 @@ def reconcile_v3_generative(
                 pl["allocated_volume"],
                 ypc=rate(pid, "rushing_yards", "carries", "ypc", 4.3),
                 td_rate=rate(pid, "rushing_tds", "carries", "rush_td_rate", 0.02),
+                sigma=_sigma("RB", "rushing"),
                 rng=rng,
             )
             line.update({"player_id": pid, "position": "RB", "team": team})

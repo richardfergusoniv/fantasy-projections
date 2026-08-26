@@ -9,9 +9,10 @@ def draw_rushing_line(
     *,
     ypc: float = 4.3,
     td_rate: float = 0.02,
+    sigma: float = 0.37,
     rng: np.random.Generator,
 ) -> dict[str, float]:
     c = max(float(rng.poisson(max(carries, 0.01))), 0)
-    yards = float(rng.lognormal(mean=np.log(max(ypc, 0.5)), sigma=0.25) * c)
+    yards = float(rng.lognormal(mean=np.log(max(ypc, 0.5)), sigma=sigma) * c)
     tds = int(rng.poisson(td_rate * max(c, 1)))
     return {"carries": c, "rushing_yards": yards, "rushing_tds": tds}
