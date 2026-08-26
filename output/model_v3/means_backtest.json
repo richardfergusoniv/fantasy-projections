@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T01:17:16.658953+00:00",
+  "generated_at": "2026-08-26T01:24:30.656925+00:00",
   "folds": [
     {
       "target_season": 2023,
@@ -65,28 +65,28 @@
         },
         "v3_generative": {
           "n": 756,
-          "points_mae": 78.54143087426591,
-          "spearman": 0.7140268855206865,
+          "points_mae": 29.79824745453867,
+          "spearman": 0.7591166769480981,
           "by_position": {
             "QB": {
               "n": 100,
-              "points_mae": 50.16771636993548,
-              "spearman": 0.6841026061571264
+              "points_mae": 49.98506681482995,
+              "spearman": 0.6846222664829651
             },
             "RB": {
               "n": 180,
-              "points_mae": 117.30743304461836,
-              "spearman": 0.7861831641856722
+              "points_mae": 37.59195320746918,
+              "spearman": 0.78507517356939
             },
             "TE": {
               "n": 169,
-              "points_mae": 119.9299233645725,
-              "spearman": 0.7607926436018037
+              "points_mae": 18.649950951835567,
+              "spearman": 0.764079384321974
             },
             "WR": {
               "n": 307,
-              "points_mae": 42.27053780881897,
-              "spearman": 0.7818563482911337
+              "points_mae": 24.790146924897638,
+              "spearman": 0.7805524469430088
             }
           }
         },
@@ -131,7 +131,7 @@
         },
         "generative_beats_v1": {
           "mae_ok": false,
-          "spearman_ok": false,
+          "spearman_ok": true,
           "pass": false
         },
         "generative_beats_blend": {
@@ -205,28 +205,28 @@
         },
         "v3_generative": {
           "n": 756,
-          "points_mae": 77.06078772825798,
-          "spearman": 0.755713844593915,
+          "points_mae": 28.021483936687535,
+          "spearman": 0.7875549824049114,
           "by_position": {
             "QB": {
               "n": 105,
-              "points_mae": 42.33340175630738,
-              "spearman": 0.7417930483671179
+              "points_mae": 42.20139334696456,
+              "spearman": 0.7419082665588235
             },
             "RB": {
               "n": 183,
-              "points_mae": 111.694264553929,
-              "spearman": 0.8057138230835094
+              "points_mae": 32.8835929904232,
+              "spearman": 0.8023750399811095
             },
             "TE": {
               "n": 165,
-              "points_mae": 121.45921137468386,
-              "spearman": 0.8133095044324022
+              "points_mae": 18.08262339601369,
+              "spearman": 0.8074293505029886
             },
             "WR": {
               "n": 303,
-              "points_mae": 44.000422600524445,
-              "spearman": 0.7971215289788381
+              "points_mae": 25.5833834228211,
+              "spearman": 0.7974383340663426
             }
           }
         },
@@ -270,14 +270,14 @@
           "pass": false
         },
         "generative_beats_v1": {
-          "mae_ok": false,
-          "spearman_ok": false,
-          "pass": false
+          "mae_ok": true,
+          "spearman_ok": true,
+          "pass": true
         },
         "generative_beats_blend": {
-          "mae_ok": false,
-          "spearman_ok": false,
-          "pass": false
+          "mae_ok": true,
+          "spearman_ok": true,
+          "pass": true
         }
       }
     },
@@ -345,28 +345,28 @@
         },
         "v3_generative": {
           "n": 755,
-          "points_mae": 77.66994880135024,
-          "spearman": 0.7166546433813155,
+          "points_mae": 28.939110293525456,
+          "spearman": 0.7542932743121648,
           "by_position": {
             "QB": {
               "n": 107,
-              "points_mae": 40.2061256767179,
-              "spearman": 0.7718124260777096
+              "points_mae": 40.29576470123116,
+              "spearman": 0.7696360702993701
             },
             "RB": {
               "n": 185,
-              "points_mae": 115.89104328218292,
-              "spearman": 0.6887712090056443
+              "points_mae": 38.63534361265387,
+              "spearman": 0.6921013505671396
             },
             "TE": {
               "n": 165,
-              "points_mae": 115.85684276235887,
-              "spearman": 0.8292069511079342
+              "points_mae": 17.216805728571345,
+              "spearman": 0.8328306474212128
             },
             "WR": {
               "n": 298,
-              "points_mae": 46.25011353898515,
-              "spearman": 0.7862029188962651
+              "points_mae": 25.332449446391756,
+              "spearman": 0.7830096737700256
             }
           }
         },

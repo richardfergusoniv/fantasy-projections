@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-26T00:47:12.876150+00:00",
+  "generated_at": "2026-08-26T01:25:01.067136+00:00",
   "season": 2026,
   "verdict": "simulation_ready",
-  "rationale": "v3 simulation overlay is ready for percentiles/volatility UI only. Do not replace the v1 point engine; means backtest has not cleared promote_v3_means gates. NOTE: the v1/v2 blend arm was not usable on every fold, so 'beats blend' was not independently tested -- promotion cannot clear on this backtest regardless of the v3 numbers.",
+  "rationale": "v3 simulation overlay is ready for percentiles/volatility UI only. Do not replace the v1 point engine; means backtest has not cleared promote_v3_means gates.",
   "gates": {
     "simulation_ready": true,
     "calibration_within_5pp": true,
@@ -14,18 +14,18 @@
     "means_backtest_exists": true,
     "interim_beats_v1_and_blend": false,
     "generative_beats_v1_and_blend": false,
-    "blend_arm_usable": false,
+    "blend_arm_usable": true,
     "blend_unusable_folds": [],
     "promote_v3_means": false,
     "holdout_2025": {
       "v1_mae": 27.714018153332695,
-      "blend_mae": 27.714018153332695,
-      "v3_interim_mae": 29.79164860051741,
-      "v3_generative_mae": 47.20524104358796,
+      "blend_mae": 26.024804332250863,
+      "v3_interim_mae": 29.678169749402535,
+      "v3_generative_mae": 28.939110293525456,
       "v1_spearman": 0.7583060301223868,
-      "blend_spearman": 0.7583060301223868,
-      "v3_interim_spearman": 0.6975008928437265,
-      "v3_generative_spearman": 0.610944300456787
+      "blend_spearman": 0.772678110083588,
+      "v3_interim_spearman": 0.700686412515383,
+      "v3_generative_spearman": 0.7542932743121648
     }
   },
   "architecture_rule": "v1 compose_board owns point rates/totals; optional v2 blend owns draft mean points when enabled; v3 owns distributional overlay until promote_v3_means."
