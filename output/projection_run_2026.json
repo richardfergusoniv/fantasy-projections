@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "run_id": "c85c46cd-e641-401c-a3fb-087c3ce66cbb",
+  "run_id": "a9aa92c4-23e4-4945-a009-c40422fb33c7",
   "season": 2026,
-  "created_at": "2026-08-26T02:37:04.171927+00:00",
+  "created_at": "2026-08-26T02:50:28.931748+00:00",
   "as_of": null,
   "code_revision": {
-    "commit": "bc365665313cbd43a90ea84f5309e2bcb76ea53e",
+    "commit": "dba233c1735386bc5cf56cd16cfe0c3414a28663",
     "dirty": true
   },
   "artifact_hashes": {
@@ -54,23 +54,31 @@
   },
   "exposure_policy": "healthy_active_17_games; explicit IR/PUP/suspension overrides only",
   "composition_version": "healthy17_qbroom_concentration_v1",
+  "simulation": {
+    "season": 2026,
+    "n_draws": 1000,
+    "mode": "full",
+    "source_projection_run_id": "a9aa92c4-23e4-4945-a009-c40422fb33c7",
+    "draws_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulations_2026.parquet",
+    "summary_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulation_summary_2026.csv"
+  },
   "concentration_version": "concentration_v1_full_board",
   "files": {
     "projections": {
       "path": "output/projections_2026.csv",
-      "sha256": "22b77fa9accd87b1cee2fad411322e6554fbb3b06fd4c9cfef79685852df9ebd"
+      "sha256": "aab6baf36a50de3acb44e878e5b4938ea8af4e9fa4bad3d6d818c522a1057b37"
     },
     "fantasy_points": {
       "path": "output/fantasy_points_2026.csv",
-      "sha256": "82dd716d73dcc92221e9debadd5cc0d15cca45251f48407dd75d59845e8ed785"
+      "sha256": "71d08cbebbcea1212deac7695287979a06b8ac7709b8768815c67018d5ad6acd"
     },
     "team_stats": {
       "path": "draft_assistant/data/team_stats_2026.json",
-      "sha256": "420052f141af54fc843d40c5d058601e1f84c71f27cfbef74ddc7b3727caa2f8"
+      "sha256": "d45dcae4f7f63d0cff65879129d8687712bb97e88fd661694357d9d7f560a715"
     },
     "draft_data": {
       "path": "draft_assistant/data/players_2026.json",
-      "sha256": "54a09fab8828745aee23c8e8f22e4308f3c1ad3add93f94018c4e3fe6a4e8e9a"
+      "sha256": "bde957dd7f4ca9617993dc4c7cfcdaafd70c6cb44313fa49c01d4e023d80bf7a"
     }
   }
 }

@@ -170,6 +170,13 @@ def publish(
     validate_projection_contract(projections, season)
     fantasy = compute_fantasy_points(projections)
 
+    # Captured before ANYTHING this function writes into the working tree.
+    # The simulation below writes tracked artifacts under output/model_v3, so
+    # capturing after it reintroduces exactly the contamination _git_revision
+    # documents: a dirty flag describing the publish's own output rather than
+    # the code that produced it.
+    code_revision = _git_revision()
+
     simulation_manifest = None
     if simulate:
         # Runs against the board just built, so the percentiles carry this
@@ -186,9 +193,6 @@ def publish(
     }
     for path in final_paths.values():
         path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Captured before staging exists - see _git_revision.
-    code_revision = _git_revision()
 
     with tempfile.TemporaryDirectory(prefix=f"publish-{season}-", dir=REPO_ROOT) as temp_dir:
         stage = Path(temp_dir)

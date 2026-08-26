@@ -153,9 +153,14 @@ def test_git_revision_is_captured_before_staging_exists():
     src = inspect.getsource(publish_mod.publish)
     assert "code_revision = _git_revision()" in src, (
         "_git_revision must be called into a local before staging")
-    assert src.index("code_revision = _git_revision()") < src.index(
-        "tempfile.TemporaryDirectory"), (
+    # Before the staging directory, AND before the simulation: that writes
+    # tracked artifacts under output/model_v3, so capturing after it puts the
+    # publish's own output back into the flag.
+    capture = src.index("code_revision = _git_revision()")
+    assert capture < src.index("tempfile.TemporaryDirectory"), (
         "_git_revision() must be called BEFORE the staging directory exists")
+    assert capture < src.index("write_simulation_outputs("), (
+        "_git_revision() must be called BEFORE the simulation writes artifacts")
     assert '"code_revision": code_revision' in src
 
 
