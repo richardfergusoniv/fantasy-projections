@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from src.draft_assistant.prepare import apply_v3_means
 from src.projection.evaluation.v3_means_score import beats_incumbent, score_predictions
@@ -263,3 +264,66 @@ def test_gate_opens_on_good_held_out_coverage(tmp_path, monkeypatch):
     report = evaluate_promotion_gate(2026)
     assert report["gates"]["calibration_within_5pp"] is True
     assert report["verdict"] == "simulation_ready"
+
+
+def test_blend_arm_uses_historical_v2_predictions_when_available(monkeypatch, tmp_path):
+    """The arm must resolve v2 from a source that covers backtest seasons.
+
+    output/model_v2/ holds only the current season, so keying the blend on
+    it made the arm vanish on every fold. The v2 out-of-fold predictions
+    cover the backtest range and are what the shipped weights were fit on.
+    """
+    import scripts.backtest_v3_means as bt
+
+    v2 = pd.DataFrame({"player_id": ["a", "b"], "v2_pred": [200.0, 40.0]})
+    monkeypatch.setattr(bt, "load_v2", lambda season, root: v2)
+
+    pop = pd.DataFrame({
+        "player_id": ["a", "b"],
+        "preseason_position": ["QB", "RB"],
+        "v1_pred": [100.0, 60.0],
+        "actual_points": [150.0, 50.0],
+    })
+    blend = bt._blend_from_compare(2024, pop)
+    assert blend is not None
+    # Shipped weights: QB is 0.4 v1 / 0.6 v2; RB is 1.0 v1 / 0.0 v2.
+    assert blend.iloc[0] == pytest.approx(0.4 * 100.0 + 0.6 * 200.0)
+    assert blend.iloc[1] == pytest.approx(60.0)
+
+
+def test_blend_keeps_v1_for_players_v2_never_predicted(monkeypatch):
+    """A missing v2 must not be blended as a zero.
+
+    apply_ensemble_points falls back to the v1 value, so scoring a missing
+    v2 as zero would invent a penalty the draft board never applies.
+    """
+    import scripts.backtest_v3_means as bt
+
+    monkeypatch.setattr(
+        bt, "load_v2",
+        lambda season, root: pd.DataFrame({"player_id": ["a"], "v2_pred": [200.0]}))
+    pop = pd.DataFrame({
+        "player_id": ["a", "missing"],
+        "preseason_position": ["QB", "QB"],
+        "v1_pred": [100.0, 80.0],
+        "actual_points": [150.0, 90.0],
+    })
+    blend = bt._blend_from_compare(2024, pop)
+    assert blend.iloc[1] == pytest.approx(80.0)
+
+
+def test_blend_arm_preserves_the_population_index(monkeypatch):
+    """merge() resets the index; the arm is assigned back onto pop."""
+    import scripts.backtest_v3_means as bt
+
+    monkeypatch.setattr(
+        bt, "load_v2",
+        lambda season, root: pd.DataFrame({"player_id": ["a", "b"], "v2_pred": [1.0, 2.0]}))
+    pop = pd.DataFrame({
+        "player_id": ["a", "b"],
+        "preseason_position": ["QB", "QB"],
+        "v1_pred": [10.0, 20.0],
+        "actual_points": [11.0, 21.0],
+    }, index=[7, 9])
+    blend = bt._blend_from_compare(2024, pop)
+    assert list(blend.index) == [7, 9]

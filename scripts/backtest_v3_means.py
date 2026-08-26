@@ -33,6 +33,7 @@ from src.projection.inference.fit import fit_v3_models
 from src.projection.inference.reconcile import reconcile_v3_generative
 from src.projection.inference.simulate import simulate_season_distributions, summarize_simulations
 from src.projection.transitions import SEASON_GAMES
+from scripts.ensemble_v1_v2 import DEFAULT_V2_ROOT, load_v2
 
 FOLDS = [(2022, 2023), (2023, 2024), (2024, 2025)]
 DEFAULT_DRAWS = 200
@@ -63,29 +64,67 @@ def _load_eval(season: int) -> pd.DataFrame:
     return out
 
 
-def _blend_from_compare(season: int, pop: pd.DataFrame) -> pd.Series | None:
-    """Use archived accuracy-compare v2 preds when available (2025)."""
-    path = Path(OUTPUT_DIR) / f"model_accuracy_compare_{season}.json"
-    if not path.exists():
-        return None
-    # Prefer model_v2 fantasy points if present for any season.
+def _v2_season_points(season: int) -> pd.DataFrame | None:
+    """Per-player v2 season points for a historical season.
+
+    output/model_v2/ holds only the current season's board, which is why the
+    blend arm used to go missing on every backtest fold. The v2 model's
+    out-of-fold preseason predictions in the sibling repo cover 2022-2025 and
+    are the same source the shipped ensemble weights were fit on, so they are
+    the right basis for scoring the blend historically.
+    """
+    v2 = load_v2(season, DEFAULT_V2_ROOT)
+    if v2 is not None and not v2.empty:
+        return v2[["player_id", "v2_pred"]].copy()
+    # Current-season board, when one exists for this season.
     v2_path = Path(OUTPUT_DIR) / "model_v2" / f"fantasy_points_{season}.csv"
-    weights_path = Path(__file__).resolve().parents[1] / "src" / "draft_assistant" / "ensemble_weights.json"
-    if not v2_path.exists() or not weights_path.exists():
+    if not v2_path.exists():
+        return None
+    board = pd.read_csv(v2_path)
+    if "fantasy_pts_season" not in board.columns:
+        return None
+    out = board[["player_id", "fantasy_pts_season"]].rename(
+        columns={"fantasy_pts_season": "v2_pred"})
+    out["player_id"] = out["player_id"].astype(str)
+    return out
+
+
+def _blend_from_compare(season: int, pop: pd.DataFrame) -> pd.Series | None:
+    """Score the shipped v1/v2 draft blend on this fold.
+
+    Uses the production weights so the arm is the board the draft assistant
+    actually exports, not a notional 50/50. Players the v2 model has no
+    prediction for keep their v1 value, matching apply_ensemble_points.
+    """
+    weights_path = (
+        Path(__file__).resolve().parents[1] / "src" / "draft_assistant" / "ensemble_weights.json"
+    )
+    if not weights_path.exists():
+        return None
+    v2 = _v2_season_points(season)
+    if v2 is None or v2.empty:
         return None
     weights = json.loads(weights_path.read_text(encoding="utf-8")).get("weights", {})
-    v2 = pd.read_csv(v2_path)
-    v2 = v2[["player_id", "fantasy_pts_season", "position"]].copy()
+    v2 = v2.copy()
     v2["player_id"] = v2["player_id"].astype(str)
-    merged = pop.merge(v2, on="player_id", how="left")
-    blended = []
-    for _, row in merged.iterrows():
-        pos = str(row.get("preseason_position") or row.get("position") or "")
-        w = weights.get(pos) or {"v1_pred": 0.5, "v2_pred": 0.5}
-        v1 = float(row["v1_pred"])
-        v2p = float(row["fantasy_pts_season"]) if pd.notna(row.get("fantasy_pts_season")) else v1
-        blended.append(float(w.get("v1_pred", 0.5)) * v1 + float(w.get("v2_pred", 0.5)) * v2p)
-    return pd.Series(blended, index=pop.index)
+    merged = pop.copy()
+    merged["player_id"] = merged["player_id"].astype(str)
+    merged = merged.merge(v2, on="player_id", how="left")
+    merged.index = pop.index
+
+    pos = merged.get("preseason_position")
+    if pos is None:
+        pos = merged.get("position")
+    pos = pos.astype(str) if pos is not None else pd.Series("", index=merged.index)
+    w_v1 = pos.map(lambda p: float((weights.get(p) or {}).get("v1_pred", 1.0)))
+    w_v2 = pos.map(lambda p: float((weights.get(p) or {}).get("v2_pred", 0.0)))
+    v1_pred = pd.to_numeric(merged["v1_pred"], errors="coerce")
+    v2_pred = pd.to_numeric(merged["v2_pred"], errors="coerce")
+    # No v2 prediction for this player -> the blend is his v1 value, which is
+    # what the shipped path does. Weighting a missing v2 as zero would invent
+    # a penalty the draft board never applies.
+    blended = (w_v1 * v1_pred + w_v2 * v2_pred).where(v2_pred.notna(), v1_pred)
+    return blended
 
 
 def _interim_means(long_board: pd.DataFrame, n_draws: int) -> pd.DataFrame:
