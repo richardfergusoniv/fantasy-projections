@@ -182,7 +182,7 @@ directly: a hold-verdicted manifest still injected real draw variance (std
 own baseline arm was measured. Live gate verdict is now correctly
 `hold_v1_default`.
 
-## Step 3 in progress: QB availability refined by role, joint_bootstrap now one gate short
+## Step 3 done: exact-grain joint bootstrap is the shipped overlay
 
 Availability cells were fit on `position:fragility` alone (2 cells per
 position). Refit on `position:role_bucket:fragility` (starter/rotation/depth
@@ -199,32 +199,38 @@ used, so a small sample's median could drift off the generative p50 it was
 supposed to preserve — silently moving both the displayed p50 and the rank
 metrics scored against it. Now re-centers the resample itself.
 
-Re-run of the two-fold exact calibration after both fixes:
+The first 300-draw re-run after both fixes left the fallback just below the
+aggregate floor (0.7485 versus 0.7500). A 1,000-draw run of the unchanged
+evaluator resolved that Monte Carlo boundary without changing any threshold
+or parameter:
 
 | arm | coverage | QB coverage | p50 MAE | rho |
 |---|---|---|---|---|
-| option_a | 0.730 | 0.567 | 33.689 | .764 |
-| joint_bootstrap | 0.749 | **0.774** | 33.688 | .760 |
+| option_a | 0.734 | 0.579 | 33.664 | .765 |
+| joint_bootstrap | **0.755** | **0.787** | 33.664 | .762 |
 
-`joint_bootstrap` now clears 5 of 6 acceptance gates — fold coverage,
-position floor (QB 0.774 vs a 0.70 floor), MAE, and rho all pass. It misses
-only the aggregate coverage band by **0.0015** (0.7485 vs the 0.75 floor).
-That is within plausible sampling noise at 300 draws over 2 folds; the next
-step is a higher-draw or more-fold re-run to see whether it's a real miss or
-noise, not a threshold change to force a pass.
+The fallback clears all six gates: aggregate coverage, both fold ranges
+(0.77 for 2024 and 0.74 for 2025), every position floor (QB 0.79, RB 0.77,
+WR 0.75, TE 0.73), interval score, p50 MAE, and p50 Spearman. Its complete
+player-season donor vectors are stored in
+`models/v3/uncertainty/joint_residual_donors.parquet`; both that file and the
+uncertainty manifest are hash-checked by the live simulator and promotion
+gate. The shipped `p10/p50/p90` and finish probabilities come from this same
+corrected draw set.
+
+The gate verdict is `simulation_ready`, not `promote_v3_means`. The draft
+board therefore keeps the v1/v2 point engine for means, ranks, VORP, and
+tiers, and attaches v3 only as the calibrated distributional overlay.
 
 ## Next, in order
 
 1. ~~Recalibrate the conversion sigmas for season aggregates.~~ Done.
 2. ~~Add projection uncertainty.~~ Done.
-3. QB shortfall: role-bucketed availability shipped, joint_bootstrap now at
-   0.774 QB coverage (from 0.317 baseline). One aggregate-coverage gate
-   remains 0.0015 short — re-run at higher draws/folds to resolve whether
-   that's noise before deciding whether `joint_bootstrap` clears on its own
-   or needs one more adjustment.
-4. If it clears: promote `joint_bootstrap` as `selected_distribution_mode`.
-   If not: identify which position/fold is still short and target that,
-   rather than loosening a gate.
+3. ~~Run the exact-grain joint fallback when Option A misses.~~ Done;
+   1,000-draw coverage is 0.755 and every acceptance gate passes.
+4. ~~Ship the accepted distribution overlay while retaining incumbent
+   means.~~ Done; `joint_bootstrap` owns intervals/probabilities and v1/v2
+   continues to own points/ranks/VORP/tiers.
 5. ~~Re-point the calibration gate at fantasy-points coverage.~~ Done.
 
 ## Note on interim
