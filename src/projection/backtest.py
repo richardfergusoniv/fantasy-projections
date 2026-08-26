@@ -30,7 +30,8 @@ from src.projection.depth_history import attach_depth_tier
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
     build_role_transition_pairs, role_label_for, role_rate_label,
-    ALL_FEATURES, ROLE_FEATURES, ROLE_PRIOR_FEATURE, RECEIVING_SHARE_ELIG_LABEL,
+    ALL_FEATURES, ROLE_FEATURES, ROLE_PRIOR_FEATURE, ROLE_PRIOR_3Y_FEATURE,
+    role_features_for, trailing_role_rate, RECEIVING_SHARE_ELIG_LABEL,
     AVAILABILITY_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
     REFRAMED_SHARE_STATS, age_shrunk_predict,
     RECEIVING_SHARE_LABEL, TEAM_TOTAL_LABEL, AVAILABILITY_LABEL, SEASON_GAMES,
@@ -143,10 +144,11 @@ def _predict_all_reframed_receiving(feat, train_pairs, test_pairs):
         if train.empty or test.empty or team_model is None:
             continue
         share_model = LGBMRegressor(**LGBM_PARAMS)
-        share_model.fit(train[ROLE_FEATURES], train[RECEIVING_SHARE_ELIG_LABEL])
+        features = role_features_for(position, stat)
+        share_model.fit(train[features], train[RECEIVING_SHARE_ELIG_LABEL])
         f = test[["team"]].copy()
         f["share"] = np.clip(
-            age_shrunk_predict(share_model, test, position, features=ROLE_FEATURES), 0, None)
+            age_shrunk_predict(share_model, test, position, features=features), 0, None)
         # No depth multiplier on the share. Depth is inside the share model's
         # own ROLE_FEATURES now, so the team-level cap below sees exactly the
         # shares production composes.
@@ -227,11 +229,12 @@ def backtest_position_stat(feat, position, stat, train_pairs=TRAIN_PAIRS, test_p
         if train.empty or test.empty:
             return None
         model = LGBMRegressor(**LGBM_PARAMS)
-        model.fit(train[ROLE_FEATURES], train[y_col])
+        features = role_features_for(position, stat)
+        model.fit(train[features], train[y_col])
         # No multiplier. Depth reaches the prediction through the tier feature
         # inside ROLE_FEATURES, exactly as the shipped path does since the
         # Gate B ladder was retired.
-        pred = age_shrunk_predict(model, test, position, features=ROLE_FEATURES)
+        pred = age_shrunk_predict(model, test, position, features=features)
         pred_uncapped = None
 
     naive = test["naive_pred"]  # season_from's own pg rate, carried forward unchanged
@@ -385,12 +388,13 @@ def rolling_residual_rows(feat, test_pairs=ROLLING_TEST_PAIRS):
                     if train.empty or test.empty:
                         continue
                     model = LGBMRegressor(**LGBM_PARAMS)
-                    model.fit(train[ROLE_FEATURES], train[y_col])
+                    features = role_features_for(position, stat)
+                    model.fit(train[features], train[y_col])
                     # These residuals ARE models/interval_residuals.csv, so
                     # they must be actual - pred on the basis that ships: a
                     # role rate with no post-hoc multiplier.
                     pred = age_shrunk_predict(
-                        model, test, position, features=ROLE_FEATURES)
+                        model, test, position, features=features)
                 actual = pd.to_numeric(test[y_col], errors="coerce").to_numpy()
                 frame = pd.DataFrame({
                     "position": position,
@@ -398,6 +402,7 @@ def rolling_residual_rows(feat, test_pairs=ROLLING_TEST_PAIRS):
                     "test_season": test_pair[1],
                     "n_train_transitions": len(train_pairs),
                     "player_id": test["player_id"].to_numpy(),
+                    "team": test["team"].to_numpy(),
                     "pred": pred,
                     "actual": actual,
                 })
@@ -434,6 +439,46 @@ def residual_quantiles(feat, quantiles=INTERVAL_QUANTILES):
             "resid_std": float(np.std(grp["resid"])),
             "low_n_flag": len(grp) < INTERVAL_MIN_N,
             "calibration_basis": "pooled strictly-forward rolling residuals",
+        })
+    return pd.DataFrame(rows)
+
+
+_INTERVAL_COLUMNS = [
+    "position", "stat", "resid_low", "resid_high", "low_n_flag",
+    "n_test", "n_crossfit_folds", "first_test_season", "last_test_season",
+    "resid_std", "calibration_basis",
+]
+
+
+def _empty_interval_frame() -> pd.DataFrame:
+    return pd.DataFrame(columns=_INTERVAL_COLUMNS)
+
+
+def leakage_safe_residual_quantiles(feat, max_test_season: int, quantiles=INTERVAL_QUANTILES):
+    """Residual quantiles using only folds with test_season <= max_test_season."""
+    residuals = rolling_residual_rows(feat)
+    if residuals.empty:
+        return _empty_interval_frame()
+    residuals = residuals[residuals["test_season"] <= int(max_test_season)]
+    if residuals.empty:
+        return _empty_interval_frame()
+    rows = []
+    for (position, stat), grp in residuals.groupby(["position", "stat"]):
+        lo, hi = np.quantile(grp["resid"], quantiles)
+        rows.append({
+            "position": position,
+            "stat": stat,
+            "n_test": len(grp),
+            "n_crossfit_folds": grp["test_season"].nunique(),
+            "first_test_season": int(grp["test_season"].min()),
+            "last_test_season": int(grp["test_season"].max()),
+            "resid_low": float(lo),
+            "resid_high": float(hi),
+            "resid_std": float(np.std(grp["resid"])),
+            "low_n_flag": len(grp) < INTERVAL_MIN_N,
+            "calibration_basis": (
+                f"strictly-forward rolling residuals through test_season<={max_test_season}"
+            ),
         })
     return pd.DataFrame(rows)
 
@@ -580,8 +625,9 @@ def backtest_season_totals(feat, conn=None, train_pairs=TRAIN_PAIRS,
         # role_rate_label, not role_label_for: this is the INDEPENDENT-rate
         # arm of the comparison, so it fits the rate directly even for the
         # reframed stats whose shipped path composes a share instead.
+        features = role_features_for(position, stat)
         rm = LGBMRegressor(**LGBM_PARAMS).fit(
-            rate_train[ROLE_FEATURES], rate_train[role_rate_label(stat)])
+            rate_train[features], rate_train[role_rate_label(stat)])
         games_hat = np.clip(gm.predict(av_test[AVAILABILITY_FEATURES]), 0, SEASON_GAMES)
         # The availability frame carries AVAILABILITY_FEATURES, not the role
         # ones. Attach the tier from the target season's chart and the prior in
@@ -591,8 +637,14 @@ def backtest_season_totals(feat, conn=None, train_pairs=TRAIN_PAIRS,
         prior = feat[feat["season"] == test_pair[0]].drop_duplicates("player_id").set_index(
             "player_id")[role_rate_label(stat)]
         av_scoring[ROLE_PRIOR_FEATURE] = av_scoring["player_id"].map(prior).to_numpy(dtype=float)
+        if ROLE_PRIOR_3Y_FEATURE in features:
+            av_scoring[ROLE_PRIOR_3Y_FEATURE] = trailing_role_rate(
+                feat, av_scoring["player_id"], position, stat, test_pair[0]
+            ).to_numpy()
+            av_scoring[ROLE_PRIOR_3Y_FEATURE] = av_scoring[ROLE_PRIOR_3Y_FEATURE].fillna(
+                av_scoring[ROLE_PRIOR_FEATURE])
         rate_hat = np.clip(
-            age_shrunk_predict(rm, av_scoring, position, features=ROLE_FEATURES), 0, None)
+            age_shrunk_predict(rm, av_scoring, position, features=features), 0, None)
         composed = pd.Series(np.nan, index=av_test.index, dtype=float)
         parity_limit = "independent rate path; production room normalization unavailable"
         if (position, stat) in REFRAMED_SHARE_STATS:

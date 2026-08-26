@@ -104,6 +104,15 @@ DRIVER_COLS = [
     "team_rushing_yards_pg_pred",
     "team_anchor_source_season",
     "team_pass_catch_ratio_pre_normalization",
+    "sentiment_score",
+    "sentiment_feature",
+    "sentiment_confidence",
+    "sentiment_coverage",
+    "sentiment_as_of",
+    "sentiment_claim_count",
+    "sentiment_source_count",
+    "sentiment_model_active",
+    "sentiment_version",
 ]
 
 
@@ -143,14 +152,21 @@ def _pivot_stats(df: pd.DataFrame, value_col: str, prefix: str) -> pd.DataFrame:
     return wide
 
 
-def load_and_build(season: int) -> list[dict]:
-    proj_path = os.path.join(OUTPUT_DIR, f"projections_{season}.csv")
-    fantasy_path = os.path.join(OUTPUT_DIR, f"fantasy_points_{season}.csv")
+def load_and_build(
+    season: int,
+    projections_path: str | None = None,
+    fantasy_path: str | None = None,
+) -> list[dict]:
+    proj_path = projections_path or os.path.join(OUTPUT_DIR, f"projections_{season}.csv")
+    fantasy_path = fantasy_path or os.path.join(OUTPUT_DIR, f"fantasy_points_{season}.csv")
     if not os.path.exists(proj_path):
         raise FileNotFoundError(f"Missing projection file: {proj_path}")
 
+    from src.team_stats.history import load_player_history
+
     long = pd.read_csv(proj_path)
     long = long[long["position"].isin(["QB", "RB", "WR", "TE"])].copy()
+    history_by_id = load_player_history(season)
 
     meta_cols = [
         "player_id",
@@ -230,6 +246,7 @@ def load_and_build(season: int) -> list[dict]:
                 "drivers": drivers,
                 "pg": pg_stats,
                 "season": season_vals,
+                "history": history_by_id.get(str(row.player_id), []),
             }
         )
 
@@ -244,10 +261,45 @@ def load_and_build(season: int) -> list[dict]:
     return records
 
 
-def export_team_stats(season: int) -> str:
-    players = load_and_build(season)
+def export_team_stats(
+    season: int,
+    *,
+    projections_path: str | None = None,
+    fantasy_path: str | None = None,
+    out_path: str | None = None,
+) -> str:
+    players = load_and_build(season, projections_path, fantasy_path)
     teams_present = {p["team"] for p in players if p["team"]}
-    teams = [t for t in TEAM_META if t["abbr"] in teams_present]
+    teams = []
+    for team_meta in TEAM_META:
+        if team_meta["abbr"] not in teams_present:
+            continue
+        team = dict(team_meta)
+        signals = []
+        for player in players:
+            if player["team"] != team["abbr"]:
+                continue
+            drivers = player.get("drivers") or {}
+            score = drivers.get("sentiment_score")
+            confidence = drivers.get("sentiment_confidence")
+            if score is not None and confidence is not None and float(confidence) > 0:
+                signals.append((float(score), float(confidence)))
+        weight = sum(conf for _, conf in signals)
+        team["sentiment_score"] = (
+            round(sum(score * conf for score, conf in signals) / weight, 2)
+            if weight else None
+        )
+        team["sentiment_player_count"] = len(signals)
+        teams.append(team)
+
+    history_seasons = sorted(
+        {
+            int(h["season"])
+            for p in players
+            for h in (p.get("history") or [])
+            if h.get("season") is not None
+        }
+    )
 
     payload = {
         "meta": {
@@ -256,13 +308,15 @@ def export_team_stats(season: int) -> str:
             "player_count": len(players),
             "team_count": len(teams),
             "source_file": f"output/projections_{season}.csv",
+            "history_seasons": history_seasons,
         },
         "teams": teams,
         "players": players,
     }
 
     os.makedirs(TEAM_STATS_DATA_DIR, exist_ok=True)
-    out_path = os.path.join(TEAM_STATS_DATA_DIR, f"team_stats_{season}.json")
+    out_path = out_path or os.path.join(TEAM_STATS_DATA_DIR, f"team_stats_{season}.json")
+    os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=2, allow_nan=False)
     return out_path

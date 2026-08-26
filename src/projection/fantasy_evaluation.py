@@ -60,24 +60,20 @@ from src.projection.transitions import (
     ALL_FEATURES,
     ROLE_FEATURES,
     ROLE_PRIOR_FEATURE,
+    ROLE_PRIOR_3Y_FEATURE,
+    role_features_for,
+    trailing_role_rate,
     role_label_for,
     AVAILABILITY_FEATURES,
     REFRAMED_SHARE_STATS,
     SEASON_GAMES,
     age_shrunk_predict,
+    shrink_qb_prior_role_rate,
     TEAM_FEATURES,
     TEAM_MODEL_FEATURES,
 )
 
-# Interval residuals ship in models/interval_residuals.csv, fit by backtest.py
-# on every season including this fold's target. Reusing them here would leak, so
-# the shared receiving composition is handed an EMPTY residual table: composed
-# point predictions are identical, and the prediction interval is simply absent
-# on this path rather than borrowed from a leaky artifact. Nothing scored by
-# this harness reads pred_pg_low/high.
-_NO_LEAKAGE_SAFE_RESIDUALS = pd.DataFrame(
-    columns=["position", "stat", "resid_low", "resid_high", "low_n_flag"]
-)
+from src.projection.backtest import leakage_safe_residual_quantiles
 
 
 POSITIONS = tuple(TARGET_STATS)
@@ -347,6 +343,27 @@ def _team_anchor_predictions(
     return out
 
 
+def _prior_anchor_rates(
+    history: pd.DataFrame,
+    player_ids: pd.Series,
+    position: str,
+    stat: str,
+    source_season: int,
+) -> pd.Series:
+    """Two-season mean of the role label preceding ``source_season``."""
+    label = role_label_for(position, stat)
+    seasons = [source_season - 1, source_season - 2]
+    subset = history[
+        history["position"].eq(position)
+        & history["season"].isin(seasons)
+        & history["player_id"].isin(set(player_ids))
+    ]
+    if subset.empty or label not in subset.columns:
+        return pd.Series(index=player_ids.index, dtype=float)
+    means = subset.groupby("player_id")[label].mean()
+    return player_ids.map(means)
+
+
 def _veteran_forecasts(
     conn,
     history: pd.DataFrame,
@@ -354,6 +371,7 @@ def _veteran_forecasts(
     source_season: int,
     target_season: int,
     pairs: list[tuple[int, int]],
+    qb_partial_prior_shrink: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     rookies = set(population.loc[population["is_rookie"], "player_id"])
     eligible = population[~population["player_id"].isin(rookies)].copy()
@@ -394,14 +412,36 @@ def _veteran_forecasts(
             # The prior in the label's own units, same column the pair builder
             # supplies at fit time, so training and scoring agree.
             scoring = base.loc[idx].copy()
-            scoring[ROLE_PRIOR_FEATURE] = pd.to_numeric(
+            prior = pd.to_numeric(
                 scoring.get(role_label_for(position, stat)), errors="coerce")
+            if position == "QB" and qb_partial_prior_shrink:
+                anchor = _prior_anchor_rates(
+                    history,
+                    scoring["player_id"],
+                    position,
+                    stat,
+                    source_season,
+                )
+                prior = shrink_qb_prior_role_rate(
+                    prior,
+                    scoring["games_played"],
+                    anchor,
+                    enabled=True,
+                )
+            scoring[ROLE_PRIOR_FEATURE] = prior
+            features = role_features_for(position, stat)
+            if ROLE_PRIOR_3Y_FEATURE in features:
+                scoring[ROLE_PRIOR_3Y_FEATURE] = trailing_role_rate(
+                    history, scoring["player_id"], position, stat, source_season
+                ).to_numpy()
+                scoring[ROLE_PRIOR_3Y_FEATURE] = scoring[ROLE_PRIOR_3Y_FEATURE].fillna(
+                    scoring[ROLE_PRIOR_FEATURE])
             # No multiplier. Depth is an input to rate_model via ROLE_FEATURES,
             # which is what the shipped path does since the Gate B ladder was
             # retired. This harness used to be the ONLY one applying the ladder
             # unconditionally; now none of the three do.
             pred = np.clip(
-                age_shrunk_predict(rate_model, scoring, position, features=ROLE_FEATURES),
+                age_shrunk_predict(rate_model, scoring, position, features=features),
                 0, None)
             rates.append(pd.DataFrame({
                 "player_id": base.loc[idx, "player_id"].to_numpy(),
@@ -462,6 +502,9 @@ def _compose_and_reconcile(
     rookie_long: pd.DataFrame,
     anchors: pd.DataFrame,
     context,
+    *,
+    feature_table: pd.DataFrame | None = None,
+    source_season: int | None = None,
 ) -> pd.DataFrame:
     """Run the SHIPPED composition pipeline over leakage-safe artifacts.
 
@@ -486,9 +529,15 @@ def _compose_and_reconcile(
                    ["team", "pred_pg", "projected_games"]]
         if not rookie.empty else None
     )
+    if feature_table is not None and source_season is not None:
+        safe_residuals = leakage_safe_residual_quantiles(feature_table, source_season)
+    else:
+        safe_residuals = pd.DataFrame(
+            columns=["position", "stat", "resid_low", "resid_high", "low_n_flag"]
+        )
     veteran = _compose_reframed_receiving_predictions(
         veteran,
-        _NO_LEAKAGE_SAFE_RESIDUALS,
+        safe_residuals,
         rookie_receiving=rookie_receiving,
         # Elite shrinkage ships in models/corrections.joblib, fit on residuals
         # spanning the target season. There is no leakage-safe refit of it on
@@ -498,12 +547,12 @@ def _compose_and_reconcile(
 
     out = pd.concat([veteran, rookie], ignore_index=True, sort=False)
     out["pred_pg"] = pd.to_numeric(out["pred_pg"], errors="coerce").clip(lower=0)
-    # No leakage-safe interval residuals exist for this fold, so the endpoints
-    # collapse onto the point prediction rather than being borrowed. Nothing in
-    # the scoring path reads them; they exist so the reconcilers, which scale
-    # all three together, have a defined value to scale.
+    # Interval endpoints use leakage-safe residuals when feature_table is supplied.
     for col in ("pred_pg_low", "pred_pg_high"):
-        out[col] = pd.to_numeric(out.get(col), errors="coerce").fillna(out["pred_pg"])
+        if col not in out.columns:
+            out[col] = out["pred_pg"]
+        else:
+            out[col] = pd.to_numeric(out[col], errors="coerce").fillna(out["pred_pg"])
     return compose_board(out, context)
 
 
@@ -514,6 +563,12 @@ def _forecast_from_history(
     rookie_cohort: pd.DataFrame,
     source_season: int,
     target_season: int,
+    exposure_blend_alpha: float = 0.0,
+    qb_partial_prior_shrink: bool = False,
+    qb_rush_td_clip_hi: float | None = None,
+    qb_pass_td_t1_lite: bool = False,
+    return_long: bool = False,
+    feature_table: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
     """Internal forecast stage; `history` must contain no target outcomes."""
     if history["season"].max() > source_season:
@@ -523,17 +578,33 @@ def _forecast_from_history(
         raise ValueError("no safe production-era training transitions")
     anchors = _team_anchor_predictions(history, source_season, pairs)
     veteran_long, veteran_games = _veteran_forecasts(
-        conn, history, population, source_season, target_season, pairs
+        conn, history, population, source_season, target_season, pairs,
+        qb_partial_prior_shrink=qb_partial_prior_shrink,
     )
     rookie_long, rookie_games = _rookie_forecasts(
         rookie_cohort, source_season, target_season
     )
     context = leakage_safe_context(conn, target_season, source_season)
-    long = _compose_and_reconcile(veteran_long, rookie_long, anchors, context)
+    context.exposure_blend_alpha = float(exposure_blend_alpha)
+    context.qb_rush_td_clip_hi = qb_rush_td_clip_hi
+    context.qb_pass_td_t1_lite = bool(qb_pass_td_t1_lite)
+    long = _compose_and_reconcile(
+        veteran_long, rookie_long, anchors, context,
+        feature_table=feature_table, source_season=source_season,
+    )
+    if return_long:
+        long.attrs["stage_coverage"] = context.describe_coverage()
+        long.attrs["artifact_provenance"] = context.artifact_provenance
+        return long
     scored_stats = long.pivot_table(
         index="player_id", columns="stat", values="pred_season", aggfunc="first"
     )
     scored = _score_totals(scored_stats).rename("model_forecast_points").reset_index()
+    rate_stats = long.pivot_table(
+        index="player_id", columns="stat", values="pred_pg", aggfunc="first"
+    )
+    rate_scored = _score_totals(rate_stats).rename("model_rate_points").reset_index()
+    scored = scored.merge(rate_scored, on="player_id", how="left")
     games = pd.concat([veteran_games, rookie_games], ignore_index=True).drop_duplicates("player_id")
     exposure = long[["player_id", "projected_volume_games"]].drop_duplicates("player_id")
     factors = long[["player_id", "depth_tier"]].drop_duplicates("player_id")
@@ -563,11 +634,46 @@ def _forecast_from_history(
     return scored
 
 
+def build_leakage_safe_long_board(
+    conn,
+    feature_table: pd.DataFrame,
+    source_season: int,
+    target_season: int,
+) -> pd.DataFrame:
+    """Return the held-out long board after the shipped composition stages.
+
+    This is the calibration interface for post-compose allocation cells.  It
+    freezes the target preseason population, fits only through source season,
+    includes rookies and attrition, and exposes player-season stat totals
+    before held-out outcomes are attached.
+    """
+    history = feature_table[feature_table["season"].le(source_season)].copy()
+    rookie_cohort = build_preseason_rookie_cohort(
+        conn, feature_table, list(range(2016, target_season + 1))
+    )
+    population = build_preseason_population(conn, target_season, rookie_cohort)
+    return _forecast_from_history(
+        conn,
+        history,
+        population,
+        sanitize_target_rookie_outcomes(rookie_cohort, target_season),
+        source_season,
+        target_season,
+        exposure_blend_alpha=0.0,
+        return_long=True,
+        feature_table=feature_table,
+    )
+
+
 def build_leakage_safe_forecasts(
     conn,
     feature_table: pd.DataFrame,
     source_season: int = 2024,
     target_season: int = 2025,
+    exposure_blend_alpha: float = 0.0,
+    qb_partial_prior_shrink: bool = False,
+    qb_rush_td_clip_hi: float | None = None,
+    qb_pass_td_t1_lite: bool = False,
 ) -> tuple[pd.DataFrame, dict]:
     """Freeze population and forecast without exposing any 2025 outcomes."""
     history = feature_table[feature_table["season"].le(source_season)].copy()
@@ -582,10 +688,19 @@ def build_leakage_safe_forecasts(
         sanitize_target_rookie_outcomes(rookie_cohort, target_season),
         source_season,
         target_season,
+        exposure_blend_alpha=exposure_blend_alpha,
+        qb_partial_prior_shrink=qb_partial_prior_shrink,
+        qb_rush_td_clip_hi=qb_rush_td_clip_hi,
+        qb_pass_td_t1_lite=qb_pass_td_t1_lite,
+        feature_table=feature_table,
     )
     out = population.merge(forecasts, on="player_id", how="left")
     out["forecast_covered"] = out["forecast_covered"].fillna(False)
     out["model_points_end_to_end"] = out["model_forecast_points"].fillna(0.0)
+    if "model_rate_points" in out.columns:
+        out["model_rate_points"] = out["model_rate_points"].fillna(0.0)
+    else:
+        out["model_rate_points"] = 0.0
 
     prior = _actual_player_totals(history, source_season).rename(
         columns={"actual_points": "carry_forward_points"}
@@ -621,6 +736,7 @@ def build_leakage_safe_forecasts(
         ),
         "composition_artifact_provenance": forecasts.attrs.get("artifact_provenance"),
         "composition_stage_coverage": forecasts.attrs.get("stage_coverage", {}),
+        "exposure_blend_alpha": float(exposure_blend_alpha),
     }
     return out, metadata
 
@@ -643,6 +759,9 @@ def attach_actual_outcomes(
     out["actual_games_played"] = out["actual_games_played"].fillna(0.0)
     out["actual_zero_game_outcome"] = out["actual_games_played"].le(0)
     out["actual_zero_point_outcome"] = out["actual_points"].eq(0.0)
+    out["actual_rate_points"] = (
+        out["actual_points"] / out["actual_games_played"].replace(0, np.nan)
+    ).fillna(0.0)
     return out
 
 
@@ -682,10 +801,26 @@ def _metric_rows(
     rows = []
     for position in POSITIONS:
         position_rows = frame[frame["preseason_position"].eq(position)]
-        for scope, scoped in (
+        has_depth = "depth_tier" in position_rows.columns
+        has_games = "actual_games_played" in position_rows.columns
+        starter_rows = (
+            position_rows[position_rows["depth_tier"].eq(1.0)] if has_depth
+            else position_rows.iloc[0:0]
+        )
+        starter_8plus = (
+            starter_rows[starter_rows["actual_games_played"].ge(8)] if has_games
+            else starter_rows.iloc[0:0]
+        )
+        scopes = [
             ("all_eligible", position_rows),
             ("forecast_covered", position_rows[position_rows["forecast_covered"]]),
-        ):
+        ]
+        if has_depth:
+            scopes.extend([
+                ("starter_depth_tier_1", starter_rows),
+                ("starter_8plus_games", starter_8plus),
+            ])
+        for scope, scoped in scopes:
             if scoped.empty:
                 continue
             actual_cut = _kth_score(scoped["actual_points"], tier_ranks[position])
@@ -702,6 +837,27 @@ def _metric_rows(
                     scoped[value_col], replacement_ranks[position]
                 )
                 pred_vorp = scoped[value_col] - pred_replacement
+                rate_spearman = float("nan")
+                rate_mae = float("nan")
+                mean_bias = float("nan")
+                if (
+                    method == "model"
+                    and "model_rate_points" in scoped.columns
+                    and "actual_rate_points" in scoped.columns
+                ):
+                    rate_spearman = float(
+                        scoped["model_rate_points"].corr(
+                            scoped["actual_rate_points"], method="spearman"
+                        )
+                    )
+                    rate_mae = float(
+                        (scoped["model_rate_points"] - scoped["actual_rate_points"])
+                        .abs()
+                        .mean()
+                    )
+                    mean_bias = float(
+                        (scoped["model_rate_points"] - scoped["actual_rate_points"]).mean()
+                    )
                 rows.append({
                     "position": position,
                     "scope": scope,
@@ -711,7 +867,11 @@ def _metric_rows(
                     "forecast_covered_n": int(position_rows["forecast_covered"].sum()),
                     "zero_outcome_n": int(scoped["actual_zero_game_outcome"].sum()),
                     "spearman": float(scoped[value_col].corr(scoped["actual_points"], method="spearman")),
+                    "rate_spearman": rate_spearman,
+                    "rate_mae": rate_mae,
+                    "mean_bias": mean_bias,
                     "points_mae": float((scoped[value_col] - scoped["actual_points"]).abs().mean()),
+                    "season_mean_bias": float((scoped[value_col] - scoped["actual_points"]).mean()),
                     "tier_rank": int(tier_ranks[position]),
                     "predicted_top_n": int(pred_top.sum()),
                     "actual_top_n": int(actual_top.sum()),
@@ -726,6 +886,28 @@ def _metric_rows(
                     "vorp_spearman": float(pred_vorp.corr(actual_vorp, method="spearman")),
                 })
     return pd.DataFrame(rows)
+
+
+def qb_starter_metrics(summary: pd.DataFrame) -> dict:
+    """Extract QB starter-only dashboard metrics from an evaluation summary."""
+    model = summary[
+        (summary["method"] == "model") & (summary["position"] == "QB")
+    ]
+    out = {}
+    for scope in ("starter_depth_tier_1", "starter_8plus_games", "all_eligible"):
+        row = model[model["scope"] == scope]
+        if row.empty:
+            continue
+        r = row.iloc[0]
+        out[scope] = {
+            "n": int(r["n"]),
+            "rate_spearman": round(float(r["rate_spearman"]), 4),
+            "rate_mae": round(float(r["rate_mae"]), 3),
+            "mean_bias": round(float(r["mean_bias"]), 3),
+            "points_mae": round(float(r["points_mae"]), 2),
+            "tier_hits": f"{int(r['tier_hits'])}/{int(r['tier_rank'])}",
+        }
+    return out
 
 
 def evaluate_forecasts(
@@ -757,12 +939,23 @@ def run_evaluation(
     target_season: int = 2025,
     tier_ranks: dict[str, int] | None = None,
     replacement_ranks: dict[str, int] | None = None,
+    exposure_blend_alpha: float = 0.0,
+    qb_partial_prior_shrink: bool = False,
+    qb_rush_td_clip_hi: float | None = None,
+    qb_pass_td_t1_lite: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     conn = get_conn()
     try:
         feat = build_player_season_features(conn)
         forecasts, metadata = build_leakage_safe_forecasts(
-            conn, feat, source_season, target_season
+            conn,
+            feat,
+            source_season,
+            target_season,
+            exposure_blend_alpha=exposure_blend_alpha,
+            qb_partial_prior_shrink=qb_partial_prior_shrink,
+            qb_rush_td_clip_hi=qb_rush_td_clip_hi,
+            qb_pass_td_t1_lite=qb_pass_td_t1_lite,
         )
     finally:
         conn.close()
@@ -770,8 +963,13 @@ def run_evaluation(
     ranked, summary = evaluate_forecasts(
         with_actual, tier_ranks=tier_ranks, replacement_ranks=replacement_ranks
     )
+    metadata["exposure_blend_alpha"] = float(exposure_blend_alpha)
+    metadata["qb_partial_prior_shrink"] = bool(qb_partial_prior_shrink)
+    metadata["qb_rush_td_clip_hi"] = qb_rush_td_clip_hi
+    metadata["qb_pass_td_t1_lite"] = bool(qb_pass_td_t1_lite)
     metadata["tier_ranks"] = tier_ranks or DEFAULT_TIER_RANKS
     metadata["replacement_ranks"] = replacement_ranks or DEFAULT_REPLACEMENT_RANKS
+    metadata["qb_starter_metrics"] = qb_starter_metrics(summary)
     metadata["coverage_limits"] = [
         "Week-1 contracted roster snapshot excludes August camp cuts.",
         "Veterans without a source-season feature row remain in all_eligible and score as zero model points.",
@@ -786,8 +984,9 @@ def run_evaluation(
         "players neither model path reaches, and the LWR/RWR/SWR within-WR split all "
         "no-op; (b) dated status overrides (IR/PUP) - status_overrides_<season>.csv is "
         "likewise 2026-only; (c) elite residual correction - models/corrections.joblib "
-        "is fit on residuals spanning the target season; (d) prediction intervals - "
-        "models/interval_residuals.csv is fit by backtest.py across the target season. "
+        "(d) prediction intervals on eval path now use leakage_safe_residual_quantiles "
+        "through source_season; production models/interval_residuals.csv still spans "
+        "target season on ship path. "
         "None of these are faked or silently skipped: each degrades to an explicit "
         "pass-through recorded in composition_stage_coverage.",
         "Roster reassignment (reassign_team_changers) is not run: the target team comes "
@@ -804,12 +1003,22 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--target-season", type=int, default=2025)
     parser.add_argument("--tier-ranks", default="QB=12,RB=24,WR=36,TE=12")
     parser.add_argument("--replacement-ranks", default="QB=13,RB=25,WR=37,TE=13")
+    parser.add_argument(
+        "--exposure-blend-alpha",
+        type=float,
+        default=0.0,
+        help="Blend draft exposure toward Gate A raw games (0=17-game default, 1=raw only)",
+    )
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR))
     args = parser.parse_args(argv)
     tier = _parse_rank_map(args.tier_ranks, DEFAULT_TIER_RANKS)
     replacement = _parse_rank_map(args.replacement_ranks, DEFAULT_REPLACEMENT_RANKS)
     rows, summary, metadata = run_evaluation(
-        args.source_season, args.target_season, tier, replacement
+        args.source_season,
+        args.target_season,
+        tier,
+        replacement,
+        exposure_blend_alpha=args.exposure_blend_alpha,
     )
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=True)
@@ -822,8 +1031,13 @@ def main(argv: list[str] | None = None) -> None:
         json.dumps({"metadata": metadata, "metrics": summary.to_dict("records")}, indent=2),
         encoding="utf-8",
     )
+    starter_path = output / f"qb_starter_eval_{args.target_season}.json"
+    starter_path.write_text(
+        json.dumps({"metadata": metadata, "qb_starter_metrics": metadata["qb_starter_metrics"]}, indent=2),
+        encoding="utf-8",
+    )
     print(summary.to_string(index=False))
-    print(f"\nWrote {rows_path}, {summary_path}, and {json_path}")
+    print(f"\nWrote {rows_path}, {summary_path}, {json_path}, and {starter_path}")
 
 
 if __name__ == "__main__":

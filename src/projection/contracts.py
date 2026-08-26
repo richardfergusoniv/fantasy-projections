@@ -10,13 +10,21 @@ import os
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MODELS_DIR = os.path.join(REPO_ROOT, "models")
 OUTPUT_DIR = os.path.join(REPO_ROOT, "output")
+BACKTEST_DIR = os.path.join(OUTPUT_DIR, "backtest")
+MODEL_V3_DIR = os.path.join(OUTPUT_DIR, "model_v3")
+RECONCILE_CALIBRATION_PATH = os.path.join(MODELS_DIR, "reconcile_calibration.json")
+INTERVAL_MODELS_DIR = os.path.join(MODELS_DIR, "interval_models")
+V3_MODELS_DIR = os.path.join(MODELS_DIR, "v3")
 INTERVAL_RESIDUALS_PATH = os.path.join(MODELS_DIR, "interval_residuals.csv")
 CORRECTIONS_PATH = os.path.join(MODELS_DIR, "corrections.joblib")
+CONCENTRATION_PATH = os.path.join(MODELS_DIR, "concentration_calibration.json")
 DEPTH_CHART_PATH = os.path.join(REPO_ROOT, "src", "depth_chart", "starters_2026.csv")
 LIVE_DEPTH_CHART_PATH = os.path.join(REPO_ROOT, "src", "depth_chart", "live_depth_2026.csv")
 STATUS_OVERRIDES_PATH = os.path.join(
     REPO_ROOT, "src", "depth_chart", "status_overrides_2026.csv"
 )
+
+COMPOSITION_VERSION = "healthy17_qbroom_concentration_v1"
 
 # Researched curated depths: QB1-2, RB1-2, WR1-3, TE1-2.
 CURATED_RESEARCH_DEPTH = {"QB": 2, "RB": 2, "WR": 3, "TE": 2}
@@ -150,8 +158,11 @@ TEAM_RECONCILE_CLIP = (0.25, 4.0)
 # was a real error in an earlier pass of this work.
 #   (position, stat) -> (team anchor column, share of it)
 TEAM_VOLUME_SHARES = {
-    ("QB", "attempts"): ("team_pass_attempts_pg_pred", 0.941),
-    ("QB", "passing_yards"): ("team_passing_yards_pg_pred", 0.942),
+    # QB reconciliation covers the entire room, so it owns 100% of the team
+    # passing anchor.  The measured 0.941/0.942 figures describe the starter,
+    # not the room; they remain diagnostics below rather than scale factors.
+    ("QB", "attempts"): ("team_pass_attempts_pg_pred", 1.000),
+    ("QB", "passing_yards"): ("team_passing_yards_pg_pred", 1.000),
     ("RB", "carries"): ("team_carries_pg_pred", 0.810),
     ("RB", "rushing_yards"): ("team_rushing_yards_pg_pred", 0.806),
 }
@@ -160,9 +171,33 @@ TEAM_VOLUME_SHARES = {
 # ride along with, so a reconciled line stays internally consistent instead of
 # gaining completions the reconciled attempts no longer support.
 TEAM_VOLUME_SIBLINGS = {
-    ("QB", "attempts"): ("completions", "passing_tds", "interceptions"),
-    ("RB", "carries"): ("rushing_tds",),
+    ("QB", "attempts"): ("completions", "interceptions"),
+    ("RB", "carries"): (),
 }
+
+# Retained only for audit/diagnostics.  These are starter shares and must not
+# be applied to a reconciliation that sums the whole position room.
+QB_STARTER_VOLUME_SHARES = {"attempts": 0.941, "passing_yards": 0.942}
+
+# Post-compose TD efficiency clips (T2/T3, 2026-08-17). Independent counting
+# models can produce pass TD/g and rush TD/carry inconsistent with attempts/
+# carries. Bands are historical tier-1 starter p10–p90 (2016–2025 REG, 8+ games).
+QB_PASS_TD_RATE_CLIP = (0.030, 0.060)
+QB_RUSH_TD_PER_CARRY_CLIP = (0.0, 0.100)
+# Ablation upper bounds for mobile-QB rush-TD clip (T3b). Ship uses 0.100.
+QB_RUSH_TD_CLIP_HI_VARIANTS = (0.040, 0.080, 0.100)
+
+# When source-season games fall below this, shrink QB prior_role_rate toward
+# a longer-run mean (Track 5 / injury-prior ablation). Ship default: disabled.
+QB_PARTIAL_PRIOR_GAMES_THRESHOLD = 12
+QB_PARTIAL_PRIOR_SHRINK_ENABLED = False
+
+# Draft exposure blend toward Gate A raw games. 0.0 = full season (ship default);
+# 1.0 = raw availability only. Measured middle values beat both extremes on MAE.
+EXPOSURE_BLEND_ALPHA = 0.0
+
+# Ranking-only haircut for rookie_rule rows in VORP (projections unchanged).
+ROOKIE_RANK_SCALE = 0.85
 
 OUTPUT_COLUMNS = [
     "player_id", "display_name", "team", "position", "stat",
@@ -183,6 +218,8 @@ OUTPUT_COLUMNS = [
     # Same rationale as depth_tier: the adjustment has to be visible or nobody
     # can tell why a player's number differs from what his model produced.
     "team_volume_scale",
+    "concentration_scale", "concentration_calibration_version",
+    "projection_run_id", "composition_version",
     "role_discount_factor",
     "athletic_tier",
     "receiving_share_capped",
@@ -191,6 +228,7 @@ OUTPUT_COLUMNS = [
     "projected_games",
     "projected_games_raw",
     "projected_volume_games",
+    "status_override_applied",
     "team_pass_attempts_pg_pred", "team_passing_yards_pg_pred",
     "team_carries_pg_pred", "team_rushing_yards_pg_pred",
     "team_anchor_source_season", "team_anchor_lag_team", "team_anchor_provenance",
@@ -199,4 +237,10 @@ OUTPUT_COLUMNS = [
     "rookie_vacancy_scale",
     "rookie_id_unresolved",
     "stat_constraint_applied",
+    "td_rate_clip_applied",
+    # Diagnostic player sentiment. `sentiment_model_active` remains false
+    # until a leakage-safe multi-season ablation enables the position.
+    "sentiment_score", "sentiment_feature", "sentiment_confidence",
+    "sentiment_coverage", "sentiment_as_of", "sentiment_claim_count",
+    "sentiment_source_count", "sentiment_model_active", "sentiment_version",
 ]

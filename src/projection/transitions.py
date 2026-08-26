@@ -201,6 +201,36 @@ def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_S
 REFERENCE_AGE = {"QB": 27.0, "RB": 25.0, "WR": 25.0, "TE": 26.0}  # median age, that position's 2021-2025 population
 AGE_EFFECT_SHRINK = {"QB": 1.0, "RB": 0.0, "WR": 1.0, "TE": 1.0}  # 1.0 = unshrunk, 0.0 = fully neutralized
 
+# Track 5: when a QB's source-season sample is partial, shrink the prior role
+# rate fed to volume models toward a longer-run mean. Disabled at ship default.
+QB_PARTIAL_PRIOR_GAMES_THRESHOLD = 12
+
+
+def shrink_qb_prior_role_rate(
+    prior: pd.Series,
+    source_games: pd.Series,
+    anchor: pd.Series,
+    *,
+    threshold: int = QB_PARTIAL_PRIOR_GAMES_THRESHOLD,
+    enabled: bool = False,
+) -> pd.Series:
+    """Blend ``prior`` toward ``anchor`` when ``source_games`` < ``threshold``.
+
+    Weight w = min(1, games / threshold). At ship default (enabled=False) this
+    is a no-op. ``anchor`` is typically a two-season mean of the label in the
+    same units as ``prior_role_rate``.
+    """
+    if not enabled:
+        return prior
+    games = pd.to_numeric(source_games, errors="coerce")
+    w = (games / float(threshold)).clip(0.0, 1.0)
+    p = pd.to_numeric(prior, errors="coerce")
+    a = pd.to_numeric(anchor, errors="coerce")
+    both = p.notna() & a.notna() & games.notna() & games.lt(threshold)
+    out = p.copy()
+    out.loc[both] = w.loc[both] * p.loc[both] + (1.0 - w.loc[both]) * a.loc[both]
+    return out
+
 
 def age_shrunk_predict(model, X, position, features=None):
     """Predict with `model` on `X[features]` (`features` defaults to
@@ -289,6 +319,17 @@ ROLE_ZERO_FLAG = "is_role_zero"
 # carry-forward baseline a role-rate backtest has to beat.
 ROLE_PRIOR_FEATURE = "prior_role_rate"
 
+# A second, deliberately slower-moving prior for opportunity and yardage
+# models.  The one-season prior above remains in every role model so genuine
+# role changes are still visible; this feature gives established producers a
+# leakage-safe counterweight to a noisy or injury-shortened latest season.
+ROLE_PRIOR_3Y_FEATURE = "prior_role_rate_3y"
+
+STABLE_ROLE_STATS = {
+    "attempts", "completions", "targets", "receptions", "carries",
+    "passing_yards", "receiving_yards", "rushing_yards",
+}
+
 # What the volume models consume once they predict a role rate. The depth tier
 # is admitted here and deliberately NOT in ALL_FEATURES: the justification for
 # excluding the chart from the rate models was that they "are trained only on
@@ -296,6 +337,50 @@ ROLE_PRIOR_FEATURE = "prior_role_rate"
 # least to say" - true when written, and untrue the moment role zeros enter
 # the population.
 ROLE_FEATURES = ALL_FEATURES + [DEPTH_TIER_COLUMN, ROLE_PRIOR_FEATURE]
+
+
+def role_features_for(position, stat):
+    """Return the stat-specific serving/training schema.
+
+    TD and interception models intentionally retain their previous schema;
+    only opportunity and yardage families receive the multi-season prior.
+    ``position`` is accepted to keep this resolver symmetric with
+    :func:`role_label_for` and future position-specific schemas.
+    """
+    del position
+    if stat in STABLE_ROLE_STATS:
+        return ROLE_FEATURES + [ROLE_PRIOR_3Y_FEATURE]
+    return ROLE_FEATURES
+
+
+def trailing_role_rate(feat, player_ids, position, stat, source_season, lookback=3):
+    """Eligible-week-weighted source-and-prior-season role rate.
+
+    Only seasons at or before ``source_season`` enter the value, so the same
+    construction is safe in rolling-origin evaluation and production.  A
+    player's source-season value is the fallback when older history is absent.
+    """
+    label = role_label_for(position, stat)
+    ids = pd.Index(player_ids)
+    hist = feat[
+        feat["position"].eq(position)
+        & feat["season"].between(source_season - lookback + 1, source_season)
+        & feat["player_id"].isin(ids)
+    ].copy()
+    if label not in hist.columns:
+        raise ValueError(f"missing {label!r} while constructing {ROLE_PRIOR_3Y_FEATURE}")
+    hist["_value"] = pd.to_numeric(hist[label], errors="coerce")
+    if "eligible_weeks" in hist.columns:
+        hist["_weight"] = pd.to_numeric(hist["eligible_weeks"], errors="coerce").fillna(0).clip(lower=0)
+    else:
+        hist["_weight"] = 1.0
+    hist = hist[hist["_value"].notna() & hist["_weight"].gt(0)]
+    if hist.empty:
+        return pd.Series(np.nan, index=ids, dtype=float)
+    hist["_weighted"] = hist["_value"] * hist["_weight"]
+    grouped = hist.groupby("player_id", observed=True)
+    values = grouped["_weighted"].sum() / grouped["_weight"].sum()
+    return pd.Series(ids.map(values), index=ids, dtype=float)
 
 
 def role_rate_label(stat):
@@ -379,6 +464,10 @@ def _build_role_transition_pairs(feat, position, stat, season_pairs, conn, label
         a["appearance_naive_pred"] = a[rate_col]
         a["naive_pred"] = a[role_from]
         a[ROLE_PRIOR_FEATURE] = a[y_col]
+        a[ROLE_PRIOR_3Y_FEATURE] = trailing_role_rate(
+            pos_df, a["player_id"], position, stat, season_from
+        ).to_numpy()
+        a[ROLE_PRIOR_3Y_FEATURE] = a[ROLE_PRIOR_3Y_FEATURE].fillna(a[ROLE_PRIOR_FEATURE])
         a = a.drop(columns=[c for c in carry_cols if c in a.columns])
         # Carry the stat's own ROLE rate alongside the label, mirroring what
         # build_transition_pairs does with {stat}_pg: a caller composing

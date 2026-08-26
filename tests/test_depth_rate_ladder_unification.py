@@ -201,7 +201,7 @@ class EveryPathGoesThroughTheSharedHelper(unittest.TestCase):
             with self.subTest(fn=fn.__name__):
                 src = inspect.getsource(fn)
                 self.assertIn("build_role_transition_pairs", src)
-                self.assertIn("ROLE_FEATURES", src)
+                self.assertIn("role_features_for", src)
 
     def test_ladder_calibration_artifact_is_gone(self):
         """depth_rate_calibration fit the ladder's own rungs. With no ladder
@@ -218,7 +218,7 @@ class EveryPathGoesThroughTheSharedHelper(unittest.TestCase):
         src = inspect.getsource(corrections.compute_loo_receiving_residuals)
         self.assertNotIn("depth_rate_factors", src)
         self.assertIn("RECEIVING_SHARE_ELIG_LABEL", src)
-        self.assertIn("ROLE_FEATURES", src)
+        self.assertIn("role_features_for", src)
 
 
 

@@ -9,7 +9,8 @@ import sys
 import numpy as np
 import pandas as pd
 
-from src.projection.artifacts import load_availability_models
+from src.projection.artifacts import load_availability_models, load_interval_model_manifest
+from src.projection.evaluation.interval_models import predict_interval_residuals
 from src.projection.depth_gating import (
     apply_curated_availability_override,
     apply_full_season_games_baseline,
@@ -34,7 +35,9 @@ from src.projection.team_reconcile import _attach_team_total_pred
 from src.projection.transitions import (
     ALL_FEATURES,
     ROLE_PRIOR_FEATURE,
+    ROLE_PRIOR_3Y_FEATURE,
     role_label_for,
+    trailing_role_rate,
     REFRAMED_SHARE_STATS,
     SEASON_GAMES,
     age_shrunk_predict,
@@ -66,6 +69,26 @@ def _attach_veteran_intervals(combined, resid):
     target = ~is_reframed
     if not target.any():
         return out
+    manifest = load_interval_model_manifest()
+    if manifest is not None:
+        pred_frame = out.loc[target, ["position", "stat", "pred_pg", "depth_tier"]].rename(
+            columns={"pred_pg": "pred"}
+        )
+        pred_frame["games_played"] = pd.to_numeric(
+            out.loc[target, "projected_games"], errors="coerce"
+        ).fillna(17.0)
+        conditional = predict_interval_residuals(pred_frame)
+        if not conditional.empty and conditional["resid_low"].notna().any():
+            keys = out.loc[target, ["position", "stat"]].copy()
+            keys = keys.merge(conditional, on=["position", "stat"], how="left")
+            has = keys["resid_low"].notna()
+            idx = keys.index[has]
+            out.loc[idx, "pred_pg_low"] = (
+                out.loc[idx, "pred_pg"] + keys.loc[has, "resid_low"]).clip(lower=0)
+            out.loc[idx, "pred_pg_high"] = out.loc[idx, "pred_pg"] + keys.loc[has, "resid_high"]
+            out.loc[keys.index, "interval_low_n_flag"] = (
+                keys["low_n_flag"].fillna(True).astype(bool))
+            return out
     r = resid[["position", "stat", "resid_low", "resid_high", "low_n_flag"]]
     keys = out.loc[target, ["position", "stat"]].merge(r, on=["position", "stat"], how="left")
     keys.index = out.index[target]
@@ -216,6 +239,11 @@ def project_veterans(conn, feat, source_season, models, resid, target_season, as
             features = m.get("features", ALL_FEATURES)
             X = pos_df.copy()
             X[ROLE_PRIOR_FEATURE] = _prior_in_label_units(pos_df, position, stat)
+            if ROLE_PRIOR_3Y_FEATURE in features:
+                X[ROLE_PRIOR_3Y_FEATURE] = trailing_role_rate(
+                    feat, X["player_id"], position, stat, source_season
+                ).to_numpy()
+                X[ROLE_PRIOR_3Y_FEATURE] = X[ROLE_PRIOR_3Y_FEATURE].fillna(X[ROLE_PRIOR_FEATURE])
             preds = age_shrunk_predict(m["model"], X, position, features=features)
             out = pos_df[["player_id", "team", "position", "team_changed",
                           "roster_status", "projected_games", "projected_games_raw",

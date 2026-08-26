@@ -37,6 +37,7 @@ from src.projection.transitions import (
     build_role_transition_pairs, role_rate_label, role_label_for,
     ALL_FEATURES, AVAILABILITY_FEATURES, ROLE_FEATURES, TEAM_FEATURES,
     TEAM_MODEL_FEATURES, REFRAMED_SHARE_STATS,
+    role_features_for,
     RECEIVING_SHARE_LABEL, RECEIVING_SHARE_ELIG_LABEL, TEAM_TOTAL_LABEL,
     AVAILABILITY_LABEL,
     TEAM_ATTEMPTS_LABEL, TEAM_CARRIES_LABEL, TEAM_RUSH_YARDS_LABEL,
@@ -89,7 +90,8 @@ def fit_one(feat, position, stat, pairs=ALL_PAIRS, conn=None):
     data = build_role_transition_pairs(
         feat, position, stat, pairs, conn=conn, label_col=label_col)
     model = LGBMRegressor(**LGBM_PARAMS)
-    model.fit(data[ROLE_FEATURES], data[y_col])
+    features = role_features_for(position, stat)
+    model.fit(data[features], data[y_col])
     return model, len(data)
 
 
@@ -199,7 +201,7 @@ def main():
             # than assumed, so a model fit on the role basis cannot be scored
             # as if it were the old per-appearance one.
             joblib.dump(
-                {"model": model, "features": ROLE_FEATURES, "position": position,
+                {"model": model, "features": role_features_for(position, stat), "position": position,
                  "stat": stat, "label": label},
                 path,
             )

@@ -128,11 +128,16 @@ def apply_curated_availability_override(base, depth_chart):
     return out
 
 
-def apply_full_season_games_baseline(df, season_games=None):
+def apply_full_season_games_baseline(df, season_games=None, blend_alpha=0.0):
     """Assume a full season for draft exposure; keep Gate A in ``projected_games_raw``.
 
     Injury / suspension risk is treated as exogenous except for explicit
     status overrides (IR → 0, PUP → cap, Sus → 0) applied afterward.
+
+    When ``blend_alpha`` > 0, draft exposure becomes a convex blend of the
+    raw availability estimate and the full season:
+    ``α·raw + (1-α)·season_games``, clipped to [0, season_games].  α=0 is the
+    shipped default (flat 17); α=1 is raw Gate A only.
     """
     from src.projection.transitions import SEASON_GAMES
 
@@ -145,7 +150,14 @@ def apply_full_season_games_baseline(df, season_games=None):
         out["projected_games_raw"] = raw.fillna(current)
     else:
         out["projected_games_raw"] = current
-    out["projected_games"] = float(season_games)
+    alpha = float(blend_alpha)
+    if alpha <= 0.0:
+        out["projected_games"] = float(season_games)
+    elif alpha >= 1.0:
+        out["projected_games"] = out["projected_games_raw"].clip(lower=0.0, upper=float(season_games))
+    else:
+        blended = alpha * out["projected_games_raw"] + (1.0 - alpha) * float(season_games)
+        out["projected_games"] = blended.clip(lower=0.0, upper=float(season_games))
     return out
 
 

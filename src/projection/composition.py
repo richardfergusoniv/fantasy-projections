@@ -29,10 +29,15 @@ from src.projection.depth_gating import (
     load_depth_chart,
     load_status_overrides,
 )
+from src.projection.contracts import EXPOSURE_BLEND_ALPHA
+from src.projection.concentration import apply_concentration
 from src.projection.team_reconcile import (
     add_projected_season_totals,
     propagate_team_anchors,
+    reconcile_pass_td_t1_lite,
     reconcile_stat_constraints,
+    reconcile_td_rate_constraints,
+    reconcile_team_season_identities,
     reconcile_team_volume,
 )
 from src.projection.transitions import SEASON_GAMES
@@ -56,6 +61,10 @@ class CompositionContext:
     status_overrides: pd.DataFrame
     artifact_provenance: str
     season_games: float = SEASON_GAMES
+    exposure_blend_alpha: float = EXPOSURE_BLEND_ALPHA
+    # TD-architecture ablation toggles (ship defaults keep these None/False).
+    qb_rush_td_clip_hi: float | None = None
+    qb_pass_td_t1_lite: bool = False
     stage_coverage: dict = field(default_factory=dict)
 
     def describe_coverage(self):
@@ -67,8 +76,12 @@ class CompositionContext:
                 "active" if overrides else
                 f"no-op: no status_overrides_{self.target_season}.csv"),
             "propagate_team_anchors": "active",
+            "reconcile_team_volume": "active",
+            "apply_concentration": "active",
+            "reconcile_td_rate_constraints": "active",
             "reconcile_stat_constraints": "active",
             "add_projected_season_totals": "active",
+            "reconcile_team_season_identities": "active",
         }
         coverage.update(self.stage_coverage)
         return coverage
@@ -120,12 +133,88 @@ def compose_board(rows, ctx):
     Draft exposure is a full season except IR / PUP / suspension overrides.
     ``projected_volume_games`` equals ``projected_games``.
     """
-    out = apply_full_season_games_baseline(rows, season_games=ctx.season_games)
+    out = apply_full_season_games_baseline(
+        rows,
+        season_games=ctx.season_games,
+        blend_alpha=ctx.exposure_blend_alpha,
+    )
     out = apply_status_overrides(out, ctx.status_overrides)
     out = propagate_team_anchors(out)
     out["projected_volume_games"] = pd.to_numeric(out.get("projected_games"), errors="coerce")
     # Top-down: pull each team's summed volume toward its own anchor before
     # the counting-stat identities and the season totals are materialised.
     out = reconcile_team_volume(out)
+    out = apply_concentration(out)
+    out = reconcile_td_rate_constraints(out, rush_td_hi=ctx.qb_rush_td_clip_hi)
+    if ctx.qb_pass_td_t1_lite:
+        out = reconcile_pass_td_t1_lite(out)
     out = reconcile_stat_constraints(out)
-    return add_projected_season_totals(out)
+    out = add_projected_season_totals(out)
+    # Season totals use each player's own projected_games, so QB rooms and
+    # receiver rooms can diverge even when rates were coherent. Restore the
+    # hard pass/catch identities on season columns only (rates untouched).
+    return reconcile_team_season_identities(out)
+
+
+def compose_board_stages(rows, ctx):
+    """Return fantasy-relevant compose checkpoints for stage attribution."""
+    from src.projection.fantasy_points import SCORING
+
+    def _qb_ppg(frame):
+        if frame.empty:
+            return {}
+        qb = frame[frame["position"].eq("QB")].copy()
+        if qb.empty:
+            return {}
+        wide = qb.pivot_table(
+            index="player_id",
+            columns="stat",
+            values="pred_pg",
+            aggfunc="first",
+        )
+        score = pd.Series(0.0, index=wide.index)
+        for stat, weight in SCORING.items():
+            if stat in wide.columns:
+                score = score + pd.to_numeric(wide[stat], errors="coerce").fillna(0.0) * weight
+        names = (
+            qb.drop_duplicates("player_id").set_index("player_id")["display_name"]
+            if "display_name" in qb.columns
+            else pd.Series(index=wide.index, dtype=str)
+        )
+        teams = qb.drop_duplicates("player_id").set_index("player_id")["team"]
+        out = {}
+        for pid, ppg in score.items():
+            out[pid] = {
+                "fantasy_ppg": round(float(ppg), 3),
+                "display_name": str(names.get(pid, pid)),
+                "team": str(teams.get(pid, "")),
+            }
+        return out
+
+    baseline = apply_full_season_games_baseline(
+        rows,
+        season_games=ctx.season_games,
+        blend_alpha=ctx.exposure_blend_alpha,
+    )
+    baseline = apply_status_overrides(baseline, ctx.status_overrides)
+    baseline = propagate_team_anchors(baseline)
+    baseline["projected_volume_games"] = pd.to_numeric(
+        baseline.get("projected_games"), errors="coerce"
+    )
+    post_reconcile = reconcile_team_volume(baseline.copy())
+    post_concentration = apply_concentration(post_reconcile.copy())
+    post_td = reconcile_td_rate_constraints(
+        post_concentration.copy(), rush_td_hi=ctx.qb_rush_td_clip_hi
+    )
+    if ctx.qb_pass_td_t1_lite:
+        post_td = reconcile_pass_td_t1_lite(post_td)
+    final = reconcile_stat_constraints(post_td.copy())
+    final = add_projected_season_totals(final)
+    final = reconcile_team_season_identities(final)
+    return {
+        "raw_model": _qb_ppg(baseline),
+        "post_team_volume_reconcile": _qb_ppg(post_reconcile),
+        "post_concentration": _qb_ppg(post_concentration),
+        "post_td_clip": _qb_ppg(post_td),
+        "final_shipped": _qb_ppg(final),
+    }

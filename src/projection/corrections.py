@@ -46,6 +46,7 @@ from src.projection.train import LGBM_PARAMS, fit_team_total, fit_availability
 from src.projection.transitions import (
     build_transition_pairs, build_role_transition_pairs,
     ALL_FEATURES, ROLE_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
+    role_features_for,
     AVAILABILITY_FEATURES,
     REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL, RECEIVING_SHARE_ELIG_LABEL,
     receiving_share_scale, role_rate_label,
@@ -178,10 +179,11 @@ def compute_loo_receiving_residuals(feat, pairs):
             if train.empty or test.empty:
                 continue
             model = LGBMRegressor(**LGBM_PARAMS)
-            model.fit(train[ROLE_FEATURES], train[RECEIVING_SHARE_ELIG_LABEL])
+            features = role_features_for(position, stat)
+            model.fit(train[features], train[RECEIVING_SHARE_ELIG_LABEL])
             f = test[["team"]].copy()
             f["share"] = np.clip(
-                age_shrunk_predict(model, test, position, features=ROLE_FEATURES), 0, None)
+                age_shrunk_predict(model, test, position, features=features), 0, None)
             # No depth multiplier on the share. beta is an ADDITIVE yards/game
             # term and team_reconcile no longer scales it by any factor, so the
             # basis it is fit on and the basis it is added to now agree by

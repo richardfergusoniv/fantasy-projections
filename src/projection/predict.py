@@ -43,6 +43,7 @@ Phase B: stage logic lives in sibling modules; this file orchestrates
 import argparse
 import os
 import sys
+import uuid
 
 import numpy as np
 import pandas as pd
@@ -92,6 +93,7 @@ from src.projection.contracts import (
     OL_TRAILING_SEASONS,
     TEAM_ANCHOR_OUTPUT_COLS,
     OUTPUT_COLUMNS,
+    COMPOSITION_VERSION,
 )
 from src.projection.depth_rates import depth_rate_factor
 from src.projection.artifacts import (
@@ -154,6 +156,7 @@ from src.projection.team_reconcile import (
     _apply_rookie_depth_rate_gating,
     propagate_team_anchors,
 )
+from src.sentiment.snapshot import attach_sentiment
 
 # Re-export contracts for backward-compatible `from src.projection.predict import …`.
 __all_contracts__ = [
@@ -507,6 +510,9 @@ def _ensure_output_parent(path):
 def export_projections(conn, target_season, path, as_of=None):
     out = project_season(conn, target_season, as_of=as_of)
     out = with_display_names(conn, out, target_season)
+    out = attach_sentiment(out, season=target_season, as_of=as_of)
+    out["projection_run_id"] = f"diagnostic-{uuid.uuid4()}"
+    out["composition_version"] = COMPOSITION_VERSION
     out = out[OUTPUT_COLUMNS].sort_values(["position", "team", "player_id", "stat"])
     # `--out projections.csv` has an empty dirname; normalizing to an
     # absolute path gives it the current directory as a real parent.
@@ -525,7 +531,9 @@ def main():
         help="ISO date: filter status overrides and use latest nflverse depth snapshot on/before this date",
     )
     args = ap.parse_args()
-    out_path = args.out or os.path.join(OUTPUT_DIR, f"projections_{args.season}.csv")
+    out_path = args.out or os.path.join(
+        OUTPUT_DIR, "diagnostics", f"projections_{args.season}_candidate.csv"
+    )
 
     conn = get_conn()
     out = export_projections(conn, args.season, out_path, as_of=args.as_of)

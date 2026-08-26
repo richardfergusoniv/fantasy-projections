@@ -43,6 +43,8 @@ DESCRIPTIVE_COLS = [
     "depth_chart_status",
     "projected_games",
     "projected_games_raw",
+    "projection_run_id", "composition_version",
+    "concentration_scale", "concentration_calibration_version",
     # The volume discount, carried through so it is visible in the two
     # deliverables a reader actually opens. Both were computed upstream and
     # then dropped here, which meant a depth-scaled number arrived in
@@ -65,6 +67,10 @@ DESCRIPTIVE_COLS = [
     "team_carries_pg_pred", "team_rushing_yards_pg_pred",
     "team_anchor_source_season", "team_anchor_lag_team",
     "team_anchor_provenance",
+    "td_rate_clip_applied",
+    "sentiment_score", "sentiment_feature", "sentiment_confidence",
+    "sentiment_coverage", "sentiment_as_of", "sentiment_claim_count",
+    "sentiment_source_count", "sentiment_model_active", "sentiment_version",
 ]
 
 
@@ -153,16 +159,37 @@ def compute_fantasy_points(long_df, floor_low_at_zero=True):
     descriptive = long_df.drop_duplicates(subset=KEY_COLS)[KEY_COLS + available_descriptive]
     out = out.merge(descriptive, on=KEY_COLS, how="left")
 
-    # Season-long value (Phase 11) = per-game points x projected games.
-    # Kept as a SEPARATE column rather than replacing fantasy_pts, because
-    # the two answer different questions: fantasy_pts is the start/sit
-    # number ("how good is he in a game he plays"), fantasy_pts_season is
-    # the draft number ("what is he worth over a season"). Shipping only
-    # the per-game figure made an 8-game player look identical to a
-    # 16-game player at the same rate. NaN where no availability estimate
-    # exists (an older models/ directory) rather than silently assuming a
-    # full season - see predict.load_availability_models.
-    if "projected_games" in out.columns:
+    # Season-long value: score from pred_season when present so team identity
+    # reconciliation (which moves season totals, not rates) reaches the draft
+    # board. Fall back to rate × exposure for older boards without pred_season.
+    if "pred_season" in long_df.columns:
+        season_pts = _score(long_df, "pred_season").rename("fantasy_pts_season")
+        out = out.merge(season_pts.reset_index(), on=KEY_COLS, how="left")
+        if "pred_season_low" in long_df.columns and "pred_season_high" in long_df.columns:
+            out = out.merge(
+                _score(long_df, "pred_season_low").rename("fantasy_pts_season_low").reset_index(),
+                on=KEY_COLS,
+                how="left",
+            )
+            out = out.merge(
+                _score(long_df, "pred_season_high").rename("fantasy_pts_season_high").reset_index(),
+                on=KEY_COLS,
+                how="left",
+            )
+            # Match the rate-interval envelope convention (low may exceed high
+            # after componentwise scoring); sort bounds.
+            lo = out[["fantasy_pts_season_low", "fantasy_pts_season_high"]].min(axis=1)
+            hi = out[["fantasy_pts_season_low", "fantasy_pts_season_high"]].max(axis=1)
+            out["fantasy_pts_season_low"] = lo
+            out["fantasy_pts_season_high"] = hi
+        elif "projected_games" in out.columns:
+            exposure = (
+                out["projected_volume_games"].fillna(out["projected_games"])
+                if "projected_volume_games" in out.columns else out["projected_games"]
+            )
+            out["fantasy_pts_season_low"] = out["fantasy_pts_low"] * exposure
+            out["fantasy_pts_season_high"] = out["fantasy_pts_high"] * exposure
+    elif "projected_games" in out.columns:
         exposure = (
             out["projected_volume_games"].fillna(out["projected_games"])
             if "projected_volume_games" in out.columns else out["projected_games"]
