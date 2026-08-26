@@ -567,6 +567,9 @@ def _forecast_from_history(
     qb_partial_prior_shrink: bool = False,
     qb_rush_td_clip_hi: float | None = None,
     qb_pass_td_t1_lite: bool = False,
+    team_volume_shares: dict | None = None,
+    team_volume_siblings: dict | None = None,
+    reconcile_alpha: float | None = None,
     return_long: bool = False,
     feature_table: pd.DataFrame | None = None,
 ) -> pd.DataFrame:
@@ -588,6 +591,9 @@ def _forecast_from_history(
     context.exposure_blend_alpha = float(exposure_blend_alpha)
     context.qb_rush_td_clip_hi = qb_rush_td_clip_hi
     context.qb_pass_td_t1_lite = bool(qb_pass_td_t1_lite)
+    context.team_volume_shares = team_volume_shares
+    context.team_volume_siblings = team_volume_siblings
+    context.reconcile_alpha = reconcile_alpha
     long = _compose_and_reconcile(
         veteran_long, rookie_long, anchors, context,
         feature_table=feature_table, source_season=source_season,
@@ -674,6 +680,9 @@ def build_leakage_safe_forecasts(
     qb_partial_prior_shrink: bool = False,
     qb_rush_td_clip_hi: float | None = None,
     qb_pass_td_t1_lite: bool = False,
+    team_volume_shares: dict | None = None,
+    team_volume_siblings: dict | None = None,
+    reconcile_alpha: float | None = None,
 ) -> tuple[pd.DataFrame, dict]:
     """Freeze population and forecast without exposing any 2025 outcomes."""
     history = feature_table[feature_table["season"].le(source_season)].copy()
@@ -692,6 +701,9 @@ def build_leakage_safe_forecasts(
         qb_partial_prior_shrink=qb_partial_prior_shrink,
         qb_rush_td_clip_hi=qb_rush_td_clip_hi,
         qb_pass_td_t1_lite=qb_pass_td_t1_lite,
+        team_volume_shares=team_volume_shares,
+        team_volume_siblings=team_volume_siblings,
+        reconcile_alpha=reconcile_alpha,
         feature_table=feature_table,
     )
     out = population.merge(forecasts, on="player_id", how="left")

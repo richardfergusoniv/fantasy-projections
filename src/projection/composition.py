@@ -65,6 +65,13 @@ class CompositionContext:
     # TD-architecture ablation toggles (ship defaults keep these None/False).
     qb_rush_td_clip_hi: float | None = None
     qb_pass_td_t1_lite: bool = False
+    # Team-volume ablation toggles. None means "use the shipped contracts".
+    # These exist so the QB 0.941/0.942 -> 1.000 change and the detaching of
+    # TDs from volume scaling can each be measured on their own, rather than
+    # inferred from a board where both already moved together.
+    team_volume_shares: dict | None = None
+    team_volume_siblings: dict | None = None
+    reconcile_alpha: float | None = None
     stage_coverage: dict = field(default_factory=dict)
 
     def describe_coverage(self):
@@ -143,7 +150,12 @@ def compose_board(rows, ctx):
     out["projected_volume_games"] = pd.to_numeric(out.get("projected_games"), errors="coerce")
     # Top-down: pull each team's summed volume toward its own anchor before
     # the counting-stat identities and the season totals are materialised.
-    out = reconcile_team_volume(out)
+    out = reconcile_team_volume(
+        out,
+        alpha=ctx.reconcile_alpha,
+        volume_shares=ctx.team_volume_shares,
+        volume_siblings=ctx.team_volume_siblings,
+    )
     out = apply_concentration(out)
     out = reconcile_td_rate_constraints(out, rush_td_hi=ctx.qb_rush_td_clip_hi)
     if ctx.qb_pass_td_t1_lite:
@@ -201,7 +213,12 @@ def compose_board_stages(rows, ctx):
     baseline["projected_volume_games"] = pd.to_numeric(
         baseline.get("projected_games"), errors="coerce"
     )
-    post_reconcile = reconcile_team_volume(baseline.copy())
+    post_reconcile = reconcile_team_volume(
+        baseline.copy(),
+        alpha=ctx.reconcile_alpha,
+        volume_shares=ctx.team_volume_shares,
+        volume_siblings=ctx.team_volume_siblings,
+    )
     post_concentration = apply_concentration(post_reconcile.copy())
     post_td = reconcile_td_rate_constraints(
         post_concentration.copy(), rush_td_hi=ctx.qb_rush_td_clip_hi

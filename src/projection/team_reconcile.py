@@ -434,8 +434,14 @@ def reconcile_pass_td_t1_lite(df, pass_td_clip=None):
     return out
 
 
-def reconcile_team_volume(df, alpha=None, calibration=None):
+def reconcile_team_volume(
+    df, alpha=None, calibration=None, volume_shares=None, volume_siblings=None
+):
     """Pull each team's summed volume toward its own team anchor.
+
+    ``volume_shares`` / ``volume_siblings`` default to the shipped contracts
+    and exist so an ablation can vary ONE of them per run (see
+    scripts/ablate_qb_volume_share.py). They are not ship knobs.
 
     The player models are fit independently, so nothing ties a team's summed
     output to what that team will run. Nothing downstream did either -
@@ -464,6 +470,8 @@ def reconcile_team_volume(df, alpha=None, calibration=None):
     calibration = calibration or load_reconcile_calibration()
     use_per_cell = alpha is None
     default_alpha = float(calibration.get("default_alpha", TEAM_RECONCILE_ALPHA))
+    shares = TEAM_VOLUME_SHARES if volume_shares is None else volume_shares
+    siblings = TEAM_VOLUME_SIBLINGS if volume_siblings is None else volume_siblings
     out = df.copy()
     out["team_volume_scale"] = 1.0
     if out.empty:
@@ -473,7 +481,7 @@ def reconcile_team_volume(df, alpha=None, calibration=None):
 
     exposure = _row_exposure(out)
     lo, hi = TEAM_RECONCILE_CLIP
-    for (position, stat), (anchor_col, share) in TEAM_VOLUME_SHARES.items():
+    for (position, stat), (anchor_col, share) in shares.items():
         cell_alpha = (
             reconcile_alpha_for(position, stat, calibration)
             if use_per_cell
@@ -483,7 +491,7 @@ def reconcile_team_volume(df, alpha=None, calibration=None):
             continue
         if anchor_col not in out.columns:
             continue
-        group = [stat] + list(TEAM_VOLUME_SIBLINGS.get((position, stat), ()))
+        group = [stat] + list(siblings.get((position, stat), ()))
         anchored = out["position"].eq(position) & out["stat"].eq(stat)
         if not anchored.any():
             continue
