@@ -41,6 +41,10 @@ def evaluate_promotion_gate(season: int = 2026) -> dict:
 
     summary = means_backtest.get("summary") or {}
     means_ready = bool(summary.get("promote_v3_means"))
+    # Absent means an older backtest that predates the flag, when the blend
+    # arm silently fell back to a copy of v1. Treat that as unusable rather
+    # than assuming it was real.
+    blend_usable = bool(summary.get("blend_usable_all_folds"))
     interim_ok = bool(summary.get("interim_beats_v1_all_folds")) and bool(
         summary.get("interim_beats_blend_all_folds")
     )
@@ -76,6 +80,12 @@ def evaluate_promotion_gate(season: int = 2026) -> dict:
             "Do not replace the v1 point engine; means backtest has not cleared "
             "promote_v3_means gates."
         )
+        if not blend_usable:
+            rationale += (
+                " NOTE: the v1/v2 blend arm was not usable on every fold, so "
+                "'beats blend' was not independently tested -- promotion "
+                "cannot clear on this backtest regardless of the v3 numbers."
+            )
     else:
         verdict = "hold_v1_default"
         rationale = (
@@ -96,6 +106,8 @@ def evaluate_promotion_gate(season: int = 2026) -> dict:
             "means_backtest_exists": bool(means_backtest),
             "interim_beats_v1_and_blend": interim_ok,
             "generative_beats_v1_and_blend": generative_ok,
+            "blend_arm_usable": blend_usable,
+            "blend_unusable_folds": summary.get("blend_unusable_folds") or [],
             "promote_v3_means": means_ready,
             "holdout_2025": fold_metrics,
         },

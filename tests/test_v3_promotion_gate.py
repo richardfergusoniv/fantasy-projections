@@ -69,3 +69,77 @@ def test_gate_verdicts_distinguish_simulation_vs_means(tmp_path, monkeypatch):
     (tmp_path / "output" / "backtest").mkdir(parents=True)
     report = evaluate_promotion_gate(2026)
     assert report["verdict"] == "hold_v1_default"
+
+
+def _fold(*, blend_mae, v1_mae=27.7, blend_available=True):
+    """One scored fold. blend_mae equal to v1_mae is the degenerate case."""
+    usable = blend_available and blend_mae != v1_mae
+    return {
+        "target_season": 2025,
+        "blend_available": blend_available,
+        "blend_degenerate": blend_available and blend_mae == v1_mae,
+        "blend_usable": usable,
+        "metrics": {
+            "v1": {"points_mae": v1_mae, "spearman": 0.758},
+            **({"blend": {"points_mae": blend_mae, "spearman": 0.758}} if blend_available else {}),
+            "v3_interim": {"points_mae": 29.8, "spearman": 0.698},
+            "v3_generative": {"points_mae": 47.2, "spearman": 0.611},
+        },
+    }
+
+
+def test_blend_arm_that_duplicates_v1_is_not_an_independent_check():
+    """A blend equal to v1 must not read as a second passing incumbent.
+
+    The shipped backtest hit exactly this: output/model_v2 held only 2026
+    points, so every historical fold silently scored the blend arm as a copy
+    of v1 and reported "beats blend" as though it had been tested.
+    """
+    from scripts.backtest_v3_means import _blend_from_compare  # noqa: F401
+
+    fold = _fold(blend_mae=27.7)  # identical to v1
+    assert fold["blend_degenerate"] is True
+    assert fold["blend_usable"] is False
+
+
+def test_gate_reports_blend_arm_usability(tmp_path, monkeypatch):
+    """The verdict has to say when 'beats blend' was never really tested."""
+    monkeypatch.setattr("scripts.v3_promotion_gate.REPO_ROOT", tmp_path)
+    monkeypatch.setattr("scripts.v3_promotion_gate.OUT_DIR", tmp_path / "model_v3")
+    out_dir = tmp_path / "model_v3"
+    out_dir.mkdir(parents=True)
+    (tmp_path / "output" / "backtest").mkdir(parents=True)
+
+    # simulation_ready preconditions
+    pd.DataFrame({"player_id": ["a"], "p50": [1.0]}).to_csv(
+        out_dir / "simulation_summary_2026.csv", index=False)
+    (tmp_path / "output" / "backtest" / "calibration_report.json").write_text(
+        json.dumps({"summary": {"mean_coverage": 0.80}}), encoding="utf-8")
+    (out_dir / "means_backtest.json").write_text(json.dumps({
+        "folds": [_fold(blend_mae=27.7)],
+        "summary": {
+            "blend_usable_all_folds": False,
+            "blend_unusable_folds": [{"target_season": 2025, "blend_available": True}],
+            "promote_v3_means": False,
+        },
+    }), encoding="utf-8")
+
+    report = evaluate_promotion_gate(2026)
+    assert report["verdict"] == "simulation_ready"
+    assert report["gates"]["blend_arm_usable"] is False
+    assert report["gates"]["blend_unusable_folds"]
+    assert "beats blend" in report["rationale"]
+
+
+def test_gate_does_not_assume_an_older_backtest_had_a_blend_arm(tmp_path, monkeypatch):
+    """A summary predating the flag must read as unusable, not usable."""
+    monkeypatch.setattr("scripts.v3_promotion_gate.REPO_ROOT", tmp_path)
+    monkeypatch.setattr("scripts.v3_promotion_gate.OUT_DIR", tmp_path / "model_v3")
+    out_dir = tmp_path / "model_v3"
+    out_dir.mkdir(parents=True)
+    (tmp_path / "output" / "backtest").mkdir(parents=True)
+    (out_dir / "means_backtest.json").write_text(json.dumps({
+        "folds": [], "summary": {"promote_v3_means": False},  # no blend_usable key
+    }), encoding="utf-8")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["blend_arm_usable"] is False

@@ -155,28 +155,61 @@ def run_fold(conn, feat, source_season: int, target_season: int, n_draws: int) -
     scored["v3_interim_pred"] = scored["v3_interim_pred"].fillna(scored["v1_pred"])
     scored["v3_generative_pred"] = scored["v3_generative_pred"].fillna(scored["v1_pred"])
 
+    # The blend arm exists to be a SECOND, independent incumbent. Copying
+    # v1 into it when the v2 points are missing does not make the gate
+    # conservative, it makes "beats blend" a silent restatement of "beats
+    # v1" -- two checks reported, one check performed. Leave it absent
+    # instead and fail its gates closed.
     blend = _blend_from_compare(target_season, scored)
-    if blend is not None:
+    blend_available = blend is not None
+    if blend_available:
         scored["blend_pred"] = blend
-    else:
-        scored["blend_pred"] = scored["v1_pred"]
 
     metrics = {
         "v1": score_predictions(scored, "v1_pred"),
-        "blend": score_predictions(scored, "blend_pred"),
         "v3_interim": score_predictions(scored, "v3_interim_pred"),
         "v3_generative": score_predictions(scored, "v3_generative_pred"),
     }
+    if blend_available:
+        metrics["blend"] = score_predictions(scored, "blend_pred")
+
+    # Belt and braces: a blend that reproduces v1's MAE to the last bit is
+    # v1 under another name, however it got there.
+    blend_degenerate = bool(
+        blend_available
+        and np.isclose(
+            metrics["blend"]["points_mae"], metrics["v1"]["points_mae"], rtol=0.0, atol=1e-12
+        )
+    )
+    blend_usable = blend_available and not blend_degenerate
+    blend_reason = (
+        None if blend_usable
+        else ("blend_arm_unavailable" if not blend_available else "blend_arm_degenerate")
+    )
+
+    def _vs_blend(candidate: dict) -> dict:
+        if not blend_usable:
+            return {
+                "mae_ok": False,
+                "spearman_ok": False,
+                "pass": False,
+                "reason": blend_reason,
+            }
+        return beats_incumbent(candidate, metrics["blend"])
+
     return {
         "target_season": target_season,
         "source_season": source_season,
         "n_draws": n_draws,
+        "blend_available": blend_available,
+        "blend_degenerate": blend_degenerate,
+        "blend_usable": blend_usable,
         "metrics": metrics,
         "gates": {
             "interim_beats_v1": beats_incumbent(metrics["v3_interim"], metrics["v1"]),
-            "interim_beats_blend": beats_incumbent(metrics["v3_interim"], metrics["blend"]),
+            "interim_beats_blend": _vs_blend(metrics["v3_interim"]),
             "generative_beats_v1": beats_incumbent(metrics["v3_generative"], metrics["v1"]),
-            "generative_beats_blend": beats_incumbent(metrics["v3_generative"], metrics["blend"]),
+            "generative_beats_blend": _vs_blend(metrics["v3_generative"]),
         },
     }
 
@@ -207,7 +240,14 @@ def main() -> int:
     conn.close()
 
     usable = [f for f in folds if not f.get("skipped")]
+    blend_usable_all_folds = bool(usable) and all(f.get("blend_usable") for f in usable)
     summary = {
+        "blend_usable_all_folds": blend_usable_all_folds,
+        "blend_unusable_folds": [
+            {"target_season": f["target_season"], "blend_available": f.get("blend_available")}
+            for f in usable
+            if not f.get("blend_usable")
+        ],
         "interim_beats_v1_all_folds": all(
             f["gates"]["interim_beats_v1"]["pass"] for f in usable
         ) if usable else False,
@@ -223,9 +263,14 @@ def main() -> int:
         "n_folds": len(usable),
     }
     # Prefer generative as the candidate mean engine when promoting means.
+    # blend_usable_all_folds is redundant with generative_beats_blend_all_folds
+    # today (an unusable blend already fails that gate) and is required here
+    # anyway, so a future edit that softens the per-fold gate cannot quietly
+    # promote on a blend arm that was never computed.
     summary["promote_v3_means"] = bool(
         summary["generative_beats_v1_all_folds"]
         and summary["generative_beats_blend_all_folds"]
+        and summary["blend_usable_all_folds"]
         and summary["n_folds"] >= 1
     )
 

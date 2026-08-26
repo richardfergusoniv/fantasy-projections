@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-26T00:06:03.334019+00:00",
+  "generated_at": "2026-08-26T00:35:29.352585+00:00",
   "season": 2026,
   "verdict": "simulation_ready",
-  "rationale": "v3 simulation overlay is ready for percentiles/volatility UI only. Do not replace the v1 point engine; means backtest has not cleared promote_v3_means gates.",
+  "rationale": "v3 simulation overlay is ready for percentiles/volatility UI only. Do not replace the v1 point engine; means backtest has not cleared promote_v3_means gates. NOTE: the v1/v2 blend arm was not usable on every fold, so 'beats blend' was not independently tested -- promotion cannot clear on this backtest regardless of the v3 numbers.",
   "gates": {
     "simulation_ready": true,
     "calibration_within_5pp": true,
@@ -11,6 +11,8 @@
     "means_backtest_exists": true,
     "interim_beats_v1_and_blend": false,
     "generative_beats_v1_and_blend": false,
+    "blend_arm_usable": false,
+    "blend_unusable_folds": [],
     "promote_v3_means": false,
     "holdout_2025": {
       "v1_mae": 27.714018153332695,
