@@ -158,11 +158,33 @@ TEAM_RECONCILE_CLIP = (0.25, 4.0)
 # was a real error in an earlier pass of this work.
 #   (position, stat) -> (team anchor column, share of it)
 TEAM_VOLUME_SHARES = {
-    # QB reconciliation covers the entire room, so it owns 100% of the team
-    # passing anchor.  The measured 0.941/0.942 figures describe the starter,
-    # not the room; they remain diagnostics below rather than scale factors.
-    ("QB", "attempts"): ("team_pass_attempts_pg_pred", 1.000),
-    ("QB", "passing_yards"): ("team_passing_yards_pg_pred", 1.000),
+    # QB rooms take the MEASURED share, not the structural 1.000.
+    #
+    # The argument for 1.000 is sound on its face: reconciliation sums the
+    # whole QB room, not just the starter, so the room should own the whole
+    # team passing anchor. It shipped on that reasoning alone, unmeasured.
+    #
+    # It loses. Paired per-player scoring on held-out 2023-2025, varying only
+    # this factor (scripts/ablate_qb_volume_share.py), n=312 QB pairs:
+    #
+    #     QB      mean abs-error delta -0.478   95% CI [-0.86, -0.10]
+    #     overall mean abs-error delta -0.151   95% CI [-0.23, -0.08]
+    #
+    # Both intervals exclude zero. Reverting this one factor is also better
+    # than reverting it together with the TD-sibling change (QB -0.364, CI
+    # [-0.98, +0.25], which does NOT exclude zero) - the two partly cancel,
+    # so the pair was measured separately rather than as a batch.
+    #
+    # Why the structural argument fails empirically: the projected QB room
+    # does not cover every team pass attempt (population gaps, scrambles
+    # charted elsewhere, non-QB passers), so scaling the room to a full team
+    # anchor systematically hands it volume the room never actually sees.
+    # 0.941/0.942 is what that coverage measures out at.
+    #
+    # Caveat kept in view: only ~52% of QBs individually improve, so this
+    # moves the mean more than it moves the typical player.
+    ("QB", "attempts"): ("team_pass_attempts_pg_pred", 0.941),
+    ("QB", "passing_yards"): ("team_passing_yards_pg_pred", 0.942),
     ("RB", "carries"): ("team_carries_pg_pred", 0.810),
     ("RB", "rushing_yards"): ("team_rushing_yards_pg_pred", 0.806),
 }
@@ -175,8 +197,9 @@ TEAM_VOLUME_SIBLINGS = {
     ("RB", "carries"): (),
 }
 
-# Retained only for audit/diagnostics.  These are starter shares and must not
-# be applied to a reconciliation that sums the whole position room.
+# The same figures TEAM_VOLUME_SHARES now uses, kept as a named record of
+# where they came from (measured starter share of team volume). Retained for
+# audit and for the ablation that compares them against 1.000.
 QB_STARTER_VOLUME_SHARES = {"attempts": 0.941, "passing_yards": 0.942}
 
 # Post-compose TD efficiency clips (T2/T3, 2026-08-17). Independent counting

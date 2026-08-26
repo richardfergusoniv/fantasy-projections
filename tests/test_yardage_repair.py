@@ -6,7 +6,11 @@ import pandas as pd
 import pytest
 
 from src.projection.concentration import apply_concentration
-from src.projection.contracts import TEAM_VOLUME_SHARES, TEAM_VOLUME_SIBLINGS
+from src.projection.contracts import (
+    QB_STARTER_VOLUME_SHARES,
+    TEAM_VOLUME_SHARES,
+    TEAM_VOLUME_SIBLINGS,
+)
 from src.projection.publish import validate_projection_contract
 from src.projection.team_reconcile import reconcile_team_volume
 from src.projection.transitions import (
@@ -66,9 +70,23 @@ def test_concentration_conserves_season_volume_with_status_exposure():
     assert after == pytest.approx(before)
 
 
-def test_qb_room_owns_full_anchor_and_opportunity_does_not_move_tds():
-    assert TEAM_VOLUME_SHARES[("QB", "attempts")][1] == 1.0
-    assert TEAM_VOLUME_SHARES[("QB", "passing_yards")][1] == 1.0
+def test_qb_room_takes_the_measured_share_and_opportunity_does_not_move_tds():
+    """The QB anchor share is the measured one, not the structural 1.000.
+
+    1.000 shipped on the reasoning that reconciliation sums the whole room so
+    the room owns the whole anchor. Paired scoring on held-out 2023-2025
+    (n=312 QB pairs) put that at -0.478 QB mean abs-error, 95% CI
+    [-0.86, -0.10], against the measured starter share -- so the reasoning
+    lost to the measurement. See QB_STARTER_VOLUME_SHARES and
+    scripts/ablate_qb_volume_share.py.
+    """
+    assert TEAM_VOLUME_SHARES[("QB", "attempts")][1] == QB_STARTER_VOLUME_SHARES["attempts"]
+    assert (
+        TEAM_VOLUME_SHARES[("QB", "passing_yards")][1]
+        == QB_STARTER_VOLUME_SHARES["passing_yards"]
+    )
+    # TDs stay off the volume scale: reattaching them measured worse on QB
+    # (+0.078, CI [-0.26, +0.42]) and partly cancelled the share gain.
     assert "passing_tds" not in TEAM_VOLUME_SIBLINGS[("QB", "attempts")]
     assert "rushing_tds" not in TEAM_VOLUME_SIBLINGS[("RB", "carries")]
 

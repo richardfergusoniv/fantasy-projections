@@ -103,8 +103,56 @@ def _score(frame: pd.DataFrame, position: str | None = None) -> dict:
     }
 
 
+def _abs_errors(frame: pd.DataFrame, position: str | None = None) -> pd.Series:
+    """Per-player absolute error, indexed by player_id."""
+    sub = frame
+    if position:
+        col = "preseason_position" if "preseason_position" in frame.columns else "position"
+        sub = frame[frame[col] == position]
+    sub = sub.dropna(subset=["actual_points", "model_points_end_to_end"])
+    err = (
+        pd.to_numeric(sub["model_points_end_to_end"], errors="coerce")
+        - pd.to_numeric(sub["actual_points"], errors="coerce")
+    ).abs()
+    return pd.Series(err.to_numpy(), index=sub["player_id"].astype(str).to_numpy())
+
+
+def _paired(base: pd.Series, variant: pd.Series) -> dict:
+    """Paired comparison on the players both arms scored.
+
+    Every arm forecasts the same frozen population, so the arms are paired
+    and an unpaired summary throws away most of the power: player-to-player
+    spread in fantasy points dwarfs the effect being measured.
+    """
+    common = base.index.intersection(variant.index)
+    if len(common) < 3:
+        return {"n_pairs": int(len(common))}
+    diff = (variant.loc[common] - base.loc[common]).to_numpy(dtype=float)
+    n = len(diff)
+    mean = float(np.mean(diff))
+    sd = float(np.std(diff, ddof=1))
+    se = sd / np.sqrt(n) if sd > 0 else 0.0
+    out = {
+        "n_pairs": int(n),
+        "mean_abs_error_delta": mean,
+        "se": float(se),
+        "t": float(mean / se) if se else float("nan"),
+        "share_improved": float(np.mean(diff < 0)),
+        "ci95_low": float(mean - 1.96 * se) if se else mean,
+        "ci95_high": float(mean + 1.96 * se) if se else mean,
+    }
+    try:
+        from scipy.stats import wilcoxon
+        if np.any(diff != 0):
+            out["wilcoxon_p"] = float(wilcoxon(diff).pvalue)
+    except Exception:
+        pass
+    return out
+
+
 def run_season(conn, feat, source_season: int, target_season: int) -> dict:
     results = {}
+    errors = {}
     for name, spec in VARIANTS.items():
         print(f"  {target_season}: {name}...", flush=True)
         forecasts, _ = build_leakage_safe_forecasts(
@@ -121,7 +169,19 @@ def run_season(conn, feat, source_season: int, target_season: int) -> dict:
             "QB": _score(forecasts, "QB"),
             "RB": _score(forecasts, "RB"),
         }
-    return results
+        errors[name] = {
+            "overall": _abs_errors(forecasts),
+            "QB": _abs_errors(forecasts, "QB"),
+            "RB": _abs_errors(forecasts, "RB"),
+        }
+    for name in VARIANTS:
+        if name == "shipped":
+            continue
+        results[name]["paired_vs_shipped"] = {
+            scope: _paired(errors["shipped"][scope], errors[name][scope])
+            for scope in ("overall", "QB", "RB")
+        }
+    return results, errors
 
 
 def main() -> int:
@@ -135,18 +195,43 @@ def main() -> int:
     conn = get_conn()
     feat = build_player_season_features(conn)
     seasons = {}
+    all_errors = {}
     for target in targets:
         print(f"Season {target}", flush=True)
-        seasons[str(target)] = run_season(conn, feat, target - 1, target)
+        seasons[str(target)], all_errors[target] = run_season(
+            conn, feat, target - 1, target)
     conn.close()
+
+    # Pool paired differences across seasons. One season of ~106 QBs cannot
+    # resolve a sub-1% MAE effect; pooling the per-player deltas is the only
+    # way these arms get enough power to say anything.
+    pooled = {}
+    for name in VARIANTS:
+        if name == "shipped":
+            continue
+        pooled[name] = {}
+        for scope in ("overall", "QB", "RB"):
+            base_parts, var_parts = [], []
+            for target in targets:
+                # Disambiguate players who appear in more than one season.
+                b = all_errors[target]["shipped"][scope]
+                v = all_errors[target][name][scope]
+                base_parts.append(b.rename(lambda p, s=target: f"{s}:{p}"))
+                var_parts.append(v.rename(lambda p, s=target: f"{s}:{p}"))
+            pooled[name][scope] = _paired(
+                pd.concat(base_parts), pd.concat(var_parts))
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "note": (
             "Each variant differs from `shipped` in exactly one factor, except "
-            "pre_change_both which reverts the two that shipped together."
+            "pre_change_both which reverts the two that shipped together. "
+            "share_improved is the fraction of players the variant helps: a "
+            "value near 0.5 with a negative mean delta means error was "
+            "redistributed, not broadly reduced."
         ),
         "seasons": seasons,
+        "pooled_paired_vs_shipped": pooled,
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2), encoding="utf-8")
@@ -162,9 +247,25 @@ def main() -> int:
                 continue
             dq = res["QB"].get("mae", float("nan")) - base["QB"].get("mae", float("nan"))
             do = res["overall"].get("mae", float("nan")) - base["overall"].get("mae", float("nan"))
+            pq = (res.get("paired_vs_shipped") or {}).get("QB", {})
             print(f"  {name:18s} QB MAE {res['QB'].get('mae', float('nan')):7.3f} "
-                  f"({dq:+.3f})   overall MAE {res['overall'].get('mae', float('nan')):7.3f} ({do:+.3f})")
+                  f"({dq:+.3f})   overall MAE {res['overall'].get('mae', float('nan')):7.3f} ({do:+.3f})"
+                  f"   QB paired t={pq.get('t', float('nan')):+.2f}"
+                  f" p={pq.get('wilcoxon_p', float('nan')):.3f}"
+                  f" improved={pq.get('share_improved', float('nan')):.0%}")
         print()
+
+    print(f"POOLED across {', '.join(map(str, targets))} (paired, vs shipped)")
+    for scope in ("QB", "overall"):
+        print(f"  -- {scope} --")
+        for name, scopes in pooled.items():
+            p = scopes[scope]
+            print(f"    {name:18s} n={p.get('n_pairs', 0):4d}"
+                  f"  mean_delta={p.get('mean_abs_error_delta', float('nan')):+7.3f}"
+                  f"  95%CI[{p.get('ci95_low', float('nan')):+.2f},"
+                  f"{p.get('ci95_high', float('nan')):+.2f}]"
+                  f"  p={p.get('wilcoxon_p', float('nan')):.3f}"
+                  f"  improved={p.get('share_improved', float('nan')):.0%}")
     return 0
 
 
