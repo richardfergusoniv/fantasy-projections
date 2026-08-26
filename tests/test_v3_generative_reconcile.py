@@ -186,3 +186,52 @@ def test_teams_get_different_volume():
         board, env, rng=np.random.default_rng(3), share_manifest={})
     by_team = out.groupby("team")["pass_attempts"].sum()
     assert by_team["KC"] > by_team["BUF"] + 100
+
+
+def test_receiving_pool_is_allocated_once_across_positions():
+    """WR/TE/RB share one pool of team targets.
+
+    allocate_opportunities keys rooms by position by default, which is right
+    for QB attempts and RB carries but wrong for targets: passing all three
+    receiving positions in one call gave each group a full team's worth and
+    allocated the team 3x over. The per-game scale used to hide this
+    (3/17 reads as under-projection); fixing the scale exposed it.
+    """
+    from src.projection.models.opportunity_shares import allocate_opportunities
+
+    room = pd.DataFrame([
+        {"player_id": "wr1", "position": "WR", "team": "KC", "stat": "targets", "pred_pg": 9.0},
+        {"player_id": "te1", "position": "TE", "team": "KC", "stat": "targets", "pred_pg": 5.0},
+        {"player_id": "rb1", "position": "RB", "team": "KC", "stat": "targets", "pred_pg": 4.0},
+    ])
+    out = allocate_opportunities(
+        room, 600.0, rng=np.random.default_rng(0), manifest={},
+        group_cols=["team", "stat"])
+    assert out["allocated_volume"].sum() == pytest.approx(600.0)
+
+    # Default grouping still splits by position, for single-position rooms.
+    per_position = allocate_opportunities(
+        room, 600.0, rng=np.random.default_rng(0), manifest={})
+    assert per_position["allocated_volume"].sum() == pytest.approx(1800.0)
+
+
+def test_team_receiving_volume_is_not_multiplied_by_position_count():
+    """End to end: a team's emitted targets are one team's worth."""
+    board = _board()
+    # Add a TE and a second WR so the room spans three positions.
+    extra = []
+    for pid, pos in (("te1", "TE"), ("wr2", "WR")):
+        for stat, value in (("targets", 5.0), ("receptions", 3.5),
+                            ("receiving_yards", 40.0), ("receiving_tds", 0.3)):
+            extra.append({"player_id": pid, "position": pos, "team": "KC",
+                          "stat": stat, "pred_pg": value})
+    board = pd.concat([board, pd.DataFrame(extra)], ignore_index=True)
+
+    out = reconcile_v3_generative(
+        board, _env(pass_attempts=600.0), rng=np.random.default_rng(1),
+        share_manifest={})
+    total_targets = out["targets"].sum()
+    # ~600 attempts x 0.952 targets/attempt, with Poisson noise. The failure
+    # this catches is ~1700 from a three-times allocation.
+    assert 450 < total_targets < 750, (
+        f"team emitted {total_targets:.0f} targets; one team's worth is ~571")

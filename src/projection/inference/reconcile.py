@@ -16,6 +16,7 @@ from src.projection.models.opportunity_shares import allocate_opportunities
 from src.projection.models.receiving import draw_receiving_line
 from src.projection.models.rushing import draw_rushing_line
 from src.projection.models.passing import draw_passing_line
+from src.projection.team_reconcile import TARGETS_PER_ATTEMPT
 from src.projection.transitions import SEASON_GAMES
 
 # The volume stat each position group's allocation is keyed on. Selecting one
@@ -134,8 +135,16 @@ def reconcile_v3_generative(
             room["position"].isin(["WR", "TE", "RB"])
             & room["stat"].eq(RECEIVING_VOLUME_STAT)
         ]
+        # WR, TE and RB compete for ONE pool of team targets, so the room is
+        # keyed without position; splitting by position would hand each group
+        # a full team's worth and allocate the team three times over.
         recv = allocate_opportunities(
-            recv_room, pass_attempts, rng=rng, manifest=share_manifest)
+            recv_room,
+            pass_attempts * TARGETS_PER_ATTEMPT,
+            rng=rng,
+            manifest=share_manifest,
+            group_cols=["team", "stat"],
+        )
         for _, pl in recv.iterrows():
             pid = pl["player_id"]
             line = draw_receiving_line(
