@@ -16,6 +16,11 @@ phase0_results.json
 .pytest_cache/
 *.pyo
 
+# publish.py stages artifacts here before the atomic swap. The directory has
+# to live inside the repo so os.replace stays on one filesystem, so ignore it
+# rather than let it register as an untracked change mid-publish.
+publish-*/
+
 # Raw Monte Carlo draws (~13 MB/season). Regenerable from
 # scripts/run_v3_simulation.py; the committed summary CSV is what the draft
 # board reads. Keeping the draws out of git avoids a large binary per run.

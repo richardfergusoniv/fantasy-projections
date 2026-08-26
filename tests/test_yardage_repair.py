@@ -136,3 +136,39 @@ def test_projection_contract_rejects_gate_a_as_canonical_exposure():
     with mock.patch("src.projection.publish.OUTPUT_COLUMNS", list(frame.columns)):
         with pytest.raises(ValueError, match="stale exposure artifact"):
             validate_projection_contract(frame, 2026)
+
+
+def test_git_revision_is_captured_before_staging_exists():
+    """`dirty` must describe the code, not publish's own staging directory.
+
+    tempfile puts the staging dir inside REPO_ROOT so the final os.replace
+    stays on one filesystem. Once files are staged there, `git status`
+    reports it untracked -- so calling _git_revision() from inside the
+    staging block returned dirty:true on every publish without exception.
+    A provenance flag that can never say "clean" is worse than none.
+    """
+    import inspect
+    from src.projection import publish as publish_mod
+
+    src = inspect.getsource(publish_mod.publish)
+    assert "code_revision = _git_revision()" in src, (
+        "_git_revision must be called into a local before staging")
+    assert src.index("code_revision = _git_revision()") < src.index(
+        "tempfile.TemporaryDirectory"), (
+        "_git_revision() must be called BEFORE the staging directory exists")
+    assert '"code_revision": code_revision' in src
+
+
+def test_staging_directory_is_ignored_by_git():
+    """Belt and braces: the staging prefix must not register as a change."""
+    import subprocess
+    import tempfile
+    from pathlib import Path
+    from src.projection.publish import REPO_ROOT
+
+    with tempfile.TemporaryDirectory(prefix="publish-9999-", dir=REPO_ROOT) as td:
+        (Path(td) / "staged.csv").write_text("x\n", encoding="utf-8")
+        out = subprocess.run(
+            ["git", "status", "--porcelain"], cwd=REPO_ROOT,
+            capture_output=True, text=True, check=False).stdout
+    assert "publish-9999-" not in out, "staging dir shows as an untracked change"

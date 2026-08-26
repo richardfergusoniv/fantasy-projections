@@ -42,6 +42,17 @@ def sha256_file(path: str | Path) -> str:
 
 
 def _git_revision() -> dict:
+    """Commit and working-tree state of the CODE that built this board.
+
+    Must be called before the staging directory exists. tempfile puts that
+    directory inside REPO_ROOT (it has to, so the final os.replace stays on
+    one filesystem), and once files are staged into it `git status` reports
+    it as untracked. Called from inside the staging block this returned
+    ``dirty: true`` on every publish without exception -- a provenance flag
+    that can never say "clean" is worse than none, because it trains the
+    reader to ignore the one field that would have flagged a board built
+    from uncommitted code.
+    """
     def run(*args: str) -> str:
         result = subprocess.run(
             ["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, check=False
@@ -151,6 +162,9 @@ def publish(season: int, *, as_of: str | None = None) -> dict:
     for path in final_paths.values():
         path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Captured before staging exists - see _git_revision.
+    code_revision = _git_revision()
+
     with tempfile.TemporaryDirectory(prefix=f"publish-{season}-", dir=REPO_ROOT) as temp_dir:
         stage = Path(temp_dir)
         staged = {
@@ -179,7 +193,7 @@ def publish(season: int, *, as_of: str | None = None) -> dict:
             "season": int(season),
             "created_at": datetime.now(timezone.utc).isoformat(),
             "as_of": as_of,
-            "code_revision": _git_revision(),
+            "code_revision": code_revision,
             "artifact_hashes": _artifact_hashes(),
             "data_snapshot": _data_snapshot(),
             "exposure_policy": "healthy_active_17_games; explicit IR/PUP/suspension overrides only",
