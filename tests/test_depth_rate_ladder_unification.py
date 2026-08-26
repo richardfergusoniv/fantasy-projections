@@ -15,6 +15,7 @@ Written as unittest.TestCase to match the rest of tests/, so both `pytest` and
 import inspect
 import unittest
 import unittest.mock
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -24,6 +25,7 @@ from src.projection import corrections
 from src.projection import fantasy_evaluation as fe
 from src.projection import veterans
 from src.projection.contracts import (
+    INTERVAL_MODELS_DIR,
     DEPTH_RATE_DEEP,
     DEPTH_RATE_LADDER,
     DEPTH_RATE_OFF_CHART,
@@ -279,13 +281,16 @@ class IntervalsAreBuiltOnTheDiscountedPrediction(unittest.TestCase):
             src.index("apply_depth_chart_gating(combined"),
             src.index("_attach_veteran_intervals(combined"))
 
-    def test_conditional_endpoints_land_on_their_own_rows(self):
-        """A reframed row ahead of the scored rows must not shift the band.
+    def test_conditional_endpoints_are_per_row_not_joined_by_cell(self):
+        """The conditional band is per player, so it must align by index.
 
-        ``merge`` returns a fresh 0..n-1 index, so writing the conditional
-        endpoints back with that index put every band on the wrong player -
-        offset by however many reframed rows preceded it. The reframed WR row
-        here sits at index 0 precisely so a regression is off by one.
+        ``predict_interval_residuals`` returns one row per input row carrying
+        the caller's index - two players in the same (position, stat) cell get
+        DIFFERENT bands, because the band is conditioned on each one's own
+        prediction, depth tier and exposure. Joining it back on
+        ``["position", "stat"]`` is therefore a many-to-many blowup whose row
+        labels run past the end of the frame. The two QBs below share a cell
+        and carry different residuals precisely so a cell join cannot pass.
         """
         combined = pd.DataFrame({
             "player_id": ["wr1", "qb1", "qb2"],
@@ -300,10 +305,17 @@ class IntervalsAreBuiltOnTheDiscountedPrediction(unittest.TestCase):
             "depth_tier": [1, 1, 2],
             "projected_games": [17.0, 17.0, 17.0],
         })
-        conditional = pd.DataFrame([{
-            "position": "QB", "stat": "attempts",
-            "resid_low": -5.0, "resid_high": 4.0, "low_n_flag": False,
-        }])
+        # Same cell, different per-row bands, indexed like out.loc[target].
+        conditional = pd.DataFrame(
+            {
+                "position": ["QB", "QB"],
+                "stat": ["attempts", "attempts"],
+                "resid_low": [-5.0, -2.0],
+                "resid_high": [4.0, 1.0],
+                "low_n_flag": [False, False],
+            },
+            index=[1, 2],
+        )
         with unittest.mock.patch.object(
             veterans, "load_interval_model_manifest", return_value={"stub": True}
         ), unittest.mock.patch.object(
@@ -311,11 +323,48 @@ class IntervalsAreBuiltOnTheDiscountedPrediction(unittest.TestCase):
         ):
             out = veterans._attach_veteran_intervals(combined, pd.DataFrame())
 
-        # The reframed row keeps NaN endpoints; the QBs get their own bands.
+        self.assertEqual(len(out), len(combined))
+        # The reframed row keeps NaN endpoints; each QB gets his own band.
         self.assertTrue(np.isnan(out.loc[0, "pred_pg_low"]))
         self.assertTrue(np.isnan(out.loc[0, "pred_pg_high"]))
-        np.testing.assert_allclose(out.loc[[1, 2], "pred_pg_low"], [25.0, 15.0])
-        np.testing.assert_allclose(out.loc[[1, 2], "pred_pg_high"], [34.0, 24.0])
+        np.testing.assert_allclose(out.loc[[1, 2], "pred_pg_low"], [25.0, 18.0])
+        np.testing.assert_allclose(out.loc[[1, 2], "pred_pg_high"], [34.0, 21.0])
+
+    def test_conditional_path_runs_against_the_real_fitted_models(self):
+        """Exercise the real models, not a stub of them.
+
+        A hand-built stub can silently assume the wrong return grain, which is
+        exactly how the (position, stat) join survived review. This one calls
+        the shipped predictor, so the frame it actually returns has to work.
+        """
+        models_dir = Path(INTERVAL_MODELS_DIR)
+        if not (models_dir / "manifest.json").exists():
+            self.skipTest("interval models not fitted in this checkout")
+        n = 40
+        combined = pd.DataFrame({
+            "player_id": [f"qb{i}" for i in range(n)],
+            "position": ["QB"] * n,
+            "stat": ["attempts"] * n,
+            "pred_pg": np.linspace(5.0, 38.0, n),
+            "pred_pg_low": [np.nan] * n,
+            "pred_pg_high": [np.nan] * n,
+            "interval_low_n_flag": [False] * n,
+            "depth_tier": [1] * n,
+            "projected_games": [17.0] * n,
+        })
+        out = veterans._attach_veteran_intervals(combined, pd.DataFrame(
+            columns=["position", "stat", "resid_low", "resid_high", "low_n_flag"]))
+
+        self.assertEqual(len(out), n, "row count must not change")
+        banded = out.dropna(subset=["pred_pg_low", "pred_pg_high"])
+        self.assertGreater(len(banded), 0, "real models should band these rows")
+        # Every band brackets its own prediction, and low <= high.
+        self.assertTrue((banded["pred_pg_low"] <= banded["pred_pg_high"]).all())
+        self.assertTrue((banded["pred_pg"] >= banded["pred_pg_low"]).all())
+        self.assertTrue((banded["pred_pg"] <= banded["pred_pg_high"]).all())
+        # Conditional means varying by prediction; a constant band would mean
+        # the flat empirical table answered instead.
+        self.assertGreater((banded["pred_pg_high"] - banded["pred_pg_low"]).nunique(), 1)
 
     def test_conditional_path_falls_back_without_its_features(self):
         """No depth_tier/projected_games means the fitted models cannot score.

@@ -82,22 +82,23 @@ def _attach_veteran_intervals(combined, resid):
         pred_frame["games_played"] = pd.to_numeric(
             out.loc[target, "projected_games"], errors="coerce"
         ).fillna(17.0)
+        # predict_interval_residuals returns ONE ROW PER INPUT ROW, carrying
+        # pred_frame's index - the band is conditioned on this player's own
+        # prediction, depth tier and exposure, so it cannot be keyed by
+        # (position, stat) the way the flat empirical table is. Joining on
+        # those columns is a many-to-many blowup (96 QB attempts rows x 96
+        # predictions = 9,216) whose row labels then run past the end of
+        # `out`. Align on the index instead; there is nothing to merge.
         conditional = predict_interval_residuals(pred_frame)
         if not conditional.empty and conditional["resid_low"].notna().any():
-            keys = out.loc[target, ["position", "stat"]].merge(
-                conditional, on=["position", "stat"], how="left")
-            # merge() resets to a 0..n-1 index; without restoring the original
-            # labels every endpoint below lands on the wrong row, shifted by
-            # however many reframed rows precede it. The fallback path does
-            # the same restore for the same reason.
-            keys.index = out.index[target]
-            has = keys["resid_low"].notna()
-            idx = keys.index[has]
+            has = conditional["resid_low"].notna()
+            idx = conditional.index[has]
             out.loc[idx, "pred_pg_low"] = (
-                out.loc[idx, "pred_pg"] + keys.loc[has, "resid_low"]).clip(lower=0)
-            out.loc[idx, "pred_pg_high"] = out.loc[idx, "pred_pg"] + keys.loc[has, "resid_high"]
-            out.loc[keys.index, "interval_low_n_flag"] = (
-                keys["low_n_flag"].fillna(True).astype(bool))
+                out.loc[idx, "pred_pg"] + conditional.loc[has, "resid_low"]).clip(lower=0)
+            out.loc[idx, "pred_pg_high"] = (
+                out.loc[idx, "pred_pg"] + conditional.loc[has, "resid_high"])
+            out.loc[conditional.index, "interval_low_n_flag"] = (
+                conditional["low_n_flag"].fillna(True).astype(bool))
             return out
     r = resid[["position", "stat", "resid_low", "resid_high", "low_n_flag"]]
     keys = out.loc[target, ["position", "stat"]].merge(r, on=["position", "stat"], how="left")
