@@ -70,7 +70,12 @@ def _attach_veteran_intervals(combined, resid):
     if not target.any():
         return out
     manifest = load_interval_model_manifest()
-    if manifest is not None:
+    # The conditional models are fit on depth tier and exposure as well as the
+    # prediction, so a frame without those columns cannot be scored by them.
+    # Falling back is the honest response - borrowing a flat band would be the
+    # same silent substitution the low_n_flag contract exists to prevent.
+    conditional_features = {"depth_tier", "projected_games"}
+    if manifest is not None and conditional_features.issubset(out.columns):
         pred_frame = out.loc[target, ["position", "stat", "pred_pg", "depth_tier"]].rename(
             columns={"pred_pg": "pred"}
         )
@@ -79,8 +84,13 @@ def _attach_veteran_intervals(combined, resid):
         ).fillna(17.0)
         conditional = predict_interval_residuals(pred_frame)
         if not conditional.empty and conditional["resid_low"].notna().any():
-            keys = out.loc[target, ["position", "stat"]].copy()
-            keys = keys.merge(conditional, on=["position", "stat"], how="left")
+            keys = out.loc[target, ["position", "stat"]].merge(
+                conditional, on=["position", "stat"], how="left")
+            # merge() resets to a 0..n-1 index; without restoring the original
+            # labels every endpoint below lands on the wrong row, shifted by
+            # however many reframed rows precede it. The fallback path does
+            # the same restore for the same reason.
+            keys.index = out.index[target]
             has = keys["resid_low"].notna()
             idx = keys.index[has]
             out.loc[idx, "pred_pg_low"] = (

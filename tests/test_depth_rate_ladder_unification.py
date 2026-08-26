@@ -14,6 +14,7 @@ Written as unittest.TestCase to match the rest of tests/, so both `pytest` and
 """
 import inspect
 import unittest
+import unittest.mock
 
 import numpy as np
 import pandas as pd
@@ -277,6 +278,66 @@ class IntervalsAreBuiltOnTheDiscountedPrediction(unittest.TestCase):
         self.assertLess(
             src.index("apply_depth_chart_gating(combined"),
             src.index("_attach_veteran_intervals(combined"))
+
+    def test_conditional_endpoints_land_on_their_own_rows(self):
+        """A reframed row ahead of the scored rows must not shift the band.
+
+        ``merge`` returns a fresh 0..n-1 index, so writing the conditional
+        endpoints back with that index put every band on the wrong player -
+        offset by however many reframed rows preceded it. The reframed WR row
+        here sits at index 0 precisely so a regression is off by one.
+        """
+        combined = pd.DataFrame({
+            "player_id": ["wr1", "qb1", "qb2"],
+            "position": ["WR", "QB", "QB"],
+            # WR/receiving_yards is reframed, so it is excluded from `target`
+            # and the two QB rows carry non-contiguous labels 1 and 2.
+            "stat": ["receiving_yards", "attempts", "attempts"],
+            "pred_pg": [50.0, 30.0, 20.0],
+            "pred_pg_low": [np.nan] * 3,
+            "pred_pg_high": [np.nan] * 3,
+            "interval_low_n_flag": [False] * 3,
+            "depth_tier": [1, 1, 2],
+            "projected_games": [17.0, 17.0, 17.0],
+        })
+        conditional = pd.DataFrame([{
+            "position": "QB", "stat": "attempts",
+            "resid_low": -5.0, "resid_high": 4.0, "low_n_flag": False,
+        }])
+        with unittest.mock.patch.object(
+            veterans, "load_interval_model_manifest", return_value={"stub": True}
+        ), unittest.mock.patch.object(
+            veterans, "predict_interval_residuals", return_value=conditional
+        ):
+            out = veterans._attach_veteran_intervals(combined, pd.DataFrame())
+
+        # The reframed row keeps NaN endpoints; the QBs get their own bands.
+        self.assertTrue(np.isnan(out.loc[0, "pred_pg_low"]))
+        self.assertTrue(np.isnan(out.loc[0, "pred_pg_high"]))
+        np.testing.assert_allclose(out.loc[[1, 2], "pred_pg_low"], [25.0, 15.0])
+        np.testing.assert_allclose(out.loc[[1, 2], "pred_pg_high"], [34.0, 24.0])
+
+    def test_conditional_path_falls_back_without_its_features(self):
+        """No depth_tier/projected_games means the fitted models cannot score.
+
+        Falling back to the empirical band is correct; raising KeyError (the
+        prior behaviour) took down any caller holding a leaner frame.
+        """
+        combined = pd.DataFrame({
+            "player_id": ["qb1"], "position": ["QB"], "stat": ["attempts"],
+            "pred_pg": [30.0], "pred_pg_low": [np.nan], "pred_pg_high": [np.nan],
+            "interval_low_n_flag": [False],
+        })
+        resid = pd.DataFrame([{
+            "position": "QB", "stat": "attempts",
+            "resid_low": -5.0, "resid_high": 4.0, "low_n_flag": False,
+        }])
+        with unittest.mock.patch.object(
+            veterans, "load_interval_model_manifest", return_value={"stub": True}
+        ):
+            out = veterans._attach_veteran_intervals(combined, resid)
+        np.testing.assert_allclose(out["pred_pg_low"], [25.0])
+        np.testing.assert_allclose(out["pred_pg_high"], [34.0])
 
 
 if __name__ == "__main__":
