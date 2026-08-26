@@ -1,7 +1,11 @@
 .venv/
 __pycache__/
 *.pyc
-/data/
+# Ignore everything under /data/ (parquet cache, SQLite DB) EXCEPT the frozen
+# market snapshots. A directory-level `/data/` exclusion cannot be un-excluded
+# from inside, so this has to list the contents and then negate.
+/data/*
+!/data/consensus/
 *.db
 ingest_log*.txt
 phase0_results.json
@@ -11,3 +15,8 @@ phase0_results.json
 # self-generated .pytest_cache/.gitignore; make it explicit here.
 .pytest_cache/
 *.pyo
+
+# Raw Monte Carlo draws (~13 MB/season). Regenerable from
+# scripts/run_v3_simulation.py; the committed summary CSV is what the draft
+# board reads. Keeping the draws out of git avoids a large binary per run.
+output/model_v3/simulations_*.parquet
