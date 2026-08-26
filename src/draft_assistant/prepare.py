@@ -263,6 +263,36 @@ def read_promotion_gate() -> dict | None:
         return json.load(fh)
 
 
+def _stale_simulation_reason(season: int, board: pd.DataFrame) -> dict | None:
+    """Reason the simulation summary does not describe ``board``, or None.
+
+    Absent provenance is treated as stale. A summary written before the
+    manifest carried source_projection_run_id cannot be shown to match, and
+    "cannot show it matches" is the same risk as "does not match" for a band
+    that ships beside the numbers it is supposed to describe.
+    """
+    if "projection_run_id" not in board.columns:
+        return None  # nothing to compare against; older boards predate the id
+    board_ids = board["projection_run_id"].dropna().unique()
+    if len(board_ids) != 1:
+        return None
+    manifest_path = os.path.join(MODEL_V3_DIR, f"simulation_manifest_{season}.json")
+    if not os.path.exists(manifest_path):
+        return {"reason": "simulation_manifest_missing", "board_run_id": str(board_ids[0])}
+    with open(manifest_path, encoding="utf-8") as fh:
+        manifest = json.load(fh)
+    sim_run_id = manifest.get("source_projection_run_id")
+    if not sim_run_id:
+        return {"reason": "simulation_provenance_unknown", "board_run_id": str(board_ids[0])}
+    if str(sim_run_id) != str(board_ids[0]):
+        return {
+            "reason": "stale_simulation",
+            "board_run_id": str(board_ids[0]),
+            "simulation_run_id": str(sim_run_id),
+        }
+    return None
+
+
 def attach_v3_simulation_percentiles(
     df: pd.DataFrame, season: int, *, require_gate: bool = True
 ) -> tuple[pd.DataFrame, dict]:
@@ -285,6 +315,14 @@ def attach_v3_simulation_percentiles(
     path = os.path.join(MODEL_V3_DIR, f"simulation_summary_{season}.csv")
     if not os.path.exists(path):
         return df, {"applied": False, "reason": "missing_simulation_summary"}
+    # Percentiles describe the board they were simulated from. Merging a
+    # summary built on an earlier board silently mixes two runs -- after the
+    # QB anchor-share republish, the stale 2026 percentiles put p50 6.3 points
+    # BELOW the point estimate for QBs while sitting above it for everyone
+    # else. Refuse rather than publish a band that describes different numbers.
+    stale = _stale_simulation_reason(season, df)
+    if stale:
+        return df, {"applied": False, **stale}
     sim = pd.read_csv(path)
     rename = {
         "p10": "fantasy_pts_p10",

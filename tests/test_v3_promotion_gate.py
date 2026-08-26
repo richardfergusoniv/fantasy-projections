@@ -327,3 +327,74 @@ def test_blend_arm_preserves_the_population_index(monkeypatch):
     }, index=[7, 9])
     blend = bt._blend_from_compare(2024, pop)
     assert list(blend.index) == [7, 9]
+
+
+def _board_with_run(run_id="run-A"):
+    b = _board()
+    b["projection_run_id"] = run_id
+    return b
+
+
+def test_percentiles_are_refused_when_they_describe_another_run(tmp_path, monkeypatch):
+    """A summary built on an earlier board must not merge into a later one.
+
+    The 2026 percentiles outlived the QB anchor-share republish, leaving p50
+    6.3 points BELOW its own point estimate for QBs and above it for every
+    other position -- two different boards side by side on one row.
+    """
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    _write_gate(tmp_path, "simulation_ready")
+    (tmp_path / "simulation_manifest_2026.json").write_text(
+        json.dumps({"season": 2026, "source_projection_run_id": "run-OLD"}),
+        encoding="utf-8")
+
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    out, meta = attach_v3_simulation_percentiles(_board_with_run("run-A"), 2026)
+    assert meta["applied"] is False
+    assert meta["reason"] == "stale_simulation"
+    assert meta["simulation_run_id"] == "run-OLD"
+    assert "fantasy_pts_p10" not in out.columns
+
+
+def test_percentiles_attach_when_provenance_matches(tmp_path, monkeypatch):
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    _write_gate(tmp_path, "simulation_ready")
+    (tmp_path / "simulation_manifest_2026.json").write_text(
+        json.dumps({"season": 2026, "source_projection_run_id": "run-A"}),
+        encoding="utf-8")
+
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    out, meta = attach_v3_simulation_percentiles(_board_with_run("run-A"), 2026)
+    assert meta["applied"] is True
+    assert out["fantasy_pts_p10"].notna().all()
+
+
+def test_unknown_simulation_provenance_is_treated_as_stale(tmp_path, monkeypatch):
+    """Cannot-show-it-matches carries the same risk as does-not-match."""
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    _write_gate(tmp_path, "simulation_ready")
+    (tmp_path / "simulation_manifest_2026.json").write_text(
+        json.dumps({"season": 2026, "n_draws": 1000}), encoding="utf-8")
+
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    _, meta = attach_v3_simulation_percentiles(_board_with_run("run-A"), 2026)
+    assert meta["applied"] is False
+    assert meta["reason"] == "simulation_provenance_unknown"
+
+
+def test_simulation_manifest_records_the_board_it_simulated(tmp_path, monkeypatch):
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    monkeypatch.setattr(sim_mod, "_load_residuals", lambda: pd.DataFrame(
+        columns=["position", "stat", "team", "resid"]))
+    projections = pd.DataFrame({
+        "player_id": ["a", "a"], "position": ["WR", "WR"], "team": ["KC", "KC"],
+        "stat": ["receiving_yards", "receptions"], "pred_pg": [60.0, 4.0],
+        "projected_games": [17.0, 17.0], "projection_run_id": ["run-XYZ", "run-XYZ"],
+    })
+    manifest = sim_mod.write_simulation_outputs(projections, 2026, n_draws=5)
+    assert manifest["source_projection_run_id"] == "run-XYZ"

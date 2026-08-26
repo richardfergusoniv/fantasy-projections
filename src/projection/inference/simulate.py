@@ -162,10 +162,20 @@ def write_simulation_outputs(
     summary_path = out_dir / f"simulation_summary_{season}.csv"
     draws.to_parquet(draws_path, index=False)
     summary.to_csv(summary_path, index=False)
+    # Record WHICH board this was simulated from. Without it a summary from an
+    # earlier board merges into a later one unnoticed: the 2026 percentiles
+    # outlived a republish that moved QB projections, leaving p50 6.3 points
+    # BELOW its own point estimate for QBs and above it everywhere else.
+    source_run_id = None
+    if "projection_run_id" in projections.columns:
+        ids = projections["projection_run_id"].dropna().unique()
+        if len(ids) == 1:
+            source_run_id = str(ids[0])
     manifest = {
         "season": season,
         "n_draws": n_draws,
         "mode": mode,
+        "source_projection_run_id": source_run_id,
         "draws_path": str(draws_path),
         "summary_path": str(summary_path),
     }
