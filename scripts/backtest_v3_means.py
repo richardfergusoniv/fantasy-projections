@@ -30,7 +30,10 @@ from src.projection.fantasy_evaluation import build_leakage_safe_long_board
 from src.projection.fantasy_points import SCORING
 from src.projection.features import build_player_season_features
 from src.projection.inference.fit import fit_v3_models
-from src.projection.inference.reconcile import reconcile_v3_generative
+from src.projection.inference.reconcile import (
+    reconcile_v3_generative,
+    team_environment_from_board,
+)
 from src.projection.inference.simulate import simulate_season_distributions, summarize_simulations
 from src.projection.transitions import SEASON_GAMES
 from scripts.ensemble_v1_v2 import DEFAULT_V2_ROOT, load_v2
@@ -139,15 +142,11 @@ def _interim_means(long_board: pd.DataFrame, n_draws: int) -> pd.DataFrame:
 
 def _generative_means(long_board: pd.DataFrame, share_manifest: dict, n_draws: int) -> pd.DataFrame:
     rng = np.random.default_rng(11)
-    team_env = (
-        long_board[["team"]]
-        .drop_duplicates()
-        .assign(team_pass_attempts_mean=600.0, team_carries_mean=400.0)
-    )
-    # Prefer fitted team environment means when present on disk.
-    env_manifest = Path(V3_MODELS_DIR) / "team_environment" / "manifest.json"
-    if env_manifest.exists():
-        pass  # means drawn below still use defaults; fit artifacts used for shares
+    # The board already carries each team's fitted RidgeCV anchors, attached
+    # by propagate_team_anchors. Using them is what makes the generative arm
+    # team-specific; the flat 600/400 constants this replaces gave every team
+    # -- and so every QB -- the same volume draw.
+    team_env = team_environment_from_board(long_board)
     scores = []
     for draw_idx in range(n_draws):
         gen = reconcile_v3_generative(

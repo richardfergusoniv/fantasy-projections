@@ -1,4 +1,12 @@
-"""V3 generative composition: team draw -> shares -> conversions."""
+"""V3 generative composition: team draw -> shares -> conversions.
+
+Units are SEASON TOTALS throughout. The board this consumes is a long frame
+of per-game rates (``pred_pg``), one row per (player, stat); the team volumes
+handed in are season totals, shares are drawn on the simplex, and each
+conversion draw produces a season stat line. Callers sum the emitted rows
+straight into ``fantasy_pts_season``, so anything emitted at a per-game scale
+silently becomes a one-game season.
+"""
 from __future__ import annotations
 
 import numpy as np
@@ -10,6 +18,60 @@ from src.projection.models.rushing import draw_rushing_line
 from src.projection.models.passing import draw_passing_line
 from src.projection.transitions import SEASON_GAMES
 
+# The volume stat each position group's allocation is keyed on. Selecting one
+# stat per player is what keeps a player to a single line: the board carries
+# one row per (player, stat), so an unfiltered position mask yields a row per
+# stat and emits that many stat lines for the same player.
+QB_VOLUME_STAT = "attempts"
+RECEIVING_VOLUME_STAT = "targets"
+RUSHING_VOLUME_STAT = "carries"
+
+DEFAULT_TEAM_PASS_ATTEMPTS = 600.0
+DEFAULT_TEAM_CARRIES = 400.0
+
+# Plausible ranges for rates derived from the board's own predictions. A room
+# with a near-zero denominator can imply an absurd ratio; clipping keeps one
+# malformed row from producing a 40-yards-per-carry back.
+RATE_BOUNDS = {
+    "comp_rate": (0.40, 0.80),
+    "yards_per_comp": (7.0, 16.0),
+    "pass_td_rate": (0.005, 0.10),
+    "int_rate": (0.002, 0.08),
+    "catch_rate": (0.30, 0.90),
+    "yards_per_rec": (4.0, 20.0),
+    "rec_td_rate": (0.0, 0.20),
+    "ypc": (2.0, 7.0),
+    "rush_td_rate": (0.0, 0.15),
+}
+
+
+def _ratio(numerator, denominator, bound_key: str, default: float) -> float:
+    """Rate implied by two of the board's own predictions, or the default."""
+    num = pd.to_numeric(numerator, errors="coerce")
+    den = pd.to_numeric(denominator, errors="coerce")
+    if pd.isna(num) or pd.isna(den) or float(den) <= 0:
+        return default
+    lo, hi = RATE_BOUNDS[bound_key]
+    return float(np.clip(float(num) / float(den), lo, hi))
+
+
+def _player_stat_table(room: pd.DataFrame) -> pd.DataFrame:
+    """One row per player, per-stat pred_pg as columns."""
+    if room.empty:
+        return pd.DataFrame()
+    return room.pivot_table(
+        index="player_id", columns="stat", values="pred_pg", aggfunc="first"
+    )
+
+
+def _team_volume(team_row, key: str, default: float) -> float:
+    if team_row is None:
+        return default
+    value = pd.to_numeric(team_row.get(key, default), errors="coerce")
+    if pd.isna(value) or float(value) <= 0:
+        return default
+    return float(value)
+
 
 def reconcile_v3_generative(
     players: pd.DataFrame,
@@ -18,38 +80,114 @@ def reconcile_v3_generative(
     rng: np.random.Generator,
     share_manifest: dict | None = None,
 ) -> pd.DataFrame:
-    """One simulation draw through the v3 opportunity + conversion graph."""
+    """One simulation draw through the v3 opportunity + conversion graph.
+
+    ``team_environment`` supplies SEASON team volumes per team
+    (``team_pass_attempts_mean``, ``team_carries_mean``). Each position room
+    splits its team's volume on the simplex, and every player's conversion
+    rates are the ones implied by that player's own board predictions rather
+    than a league constant, so two QBs on the same attempt volume no longer
+    produce identical lines.
+    """
     rows = []
-    env = team_environment.set_index("team") if "team" in team_environment.columns else team_environment
+    env = (
+        team_environment.set_index("team")
+        if "team" in team_environment.columns
+        else team_environment
+    )
     for team, room in players.groupby("team", observed=True):
         team_row = env.loc[team] if team in env.index else None
-        pass_att = float(team_row.get("team_pass_attempts_mean", 600)) / SEASON_GAMES if team_row is not None else 35.0
-        rush_att = float(team_row.get("team_carries_mean", 400)) / SEASON_GAMES if team_row is not None else 25.0
-        qb = room[room["position"].eq("QB")]
-        for _, qb_row in qb.iterrows():
-            line = draw_passing_line(pass_att, rng=rng)
-            line.update({"player_id": qb_row["player_id"], "position": "QB", "team": team})
+        pass_attempts = _team_volume(
+            team_row, "team_pass_attempts_mean", DEFAULT_TEAM_PASS_ATTEMPTS)
+        rush_attempts = _team_volume(
+            team_row, "team_carries_mean", DEFAULT_TEAM_CARRIES)
+        stats = _player_stat_table(room)
+
+        def rate(player_id, num_stat, den_stat, bound_key, default):
+            if stats.empty or player_id not in stats.index:
+                return default
+            row = stats.loc[player_id]
+            return _ratio(row.get(num_stat), row.get(den_stat), bound_key, default)
+
+        # --- passing -------------------------------------------------------
+        qb_room = room[
+            room["position"].eq("QB") & room["stat"].eq(QB_VOLUME_STAT)
+        ]
+        qb_alloc = allocate_opportunities(
+            qb_room, pass_attempts, rng=rng, manifest=share_manifest)
+        for _, pl in qb_alloc.iterrows():
+            pid = pl["player_id"]
+            line = draw_passing_line(
+                pl["allocated_volume"],
+                comp_rate=rate(pid, "completions", "attempts", "comp_rate", 0.64),
+                yards_per_comp=rate(
+                    pid, "passing_yards", "completions", "yards_per_comp", 11.0),
+                td_rate=rate(pid, "passing_tds", "attempts", "pass_td_rate", 0.045),
+                int_rate=rate(pid, "interceptions", "attempts", "int_rate", 0.025),
+                rng=rng,
+            )
+            line.update({"player_id": pid, "position": "QB", "team": team})
             rows.append(line)
+
+        # --- receiving -----------------------------------------------------
+        recv_room = room[
+            room["position"].isin(["WR", "TE", "RB"])
+            & room["stat"].eq(RECEIVING_VOLUME_STAT)
+        ]
         recv = allocate_opportunities(
-            room[room["position"].isin(["WR", "TE", "RB"]) & room["stat"].eq("targets")],
-            pass_att * SEASON_GAMES,
-            rng=rng,
-            manifest=share_manifest,
-        )
+            recv_room, pass_attempts, rng=rng, manifest=share_manifest)
         for _, pl in recv.iterrows():
-            if pl["stat"] != "targets":
-                continue
-            line = draw_receiving_line(pl["allocated_volume"] / SEASON_GAMES, rng=rng)
-            line.update({"player_id": pl["player_id"], "position": pl["position"], "team": team})
+            pid = pl["player_id"]
+            line = draw_receiving_line(
+                pl["allocated_volume"],
+                catch_rate=rate(pid, "receptions", "targets", "catch_rate", 0.65),
+                yards_per_rec=rate(
+                    pid, "receiving_yards", "receptions", "yards_per_rec", 12.0),
+                td_rate=rate(pid, "receiving_tds", "targets", "rec_td_rate", 0.04),
+                rng=rng,
+            )
+            line.update({"player_id": pid, "position": pl["position"], "team": team})
             rows.append(line)
+
+        # --- rushing -------------------------------------------------------
+        rush_room = room[
+            room["position"].eq("RB") & room["stat"].eq(RUSHING_VOLUME_STAT)
+        ]
         rush = allocate_opportunities(
-            room[room["position"].eq("RB") & room["stat"].eq("carries")],
-            rush_att * SEASON_GAMES,
-            rng=rng,
-            manifest=share_manifest,
-        )
+            rush_room, rush_attempts, rng=rng, manifest=share_manifest)
         for _, pl in rush.iterrows():
-            line = draw_rushing_line(pl["allocated_volume"] / SEASON_GAMES, rng=rng)
-            line.update({"player_id": pl["player_id"], "position": "RB", "team": team})
+            pid = pl["player_id"]
+            line = draw_rushing_line(
+                pl["allocated_volume"],
+                ypc=rate(pid, "rushing_yards", "carries", "ypc", 4.3),
+                td_rate=rate(pid, "rushing_tds", "carries", "rush_td_rate", 0.02),
+                rng=rng,
+            )
+            line.update({"player_id": pid, "position": "RB", "team": team})
             rows.append(line)
     return pd.DataFrame(rows)
+
+
+def team_environment_from_board(long_board: pd.DataFrame) -> pd.DataFrame:
+    """Season team volumes from the board's own fitted team anchors.
+
+    ``propagate_team_anchors`` already attaches the RidgeCV team-total
+    predictions to every row, so the fitted team environment is on the board
+    and does not need refitting or a hardcoded constant. Anchors are per-game;
+    this returns season totals, the unit the generative path draws in.
+    """
+    if long_board.empty or "team" not in long_board.columns:
+        return pd.DataFrame(
+            columns=["team", "team_pass_attempts_mean", "team_carries_mean"])
+    out = long_board.groupby("team", as_index=False).first()
+    frame = pd.DataFrame({"team": out["team"]})
+    for src, dest, default in (
+        ("team_pass_attempts_pg_pred", "team_pass_attempts_mean", DEFAULT_TEAM_PASS_ATTEMPTS),
+        ("team_carries_pg_pred", "team_carries_mean", DEFAULT_TEAM_CARRIES),
+    ):
+        if src in out.columns:
+            per_game = pd.to_numeric(out[src], errors="coerce")
+            frame[dest] = (per_game * SEASON_GAMES).fillna(default)
+        else:
+            frame[dest] = default
+    return frame
