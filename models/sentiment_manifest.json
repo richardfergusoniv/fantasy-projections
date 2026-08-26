@@ -1,0 +1,24 @@
+{
+  "version": "markdown_market_v1",
+  "status": "diagnostic",
+  "reason": "No three-season point-in-time sentiment history is available for leakage-safe activation.",
+  "data_prerequisites": {
+    "minimum_seasons": 3,
+    "minimum_non_null_player_seasons": 200,
+    "minimum_position_coverage": 0.4
+  },
+  "performance_gate": {
+    "mean_season_points_mae_improvement_min": 0.005,
+    "minimum_improving_folds": 2,
+    "maximum_spearman_decline": 0.005,
+    "maximum_single_fold_mae_regression": 0.01,
+    "maximum_tier_hit_decline": 1,
+    "maximum_vorp_mae_regression": 0.01
+  },
+  "active_by_position": {
+    "QB": false,
+    "RB": false,
+    "WR": false,
+    "TE": false
+  }
+}

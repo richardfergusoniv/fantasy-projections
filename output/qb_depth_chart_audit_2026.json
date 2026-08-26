@@ -1,0 +1,198 @@
+{
+  "season": 2026,
+  "flags": [
+    {
+      "team": "CIN",
+      "curated_qb1": "Joe Burrow",
+      "curated_qb1_gsis": "00-0036442",
+      "usage_leader_2025": "00-0026158",
+      "usage_leader_gsis": "00-0026158",
+      "leader_attempts": 436,
+      "severity": "review"
+    },
+    {
+      "team": "LV",
+      "curated_qb1": "Kirk Cousins",
+      "curated_qb1_gsis": "00-0029604",
+      "usage_leader_2025": "00-0030565",
+      "usage_leader_gsis": "00-0030565",
+      "leader_attempts": 505,
+      "severity": "review"
+    },
+    {
+      "team": "MIA",
+      "curated_qb1": "Malik Willis",
+      "curated_qb1_gsis": "00-0038128",
+      "usage_leader_2025": "00-0036212",
+      "usage_leader_gsis": "00-0036212",
+      "leader_attempts": 417,
+      "severity": "review"
+    },
+    {
+      "team": "MIN",
+      "curated_qb1": "Kyler Murray",
+      "curated_qb1_gsis": "00-0035228",
+      "usage_leader_2025": "00-0039923",
+      "usage_leader_gsis": "00-0039923",
+      "leader_attempts": 273,
+      "severity": "review"
+    },
+    {
+      "team": "NYJ",
+      "curated_qb1": "Geno Smith",
+      "curated_qb1_gsis": "00-0030565",
+      "usage_leader_2025": "00-0036945",
+      "usage_leader_gsis": "00-0036945",
+      "leader_attempts": 235,
+      "severity": "review"
+    },
+    {
+      "team": "SF",
+      "curated_qb1": "Brock Purdy",
+      "curated_qb1_gsis": "00-0037834",
+      "usage_leader_2025": "00-0036972",
+      "usage_leader_gsis": "00-0036972",
+      "leader_attempts": 307,
+      "severity": "review"
+    },
+    {
+      "team": "WAS",
+      "curated_qb1": "Jayden Daniels",
+      "curated_qb1_gsis": "00-0039910",
+      "usage_leader_2025": "00-0032268",
+      "usage_leader_gsis": "00-0032268",
+      "leader_attempts": 246,
+      "severity": "review"
+    }
+  ],
+  "ari_fix_prototype": {
+    "team": "ARI",
+    "qb1_gsis": "00-0035228",
+    "qb1_name": "Kyler Murray",
+    "qb2_gsis": "00-0033119",
+    "qb2_name": "Jacoby Brissett"
+  },
+  "fix_applied": true,
+  "fix_note": "Manual correction in src/depth_chart/starters_2026.csv: Kyler Murray ARI QB1, Brissett demoted to QB2, McCarthy MIN QB1.",
+  "board_before_fix": {
+    "key_qbs": {
+      "Josh Allen": {
+        "rank": 13,
+        "fantasy_ppg": 13.674,
+        "team": "BUF"
+      },
+      "Lamar Jackson": {
+        "rank": 28,
+        "fantasy_ppg": 11.333,
+        "team": "BAL"
+      },
+      "Trevor Lawrence": {
+        "rank": 3,
+        "fantasy_ppg": 16.959,
+        "team": "JAX"
+      },
+      "Bo Nix": {
+        "rank": 1,
+        "fantasy_ppg": 17.165,
+        "team": "DEN"
+      },
+      "Jacoby Brissett": {
+        "rank": 8,
+        "fantasy_ppg": 15.215,
+        "team": "ARI"
+      },
+      "Joe Burrow": {
+        "rank": 15,
+        "fantasy_ppg": 13.508,
+        "team": "CIN"
+      },
+      "Jalen Hurts": {
+        "rank": 11,
+        "fantasy_ppg": 14.097,
+        "team": "PHI"
+      },
+      "Patrick Mahomes": {
+        "rank": 6,
+        "fantasy_ppg": 15.496,
+        "team": "KC"
+      }
+    },
+    "qb_count": 96,
+    "qbs_above_18_ppg": 0,
+    "top12": [
+      {
+        "rank": 1,
+        "display_name": "Bo Nix",
+        "team": "DEN",
+        "fantasy_pts": 17.164620503061997
+      },
+      {
+        "rank": 2,
+        "display_name": "Justin Herbert",
+        "team": "LAC",
+        "fantasy_pts": 17.16425166869917
+      },
+      {
+        "rank": 3,
+        "display_name": "Trevor Lawrence",
+        "team": "JAX",
+        "fantasy_pts": 16.958512162843764
+      },
+      {
+        "rank": 4,
+        "display_name": "Drake Maye",
+        "team": "NE",
+        "fantasy_pts": 16.43377245205546
+      },
+      {
+        "rank": 5,
+        "display_name": "Dak Prescott",
+        "team": "DAL",
+        "fantasy_pts": 15.770672494146565
+      },
+      {
+        "rank": 6,
+        "display_name": "Patrick Mahomes",
+        "team": "KC",
+        "fantasy_pts": 15.49649912619425
+      },
+      {
+        "rank": 7,
+        "display_name": "Caleb Williams",
+        "team": "CHI",
+        "fantasy_pts": 15.410373168480575
+      },
+      {
+        "rank": 8,
+        "display_name": "Jacoby Brissett",
+        "team": "ARI",
+        "fantasy_pts": 15.214998329483755
+      },
+      {
+        "rank": 9,
+        "display_name": "Brock Purdy",
+        "team": "SF",
+        "fantasy_pts": 14.83225298906278
+      },
+      {
+        "rank": 10,
+        "display_name": "Jared Goff",
+        "team": "DET",
+        "fantasy_pts": 14.60757349759182
+      },
+      {
+        "rank": 11,
+        "display_name": "Jalen Hurts",
+        "team": "PHI",
+        "fantasy_pts": 14.096820902514027
+      },
+      {
+        "rank": 12,
+        "display_name": "Sam Darnold",
+        "team": "SEA",
+        "fantasy_pts": 13.79324835408327
+      }
+    ]
+  },
+  "notes": "ARI curated QB1 was Jacoby Brissett while Kyler Murray led 2025 attempts. Prototype fix promotes Kyler to ARI QB1 and demotes Brissett to QB2."
+}

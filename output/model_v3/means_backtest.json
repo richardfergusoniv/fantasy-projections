@@ -1,0 +1,424 @@
+{
+  "generated_at": "2026-08-26T00:06:02.990775+00:00",
+  "folds": [
+    {
+      "target_season": 2023,
+      "source_season": 2022,
+      "n_draws": 50,
+      "metrics": {
+        "v1": {
+          "n": 756,
+          "points_mae": 29.601874030498795,
+          "spearman": 0.7563620211816255,
+          "by_position": {
+            "QB": {
+              "n": 100,
+              "points_mae": 55.78386431747319,
+              "spearman": 0.6689116054692342
+            },
+            "RB": {
+              "n": 180,
+              "points_mae": 33.89178091045846,
+              "spearman": 0.7831739979248697
+            },
+            "TE": {
+              "n": 169,
+              "points_mae": 18.483069977252967,
+              "spearman": 0.7646857837787906
+            },
+            "WR": {
+              "n": 307,
+              "points_mae": 24.679058453653077,
+              "spearman": 0.7811908154051074
+            }
+          }
+        },
+        "blend": {
+          "n": 756,
+          "points_mae": 29.601874030498795,
+          "spearman": 0.7563620211816255,
+          "by_position": {
+            "QB": {
+              "n": 100,
+              "points_mae": 55.78386431747319,
+              "spearman": 0.6689116054692342
+            },
+            "RB": {
+              "n": 180,
+              "points_mae": 33.89178091045846,
+              "spearman": 0.7831739979248697
+            },
+            "TE": {
+              "n": 169,
+              "points_mae": 18.483069977252967,
+              "spearman": 0.7646857837787906
+            },
+            "WR": {
+              "n": 307,
+              "points_mae": 24.679058453653077,
+              "spearman": 0.7811908154051074
+            }
+          }
+        },
+        "v3_interim": {
+          "n": 756,
+          "points_mae": 30.655376616445796,
+          "spearman": 0.7277394759349151,
+          "by_position": {
+            "QB": {
+              "n": 100,
+              "points_mae": 54.19930810655622,
+              "spearman": 0.6380341140153246
+            },
+            "RB": {
+              "n": 180,
+              "points_mae": 35.34481398016174,
+              "spearman": 0.7584185305838985
+            },
+            "TE": {
+              "n": 169,
+              "points_mae": 19.72892380514747,
+              "spearman": 0.7406508753162545
+            },
+            "WR": {
+              "n": 307,
+              "points_mae": 26.251724012633108,
+              "spearman": 0.7590177343464273
+            }
+          }
+        },
+        "v3_generative": {
+          "n": 756,
+          "points_mae": 47.03217321035257,
+          "spearman": 0.6252192636793569,
+          "by_position": {
+            "QB": {
+              "n": 100,
+              "points_mae": 94.11969789206167,
+              "spearman": 0.12373958316891578
+            },
+            "RB": {
+              "n": 180,
+              "points_mae": 48.29718741566587,
+              "spearman": 0.785204909958832
+            },
+            "TE": {
+              "n": 169,
+              "points_mae": 23.16198205603351,
+              "spearman": 0.7602987414331646
+            },
+            "WR": {
+              "n": 307,
+              "points_mae": 44.09278324277152,
+              "spearman": 0.7840734467160245
+            }
+          }
+        }
+      },
+      "gates": {
+        "interim_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "interim_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "generative_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "generative_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        }
+      }
+    },
+    {
+      "target_season": 2024,
+      "source_season": 2023,
+      "n_draws": 50,
+      "metrics": {
+        "v1": {
+          "n": 756,
+          "points_mae": 28.02915980822424,
+          "spearman": 0.7820714715760291,
+          "by_position": {
+            "QB": {
+              "n": 105,
+              "points_mae": 44.455496071010415,
+              "spearman": 0.7144392022181166
+            },
+            "RB": {
+              "n": 183,
+              "points_mae": 31.15942653301797,
+              "spearman": 0.8104147291426944
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 17.921751138411672,
+              "spearman": 0.8014044082550207
+            },
+            "WR": {
+              "n": 303,
+              "points_mae": 25.95034235703372,
+              "spearman": 0.7959911303154577
+            }
+          }
+        },
+        "blend": {
+          "n": 756,
+          "points_mae": 28.02915980822424,
+          "spearman": 0.7820714715760291,
+          "by_position": {
+            "QB": {
+              "n": 105,
+              "points_mae": 44.455496071010415,
+              "spearman": 0.7144392022181166
+            },
+            "RB": {
+              "n": 183,
+              "points_mae": 31.15942653301797,
+              "spearman": 0.8104147291426944
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 17.921751138411672,
+              "spearman": 0.8014044082550207
+            },
+            "WR": {
+              "n": 303,
+              "points_mae": 25.95034235703372,
+              "spearman": 0.7959911303154577
+            }
+          }
+        },
+        "v3_interim": {
+          "n": 756,
+          "points_mae": 29.514089622249973,
+          "spearman": 0.7572274836938343,
+          "by_position": {
+            "QB": {
+              "n": 105,
+              "points_mae": 43.985329117023575,
+              "spearman": 0.7196833265006266
+            },
+            "RB": {
+              "n": 183,
+              "points_mae": 33.282647622505685,
+              "spearman": 0.7861563854478764
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 18.70186573734655,
+              "spearman": 0.7603832638615615
+            },
+            "WR": {
+              "n": 303,
+              "points_mae": 28.1110885661808,
+              "spearman": 0.7783153838811033
+            }
+          }
+        },
+        "v3_generative": {
+          "n": 756,
+          "points_mae": 48.27585802381568,
+          "spearman": 0.6152997120965265,
+          "by_position": {
+            "QB": {
+              "n": 105,
+              "points_mae": 94.90006168271128,
+              "spearman": -0.037123825086577654
+            },
+            "RB": {
+              "n": 183,
+              "points_mae": 48.848731324936715,
+              "spearman": 0.7982790276462943
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 24.571868928823665,
+              "spearman": 0.8113381154819811
+            },
+            "WR": {
+              "n": 303,
+              "points_mae": 44.68107585346745,
+              "spearman": 0.7898007842682572
+            }
+          }
+        }
+      },
+      "gates": {
+        "interim_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "interim_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "generative_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "generative_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        }
+      }
+    },
+    {
+      "target_season": 2025,
+      "source_season": 2024,
+      "n_draws": 50,
+      "metrics": {
+        "v1": {
+          "n": 755,
+          "points_mae": 27.714018153332695,
+          "spearman": 0.7583060301223868,
+          "by_position": {
+            "QB": {
+              "n": 107,
+              "points_mae": 39.207009654989434,
+              "spearman": 0.7800133303515431
+            },
+            "RB": {
+              "n": 185,
+              "points_mae": 35.251734828923844,
+              "spearman": 0.6905517032266024
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 17.284958624187354,
+              "spearman": 0.834814720362291
+            },
+            "WR": {
+              "n": 298,
+              "points_mae": 24.68236428302177,
+              "spearman": 0.7800631433374701
+            }
+          }
+        },
+        "blend": {
+          "n": 755,
+          "points_mae": 27.714018153332695,
+          "spearman": 0.7583060301223868,
+          "by_position": {
+            "QB": {
+              "n": 107,
+              "points_mae": 39.207009654989434,
+              "spearman": 0.7800133303515431
+            },
+            "RB": {
+              "n": 185,
+              "points_mae": 35.251734828923844,
+              "spearman": 0.6905517032266024
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 17.284958624187354,
+              "spearman": 0.834814720362291
+            },
+            "WR": {
+              "n": 298,
+              "points_mae": 24.68236428302177,
+              "spearman": 0.7800631433374701
+            }
+          }
+        },
+        "v3_interim": {
+          "n": 755,
+          "points_mae": 29.79164860051741,
+          "spearman": 0.6975008928437265,
+          "by_position": {
+            "QB": {
+              "n": 107,
+              "points_mae": 43.35362740035272,
+              "spearman": 0.6937721768267592
+            },
+            "RB": {
+              "n": 185,
+              "points_mae": 37.38863801256865,
+              "spearman": 0.6475183870316247
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 18.817223298137435,
+              "spearman": 0.7677650767763291
+            },
+            "WR": {
+              "n": 298,
+              "points_mae": 26.282270755151085,
+              "spearman": 0.7322162782287078
+            }
+          }
+        },
+        "v3_generative": {
+          "n": 755,
+          "points_mae": 47.20524104358796,
+          "spearman": 0.610944300456787,
+          "by_position": {
+            "QB": {
+              "n": 107,
+              "points_mae": 89.08363321445616,
+              "spearman": 0.3607433359175885
+            },
+            "RB": {
+              "n": 185,
+              "points_mae": 51.18441646701557,
+              "spearman": 0.6779085588461201
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 26.789336577507846,
+              "spearman": 0.8374566427147602
+            },
+            "WR": {
+              "n": 298,
+              "points_mae": 41.00218339689739,
+              "spearman": 0.7757409332088286
+            }
+          }
+        }
+      },
+      "gates": {
+        "interim_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "interim_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "generative_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "generative_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        }
+      }
+    }
+  ],
+  "summary": {
+    "interim_beats_v1_all_folds": false,
+    "interim_beats_blend_all_folds": false,
+    "generative_beats_v1_all_folds": false,
+    "generative_beats_blend_all_folds": false,
+    "n_folds": 3,
+    "promote_v3_means": false
+  }
+}

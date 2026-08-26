@@ -1,0 +1,518 @@
+{
+  "comparison_table": [
+    {
+      "track": "track3_td_t3b_010",
+      "rate_spearman": 0.2591,
+      "rate_mae": 3.976,
+      "mean_bias": -2.585,
+      "tier_hits": "6/12"
+    },
+    {
+      "track": "track5_partial_prior_shrink",
+      "rate_spearman": 0.2296,
+      "rate_mae": 4.134,
+      "mean_bias": -2.788,
+      "tier_hits": "6/12"
+    },
+    {
+      "track": "baseline",
+      "rate_spearman": 0.2118,
+      "rate_mae": 4.179,
+      "mean_bias": -2.833,
+      "tier_hits": "6/12"
+    },
+    {
+      "track": "track2_compose_insight",
+      "rate_spearman": 0.2118,
+      "rate_mae": 4.179,
+      "mean_bias": -2.833,
+      "tier_hits": "6/12"
+    },
+    {
+      "track": "track4_depth_chart_ari_fix",
+      "rate_spearman": 0.2118,
+      "rate_mae": 4.179,
+      "mean_bias": -2.833,
+      "tier_hits": "6/12"
+    }
+  ],
+  "track1_baseline": {
+    "track": "track1_starter_eval_dashboard",
+    "holdout": {
+      "starter_depth_tier_1": {
+        "rate_spearman": 0.2118,
+        "rate_mae": 4.179,
+        "mean_bias": -2.833,
+        "tier_hits": "6/12"
+      },
+      "starter_8plus_games": {
+        "rate_spearman": 0.1377,
+        "rate_mae": 4.156,
+        "mean_bias": -3.661,
+        "tier_hits": "7/12"
+      }
+    },
+    "board_2026": {
+      "key_qbs": {
+        "Josh Allen": {
+          "rank": 13,
+          "fantasy_ppg": 13.674,
+          "team": "BUF"
+        },
+        "Lamar Jackson": {
+          "rank": 28,
+          "fantasy_ppg": 11.333,
+          "team": "BAL"
+        },
+        "Trevor Lawrence": {
+          "rank": 3,
+          "fantasy_ppg": 16.959,
+          "team": "JAX"
+        },
+        "Bo Nix": {
+          "rank": 1,
+          "fantasy_ppg": 17.165,
+          "team": "DEN"
+        },
+        "Jacoby Brissett": {
+          "rank": 8,
+          "fantasy_ppg": 15.215,
+          "team": "ARI"
+        },
+        "Joe Burrow": {
+          "rank": 15,
+          "fantasy_ppg": 13.508,
+          "team": "CIN"
+        },
+        "Jalen Hurts": {
+          "rank": 11,
+          "fantasy_ppg": 14.097,
+          "team": "PHI"
+        },
+        "Patrick Mahomes": {
+          "rank": 6,
+          "fantasy_ppg": 15.496,
+          "team": "KC"
+        }
+      },
+      "qb_count": 96,
+      "qbs_above_18_ppg": 0,
+      "top12": [
+        {
+          "rank": 1,
+          "display_name": "Bo Nix",
+          "team": "DEN",
+          "fantasy_pts": 17.164620503061997
+        },
+        {
+          "rank": 2,
+          "display_name": "Justin Herbert",
+          "team": "LAC",
+          "fantasy_pts": 17.16425166869917
+        },
+        {
+          "rank": 3,
+          "display_name": "Trevor Lawrence",
+          "team": "JAX",
+          "fantasy_pts": 16.958512162843764
+        },
+        {
+          "rank": 4,
+          "display_name": "Drake Maye",
+          "team": "NE",
+          "fantasy_pts": 16.43377245205546
+        },
+        {
+          "rank": 5,
+          "display_name": "Dak Prescott",
+          "team": "DAL",
+          "fantasy_pts": 15.770672494146565
+        },
+        {
+          "rank": 6,
+          "display_name": "Patrick Mahomes",
+          "team": "KC",
+          "fantasy_pts": 15.49649912619425
+        },
+        {
+          "rank": 7,
+          "display_name": "Caleb Williams",
+          "team": "CHI",
+          "fantasy_pts": 15.410373168480575
+        },
+        {
+          "rank": 8,
+          "display_name": "Jacoby Brissett",
+          "team": "ARI",
+          "fantasy_pts": 15.214998329483755
+        },
+        {
+          "rank": 9,
+          "display_name": "Brock Purdy",
+          "team": "SF",
+          "fantasy_pts": 14.83225298906278
+        },
+        {
+          "rank": 10,
+          "display_name": "Jared Goff",
+          "team": "DET",
+          "fantasy_pts": 14.60757349759182
+        },
+        {
+          "rank": 11,
+          "display_name": "Jalen Hurts",
+          "team": "PHI",
+          "fantasy_pts": 14.096820902514027
+        },
+        {
+          "rank": 12,
+          "display_name": "Sam Darnold",
+          "team": "SEA",
+          "fantasy_pts": 13.79324835408327
+        }
+      ]
+    }
+  },
+  "track2_compose": {
+    "elite_hurt": [
+      {
+        "player_id": "00-0036389",
+        "display_name": "Jalen Hurts",
+        "raw_ppg": 16.657,
+        "final_ppg": 11.812,
+        "total_delta": -4.845,
+        "worst_stage": "post_td_clip"
+      },
+      {
+        "player_id": "00-0033873",
+        "display_name": "Patrick Mahomes",
+        "raw_ppg": 17.511,
+        "final_ppg": 13.066,
+        "total_delta": -4.445,
+        "worst_stage": "post_td_clip"
+      },
+      {
+        "player_id": "00-0034857",
+        "display_name": "Josh Allen",
+        "raw_ppg": 18.956,
+        "final_ppg": 14.653,
+        "total_delta": -4.303,
+        "worst_stage": "post_td_clip"
+      },
+      {
+        "player_id": "00-0033119",
+        "display_name": "Jacoby Brissett",
+        "raw_ppg": 17.338,
+        "final_ppg": 13.262,
+        "total_delta": -4.076,
+        "worst_stage": "post_team_volume_reconcile"
+      },
+      {
+        "player_id": "00-0036442",
+        "display_name": "Joe Burrow",
+        "raw_ppg": 14.012,
+        "final_ppg": 9.988,
+        "total_delta": -4.024,
+        "worst_stage": "post_team_volume_reconcile"
+      },
+      {
+        "player_id": "00-0036971",
+        "display_name": "Trevor Lawrence",
+        "raw_ppg": 18.715,
+        "final_ppg": 15.621,
+        "total_delta": -3.094,
+        "worst_stage": "post_td_clip"
+      },
+      {
+        "player_id": "00-0036355",
+        "display_name": "Justin Herbert",
+        "raw_ppg": 19.41,
+        "final_ppg": 16.595,
+        "total_delta": -2.815,
+        "worst_stage": "post_td_clip"
+      },
+      {
+        "player_id": "00-0026498",
+        "display_name": "Matthew Stafford",
+        "raw_ppg": 16.485,
+        "final_ppg": 13.677,
+        "total_delta": -2.808,
+        "worst_stage": "post_team_volume_reconcile"
+      },
+      {
+        "player_id": "00-0034855",
+        "display_name": "Baker Mayfield",
+        "raw_ppg": 15.346,
+        "final_ppg": 12.638,
+        "total_delta": -2.708,
+        "worst_stage": "post_td_clip"
+      },
+      {
+        "player_id": "00-0040691",
+        "display_name": "Jaxson Dart",
+        "raw_ppg": 14.628,
+        "final_ppg": 11.959,
+        "total_delta": -2.669,
+        "worst_stage": "post_td_clip"
+      }
+    ],
+    "stage_summary": {
+      "post_team_volume_reconcile": {
+        "mean_delta_from_raw": -2.364
+      },
+      "post_td_clip": {
+        "mean_delta_from_raw": -2.722
+      },
+      "final_shipped": {
+        "mean_delta_from_raw": -2.722
+      }
+    }
+  },
+  "track3_td_variants": [
+    {
+      "variant": "baseline",
+      "name": "baseline",
+      "qb_rush_td_clip_hi": null,
+      "qb_pass_td_t1_lite": false,
+      "holdout": {
+        "starter_depth_tier_1": {
+          "rate_spearman": 0.2118,
+          "rate_mae": 4.179,
+          "mean_bias": -2.833,
+          "tier_hits": "6/12"
+        },
+        "starter_8plus_games": {
+          "rate_spearman": 0.1377,
+          "rate_mae": 4.156,
+          "mean_bias": -3.661,
+          "tier_hits": "7/12"
+        }
+      }
+    },
+    {
+      "variant": "t3b_008",
+      "name": "t3b_008",
+      "qb_rush_td_clip_hi": 0.08,
+      "qb_pass_td_t1_lite": false,
+      "holdout": {
+        "starter_depth_tier_1": {
+          "rate_spearman": 0.2591,
+          "rate_mae": 3.979,
+          "mean_bias": -2.588,
+          "tier_hits": "6/12"
+        },
+        "starter_8plus_games": {
+          "rate_spearman": 0.2169,
+          "rate_mae": 3.945,
+          "mean_bias": -3.443,
+          "tier_hits": "7/12"
+        }
+      }
+    },
+    {
+      "variant": "t3b_010",
+      "name": "t3b_010",
+      "qb_rush_td_clip_hi": 0.1,
+      "qb_pass_td_t1_lite": false,
+      "holdout": {
+        "starter_depth_tier_1": {
+          "rate_spearman": 0.2591,
+          "rate_mae": 3.976,
+          "mean_bias": -2.585,
+          "tier_hits": "6/12"
+        },
+        "starter_8plus_games": {
+          "rate_spearman": 0.2169,
+          "rate_mae": 3.941,
+          "mean_bias": -3.44,
+          "tier_hits": "7/12"
+        }
+      }
+    },
+    {
+      "variant": "t1_lite",
+      "name": "t1_lite",
+      "qb_rush_td_clip_hi": null,
+      "qb_pass_td_t1_lite": true,
+      "holdout": {
+        "starter_depth_tier_1": {
+          "rate_spearman": 0.2118,
+          "rate_mae": 4.179,
+          "mean_bias": -2.833,
+          "tier_hits": "6/12"
+        },
+        "starter_8plus_games": {
+          "rate_spearman": 0.1377,
+          "rate_mae": 4.156,
+          "mean_bias": -3.661,
+          "tier_hits": "7/12"
+        }
+      }
+    },
+    {
+      "variant": "t3b010_t1",
+      "name": "t3b010_t1",
+      "qb_rush_td_clip_hi": 0.1,
+      "qb_pass_td_t1_lite": true,
+      "holdout": {
+        "starter_depth_tier_1": {
+          "rate_spearman": 0.2591,
+          "rate_mae": 3.976,
+          "mean_bias": -2.585,
+          "tier_hits": "6/12"
+        },
+        "starter_8plus_games": {
+          "rate_spearman": 0.2169,
+          "rate_mae": 3.941,
+          "mean_bias": -3.44,
+          "tier_hits": "7/12"
+        }
+      }
+    }
+  ],
+  "track4_depth_audit": {
+    "flags": [
+      {
+        "team": "CIN",
+        "curated_qb1": "Joe Burrow",
+        "curated_qb1_gsis": "00-0036442",
+        "usage_leader_2025": "00-0026158",
+        "usage_leader_gsis": "00-0026158",
+        "leader_attempts": 436,
+        "severity": "review"
+      },
+      {
+        "team": "LV",
+        "curated_qb1": "Kirk Cousins",
+        "curated_qb1_gsis": "00-0029604",
+        "usage_leader_2025": "00-0030565",
+        "usage_leader_gsis": "00-0030565",
+        "leader_attempts": 505,
+        "severity": "review"
+      },
+      {
+        "team": "MIA",
+        "curated_qb1": "Malik Willis",
+        "curated_qb1_gsis": "00-0038128",
+        "usage_leader_2025": "00-0036212",
+        "usage_leader_gsis": "00-0036212",
+        "leader_attempts": 417,
+        "severity": "review"
+      },
+      {
+        "team": "MIN",
+        "curated_qb1": "Kyler Murray",
+        "curated_qb1_gsis": "00-0035228",
+        "usage_leader_2025": "00-0039923",
+        "usage_leader_gsis": "00-0039923",
+        "leader_attempts": 273,
+        "severity": "review"
+      },
+      {
+        "team": "NYJ",
+        "curated_qb1": "Geno Smith",
+        "curated_qb1_gsis": "00-0030565",
+        "usage_leader_2025": "00-0036945",
+        "usage_leader_gsis": "00-0036945",
+        "leader_attempts": 235,
+        "severity": "review"
+      },
+      {
+        "team": "SF",
+        "curated_qb1": "Brock Purdy",
+        "curated_qb1_gsis": "00-0037834",
+        "usage_leader_2025": "00-0036972",
+        "usage_leader_gsis": "00-0036972",
+        "leader_attempts": 307,
+        "severity": "review"
+      },
+      {
+        "team": "WAS",
+        "curated_qb1": "Jayden Daniels",
+        "curated_qb1_gsis": "00-0039910",
+        "usage_leader_2025": "00-0032268",
+        "usage_leader_gsis": "00-0032268",
+        "leader_attempts": 246,
+        "severity": "review"
+      }
+    ],
+    "fix_applied": false
+  },
+  "track5_injury_prior": [
+    {
+      "variant": "baseline",
+      "holdout": {
+        "starter_depth_tier_1": {
+          "rate_spearman": 0.2118,
+          "rate_mae": 4.179,
+          "mean_bias": -2.833,
+          "tier_hits": "6/12"
+        },
+        "starter_8plus_games": {
+          "rate_spearman": 0.1377,
+          "rate_mae": 4.156,
+          "mean_bias": -3.661,
+          "tier_hits": "7/12"
+        }
+      },
+      "partial_2024_cases": [
+        {
+          "display_name": "Lamar Jackson",
+          "player_id": "00-0034796",
+          "source_2024_games": 17.0,
+          "actual_rate_ppg": 16.835,
+          "model_rate_ppg": 17.068,
+          "bias_ppg": 0.232
+        },
+        {
+          "display_name": "Joe Burrow",
+          "player_id": "00-0036442",
+          "source_2024_games": 17.0,
+          "actual_rate_ppg": 16.808,
+          "model_rate_ppg": 16.539,
+          "bias_ppg": -0.269
+        }
+      ]
+    },
+    {
+      "variant": "partial_prior_shrink",
+      "holdout": {
+        "starter_depth_tier_1": {
+          "rate_spearman": 0.2296,
+          "rate_mae": 4.134,
+          "mean_bias": -2.788,
+          "tier_hits": "6/12"
+        },
+        "starter_8plus_games": {
+          "rate_spearman": 0.1562,
+          "rate_mae": 4.105,
+          "mean_bias": -3.609,
+          "tier_hits": "7/12"
+        }
+      },
+      "partial_2024_cases": [
+        {
+          "display_name": "Lamar Jackson",
+          "player_id": "00-0034796",
+          "source_2024_games": 17.0,
+          "actual_rate_ppg": 16.835,
+          "model_rate_ppg": 17.068,
+          "bias_ppg": 0.232
+        },
+        {
+          "display_name": "Joe Burrow",
+          "player_id": "00-0036442",
+          "source_2024_games": 17.0,
+          "actual_rate_ppg": 16.808,
+          "model_rate_ppg": 16.432,
+          "bias_ppg": -0.375
+        }
+      ]
+    }
+  ],
+  "recommendation": {
+    "primary_track": "track3_td_t3b_010",
+    "rationale": "Best holdout TD variant: t3b_010. Recommend ship T3b (0.08-0.10 rush clip) + Track 1 starter dashboard + Track 4 ARI depth fix; evaluate partial-prior shrink separately on Lamar/Burrow cases.",
+    "elite_under_rank_2026": 0
+  }
+}

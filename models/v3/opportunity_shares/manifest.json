@@ -1,0 +1,2948 @@
+{
+  "rooms": {
+    "ARI:QB:attempts": {
+      "share": 0.10048201222582799,
+      "concentration": 32.0
+    },
+    "ARI:QB:carries": {
+      "share": 0.014438358667741093,
+      "concentration": 32.0
+    },
+    "ARI:QB:completions": {
+      "share": 0.06730849045661932,
+      "concentration": 32.0
+    },
+    "ARI:QB:interceptions": {
+      "share": 0.001847713550761581,
+      "concentration": 32.0
+    },
+    "ARI:QB:passing_tds": {
+      "share": 0.00401462363773129,
+      "concentration": 32.0
+    },
+    "ARI:QB:passing_yards": {
+      "share": 0.7037349571806149,
+      "concentration": 32.0
+    },
+    "ARI:QB:rushing_tds": {
+      "share": 0.0007584872021650991,
+      "concentration": 32.0
+    },
+    "ARI:QB:rushing_yards": {
+      "share": 0.10741535707853869,
+      "concentration": 32.0
+    },
+    "ARI:RB:carries": {
+      "share": 0.13096978552280492,
+      "concentration": 56.0
+    },
+    "ARI:RB:receiving_tds": {
+      "share": 0.0008765822080780809,
+      "concentration": 56.0
+    },
+    "ARI:RB:receiving_yards": {
+      "share": 0.19370367574630276,
+      "concentration": 56.0
+    },
+    "ARI:RB:receptions": {
+      "share": 0.028516064032885036,
+      "concentration": 56.0
+    },
+    "ARI:RB:rushing_tds": {
+      "share": 0.004329064390789771,
+      "concentration": 56.0
+    },
+    "ARI:RB:rushing_yards": {
+      "share": 0.6077923340036294,
+      "concentration": 56.0
+    },
+    "ARI:RB:targets": {
+      "share": 0.03381249409551007,
+      "concentration": 56.0
+    },
+    "ARI:TE:receiving_tds": {
+      "share": 0.00572560331233576,
+      "concentration": 40.0
+    },
+    "ARI:TE:receiving_yards": {
+      "share": 0.8024537514494323,
+      "concentration": 40.0
+    },
+    "ARI:TE:receptions": {
+      "share": 0.08139866492715057,
+      "concentration": 40.0
+    },
+    "ARI:TE:targets": {
+      "share": 0.11042198031108132,
+      "concentration": 40.0
+    },
+    "ARI:WR:receiving_tds": {
+      "share": 0.0042435397742189174,
+      "concentration": 56.0
+    },
+    "ARI:WR:receiving_yards": {
+      "share": 0.8302702167447651,
+      "concentration": 56.0
+    },
+    "ARI:WR:receptions": {
+      "share": 0.06325722721333352,
+      "concentration": 56.0
+    },
+    "ARI:WR:targets": {
+      "share": 0.10222901626768245,
+      "concentration": 56.0
+    },
+    "ATL:QB:attempts": {
+      "share": 0.10776359429073322,
+      "concentration": 32.0
+    },
+    "ATL:QB:carries": {
+      "share": 0.010999494912965575,
+      "concentration": 32.0
+    },
+    "ATL:QB:completions": {
+      "share": 0.06808033647020945,
+      "concentration": 32.0
+    },
+    "ATL:QB:interceptions": {
+      "share": 0.002382801180879058,
+      "concentration": 32.0
+    },
+    "ATL:QB:passing_tds": {
+      "share": 0.004067869396505743,
+      "concentration": 32.0
+    },
+    "ATL:QB:passing_yards": {
+      "share": 0.772846264863127,
+      "concentration": 32.0
+    },
+    "ATL:QB:rushing_tds": {
+      "share": 0.000433841046808749,
+      "concentration": 32.0
+    },
+    "ATL:QB:rushing_yards": {
+      "share": 0.03342579783877131,
+      "concentration": 32.0
+    },
+    "ATL:RB:carries": {
+      "share": 0.13785696745498358,
+      "concentration": 42.0
+    },
+    "ATL:RB:receiving_tds": {
+      "share": 0.0007812796294507791,
+      "concentration": 42.0
+    },
+    "ATL:RB:receiving_yards": {
+      "share": 0.18464776968615146,
+      "concentration": 42.0
+    },
+    "ATL:RB:receptions": {
+      "share": 0.02452931724586412,
+      "concentration": 42.0
+    },
+    "ATL:RB:rushing_tds": {
+      "share": 0.005685148485716199,
+      "concentration": 42.0
+    },
+    "ATL:RB:rushing_yards": {
+      "share": 0.611834105914173,
+      "concentration": 42.0
+    },
+    "ATL:RB:targets": {
+      "share": 0.03466541158366086,
+      "concentration": 42.0
+    },
+    "ATL:TE:receiving_tds": {
+      "share": 0.0046351529409215265,
+      "concentration": 40.0
+    },
+    "ATL:TE:receiving_yards": {
+      "share": 0.8211303894166576,
+      "concentration": 40.0
+    },
+    "ATL:TE:receptions": {
+      "share": 0.07200031471204317,
+      "concentration": 40.0
+    },
+    "ATL:TE:targets": {
+      "share": 0.10223414293037777,
+      "concentration": 40.0
+    },
+    "ATL:WR:receiving_tds": {
+      "share": 0.004437050004535945,
+      "concentration": 56.0
+    },
+    "ATL:WR:receiving_yards": {
+      "share": 0.8285044340155415,
+      "concentration": 56.0
+    },
+    "ATL:WR:receptions": {
+      "share": 0.06479606574948005,
+      "concentration": 56.0
+    },
+    "ATL:WR:targets": {
+      "share": 0.10226245023044246,
+      "concentration": 56.0
+    },
+    "BAL:QB:attempts": {
+      "share": 0.09157867604221247,
+      "concentration": 48.0
+    },
+    "BAL:QB:carries": {
+      "share": 0.021254399401642834,
+      "concentration": 48.0
+    },
+    "BAL:QB:completions": {
+      "share": 0.0617036724294322,
+      "concentration": 48.0
+    },
+    "BAL:QB:interceptions": {
+      "share": 0.0017722530764392526,
+      "concentration": 48.0
+    },
+    "BAL:QB:passing_tds": {
+      "share": 0.0045990861004804135,
+      "concentration": 48.0
+    },
+    "BAL:QB:passing_yards": {
+      "share": 0.7078709033871554,
+      "concentration": 48.0
+    },
+    "BAL:QB:rushing_tds": {
+      "share": 0.000942637606034304,
+      "concentration": 48.0
+    },
+    "BAL:QB:rushing_yards": {
+      "share": 0.11027837195660306,
+      "concentration": 48.0
+    },
+    "BAL:RB:carries": {
+      "share": 0.12413124693901995,
+      "concentration": 84.0
+    },
+    "BAL:RB:receiving_tds": {
+      "share": 0.001316635372971767,
+      "concentration": 84.0
+    },
+    "BAL:RB:receiving_yards": {
+      "share": 0.1879372957437736,
+      "concentration": 84.0
+    },
+    "BAL:RB:receptions": {
+      "share": 0.02465380821096621,
+      "concentration": 84.0
+    },
+    "BAL:RB:rushing_tds": {
+      "share": 0.004121719065397851,
+      "concentration": 84.0
+    },
+    "BAL:RB:rushing_yards": {
+      "share": 0.626709481084151,
+      "concentration": 84.0
+    },
+    "BAL:RB:targets": {
+      "share": 0.03112981358371967,
+      "concentration": 84.0
+    },
+    "BAL:TE:receiving_tds": {
+      "share": 0.006395580298719248,
+      "concentration": 24.0
+    },
+    "BAL:TE:receiving_yards": {
+      "share": 0.843673712866095,
+      "concentration": 24.0
+    },
+    "BAL:TE:receptions": {
+      "share": 0.06324355592233137,
+      "concentration": 24.0
+    },
+    "BAL:TE:targets": {
+      "share": 0.08668715091285441,
+      "concentration": 24.0
+    },
+    "BAL:WR:receiving_tds": {
+      "share": 0.0046154948548270385,
+      "concentration": 56.0
+    },
+    "BAL:WR:receiving_yards": {
+      "share": 0.8247619143554545,
+      "concentration": 56.0
+    },
+    "BAL:WR:receptions": {
+      "share": 0.06794109103038042,
+      "concentration": 56.0
+    },
+    "BAL:WR:targets": {
+      "share": 0.10268149975933787,
+      "concentration": 56.0
+    },
+    "BUF:QB:attempts": {
+      "share": 0.1005456291317309,
+      "concentration": 32.0
+    },
+    "BUF:QB:carries": {
+      "share": 0.01746573352272832,
+      "concentration": 32.0
+    },
+    "BUF:QB:completions": {
+      "share": 0.06562089072128836,
+      "concentration": 32.0
+    },
+    "BUF:QB:interceptions": {
+      "share": 0.0019340971235895423,
+      "concentration": 32.0
+    },
+    "BUF:QB:passing_tds": {
+      "share": 0.003906891296009742,
+      "concentration": 32.0
+    },
+    "BUF:QB:passing_yards": {
+      "share": 0.7263895699959159,
+      "concentration": 32.0
+    },
+    "BUF:QB:rushing_tds": {
+      "share": 0.0011855761478635413,
+      "concentration": 32.0
+    },
+    "BUF:QB:rushing_yards": {
+      "share": 0.08295161206087388,
+      "concentration": 32.0
+    },
+    "BUF:RB:carries": {
+      "share": 0.13066482125875603,
+      "concentration": 42.0
+    },
+    "BUF:RB:receiving_tds": {
+      "share": 0.0007724465091517957,
+      "concentration": 42.0
+    },
+    "BUF:RB:receiving_yards": {
+      "share": 0.22329561504247697,
+      "concentration": 42.0
+    },
+    "BUF:RB:receptions": {
+      "share": 0.025953580552873123,
+      "concentration": 42.0
+    },
+    "BUF:RB:rushing_tds": {
+      "share": 0.004634172711185139,
+      "concentration": 42.0
+    },
+    "BUF:RB:rushing_yards": {
+      "share": 0.5846522552000486,
+      "concentration": 42.0
+    },
+    "BUF:RB:targets": {
+      "share": 0.030027108725508424,
+      "concentration": 42.0
+    },
+    "BUF:TE:receiving_tds": {
+      "share": 0.00563862991102405,
+      "concentration": 32.0
+    },
+    "BUF:TE:receiving_yards": {
+      "share": 0.823227157276851,
+      "concentration": 32.0
+    },
+    "BUF:TE:receptions": {
+      "share": 0.06971012816962756,
+      "concentration": 32.0
+    },
+    "BUF:TE:targets": {
+      "share": 0.10142408464249734,
+      "concentration": 32.0
+    },
+    "BUF:WR:receiving_tds": {
+      "share": 0.004383076741550204,
+      "concentration": 72.0
+    },
+    "BUF:WR:receiving_yards": {
+      "share": 0.8164783985355138,
+      "concentration": 72.0
+    },
+    "BUF:WR:receptions": {
+      "share": 0.06955796248686685,
+      "concentration": 72.0
+    },
+    "BUF:WR:targets": {
+      "share": 0.10958056223606907,
+      "concentration": 72.0
+    },
+    "CAR:QB:attempts": {
+      "share": 0.11547984282203357,
+      "concentration": 48.0
+    },
+    "CAR:QB:carries": {
+      "share": 0.011698033302229939,
+      "concentration": 48.0
+    },
+    "CAR:QB:completions": {
+      "share": 0.07073387172968279,
+      "concentration": 48.0
+    },
+    "CAR:QB:interceptions": {
+      "share": 0.002492923746869636,
+      "concentration": 48.0
+    },
+    "CAR:QB:passing_tds": {
+      "share": 0.003928556618094888,
+      "concentration": 48.0
+    },
+    "CAR:QB:passing_yards": {
+      "share": 0.7524924751823083,
+      "concentration": 48.0
+    },
+    "CAR:QB:rushing_tds": {
+      "share": 0.0009134410843359894,
+      "concentration": 48.0
+    },
+    "CAR:QB:rushing_yards": {
+      "share": 0.042260855514444896,
+      "concentration": 48.0
+    },
+    "CAR:RB:carries": {
+      "share": 0.13067914133831643,
+      "concentration": 70.0
+    },
+    "CAR:RB:receiving_tds": {
+      "share": 0.0010899812049401751,
+      "concentration": 70.0
+    },
+    "CAR:RB:receiving_yards": {
+      "share": 0.22990007689322914,
+      "concentration": 70.0
+    },
+    "CAR:RB:receptions": {
+      "share": 0.030014881003676403,
+      "concentration": 70.0
+    },
+    "CAR:RB:rushing_tds": {
+      "share": 0.006737168914922358,
+      "concentration": 70.0
+    },
+    "CAR:RB:rushing_yards": {
+      "share": 0.5633603670612178,
+      "concentration": 70.0
+    },
+    "CAR:RB:targets": {
+      "share": 0.03821838358369782,
+      "concentration": 70.0
+    },
+    "CAR:TE:receiving_tds": {
+      "share": 0.004147360454748021,
+      "concentration": 40.0
+    },
+    "CAR:TE:receiving_yards": {
+      "share": 0.814546245078759,
+      "concentration": 40.0
+    },
+    "CAR:TE:receptions": {
+      "share": 0.07330598539381888,
+      "concentration": 40.0
+    },
+    "CAR:TE:targets": {
+      "share": 0.10800040907267408,
+      "concentration": 40.0
+    },
+    "CAR:WR:receiving_tds": {
+      "share": 0.0043942370305414665,
+      "concentration": 72.0
+    },
+    "CAR:WR:receiving_yards": {
+      "share": 0.811326132292235,
+      "concentration": 72.0
+    },
+    "CAR:WR:receptions": {
+      "share": 0.0676550498316269,
+      "concentration": 72.0
+    },
+    "CAR:WR:targets": {
+      "share": 0.1166245808455966,
+      "concentration": 72.0
+    },
+    "CHI:QB:attempts": {
+      "share": 0.10544998611777885,
+      "concentration": 32.0
+    },
+    "CHI:QB:carries": {
+      "share": 0.013736017433863656,
+      "concentration": 32.0
+    },
+    "CHI:QB:completions": {
+      "share": 0.0662893668010161,
+      "concentration": 32.0
+    },
+    "CHI:QB:interceptions": {
+      "share": 0.002548558464211504,
+      "concentration": 32.0
+    },
+    "CHI:QB:passing_tds": {
+      "share": 0.00383415204815906,
+      "concentration": 32.0
+    },
+    "CHI:QB:passing_yards": {
+      "share": 0.7308586294166479,
+      "concentration": 32.0
+    },
+    "CHI:QB:rushing_tds": {
+      "share": 0.0008083892818545708,
+      "concentration": 32.0
+    },
+    "CHI:QB:rushing_yards": {
+      "share": 0.07647490043646825,
+      "concentration": 32.0
+    },
+    "CHI:RB:carries": {
+      "share": 0.1477293232492079,
+      "concentration": 70.0
+    },
+    "CHI:RB:receiving_tds": {
+      "share": 0.0005818084526884737,
+      "concentration": 70.0
+    },
+    "CHI:RB:receiving_yards": {
+      "share": 0.1883346101623815,
+      "concentration": 70.0
+    },
+    "CHI:RB:receptions": {
+      "share": 0.026753238123141402,
+      "concentration": 70.0
+    },
+    "CHI:RB:rushing_tds": {
+      "share": 0.0038507178989456085,
+      "concentration": 70.0
+    },
+    "CHI:RB:rushing_yards": {
+      "share": 0.599594839553288,
+      "concentration": 70.0
+    },
+    "CHI:RB:targets": {
+      "share": 0.033155462560347064,
+      "concentration": 70.0
+    },
+    "CHI:TE:receiving_tds": {
+      "share": 0.004463904212475186,
+      "concentration": 24.0
+    },
+    "CHI:TE:receiving_yards": {
+      "share": 0.8033061620800178,
+      "concentration": 24.0
+    },
+    "CHI:TE:receptions": {
+      "share": 0.07874768981718339,
+      "concentration": 24.0
+    },
+    "CHI:TE:targets": {
+      "share": 0.11348224389032355,
+      "concentration": 24.0
+    },
+    "CHI:WR:receiving_tds": {
+      "share": 0.0045619743281607025,
+      "concentration": 56.0
+    },
+    "CHI:WR:receiving_yards": {
+      "share": 0.8253822374993353,
+      "concentration": 56.0
+    },
+    "CHI:WR:receptions": {
+      "share": 0.0641730592694822,
+      "concentration": 56.0
+    },
+    "CHI:WR:targets": {
+      "share": 0.10588272890302185,
+      "concentration": 56.0
+    },
+    "CIN:QB:attempts": {
+      "share": 0.10465546370338905,
+      "concentration": 32.0
+    },
+    "CIN:QB:carries": {
+      "share": 0.008834550663606925,
+      "concentration": 32.0
+    },
+    "CIN:QB:completions": {
+      "share": 0.06929956842833729,
+      "concentration": 32.0
+    },
+    "CIN:QB:interceptions": {
+      "share": 0.0019366153077600024,
+      "concentration": 32.0
+    },
+    "CIN:QB:passing_tds": {
+      "share": 0.005146430780165015,
+      "concentration": 32.0
+    },
+    "CIN:QB:passing_yards": {
+      "share": 0.7737411783469323,
+      "concentration": 32.0
+    },
+    "CIN:QB:rushing_tds": {
+      "share": 0.0002974717146701599,
+      "concentration": 32.0
+    },
+    "CIN:QB:rushing_yards": {
+      "share": 0.03608872105513933,
+      "concentration": 32.0
+    },
+    "CIN:RB:carries": {
+      "share": 0.12707625324576008,
+      "concentration": 56.0
+    },
+    "CIN:RB:receiving_tds": {
+      "share": 0.0015464323415918348,
+      "concentration": 56.0
+    },
+    "CIN:RB:receiving_yards": {
+      "share": 0.25320292383611714,
+      "concentration": 56.0
+    },
+    "CIN:RB:receptions": {
+      "share": 0.02938615813866158,
+      "concentration": 56.0
+    },
+    "CIN:RB:rushing_tds": {
+      "share": 0.003720946296572093,
+      "concentration": 56.0
+    },
+    "CIN:RB:rushing_yards": {
+      "share": 0.5509535974131933,
+      "concentration": 56.0
+    },
+    "CIN:RB:targets": {
+      "share": 0.03411368872810384,
+      "concentration": 56.0
+    },
+    "CIN:TE:receiving_tds": {
+      "share": 0.004371087991640303,
+      "concentration": 48.0
+    },
+    "CIN:TE:receiving_yards": {
+      "share": 0.7889600633428272,
+      "concentration": 48.0
+    },
+    "CIN:TE:receptions": {
+      "share": 0.08603828853517749,
+      "concentration": 48.0
+    },
+    "CIN:TE:targets": {
+      "share": 0.12063056013035499,
+      "concentration": 48.0
+    },
+    "CIN:WR:receiving_tds": {
+      "share": 0.006033117439510577,
+      "concentration": 56.0
+    },
+    "CIN:WR:receiving_yards": {
+      "share": 0.8335149537250294,
+      "concentration": 56.0
+    },
+    "CIN:WR:receptions": {
+      "share": 0.06251992601601884,
+      "concentration": 56.0
+    },
+    "CIN:WR:targets": {
+      "share": 0.09793200281944124,
+      "concentration": 56.0
+    },
+    "CLE:QB:attempts": {
+      "share": 0.1033561403840351,
+      "concentration": 80.0
+    },
+    "CLE:QB:carries": {
+      "share": 0.02052901647377388,
+      "concentration": 80.0
+    },
+    "CLE:QB:completions": {
+      "share": 0.06540517215590325,
+      "concentration": 80.0
+    },
+    "CLE:QB:interceptions": {
+      "share": 0.0023383899240719593,
+      "concentration": 80.0
+    },
+    "CLE:QB:passing_tds": {
+      "share": 0.0042939434671665595,
+      "concentration": 80.0
+    },
+    "CLE:QB:passing_yards": {
+      "share": 0.6988480260165763,
+      "concentration": 80.0
+    },
+    "CLE:QB:rushing_tds": {
+      "share": 0.00043753155700672255,
+      "concentration": 80.0
+    },
+    "CLE:QB:rushing_yards": {
+      "share": 0.10479178002146614,
+      "concentration": 80.0
+    },
+    "CLE:RB:carries": {
+      "share": 0.12704795629781004,
+      "concentration": 84.0
+    },
+    "CLE:RB:receiving_tds": {
+      "share": 0.0011874265524401406,
+      "concentration": 84.0
+    },
+    "CLE:RB:receiving_yards": {
+      "share": 0.25492764135083085,
+      "concentration": 84.0
+    },
+    "CLE:RB:receptions": {
+      "share": 0.030426250582767697,
+      "concentration": 84.0
+    },
+    "CLE:RB:rushing_tds": {
+      "share": 0.0038704507946209607,
+      "concentration": 84.0
+    },
+    "CLE:RB:rushing_yards": {
+      "share": 0.5419208596227585,
+      "concentration": 84.0
+    },
+    "CLE:RB:targets": {
+      "share": 0.04061941479877191,
+      "concentration": 84.0
+    },
+    "CLE:TE:receiving_tds": {
+      "share": 0.005346728248809507,
+      "concentration": 32.0
+    },
+    "CLE:TE:receiving_yards": {
+      "share": 0.7941492128842776,
+      "concentration": 32.0
+    },
+    "CLE:TE:receptions": {
+      "share": 0.08162569739672591,
+      "concentration": 32.0
+    },
+    "CLE:TE:targets": {
+      "share": 0.11887836147018703,
+      "concentration": 32.0
+    },
+    "CLE:WR:receiving_tds": {
+      "share": 0.005241789395654629,
+      "concentration": 80.0
+    },
+    "CLE:WR:receiving_yards": {
+      "share": 0.8228403767894783,
+      "concentration": 80.0
+    },
+    "CLE:WR:receptions": {
+      "share": 0.06540352193491404,
+      "concentration": 80.0
+    },
+    "CLE:WR:targets": {
+      "share": 0.10651431187995292,
+      "concentration": 80.0
+    },
+    "DAL:QB:attempts": {
+      "share": 0.11222790382758105,
+      "concentration": 32.0
+    },
+    "DAL:QB:carries": {
+      "share": 0.009989674609050847,
+      "concentration": 32.0
+    },
+    "DAL:QB:completions": {
+      "share": 0.07182717922378838,
+      "concentration": 32.0
+    },
+    "DAL:QB:interceptions": {
+      "share": 0.002446764724732846,
+      "concentration": 32.0
+    },
+    "DAL:QB:passing_tds": {
+      "share": 0.00467719605001541,
+      "concentration": 32.0
+    },
+    "DAL:QB:passing_yards": {
+      "share": 0.7744558002175601,
+      "concentration": 32.0
+    },
+    "DAL:QB:rushing_tds": {
+      "share": 0.0004513499235111163,
+      "concentration": 32.0
+    },
+    "DAL:QB:rushing_yards": {
+      "share": 0.02392413142376015,
+      "concentration": 32.0
+    },
+    "DAL:RB:carries": {
+      "share": 0.13661398777510203,
+      "concentration": 56.0
+    },
+    "DAL:RB:receiving_tds": {
+      "share": 0.001024289829751311,
+      "concentration": 56.0
+    },
+    "DAL:RB:receiving_yards": {
+      "share": 0.2266114141206755,
+      "concentration": 56.0
+    },
+    "DAL:RB:receptions": {
+      "share": 0.02795633913765392,
+      "concentration": 56.0
+    },
+    "DAL:RB:rushing_tds": {
+      "share": 0.0031959132318734864,
+      "concentration": 56.0
+    },
+    "DAL:RB:rushing_yards": {
+      "share": 0.5713153028170489,
+      "concentration": 56.0
+    },
+    "DAL:RB:targets": {
+      "share": 0.033282753087894766,
+      "concentration": 56.0
+    },
+    "DAL:TE:receiving_tds": {
+      "share": 0.004062456006009351,
+      "concentration": 40.0
+    },
+    "DAL:TE:receiving_yards": {
+      "share": 0.7914454471107449,
+      "concentration": 40.0
+    },
+    "DAL:TE:receptions": {
+      "share": 0.08154711006040888,
+      "concentration": 40.0
+    },
+    "DAL:TE:targets": {
+      "share": 0.12294498682283675,
+      "concentration": 40.0
+    },
+    "DAL:WR:receiving_tds": {
+      "share": 0.005390205610896303,
+      "concentration": 72.0
+    },
+    "DAL:WR:receiving_yards": {
+      "share": 0.8183120012917096,
+      "concentration": 72.0
+    },
+    "DAL:WR:receptions": {
+      "share": 0.06847326589206693,
+      "concentration": 72.0
+    },
+    "DAL:WR:targets": {
+      "share": 0.1078245272053272,
+      "concentration": 72.0
+    },
+    "DEN:QB:attempts": {
+      "share": 0.10278530566427901,
+      "concentration": 32.0
+    },
+    "DEN:QB:carries": {
+      "share": 0.016605312140811686,
+      "concentration": 32.0
+    },
+    "DEN:QB:completions": {
+      "share": 0.0645098746939328,
+      "concentration": 32.0
+    },
+    "DEN:QB:interceptions": {
+      "share": 0.001998083033830785,
+      "concentration": 32.0
+    },
+    "DEN:QB:passing_tds": {
+      "share": 0.004318564751291579,
+      "concentration": 32.0
+    },
+    "DEN:QB:passing_yards": {
+      "share": 0.7161740521414554,
+      "concentration": 32.0
+    },
+    "DEN:QB:rushing_tds": {
+      "share": 0.0008132449786823412,
+      "concentration": 32.0
+    },
+    "DEN:QB:rushing_yards": {
+      "share": 0.09279556259571652,
+      "concentration": 32.0
+    },
+    "DEN:RB:carries": {
+      "share": 0.13706914424529554,
+      "concentration": 56.0
+    },
+    "DEN:RB:receiving_tds": {
+      "share": 0.001011120563523379,
+      "concentration": 56.0
+    },
+    "DEN:RB:receiving_yards": {
+      "share": 0.2077976814763634,
+      "concentration": 56.0
+    },
+    "DEN:RB:receptions": {
+      "share": 0.028606612934132657,
+      "concentration": 56.0
+    },
+    "DEN:RB:rushing_tds": {
+      "share": 0.004455522448433709,
+      "concentration": 56.0
+    },
+    "DEN:RB:rushing_yards": {
+      "share": 0.5867437744804231,
+      "concentration": 56.0
+    },
+    "DEN:RB:targets": {
+      "share": 0.034316143851828206,
+      "concentration": 56.0
+    },
+    "DEN:TE:receiving_tds": {
+      "share": 0.0049920365516148615,
+      "concentration": 40.0
+    },
+    "DEN:TE:receiving_yards": {
+      "share": 0.8106902348729684,
+      "concentration": 40.0
+    },
+    "DEN:TE:receptions": {
+      "share": 0.07324337047244804,
+      "concentration": 40.0
+    },
+    "DEN:TE:targets": {
+      "share": 0.11107435810296858,
+      "concentration": 40.0
+    },
+    "DEN:WR:receiving_tds": {
+      "share": 0.005174611567269968,
+      "concentration": 40.0
+    },
+    "DEN:WR:receiving_yards": {
+      "share": 0.8245516297530338,
+      "concentration": 40.0
+    },
+    "DEN:WR:receptions": {
+      "share": 0.06390705687643522,
+      "concentration": 40.0
+    },
+    "DEN:WR:targets": {
+      "share": 0.10636670180326105,
+      "concentration": 40.0
+    },
+    "DET:QB:attempts": {
+      "share": 0.1046623645294958,
+      "concentration": 32.0
+    },
+    "DET:QB:carries": {
+      "share": 0.006638625544862492,
+      "concentration": 32.0
+    },
+    "DET:QB:completions": {
+      "share": 0.0707420813889346,
+      "concentration": 32.0
+    },
+    "DET:QB:interceptions": {
+      "share": 0.0021752815629672195,
+      "concentration": 32.0
+    },
+    "DET:QB:passing_tds": {
+      "share": 0.004873451292406782,
+      "concentration": 32.0
+    },
+    "DET:QB:passing_yards": {
+      "share": 0.7916847358764676,
+      "concentration": 32.0
+    },
+    "DET:QB:rushing_tds": {
+      "share": 0.0001117345198345805,
+      "concentration": 32.0
+    },
+    "DET:QB:rushing_yards": {
+      "share": 0.019111725285030825,
+      "concentration": 32.0
+    },
+    "DET:RB:carries": {
+      "share": 0.12918750584296984,
+      "concentration": 70.0
+    },
+    "DET:RB:receiving_tds": {
+      "share": 0.0010890563912134088,
+      "concentration": 70.0
+    },
+    "DET:RB:receiving_yards": {
+      "share": 0.22818206522343176,
+      "concentration": 70.0
+    },
+    "DET:RB:receptions": {
+      "share": 0.032518156197926945,
+      "concentration": 70.0
+    },
+    "DET:RB:rushing_tds": {
+      "share": 0.00516922920106804,
+      "concentration": 70.0
+    },
+    "DET:RB:rushing_yards": {
+      "share": 0.5684682452917416,
+      "concentration": 70.0
+    },
+    "DET:RB:targets": {
+      "share": 0.03538574185164851,
+      "concentration": 70.0
+    },
+    "DET:TE:receiving_tds": {
+      "share": 0.006526068267041218,
+      "concentration": 40.0
+    },
+    "DET:TE:receiving_yards": {
+      "share": 0.8223681842712117,
+      "concentration": 40.0
+    },
+    "DET:TE:receptions": {
+      "share": 0.07150649628377699,
+      "concentration": 40.0
+    },
+    "DET:TE:targets": {
+      "share": 0.09959925117797004,
+      "concentration": 40.0
+    },
+    "DET:WR:receiving_tds": {
+      "share": 0.004910340154225898,
+      "concentration": 64.0
+    },
+    "DET:WR:receiving_yards": {
+      "share": 0.8352982565605007,
+      "concentration": 64.0
+    },
+    "DET:WR:receptions": {
+      "share": 0.06099547938683328,
+      "concentration": 64.0
+    },
+    "DET:WR:targets": {
+      "share": 0.09879592389844005,
+      "concentration": 64.0
+    },
+    "GB:QB:attempts": {
+      "share": 0.10706568025518168,
+      "concentration": 48.0
+    },
+    "GB:QB:carries": {
+      "share": 0.010548925076530422,
+      "concentration": 48.0
+    },
+    "GB:QB:completions": {
+      "share": 0.06561432805983224,
+      "concentration": 48.0
+    },
+    "GB:QB:interceptions": {
+      "share": 0.002249912651675274,
+      "concentration": 48.0
+    },
+    "GB:QB:passing_tds": {
+      "share": 0.004667418176588691,
+      "concentration": 48.0
+    },
+    "GB:QB:passing_yards": {
+      "share": 0.7813562513784359,
+      "concentration": 48.0
+    },
+    "GB:QB:rushing_tds": {
+      "share": 0.00038739771948795976,
+      "concentration": 48.0
+    },
+    "GB:QB:rushing_yards": {
+      "share": 0.02811008668226789,
+      "concentration": 48.0
+    },
+    "GB:RB:carries": {
+      "share": 0.13493261065919024,
+      "concentration": 56.0
+    },
+    "GB:RB:receiving_tds": {
+      "share": 0.0007081094856320537,
+      "concentration": 56.0
+    },
+    "GB:RB:receiving_yards": {
+      "share": 0.18520521950360463,
+      "concentration": 56.0
+    },
+    "GB:RB:receptions": {
+      "share": 0.02234186615827552,
+      "concentration": 56.0
+    },
+    "GB:RB:rushing_tds": {
+      "share": 0.0053918125108291595,
+      "concentration": 56.0
+    },
+    "GB:RB:rushing_yards": {
+      "share": 0.6193082867147489,
+      "concentration": 56.0
+    },
+    "GB:RB:targets": {
+      "share": 0.032112094967719516,
+      "concentration": 56.0
+    },
+    "GB:TE:receiving_tds": {
+      "share": 0.007128082216538348,
+      "concentration": 40.0
+    },
+    "GB:TE:receiving_yards": {
+      "share": 0.807837319123159,
+      "concentration": 40.0
+    },
+    "GB:TE:receptions": {
+      "share": 0.07552757401592944,
+      "concentration": 40.0
+    },
+    "GB:TE:targets": {
+      "share": 0.10950702464437308,
+      "concentration": 40.0
+    },
+    "GB:WR:receiving_tds": {
+      "share": 0.004386959966243546,
+      "concentration": 80.0
+    },
+    "GB:WR:receiving_yards": {
+      "share": 0.838021722900637,
+      "concentration": 80.0
+    },
+    "GB:WR:receptions": {
+      "share": 0.0591521461691373,
+      "concentration": 80.0
+    },
+    "GB:WR:targets": {
+      "share": 0.09843917096398211,
+      "concentration": 80.0
+    },
+    "HOU:QB:attempts": {
+      "share": 0.10887637445042794,
+      "concentration": 48.0
+    },
+    "HOU:QB:carries": {
+      "share": 0.008995311268335518,
+      "concentration": 48.0
+    },
+    "HOU:QB:completions": {
+      "share": 0.0697751845679233,
+      "concentration": 48.0
+    },
+    "HOU:QB:interceptions": {
+      "share": 0.0022190442842259426,
+      "concentration": 48.0
+    },
+    "HOU:QB:passing_tds": {
+      "share": 0.003877502362593632,
+      "concentration": 48.0
+    },
+    "HOU:QB:passing_yards": {
+      "share": 0.7690539777412554,
+      "concentration": 48.0
+    },
+    "HOU:QB:rushing_tds": {
+      "share": 0.0004368404944689364,
+      "concentration": 48.0
+    },
+    "HOU:QB:rushing_yards": {
+      "share": 0.03676576483076939,
+      "concentration": 48.0
+    },
+    "HOU:RB:carries": {
+      "share": 0.13483394141190166,
+      "concentration": 98.0
+    },
+    "HOU:RB:receiving_tds": {
+      "share": 0.0009488068582439007,
+      "concentration": 98.0
+    },
+    "HOU:RB:receiving_yards": {
+      "share": 0.21136121274500164,
+      "concentration": 98.0
+    },
+    "HOU:RB:receptions": {
+      "share": 0.02641164771753136,
+      "concentration": 98.0
+    },
+    "HOU:RB:rushing_tds": {
+      "share": 0.0047335404264667695,
+      "concentration": 98.0
+    },
+    "HOU:RB:rushing_yards": {
+      "share": 0.5865685577327293,
+      "concentration": 98.0
+    },
+    "HOU:RB:targets": {
+      "share": 0.03514229310812544,
+      "concentration": 98.0
+    },
+    "HOU:TE:receiving_tds": {
+      "share": 0.003957382923671312,
+      "concentration": 48.0
+    },
+    "HOU:TE:receiving_yards": {
+      "share": 0.7917251933337933,
+      "concentration": 48.0
+    },
+    "HOU:TE:receptions": {
+      "share": 0.08738217492452052,
+      "concentration": 48.0
+    },
+    "HOU:TE:targets": {
+      "share": 0.11693524881801477,
+      "concentration": 48.0
+    },
+    "HOU:WR:receiving_tds": {
+      "share": 0.0042746289582449816,
+      "concentration": 88.0
+    },
+    "HOU:WR:receiving_yards": {
+      "share": 0.8271625501398044,
+      "concentration": 88.0
+    },
+    "HOU:WR:receptions": {
+      "share": 0.0651426252575093,
+      "concentration": 88.0
+    },
+    "HOU:WR:targets": {
+      "share": 0.10342019564444133,
+      "concentration": 88.0
+    },
+    "IND:QB:attempts": {
+      "share": 0.09097164730898231,
+      "concentration": 48.0
+    },
+    "IND:QB:carries": {
+      "share": 0.033376067737460095,
+      "concentration": 48.0
+    },
+    "IND:QB:completions": {
+      "share": 0.05869614006820632,
+      "concentration": 48.0
+    },
+    "IND:QB:interceptions": {
+      "share": 0.001697465163387196,
+      "concentration": 48.0
+    },
+    "IND:QB:passing_tds": {
+      "share": 0.003863142980334927,
+      "concentration": 48.0
+    },
+    "IND:QB:passing_yards": {
+      "share": 0.6323937615510924,
+      "concentration": 48.0
+    },
+    "IND:QB:rushing_tds": {
+      "share": 0.0016588146231557037,
+      "concentration": 48.0
+    },
+    "IND:QB:rushing_yards": {
+      "share": 0.17734296056738097,
+      "concentration": 48.0
+    },
+    "IND:RB:carries": {
+      "share": 0.13873997348153824,
+      "concentration": 70.0
+    },
+    "IND:RB:receiving_tds": {
+      "share": 0.000717758628201766,
+      "concentration": 70.0
+    },
+    "IND:RB:receiving_yards": {
+      "share": 0.18435970715703548,
+      "concentration": 70.0
+    },
+    "IND:RB:receptions": {
+      "share": 0.023814668973222486,
+      "concentration": 70.0
+    },
+    "IND:RB:rushing_tds": {
+      "share": 0.003506339805463046,
+      "concentration": 70.0
+    },
+    "IND:RB:rushing_yards": {
+      "share": 0.6155484833881105,
+      "concentration": 70.0
+    },
+    "IND:RB:targets": {
+      "share": 0.033313068566428405,
+      "concentration": 70.0
+    },
+    "IND:TE:receiving_tds": {
+      "share": 0.004381219464903626,
+      "concentration": 40.0
+    },
+    "IND:TE:receiving_yards": {
+      "share": 0.8130560756942243,
+      "concentration": 40.0
+    },
+    "IND:TE:receptions": {
+      "share": 0.07530904680367012,
+      "concentration": 40.0
+    },
+    "IND:TE:targets": {
+      "share": 0.10725365803720179,
+      "concentration": 40.0
+    },
+    "IND:WR:receiving_tds": {
+      "share": 0.005485660485376917,
+      "concentration": 72.0
+    },
+    "IND:WR:receiving_yards": {
+      "share": 0.81904371213209,
+      "concentration": 72.0
+    },
+    "IND:WR:receptions": {
+      "share": 0.0699192930629673,
+      "concentration": 72.0
+    },
+    "IND:WR:targets": {
+      "share": 0.10555133431956577,
+      "concentration": 72.0
+    },
+    "JAX:QB:attempts": {
+      "share": 0.10916011644006898,
+      "concentration": 48.0
+    },
+    "JAX:QB:carries": {
+      "share": 0.010215599097889988,
+      "concentration": 48.0
+    },
+    "JAX:QB:completions": {
+      "share": 0.06833486756920311,
+      "concentration": 48.0
+    },
+    "JAX:QB:interceptions": {
+      "share": 0.002416884627247039,
+      "concentration": 48.0
+    },
+    "JAX:QB:passing_tds": {
+      "share": 0.004452215041837692,
+      "concentration": 48.0
+    },
+    "JAX:QB:passing_yards": {
+      "share": 0.7624510753806303,
+      "concentration": 48.0
+    },
+    "JAX:QB:rushing_tds": {
+      "share": 0.00032780357383499324,
+      "concentration": 48.0
+    },
+    "JAX:QB:rushing_yards": {
+      "share": 0.042641438269287825,
+      "concentration": 48.0
+    },
+    "JAX:RB:carries": {
+      "share": 0.14807396251532148,
+      "concentration": 70.0
+    },
+    "JAX:RB:receiving_tds": {
+      "share": 0.0005172397173466584,
+      "concentration": 70.0
+    },
+    "JAX:RB:receiving_yards": {
+      "share": 0.17014600366333302,
+      "concentration": 70.0
+    },
+    "JAX:RB:receptions": {
+      "share": 0.02235484418554655,
+      "concentration": 70.0
+    },
+    "JAX:RB:rushing_tds": {
+      "share": 0.004170852131028059,
+      "concentration": 70.0
+    },
+    "JAX:RB:rushing_yards": {
+      "share": 0.6276249296618699,
+      "concentration": 70.0
+    },
+    "JAX:RB:targets": {
+      "share": 0.0271121681255543,
+      "concentration": 70.0
+    },
+    "JAX:TE:receiving_tds": {
+      "share": 0.00476024891145227,
+      "concentration": 40.0
+    },
+    "JAX:TE:receiving_yards": {
+      "share": 0.7811278356205125,
+      "concentration": 40.0
+    },
+    "JAX:TE:receptions": {
+      "share": 0.0927639993244055,
+      "concentration": 40.0
+    },
+    "JAX:TE:targets": {
+      "share": 0.12134791614362962,
+      "concentration": 40.0
+    },
+    "JAX:WR:receiving_tds": {
+      "share": 0.005077742904239395,
+      "concentration": 72.0
+    },
+    "JAX:WR:receiving_yards": {
+      "share": 0.8226768388726605,
+      "concentration": 72.0
+    },
+    "JAX:WR:receptions": {
+      "share": 0.06521659484149901,
+      "concentration": 72.0
+    },
+    "JAX:WR:targets": {
+      "share": 0.10702882338160113,
+      "concentration": 72.0
+    },
+    "KC:QB:attempts": {
+      "share": 0.10801179351337302,
+      "concentration": 48.0
+    },
+    "KC:QB:carries": {
+      "share": 0.014292669836446852,
+      "concentration": 48.0
+    },
+    "KC:QB:completions": {
+      "share": 0.07200334545379583,
+      "concentration": 48.0
+    },
+    "KC:QB:interceptions": {
+      "share": 0.0019631069293142562,
+      "concentration": 48.0
+    },
+    "KC:QB:passing_tds": {
+      "share": 0.004783469011676892,
+      "concentration": 48.0
+    },
+    "KC:QB:passing_yards": {
+      "share": 0.7464845899886898,
+      "concentration": 48.0
+    },
+    "KC:QB:rushing_tds": {
+      "share": 0.0004409594712452039,
+      "concentration": 48.0
+    },
+    "KC:QB:rushing_yards": {
+      "share": 0.052020065795458086,
+      "concentration": 48.0
+    },
+    "KC:RB:carries": {
+      "share": 0.1565805887568857,
+      "concentration": 70.0
+    },
+    "KC:RB:receiving_tds": {
+      "share": 0.0004656394620633984,
+      "concentration": 70.0
+    },
+    "KC:RB:receiving_yards": {
+      "share": 0.14520150095421622,
+      "concentration": 70.0
+    },
+    "KC:RB:receptions": {
+      "share": 0.02081936237414544,
+      "concentration": 70.0
+    },
+    "KC:RB:rushing_tds": {
+      "share": 0.004852233138971809,
+      "concentration": 70.0
+    },
+    "KC:RB:rushing_yards": {
+      "share": 0.6447700439253292,
+      "concentration": 70.0
+    },
+    "KC:RB:targets": {
+      "share": 0.027310631388388247,
+      "concentration": 70.0
+    },
+    "KC:TE:receiving_tds": {
+      "share": 0.006649019200591767,
+      "concentration": 48.0
+    },
+    "KC:TE:receiving_yards": {
+      "share": 0.7939490166140261,
+      "concentration": 48.0
+    },
+    "KC:TE:receptions": {
+      "share": 0.08728756961785107,
+      "concentration": 48.0
+    },
+    "KC:TE:targets": {
+      "share": 0.11211439456753106,
+      "concentration": 48.0
+    },
+    "KC:WR:receiving_tds": {
+      "share": 0.004842446689440575,
+      "concentration": 64.0
+    },
+    "KC:WR:receiving_yards": {
+      "share": 0.8206142201764772,
+      "concentration": 64.0
+    },
+    "KC:WR:receptions": {
+      "share": 0.06854259912230472,
+      "concentration": 64.0
+    },
+    "KC:WR:targets": {
+      "share": 0.10600073401177751,
+      "concentration": 64.0
+    },
+    "LA:QB:attempts": {
+      "share": 0.11204527864639932,
+      "concentration": 32.0
+    },
+    "LA:QB:carries": {
+      "share": 0.006812687924429131,
+      "concentration": 32.0
+    },
+    "LA:QB:completions": {
+      "share": 0.07293437283752376,
+      "concentration": 32.0
+    },
+    "LA:QB:interceptions": {
+      "share": 0.002687745266708164,
+      "concentration": 32.0
+    },
+    "LA:QB:passing_tds": {
+      "share": 0.004588591764466422,
+      "concentration": 32.0
+    },
+    "LA:QB:passing_yards": {
+      "share": 0.7836655802211774,
+      "concentration": 32.0
+    },
+    "LA:QB:rushing_tds": {
+      "share": 0.00024120882596284507,
+      "concentration": 32.0
+    },
+    "LA:QB:rushing_yards": {
+      "share": 0.01702453451333293,
+      "concentration": 32.0
+    },
+    "LA:RB:carries": {
+      "share": 0.15167640354684223,
+      "concentration": 70.0
+    },
+    "LA:RB:receiving_tds": {
+      "share": 0.0009342189331270268,
+      "concentration": 70.0
+    },
+    "LA:RB:receiving_yards": {
+      "share": 0.1703700441514011,
+      "concentration": 70.0
+    },
+    "LA:RB:receptions": {
+      "share": 0.022960945134969976,
+      "concentration": 70.0
+    },
+    "LA:RB:rushing_tds": {
+      "share": 0.005419944089952922,
+      "concentration": 70.0
+    },
+    "LA:RB:rushing_yards": {
+      "share": 0.6200438987564743,
+      "concentration": 70.0
+    },
+    "LA:RB:targets": {
+      "share": 0.028594545387232283,
+      "concentration": 70.0
+    },
+    "LA:TE:receiving_tds": {
+      "share": 0.004230075571334547,
+      "concentration": 40.0
+    },
+    "LA:TE:receiving_yards": {
+      "share": 0.8066629398472559,
+      "concentration": 40.0
+    },
+    "LA:TE:receptions": {
+      "share": 0.07667318569723265,
+      "concentration": 40.0
+    },
+    "LA:TE:targets": {
+      "share": 0.11243379888417696,
+      "concentration": 40.0
+    },
+    "LA:WR:receiving_tds": {
+      "share": 0.005037883850587539,
+      "concentration": 64.0
+    },
+    "LA:WR:receiving_yards": {
+      "share": 0.81876072285144,
+      "concentration": 64.0
+    },
+    "LA:WR:receptions": {
+      "share": 0.07001933329502974,
+      "concentration": 64.0
+    },
+    "LA:WR:targets": {
+      "share": 0.10618206000294272,
+      "concentration": 64.0
+    },
+    "LAC:QB:attempts": {
+      "share": 0.10709027427016393,
+      "concentration": 48.0
+    },
+    "LAC:QB:carries": {
+      "share": 0.012811052601434555,
+      "concentration": 48.0
+    },
+    "LAC:QB:completions": {
+      "share": 0.06667748103115834,
+      "concentration": 48.0
+    },
+    "LAC:QB:interceptions": {
+      "share": 0.001696328613769881,
+      "concentration": 48.0
+    },
+    "LAC:QB:passing_tds": {
+      "share": 0.004749236057738363,
+      "concentration": 48.0
+    },
+    "LAC:QB:passing_yards": {
+      "share": 0.7652234558626279,
+      "concentration": 48.0
+    },
+    "LAC:QB:rushing_tds": {
+      "share": 0.0006153652016331913,
+      "concentration": 48.0
+    },
+    "LAC:QB:rushing_yards": {
+      "share": 0.0411368063614738,
+      "concentration": 48.0
+    },
+    "LAC:RB:carries": {
+      "share": 0.138318411881694,
+      "concentration": 70.0
+    },
+    "LAC:RB:receiving_tds": {
+      "share": 0.0009151598498939163,
+      "concentration": 70.0
+    },
+    "LAC:RB:receiving_yards": {
+      "share": 0.2095855965332711,
+      "concentration": 70.0
+    },
+    "LAC:RB:receptions": {
+      "share": 0.026518709256143275,
+      "concentration": 70.0
+    },
+    "LAC:RB:rushing_tds": {
+      "share": 0.006072719583444015,
+      "concentration": 70.0
+    },
+    "LAC:RB:rushing_yards": {
+      "share": 0.5841022748178981,
+      "concentration": 70.0
+    },
+    "LAC:RB:targets": {
+      "share": 0.03448712807765532,
+      "concentration": 70.0
+    },
+    "LAC:TE:receiving_tds": {
+      "share": 0.005264416466316426,
+      "concentration": 32.0
+    },
+    "LAC:TE:receiving_yards": {
+      "share": 0.7952683588906023,
+      "concentration": 32.0
+    },
+    "LAC:TE:receptions": {
+      "share": 0.08155260102829255,
+      "concentration": 32.0
+    },
+    "LAC:TE:targets": {
+      "share": 0.1179146236147887,
+      "concentration": 32.0
+    },
+    "LAC:WR:receiving_tds": {
+      "share": 0.005375855602456171,
+      "concentration": 72.0
+    },
+    "LAC:WR:receiving_yards": {
+      "share": 0.8292577489456002,
+      "concentration": 72.0
+    },
+    "LAC:WR:receptions": {
+      "share": 0.06286631362149524,
+      "concentration": 72.0
+    },
+    "LAC:WR:targets": {
+      "share": 0.1025000818304484,
+      "concentration": 72.0
+    },
+    "LV:QB:attempts": {
+      "share": 0.1073802878056481,
+      "concentration": 80.0
+    },
+    "LV:QB:carries": {
+      "share": 0.013243183003828027,
+      "concentration": 80.0
+    },
+    "LV:QB:completions": {
+      "share": 0.06835702868095023,
+      "concentration": 80.0
+    },
+    "LV:QB:interceptions": {
+      "share": 0.002367089792149474,
+      "concentration": 80.0
+    },
+    "LV:QB:passing_tds": {
+      "share": 0.004602201504637812,
+      "concentration": 80.0
+    },
+    "LV:QB:passing_yards": {
+      "share": 0.7587751723554456,
+      "concentration": 80.0
+    },
+    "LV:QB:rushing_tds": {
+      "share": 0.0005610720808291739,
+      "concentration": 80.0
+    },
+    "LV:QB:rushing_yards": {
+      "share": 0.04471396477651167,
+      "concentration": 80.0
+    },
+    "LV:RB:carries": {
+      "share": 0.133962200579678,
+      "concentration": 70.0
+    },
+    "LV:RB:receiving_tds": {
+      "share": 0.0013020089787625338,
+      "concentration": 70.0
+    },
+    "LV:RB:receiving_yards": {
+      "share": 0.2526911872536914,
+      "concentration": 70.0
+    },
+    "LV:RB:receptions": {
+      "share": 0.028707955781125036,
+      "concentration": 70.0
+    },
+    "LV:RB:rushing_tds": {
+      "share": 0.004738814363257168,
+      "concentration": 70.0
+    },
+    "LV:RB:rushing_yards": {
+      "share": 0.5396257434555406,
+      "concentration": 70.0
+    },
+    "LV:RB:targets": {
+      "share": 0.038972089587945305,
+      "concentration": 70.0
+    },
+    "LV:TE:receiving_tds": {
+      "share": 0.006298217414684568,
+      "concentration": 40.0
+    },
+    "LV:TE:receiving_yards": {
+      "share": 0.7895585903566864,
+      "concentration": 40.0
+    },
+    "LV:TE:receptions": {
+      "share": 0.08390009054533602,
+      "concentration": 40.0
+    },
+    "LV:TE:targets": {
+      "share": 0.12024310168329318,
+      "concentration": 40.0
+    },
+    "LV:WR:receiving_tds": {
+      "share": 0.004505912443231411,
+      "concentration": 40.0
+    },
+    "LV:WR:receiving_yards": {
+      "share": 0.8337025005332951,
+      "concentration": 40.0
+    },
+    "LV:WR:receptions": {
+      "share": 0.06203865172042892,
+      "concentration": 40.0
+    },
+    "LV:WR:targets": {
+      "share": 0.09975293530304463,
+      "concentration": 40.0
+    },
+    "MIA:QB:attempts": {
+      "share": 0.11021584216566764,
+      "concentration": 32.0
+    },
+    "MIA:QB:carries": {
+      "share": 0.007996320553271286,
+      "concentration": 32.0
+    },
+    "MIA:QB:completions": {
+      "share": 0.07012344328283009,
+      "concentration": 32.0
+    },
+    "MIA:QB:interceptions": {
+      "share": 0.0023315946970999934,
+      "concentration": 32.0
+    },
+    "MIA:QB:passing_tds": {
+      "share": 0.004686986374831715,
+      "concentration": 32.0
+    },
+    "MIA:QB:passing_yards": {
+      "share": 0.7785126553030832,
+      "concentration": 32.0
+    },
+    "MIA:QB:rushing_tds": {
+      "share": 0.00023407464540187557,
+      "concentration": 32.0
+    },
+    "MIA:QB:rushing_yards": {
+      "share": 0.025899082977814347,
+      "concentration": 32.0
+    },
+    "MIA:RB:carries": {
+      "share": 0.12587947735634297,
+      "concentration": 84.0
+    },
+    "MIA:RB:receiving_tds": {
+      "share": 0.001183624358860229,
+      "concentration": 84.0
+    },
+    "MIA:RB:receiving_yards": {
+      "share": 0.2601598367951647,
+      "concentration": 84.0
+    },
+    "MIA:RB:receptions": {
+      "share": 0.036645561016483454,
+      "concentration": 84.0
+    },
+    "MIA:RB:rushing_tds": {
+      "share": 0.004026840605566024,
+      "concentration": 84.0
+    },
+    "MIA:RB:rushing_yards": {
+      "share": 0.5262232006626503,
+      "concentration": 84.0
+    },
+    "MIA:RB:targets": {
+      "share": 0.045881459204932376,
+      "concentration": 84.0
+    },
+    "MIA:TE:receiving_tds": {
+      "share": 0.0037927520112877207,
+      "concentration": 32.0
+    },
+    "MIA:TE:receiving_yards": {
+      "share": 0.7874866399869548,
+      "concentration": 32.0
+    },
+    "MIA:TE:receptions": {
+      "share": 0.07861261582337846,
+      "concentration": 32.0
+    },
+    "MIA:TE:targets": {
+      "share": 0.13010799217837893,
+      "concentration": 32.0
+    },
+    "MIA:WR:receiving_tds": {
+      "share": 0.005576603499040034,
+      "concentration": 56.0
+    },
+    "MIA:WR:receiving_yards": {
+      "share": 0.8364386783817489,
+      "concentration": 56.0
+    },
+    "MIA:WR:receptions": {
+      "share": 0.06014918640632132,
+      "concentration": 56.0
+    },
+    "MIA:WR:targets": {
+      "share": 0.0978355317128896,
+      "concentration": 56.0
+    },
+    "MIN:QB:attempts": {
+      "share": 0.11195681152887249,
+      "concentration": 32.0
+    },
+    "MIN:QB:carries": {
+      "share": 0.002116597388438681,
+      "concentration": 32.0
+    },
+    "MIN:QB:completions": {
+      "share": 0.06624771376978131,
+      "concentration": 32.0
+    },
+    "MIN:QB:interceptions": {
+      "share": 0.0015041561754883606,
+      "concentration": 32.0
+    },
+    "MIN:QB:passing_tds": {
+      "share": 0.0042802445506224815,
+      "concentration": 32.0
+    },
+    "MIN:QB:passing_yards": {
+      "share": 0.8010471862778883,
+      "concentration": 32.0
+    },
+    "MIN:QB:rushing_tds": {
+      "share": 6.974570091808173e-05,
+      "concentration": 32.0
+    },
+    "MIN:QB:rushing_yards": {
+      "share": 0.012777544607990333,
+      "concentration": 32.0
+    },
+    "MIN:RB:carries": {
+      "share": 0.1584556805406271,
+      "concentration": 42.0
+    },
+    "MIN:RB:receiving_tds": {
+      "share": 0.00033971213197174185,
+      "concentration": 42.0
+    },
+    "MIN:RB:receiving_yards": {
+      "share": 0.13272269818154728,
+      "concentration": 42.0
+    },
+    "MIN:RB:receptions": {
+      "share": 0.017342247146010768,
+      "concentration": 42.0
+    },
+    "MIN:RB:rushing_tds": {
+      "share": 0.0038382052412495636,
+      "concentration": 42.0
+    },
+    "MIN:RB:rushing_yards": {
+      "share": 0.6636366604500512,
+      "concentration": 42.0
+    },
+    "MIN:RB:targets": {
+      "share": 0.023664796308542325,
+      "concentration": 42.0
+    },
+    "MIN:TE:receiving_tds": {
+      "share": 0.003950870821377393,
+      "concentration": 48.0
+    },
+    "MIN:TE:receiving_yards": {
+      "share": 0.8052661505603081,
+      "concentration": 48.0
+    },
+    "MIN:TE:receptions": {
+      "share": 0.0736565874027575,
+      "concentration": 48.0
+    },
+    "MIN:TE:targets": {
+      "share": 0.1171263912155568,
+      "concentration": 48.0
+    },
+    "MIN:WR:receiving_tds": {
+      "share": 0.004853429236646127,
+      "concentration": 64.0
+    },
+    "MIN:WR:receiving_yards": {
+      "share": 0.8309087374460518,
+      "concentration": 64.0
+    },
+    "MIN:WR:receptions": {
+      "share": 0.0613658937269613,
+      "concentration": 64.0
+    },
+    "MIN:WR:targets": {
+      "share": 0.10287193959034084,
+      "concentration": 64.0
+    },
+    "NE:QB:attempts": {
+      "share": 0.10530076793660474,
+      "concentration": 48.0
+    },
+    "NE:QB:carries": {
+      "share": 0.012220159710466343,
+      "concentration": 48.0
+    },
+    "NE:QB:completions": {
+      "share": 0.069223975407103,
+      "concentration": 48.0
+    },
+    "NE:QB:interceptions": {
+      "share": 0.0019286247705906435,
+      "concentration": 48.0
+    },
+    "NE:QB:passing_tds": {
+      "share": 0.003391702400450923,
+      "concentration": 48.0
+    },
+    "NE:QB:passing_yards": {
+      "share": 0.7233836379947403,
+      "concentration": 48.0
+    },
+    "NE:QB:rushing_tds": {
+      "share": 0.0010053043615209892,
+      "concentration": 48.0
+    },
+    "NE:QB:rushing_yards": {
+      "share": 0.08354582741852314,
+      "concentration": 48.0
+    },
+    "NE:RB:carries": {
+      "share": 0.13520832801868166,
+      "concentration": 98.0
+    },
+    "NE:RB:receiving_tds": {
+      "share": 0.00048006245105673587,
+      "concentration": 98.0
+    },
+    "NE:RB:receiving_yards": {
+      "share": 0.19880413819305864,
+      "concentration": 98.0
+    },
+    "NE:RB:receptions": {
+      "share": 0.02466629432316983,
+      "concentration": 98.0
+    },
+    "NE:RB:rushing_tds": {
+      "share": 0.004404796623203086,
+      "concentration": 98.0
+    },
+    "NE:RB:rushing_yards": {
+      "share": 0.6061916862467955,
+      "concentration": 98.0
+    },
+    "NE:RB:targets": {
+      "share": 0.030244694144034582,
+      "concentration": 98.0
+    },
+    "NE:TE:receiving_tds": {
+      "share": 0.0033967437605025314,
+      "concentration": 24.0
+    },
+    "NE:TE:receiving_yards": {
+      "share": 0.8282658589011809,
+      "concentration": 24.0
+    },
+    "NE:TE:receptions": {
+      "share": 0.06777679806526571,
+      "concentration": 24.0
+    },
+    "NE:TE:targets": {
+      "share": 0.10056059927305082,
+      "concentration": 24.0
+    },
+    "NE:WR:receiving_tds": {
+      "share": 0.0045518043854558725,
+      "concentration": 64.0
+    },
+    "NE:WR:receiving_yards": {
+      "share": 0.8032124797570288,
+      "concentration": 64.0
+    },
+    "NE:WR:receptions": {
+      "share": 0.07645016400976505,
+      "concentration": 64.0
+    },
+    "NE:WR:targets": {
+      "share": 0.11578555184775036,
+      "concentration": 64.0
+    },
+    "NO:QB:attempts": {
+      "share": 0.0998977435734178,
+      "concentration": 64.0
+    },
+    "NO:QB:carries": {
+      "share": 0.019211974319621714,
+      "concentration": 64.0
+    },
+    "NO:QB:completions": {
+      "share": 0.06302043554815592,
+      "concentration": 64.0
+    },
+    "NO:QB:interceptions": {
+      "share": 0.003498842561462844,
+      "concentration": 64.0
+    },
+    "NO:QB:passing_tds": {
+      "share": 0.0036486396801381437,
+      "concentration": 64.0
+    },
+    "NO:QB:passing_yards": {
+      "share": 0.694988074149634,
+      "concentration": 64.0
+    },
+    "NO:QB:rushing_tds": {
+      "share": 0.001443142910268287,
+      "concentration": 64.0
+    },
+    "NO:QB:rushing_yards": {
+      "share": 0.11429114725730122,
+      "concentration": 64.0
+    },
+    "NO:RB:carries": {
+      "share": 0.13887511025167432,
+      "concentration": 56.0
+    },
+    "NO:RB:receiving_tds": {
+      "share": 0.0011270950683923934,
+      "concentration": 56.0
+    },
+    "NO:RB:receiving_yards": {
+      "share": 0.19253871091379438,
+      "concentration": 56.0
+    },
+    "NO:RB:receptions": {
+      "share": 0.027587468437906815,
+      "concentration": 56.0
+    },
+    "NO:RB:rushing_tds": {
+      "share": 0.004128204302775748,
+      "concentration": 56.0
+    },
+    "NO:RB:rushing_yards": {
+      "share": 0.6030162712333872,
+      "concentration": 56.0
+    },
+    "NO:RB:targets": {
+      "share": 0.03272713979206916,
+      "concentration": 56.0
+    },
+    "NO:TE:receiving_tds": {
+      "share": 0.0038094705933032764,
+      "concentration": 32.0
+    },
+    "NO:TE:receiving_yards": {
+      "share": 0.8259540176292176,
+      "concentration": 32.0
+    },
+    "NO:TE:receptions": {
+      "share": 0.07144879849961903,
+      "concentration": 32.0
+    },
+    "NO:TE:targets": {
+      "share": 0.09878771327786012,
+      "concentration": 32.0
+    },
+    "NO:WR:receiving_tds": {
+      "share": 0.004399706448378729,
+      "concentration": 80.0
+    },
+    "NO:WR:receiving_yards": {
+      "share": 0.8224033942536081,
+      "concentration": 80.0
+    },
+    "NO:WR:receptions": {
+      "share": 0.06272067180079417,
+      "concentration": 80.0
+    },
+    "NO:WR:targets": {
+      "share": 0.11047622749721914,
+      "concentration": 80.0
+    },
+    "NYG:QB:attempts": {
+      "share": 0.10569140182373357,
+      "concentration": 48.0
+    },
+    "NYG:QB:carries": {
+      "share": 0.02319390666730116,
+      "concentration": 48.0
+    },
+    "NYG:QB:completions": {
+      "share": 0.06834161829098036,
+      "concentration": 48.0
+    },
+    "NYG:QB:interceptions": {
+      "share": 0.0028823138237268077,
+      "concentration": 48.0
+    },
+    "NYG:QB:passing_tds": {
+      "share": 0.003882958001151296,
+      "concentration": 48.0
+    },
+    "NYG:QB:passing_yards": {
+      "share": 0.6947418948547837,
+      "concentration": 48.0
+    },
+    "NYG:QB:rushing_tds": {
+      "share": 0.0008736070487870636,
+      "concentration": 48.0
+    },
+    "NYG:QB:rushing_yards": {
+      "share": 0.10039229948953612,
+      "concentration": 48.0
+    },
+    "NYG:RB:carries": {
+      "share": 0.133354852054995,
+      "concentration": 70.0
+    },
+    "NYG:RB:receiving_tds": {
+      "share": 0.0006761620383905515,
+      "concentration": 70.0
+    },
+    "NYG:RB:receiving_yards": {
+      "share": 0.23533417697195216,
+      "concentration": 70.0
+    },
+    "NYG:RB:receptions": {
+      "share": 0.03215519608023276,
+      "concentration": 70.0
+    },
+    "NYG:RB:rushing_tds": {
+      "share": 0.004228034571661142,
+      "concentration": 70.0
+    },
+    "NYG:RB:rushing_yards": {
+      "share": 0.5537195792985767,
+      "concentration": 70.0
+    },
+    "NYG:RB:targets": {
+      "share": 0.04053199898419167,
+      "concentration": 70.0
+    },
+    "NYG:TE:receiving_tds": {
+      "share": 0.005999454465156746,
+      "concentration": 32.0
+    },
+    "NYG:TE:receiving_yards": {
+      "share": 0.789194346539696,
+      "concentration": 32.0
+    },
+    "NYG:TE:receptions": {
+      "share": 0.08274353201963529,
+      "concentration": 32.0
+    },
+    "NYG:TE:targets": {
+      "share": 0.12206266697551182,
+      "concentration": 32.0
+    },
+    "NYG:WR:receiving_tds": {
+      "share": 0.00480515065098691,
+      "concentration": 72.0
+    },
+    "NYG:WR:receiving_yards": {
+      "share": 0.8152315965401606,
+      "concentration": 72.0
+    },
+    "NYG:WR:receptions": {
+      "share": 0.07010386785826046,
+      "concentration": 72.0
+    },
+    "NYG:WR:targets": {
+      "share": 0.10985938495059194,
+      "concentration": 72.0
+    },
+    "NYJ:QB:attempts": {
+      "share": 0.10090645412098832,
+      "concentration": 48.0
+    },
+    "NYJ:QB:carries": {
+      "share": 0.017798235393946246,
+      "concentration": 48.0
+    },
+    "NYJ:QB:completions": {
+      "share": 0.061148617359940684,
+      "concentration": 48.0
+    },
+    "NYJ:QB:interceptions": {
+      "share": 0.0022319017015647803,
+      "concentration": 48.0
+    },
+    "NYJ:QB:passing_tds": {
+      "share": 0.0036352427569398345,
+      "concentration": 48.0
+    },
+    "NYJ:QB:passing_yards": {
+      "share": 0.7060495818316433,
+      "concentration": 48.0
+    },
+    "NYJ:QB:rushing_tds": {
+      "share": 0.0008488876125093048,
+      "concentration": 48.0
+    },
+    "NYJ:QB:rushing_yards": {
+      "share": 0.10738107922246745,
+      "concentration": 48.0
+    },
+    "NYJ:RB:carries": {
+      "share": 0.12568058728955406,
+      "concentration": 70.0
+    },
+    "NYJ:RB:receiving_tds": {
+      "share": 0.0008054410522226571,
+      "concentration": 70.0
+    },
+    "NYJ:RB:receiving_yards": {
+      "share": 0.2569550910870545,
+      "concentration": 70.0
+    },
+    "NYJ:RB:receptions": {
+      "share": 0.02852139153556804,
+      "concentration": 70.0
+    },
+    "NYJ:RB:rushing_tds": {
+      "share": 0.004205484341030784,
+      "concentration": 70.0
+    },
+    "NYJ:RB:rushing_yards": {
+      "share": 0.5458931840095349,
+      "concentration": 70.0
+    },
+    "NYJ:RB:targets": {
+      "share": 0.0379388206850349,
+      "concentration": 70.0
+    },
+    "NYJ:TE:receiving_tds": {
+      "share": 0.004033514164180638,
+      "concentration": 24.0
+    },
+    "NYJ:TE:receiving_yards": {
+      "share": 0.8058034056817072,
+      "concentration": 24.0
+    },
+    "NYJ:TE:receptions": {
+      "share": 0.07544123679347878,
+      "concentration": 24.0
+    },
+    "NYJ:TE:targets": {
+      "share": 0.11472184336063336,
+      "concentration": 24.0
+    },
+    "NYJ:WR:receiving_tds": {
+      "share": 0.004803676366084776,
+      "concentration": 80.0
+    },
+    "NYJ:WR:receiving_yards": {
+      "share": 0.8242445316800342,
+      "concentration": 80.0
+    },
+    "NYJ:WR:receptions": {
+      "share": 0.06334197226062782,
+      "concentration": 80.0
+    },
+    "NYJ:WR:targets": {
+      "share": 0.10760981969325317,
+      "concentration": 80.0
+    },
+    "PHI:QB:attempts": {
+      "share": 0.10012663837306107,
+      "concentration": 64.0
+    },
+    "PHI:QB:carries": {
+      "share": 0.02584917990002822,
+      "concentration": 64.0
+    },
+    "PHI:QB:completions": {
+      "share": 0.06062649328275982,
+      "concentration": 64.0
+    },
+    "PHI:QB:interceptions": {
+      "share": 0.0017151441628454093,
+      "concentration": 64.0
+    },
+    "PHI:QB:passing_tds": {
+      "share": 0.004355775218410708,
+      "concentration": 64.0
+    },
+    "PHI:QB:passing_yards": {
+      "share": 0.6804660601635438,
+      "concentration": 64.0
+    },
+    "PHI:QB:rushing_tds": {
+      "share": 0.0016759857057793944,
+      "concentration": 64.0
+    },
+    "PHI:QB:rushing_yards": {
+      "share": 0.1251847231935715,
+      "concentration": 64.0
+    },
+    "PHI:RB:carries": {
+      "share": 0.14151596647830694,
+      "concentration": 42.0
+    },
+    "PHI:RB:receiving_tds": {
+      "share": 0.0007972131078368106,
+      "concentration": 42.0
+    },
+    "PHI:RB:receiving_yards": {
+      "share": 0.1469627379598058,
+      "concentration": 42.0
+    },
+    "PHI:RB:receptions": {
+      "share": 0.019577212516539794,
+      "concentration": 42.0
+    },
+    "PHI:RB:rushing_tds": {
+      "share": 0.004728706030208124,
+      "concentration": 42.0
+    },
+    "PHI:RB:rushing_yards": {
+      "share": 0.6604147479430921,
+      "concentration": 42.0
+    },
+    "PHI:RB:targets": {
+      "share": 0.026003415964210453,
+      "concentration": 42.0
+    },
+    "PHI:TE:receiving_tds": {
+      "share": 0.006049048409220987,
+      "concentration": 32.0
+    },
+    "PHI:TE:receiving_yards": {
+      "share": 0.8182162643540175,
+      "concentration": 32.0
+    },
+    "PHI:TE:receptions": {
+      "share": 0.06991801695287517,
+      "concentration": 32.0
+    },
+    "PHI:TE:targets": {
+      "share": 0.10581667028388618,
+      "concentration": 32.0
+    },
+    "PHI:WR:receiving_tds": {
+      "share": 0.004982664134297134,
+      "concentration": 72.0
+    },
+    "PHI:WR:receiving_yards": {
+      "share": 0.8159284158250188,
+      "concentration": 72.0
+    },
+    "PHI:WR:receptions": {
+      "share": 0.06666689591826211,
+      "concentration": 72.0
+    },
+    "PHI:WR:targets": {
+      "share": 0.11242202412242193,
+      "concentration": 72.0
+    },
+    "PIT:QB:attempts": {
+      "share": 0.11625672751990435,
+      "concentration": 64.0
+    },
+    "PIT:QB:carries": {
+      "share": 0.009124447125422146,
+      "concentration": 64.0
+    },
+    "PIT:QB:completions": {
+      "share": 0.07350389991395771,
+      "concentration": 64.0
+    },
+    "PIT:QB:interceptions": {
+      "share": 0.002227542247992453,
+      "concentration": 64.0
+    },
+    "PIT:QB:passing_tds": {
+      "share": 0.004525648906806594,
+      "concentration": 64.0
+    },
+    "PIT:QB:passing_yards": {
+      "share": 0.7729866870942833,
+      "concentration": 64.0
+    },
+    "PIT:QB:rushing_tds": {
+      "share": 0.00028534163907444884,
+      "concentration": 64.0
+    },
+    "PIT:QB:rushing_yards": {
+      "share": 0.02108970555255886,
+      "concentration": 64.0
+    },
+    "PIT:RB:carries": {
+      "share": 0.13492654898436957,
+      "concentration": 70.0
+    },
+    "PIT:RB:receiving_tds": {
+      "share": 0.0009385364637788817,
+      "concentration": 70.0
+    },
+    "PIT:RB:receiving_yards": {
+      "share": 0.20634637737030215,
+      "concentration": 70.0
+    },
+    "PIT:RB:receptions": {
+      "share": 0.027409288671077427,
+      "concentration": 70.0
+    },
+    "PIT:RB:rushing_tds": {
+      "share": 0.002655827379677251,
+      "concentration": 70.0
+    },
+    "PIT:RB:rushing_yards": {
+      "share": 0.5923035470395229,
+      "concentration": 70.0
+    },
+    "PIT:RB:targets": {
+      "share": 0.03541987409127177,
+      "concentration": 70.0
+    },
+    "PIT:TE:receiving_tds": {
+      "share": 0.004861386564536225,
+      "concentration": 40.0
+    },
+    "PIT:TE:receiving_yards": {
+      "share": 0.7972017232302376,
+      "concentration": 40.0
+    },
+    "PIT:TE:receptions": {
+      "share": 0.08185083639918456,
+      "concentration": 40.0
+    },
+    "PIT:TE:targets": {
+      "share": 0.11608605380604173,
+      "concentration": 40.0
+    },
+    "PIT:WR:receiving_tds": {
+      "share": 0.005070145971649999,
+      "concentration": 48.0
+    },
+    "PIT:WR:receiving_yards": {
+      "share": 0.8292779174814017,
+      "concentration": 48.0
+    },
+    "PIT:WR:receptions": {
+      "share": 0.058888330321613974,
+      "concentration": 48.0
+    },
+    "PIT:WR:targets": {
+      "share": 0.10676360622533437,
+      "concentration": 48.0
+    },
+    "SEA:QB:attempts": {
+      "share": 0.10511512765991352,
+      "concentration": 48.0
+    },
+    "SEA:QB:carries": {
+      "share": 0.014990233887764147,
+      "concentration": 48.0
+    },
+    "SEA:QB:completions": {
+      "share": 0.06767315566070714,
+      "concentration": 48.0
+    },
+    "SEA:QB:interceptions": {
+      "share": 0.0025421310808705607,
+      "concentration": 48.0
+    },
+    "SEA:QB:passing_tds": {
+      "share": 0.004847929666887276,
+      "concentration": 48.0
+    },
+    "SEA:QB:passing_yards": {
+      "share": 0.746509415515798,
+      "concentration": 48.0
+    },
+    "SEA:QB:rushing_tds": {
+      "share": 0.0006247005078141826,
+      "concentration": 48.0
+    },
+    "SEA:QB:rushing_yards": {
+      "share": 0.057697306020245094,
+      "concentration": 48.0
+    },
+    "SEA:RB:carries": {
+      "share": 0.12881021661384104,
+      "concentration": 98.0
+    },
+    "SEA:RB:receiving_tds": {
+      "share": 0.0011586385884576834,
+      "concentration": 98.0
+    },
+    "SEA:RB:receiving_yards": {
+      "share": 0.24461012224526965,
+      "concentration": 98.0
+    },
+    "SEA:RB:receptions": {
+      "share": 0.030801068162602016,
+      "concentration": 98.0
+    },
+    "SEA:RB:rushing_tds": {
+      "share": 0.004531995061869966,
+      "concentration": 98.0
+    },
+    "SEA:RB:rushing_yards": {
+      "share": 0.5510667735045525,
+      "concentration": 98.0
+    },
+    "SEA:RB:targets": {
+      "share": 0.03902118582340709,
+      "concentration": 98.0
+    },
+    "SEA:TE:receiving_tds": {
+      "share": 0.005388962489198489,
+      "concentration": 40.0
+    },
+    "SEA:TE:receiving_yards": {
+      "share": 0.801017869957596,
+      "concentration": 40.0
+    },
+    "SEA:TE:receptions": {
+      "share": 0.08230668640473307,
+      "concentration": 40.0
+    },
+    "SEA:TE:targets": {
+      "share": 0.11128648114847245,
+      "concentration": 40.0
+    },
+    "SEA:WR:receiving_tds": {
+      "share": 0.005709610991664123,
+      "concentration": 72.0
+    },
+    "SEA:WR:receiving_yards": {
+      "share": 0.8265584622634757,
+      "concentration": 72.0
+    },
+    "SEA:WR:receptions": {
+      "share": 0.06392696206743174,
+      "concentration": 72.0
+    },
+    "SEA:WR:targets": {
+      "share": 0.10380496467742836,
+      "concentration": 72.0
+    },
+    "SF:QB:attempts": {
+      "share": 0.10491278736860793,
+      "concentration": 48.0
+    },
+    "SF:QB:carries": {
+      "share": 0.011807012277311887,
+      "concentration": 48.0
+    },
+    "SF:QB:completions": {
+      "share": 0.07041482726190772,
+      "concentration": 48.0
+    },
+    "SF:QB:interceptions": {
+      "share": 0.002103702180450619,
+      "concentration": 48.0
+    },
+    "SF:QB:passing_tds": {
+      "share": 0.004110761178863999,
+      "concentration": 48.0
+    },
+    "SF:QB:passing_yards": {
+      "share": 0.7688244963433439,
+      "concentration": 48.0
+    },
+    "SF:QB:rushing_tds": {
+      "share": 0.0005215762163394796,
+      "concentration": 48.0
+    },
+    "SF:QB:rushing_yards": {
+      "share": 0.03730483717317445,
+      "concentration": 48.0
+    },
+    "SF:RB:carries": {
+      "share": 0.11469686289154185,
+      "concentration": 84.0
+    },
+    "SF:RB:receiving_tds": {
+      "share": 0.0011731172298196845,
+      "concentration": 84.0
+    },
+    "SF:RB:receiving_yards": {
+      "share": 0.2765257341936206,
+      "concentration": 84.0
+    },
+    "SF:RB:receptions": {
+      "share": 0.03501246817580082,
+      "concentration": 84.0
+    },
+    "SF:RB:rushing_tds": {
+      "share": 0.0058721848913734125,
+      "concentration": 84.0
+    },
+    "SF:RB:rushing_yards": {
+      "share": 0.5258531013253342,
+      "concentration": 84.0
+    },
+    "SF:RB:targets": {
+      "share": 0.04086653129250936,
+      "concentration": 84.0
+    },
+    "SF:TE:receiving_tds": {
+      "share": 0.0058099755551748854,
+      "concentration": 32.0
+    },
+    "SF:TE:receiving_yards": {
+      "share": 0.8221870916198736,
+      "concentration": 32.0
+    },
+    "SF:TE:receptions": {
+      "share": 0.07588597895189977,
+      "concentration": 32.0
+    },
+    "SF:TE:targets": {
+      "share": 0.09611695387305169,
+      "concentration": 32.0
+    },
+    "SF:WR:receiving_tds": {
+      "share": 0.004280270971470652,
+      "concentration": 88.0
+    },
+    "SF:WR:receiving_yards": {
+      "share": 0.826506202687188,
+      "concentration": 88.0
+    },
+    "SF:WR:receptions": {
+      "share": 0.06393479754453418,
+      "concentration": 88.0
+    },
+    "SF:WR:targets": {
+      "share": 0.10527872879680708,
+      "concentration": 88.0
+    },
+    "TB:QB:attempts": {
+      "share": 0.10912906897168043,
+      "concentration": 32.0
+    },
+    "TB:QB:carries": {
+      "share": 0.009328339634615787,
+      "concentration": 32.0
+    },
+    "TB:QB:completions": {
+      "share": 0.07001613305695668,
+      "concentration": 32.0
+    },
+    "TB:QB:interceptions": {
+      "share": 0.0019728473466030395,
+      "concentration": 32.0
+    },
+    "TB:QB:passing_tds": {
+      "share": 0.004976473656926531,
+      "concentration": 32.0
+    },
+    "TB:QB:passing_yards": {
+      "share": 0.7696647299539152,
+      "concentration": 32.0
+    },
+    "TB:QB:rushing_tds": {
+      "share": 0.00042798292783341896,
+      "concentration": 32.0
+    },
+    "TB:QB:rushing_yards": {
+      "share": 0.03448442445146893,
+      "concentration": 32.0
+    },
+    "TB:RB:carries": {
+      "share": 0.12484197891500261,
+      "concentration": 56.0
+    },
+    "TB:RB:receiving_tds": {
+      "share": 0.0008781058402489293,
+      "concentration": 56.0
+    },
+    "TB:RB:receiving_yards": {
+      "share": 0.22716952037856541,
+      "concentration": 56.0
+    },
+    "TB:RB:receptions": {
+      "share": 0.026013960117287047,
+      "concentration": 56.0
+    },
+    "TB:RB:rushing_tds": {
+      "share": 0.0034285583010144212,
+      "concentration": 56.0
+    },
+    "TB:RB:rushing_yards": {
+      "share": 0.5845293986603037,
+      "concentration": 56.0
+    },
+    "TB:RB:targets": {
+      "share": 0.03313847778757779,
+      "concentration": 56.0
+    },
+    "TB:TE:receiving_tds": {
+      "share": 0.008416453480983587,
+      "concentration": 32.0
+    },
+    "TB:TE:receiving_yards": {
+      "share": 0.7951411846304418,
+      "concentration": 32.0
+    },
+    "TB:TE:receptions": {
+      "share": 0.08173672259685358,
+      "concentration": 32.0
+    },
+    "TB:TE:targets": {
+      "share": 0.1147056392917211,
+      "concentration": 32.0
+    },
+    "TB:WR:receiving_tds": {
+      "share": 0.004863093809541136,
+      "concentration": 80.0
+    },
+    "TB:WR:receiving_yards": {
+      "share": 0.8216143381099889,
+      "concentration": 80.0
+    },
+    "TB:WR:receptions": {
+      "share": 0.06707552347082316,
+      "concentration": 80.0
+    },
+    "TB:WR:targets": {
+      "share": 0.1064470446096468,
+      "concentration": 80.0
+    },
+    "TEN:QB:attempts": {
+      "share": 0.11010687966348037,
+      "concentration": 48.0
+    },
+    "TEN:QB:carries": {
+      "share": 0.011536207046931335,
+      "concentration": 48.0
+    },
+    "TEN:QB:completions": {
+      "share": 0.06730105834379678,
+      "concentration": 48.0
+    },
+    "TEN:QB:interceptions": {
+      "share": 0.0029343714052937515,
+      "concentration": 48.0
+    },
+    "TEN:QB:passing_tds": {
+      "share": 0.003908912570117953,
+      "concentration": 48.0
+    },
+    "TEN:QB:passing_yards": {
+      "share": 0.7516610977294726,
+      "concentration": 48.0
+    },
+    "TEN:QB:rushing_tds": {
+      "share": 0.0004908034135349941,
+      "concentration": 48.0
+    },
+    "TEN:QB:rushing_yards": {
+      "share": 0.052060669827372175,
+      "concentration": 48.0
+    },
+    "TEN:RB:carries": {
+      "share": 0.1330667389778145,
+      "concentration": 70.0
+    },
+    "TEN:RB:receiving_tds": {
+      "share": 0.0007063022243877604,
+      "concentration": 70.0
+    },
+    "TEN:RB:receiving_yards": {
+      "share": 0.23581216294056498,
+      "concentration": 70.0
+    },
+    "TEN:RB:receptions": {
+      "share": 0.02707519863415459,
+      "concentration": 70.0
+    },
+    "TEN:RB:rushing_tds": {
+      "share": 0.003972547425440852,
+      "concentration": 70.0
+    },
+    "TEN:RB:rushing_yards": {
+      "share": 0.5648449136910674,
+      "concentration": 70.0
+    },
+    "TEN:RB:targets": {
+      "share": 0.034522136106569984,
+      "concentration": 70.0
+    },
+    "TEN:TE:receiving_tds": {
+      "share": 0.004666315872488574,
+      "concentration": 40.0
+    },
+    "TEN:TE:receiving_yards": {
+      "share": 0.8026598820922656,
+      "concentration": 40.0
+    },
+    "TEN:TE:receptions": {
+      "share": 0.07838732822468164,
+      "concentration": 40.0
+    },
+    "TEN:TE:targets": {
+      "share": 0.11428647381056416,
+      "concentration": 40.0
+    },
+    "TEN:WR:receiving_tds": {
+      "share": 0.004629828710186199,
+      "concentration": 80.0
+    },
+    "TEN:WR:receiving_yards": {
+      "share": 0.8187863350948432,
+      "concentration": 80.0
+    },
+    "TEN:WR:receptions": {
+      "share": 0.06490233860098903,
+      "concentration": 80.0
+    },
+    "TEN:WR:targets": {
+      "share": 0.11168149759398169,
+      "concentration": 80.0
+    },
+    "WAS:QB:attempts": {
+      "share": 0.0990617372728906,
+      "concentration": 48.0
+    },
+    "WAS:QB:carries": {
+      "share": 0.02684953206558603,
+      "concentration": 48.0
+    },
+    "WAS:QB:completions": {
+      "share": 0.05983339851566443,
+      "concentration": 48.0
+    },
+    "WAS:QB:interceptions": {
+      "share": 0.0020491872764406534,
+      "concentration": 48.0
+    },
+    "WAS:QB:passing_tds": {
+      "share": 0.0036929452826014583,
+      "concentration": 48.0
+    },
+    "WAS:QB:passing_yards": {
+      "share": 0.6826753454371818,
+      "concentration": 48.0
+    },
+    "WAS:QB:rushing_tds": {
+      "share": 0.0014134512817920823,
+      "concentration": 48.0
+    },
+    "WAS:QB:rushing_yards": {
+      "share": 0.12442440286784305,
+      "concentration": 48.0
+    },
+    "WAS:RB:carries": {
+      "share": 0.1301788921816882,
+      "concentration": 84.0
+    },
+    "WAS:RB:receiving_tds": {
+      "share": 0.0010043912265000647,
+      "concentration": 84.0
+    },
+    "WAS:RB:receiving_yards": {
+      "share": 0.2028233702334963,
+      "concentration": 84.0
+    },
+    "WAS:RB:receptions": {
+      "share": 0.021888427254638687,
+      "concentration": 84.0
+    },
+    "WAS:RB:rushing_tds": {
+      "share": 0.0022939564817828903,
+      "concentration": 84.0
+    },
+    "WAS:RB:rushing_yards": {
+      "share": 0.6101090716195414,
+      "concentration": 84.0
+    },
+    "WAS:RB:targets": {
+      "share": 0.03170189100235241,
+      "concentration": 84.0
+    },
+    "WAS:TE:receiving_tds": {
+      "share": 0.0032598209138525354,
+      "concentration": 24.0
+    },
+    "WAS:TE:receiving_yards": {
+      "share": 0.7978367047899688,
+      "concentration": 24.0
+    },
+    "WAS:TE:receptions": {
+      "share": 0.08136240277224716,
+      "concentration": 24.0
+    },
+    "WAS:TE:targets": {
+      "share": 0.11754107152393144,
+      "concentration": 24.0
+    },
+    "WAS:WR:receiving_tds": {
+      "share": 0.004946648524434905,
+      "concentration": 64.0
+    },
+    "WAS:WR:receiving_yards": {
+      "share": 0.8237911613209395,
+      "concentration": 64.0
+    },
+    "WAS:WR:receptions": {
+      "share": 0.06384417032014802,
+      "concentration": 64.0
+    },
+    "WAS:WR:targets": {
+      "share": 0.10741801983447764,
+      "concentration": 64.0
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "generated_at": "2026-08-25T23:19:56.997486+00:00",
+  "default_alpha": 0.75,
+  "fallback_alpha": 0.5,
+  "grid": [
+    {
+      "source_season": 2022,
+      "target_season": 2023,
+      "alpha": 0.25,
+      "mae": 68.32858516440126
+    },
+    {
+      "source_season": 2022,
+      "target_season": 2023,
+      "alpha": 0.5,
+      "mae": 67.78108414349752
+    },
+    {
+      "source_season": 2022,
+      "target_season": 2023,
+      "alpha": 0.75,
+      "mae": 67.5520829819941
+    },
+    {
+      "source_season": 2022,
+      "target_season": 2023,
+      "alpha": 1.0,
+      "mae": 67.55082117508522
+    },
+    {
+      "source_season": 2023,
+      "target_season": 2024,
+      "alpha": 0.25,
+      "mae": 64.67724275988299
+    },
+    {
+      "source_season": 2023,
+      "target_season": 2024,
+      "alpha": 0.5,
+      "mae": 64.75214035958109
+    },
+    {
+      "source_season": 2023,
+      "target_season": 2024,
+      "alpha": 0.75,
+      "mae": 64.85319028184406
+    },
+    {
+      "source_season": 2023,
+      "target_season": 2024,
+      "alpha": 1.0,
+      "mae": 64.97448593170417
+    },
+    {
+      "source_season": 2024,
+      "target_season": 2025,
+      "alpha": 0.25,
+      "mae": 60.92739234677951
+    },
+    {
+      "source_season": 2024,
+      "target_season": 2025,
+      "alpha": 0.5,
+      "mae": 60.400390883904315
+    },
+    {
+      "source_season": 2024,
+      "target_season": 2025,
+      "alpha": 0.75,
+      "mae": 60.14923705058119
+    },
+    {
+      "source_season": 2024,
+      "target_season": 2025,
+      "alpha": 1.0,
+      "mae": 60.0866949553046
+    }
+  ],
+  "summary": [
+    {
+      "alpha": 0.75,
+      "mae": 64.18483677147312
+    },
+    {
+      "alpha": 1.0,
+      "mae": 64.20400068736465
+    },
+    {
+      "alpha": 0.5,
+      "mae": 64.3112051289943
+    },
+    {
+      "alpha": 0.25,
+      "mae": 64.64440675702126
+    }
+  ]
+}

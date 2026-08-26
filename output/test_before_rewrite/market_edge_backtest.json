@@ -1,0 +1,692 @@
+{
+  "metadata": {
+    "max_market_rank": 120,
+    "market": "adp",
+    "blend_weights_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\test_before_rewrite\\ensemble_weights.json",
+    "pass_fail_rule": "Actionable edge requires edge_corr_residual_vs_actual_points < -0.05 in at least 2 seasons for the same model label"
+  },
+  "seasons": {
+    "2023": {
+      "season": 2023,
+      "consensus_as_of": "2023-09-01",
+      "consensus_meta": {
+        "matched_adp": 175,
+        "matched_ecr": 0,
+        "adp_drafts": 4576
+      },
+      "board_n": 757,
+      "models": {
+        "v1": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.551378567956108,
+            "mean_abs_rank_delta": 25.433333333333334,
+            "median_abs_rank_delta": 21.5
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.29410653343034177,
+            "edge_corr_residual_vs_actual_rank": 0.2729243639445592,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 159.63254901960784,
+            "mean_actual_points_when_model_lower": 163.03820895522387,
+            "points_surplus_model_higher_minus_lower": -3.405659935616029,
+            "top24_hit_rate_when_model_higher": 0.2549019607843137,
+            "n_model_higher": 51,
+            "n_model_lower": 67
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.46859910931177123,
+              "points_mae": 58.71425391756849
+            },
+            "by_position": {
+              "QB": {
+                "n": 15,
+                "spearman": 0.12142857142857141,
+                "points_mae": 98.88167866537141
+              },
+              "RB": {
+                "n": 44,
+                "spearman": 0.3733615221987315,
+                "points_mae": 61.58903522748642
+              },
+              "TE": {
+                "n": 11,
+                "spearman": 0.7818181818181819,
+                "points_mae": 28.81017472319476
+              },
+              "WR": {
+                "n": 50,
+                "spearman": 0.5612754514022282,
+                "points_mae": 50.713116363262046
+              }
+            }
+          }
+        },
+        "v2": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.6431488297798457,
+            "mean_abs_rank_delta": 22.483333333333334,
+            "median_abs_rank_delta": 17.0
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.3281503363346029,
+            "edge_corr_residual_vs_actual_rank": 0.291093246833765,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 165.27037037037042,
+            "mean_actual_points_when_model_lower": 159.612,
+            "points_surplus_model_higher_minus_lower": 5.65837037037042,
+            "top24_hit_rate_when_model_higher": 0.2777777777777778,
+            "n_model_higher": 54,
+            "n_model_lower": 65
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.5091187521391766,
+              "points_mae": 54.561415692607234
+            },
+            "by_position": {
+              "QB": {
+                "n": 15,
+                "spearman": 0.7714285714285712,
+                "points_mae": 62.33947389929026
+              },
+              "RB": {
+                "n": 44,
+                "spearman": 0.26948555320648343,
+                "points_mae": 60.47173719085106
+              },
+              "TE": {
+                "n": 11,
+                "spearman": 0.29090909090909095,
+                "points_mae": 44.585072601684075
+              },
+              "WR": {
+                "n": 50,
+                "spearman": 0.6574947779753003,
+                "points_mae": 49.221710792150844
+              }
+            }
+          }
+        },
+        "carry_forward": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.5922911313285644,
+            "mean_abs_rank_delta": 22.95,
+            "median_abs_rank_delta": 16.0
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.28369087900130746,
+            "edge_corr_residual_vs_actual_rank": 0.24269980882594244,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 165.08576923076924,
+            "mean_actual_points_when_model_lower": 158.879696969697,
+            "points_surplus_model_higher_minus_lower": 6.206072261072251,
+            "top24_hit_rate_when_model_higher": 0.23076923076923078,
+            "n_model_higher": 52,
+            "n_model_lower": 66
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.45708506645958974,
+              "points_mae": 66.5775
+            },
+            "by_position": {
+              "QB": {
+                "n": 15,
+                "spearman": 0.28928571428571426,
+                "points_mae": 98.24
+              },
+              "RB": {
+                "n": 44,
+                "spearman": 0.1971096350860408,
+                "points_mae": 78.19318181818183
+              },
+              "TE": {
+                "n": 11,
+                "spearman": 0.6272727272727273,
+                "points_mae": 32.56363636363637
+              },
+              "WR": {
+                "n": 50,
+                "spearman": 0.5781710008780714,
+                "points_mae": 54.34
+              }
+            }
+          }
+        },
+        "blend": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.5847489408986735,
+            "mean_abs_rank_delta": 24.75,
+            "median_abs_rank_delta": 21.0
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.3301274274044852,
+            "edge_corr_residual_vs_actual_rank": 0.30217415397272684,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 160.42679245283023,
+            "mean_actual_points_when_model_lower": 163.55848484848485,
+            "points_surplus_model_higher_minus_lower": -3.1316923956546248,
+            "top24_hit_rate_when_model_higher": 0.2641509433962264,
+            "n_model_higher": 53,
+            "n_model_lower": 66
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.5001328228835717,
+              "points_mae": 55.33477024684439
+            },
+            "by_position": {
+              "QB": {
+                "n": 15,
+                "spearman": 0.682142857142857,
+                "points_mae": 71.5618575528343
+              },
+              "RB": {
+                "n": 44,
+                "spearman": 0.3733615221987315,
+                "points_mae": 61.58903522748642
+              },
+              "TE": {
+                "n": 11,
+                "spearman": 0.7363636363636363,
+                "points_mae": 29.197381650573405
+              },
+              "WR": {
+                "n": 50,
+                "spearman": 0.5612754514022282,
+                "points_mae": 50.713116363262046
+              }
+            }
+          }
+        }
+      }
+    },
+    "2024": {
+      "season": 2024,
+      "consensus_as_of": "2024-09-01",
+      "consensus_meta": {
+        "matched_adp": 159,
+        "matched_ecr": 0,
+        "adp_drafts": 906
+      },
+      "board_n": 756,
+      "models": {
+        "v1": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.4871449406208763,
+            "mean_abs_rank_delta": 27.166666666666668,
+            "median_abs_rank_delta": 21.0
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.46519977966997317,
+            "edge_corr_residual_vs_actual_rank": 0.4329112279305343,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 186.9729166666667,
+            "mean_actual_points_when_model_lower": 169.93014492753628,
+            "points_surplus_model_higher_minus_lower": 17.042771739130416,
+            "top24_hit_rate_when_model_higher": 0.2708333333333333,
+            "n_model_higher": 48,
+            "n_model_lower": 69
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.5127778636321919,
+              "points_mae": 58.97319801728051
+            },
+            "by_position": {
+              "QB": {
+                "n": 17,
+                "spearman": 0.2303921568627451,
+                "points_mae": 69.86569912761641
+              },
+              "RB": {
+                "n": 42,
+                "spearman": 0.45466331739729354,
+                "points_mae": 66.03739079493599
+              },
+              "TE": {
+                "n": 12,
+                "spearman": 0.10858160259244368,
+                "points_mae": 43.75261044835687
+              },
+              "WR": {
+                "n": 49,
+                "spearman": 0.3019464783247393,
+                "points_mae": 52.86663547217526
+              }
+            }
+          }
+        },
+        "v2": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.4499618029029793,
+            "mean_abs_rank_delta": 28.4,
+            "median_abs_rank_delta": 25.0
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.3798339088951294,
+            "edge_corr_residual_vs_actual_rank": 0.33708223607888693,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 186.1086956521739,
+            "mean_actual_points_when_model_lower": 165.4867605633803,
+            "points_surplus_model_higher_minus_lower": 20.621935088793606,
+            "top24_hit_rate_when_model_higher": 0.2608695652173913,
+            "n_model_higher": 46,
+            "n_model_lower": 71
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.4277923525599001,
+              "points_mae": 63.90364808275532
+            },
+            "by_position": {
+              "QB": {
+                "n": 17,
+                "spearman": 0.15441176470588236,
+                "points_mae": 93.95141577034452
+              },
+              "RB": {
+                "n": 42,
+                "spearman": 0.345271858034195,
+                "points_mae": 71.87044983514042
+              },
+              "TE": {
+                "n": 12,
+                "spearman": -0.42031588100300776,
+                "points_mae": 51.17375034845372
+              },
+              "WR": {
+                "n": 49,
+                "spearman": 0.2577616776776923,
+                "points_mae": 49.76775111382528
+              }
+            }
+          }
+        },
+        "carry_forward": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.5619348565872628,
+            "mean_abs_rank_delta": 24.783333333333335,
+            "median_abs_rank_delta": 21.5
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.1697565091236372,
+            "edge_corr_residual_vs_actual_rank": 0.13685082346880542,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 166.29275862068965,
+            "mean_actual_points_when_model_lower": 175.95084745762716,
+            "points_surplus_model_higher_minus_lower": -9.658088836937509,
+            "top24_hit_rate_when_model_higher": 0.15517241379310345,
+            "n_model_higher": 58,
+            "n_model_lower": 59
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.2892553008851921,
+              "points_mae": 79.3675
+            },
+            "by_position": {
+              "QB": {
+                "n": 17,
+                "spearman": 0.14987760227296412,
+                "points_mae": 122.95882352941177
+              },
+              "RB": {
+                "n": 42,
+                "spearman": 0.38310978620019365,
+                "points_mae": 71.52380952380953
+              },
+              "TE": {
+                "n": 12,
+                "spearman": -0.3362527048024062,
+                "points_mae": 64.73333333333333
+              },
+              "WR": {
+                "n": 49,
+                "spearman": 0.18285775010137456,
+                "points_mae": 74.55102040816327
+              }
+            }
+          }
+        },
+        "blend": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.5370720188902005,
+            "mean_abs_rank_delta": 25.866666666666667,
+            "median_abs_rank_delta": 21.0
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.4187918850666147,
+            "edge_corr_residual_vs_actual_rank": 0.3816782584826043,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 179.47884615384615,
+            "mean_actual_points_when_model_lower": 169.08303030303034,
+            "points_surplus_model_higher_minus_lower": 10.395815850815808,
+            "top24_hit_rate_when_model_higher": 0.25,
+            "n_model_higher": 52,
+            "n_model_lower": 66
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.47507366001925794,
+              "points_mae": 60.939042423369294
+            },
+            "by_position": {
+              "QB": {
+                "n": 17,
+                "spearman": 0.13235294117647062,
+                "points_mae": 83.54021076387805
+              },
+              "RB": {
+                "n": 42,
+                "spearman": 0.45466331739729354,
+                "points_mae": 66.03739079493599
+              },
+              "TE": {
+                "n": 12,
+                "spearman": 0.10858160259244368,
+                "points_mae": 44.038829691207404
+              },
+              "WR": {
+                "n": 49,
+                "spearman": 0.3019464783247393,
+                "points_mae": 52.86663547217526
+              }
+            }
+          }
+        }
+      }
+    },
+    "2025": {
+      "season": 2025,
+      "consensus_as_of": "2025-09-01",
+      "consensus_meta": {
+        "matched_adp": 144,
+        "matched_ecr": 0,
+        "adp_drafts": 718
+      },
+      "board_n": 755,
+      "models": {
+        "v1": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.5035558024862837,
+            "mean_abs_rank_delta": 26.433333333333334,
+            "median_abs_rank_delta": 20.5
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.4592753433109054,
+            "edge_corr_residual_vs_actual_rank": 0.41232992586263983,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 170.2476923076923,
+            "mean_actual_points_when_model_lower": 165.55820895522388,
+            "points_surplus_model_higher_minus_lower": 4.6894833524684145,
+            "top24_hit_rate_when_model_higher": 0.23076923076923078,
+            "n_model_higher": 52,
+            "n_model_lower": 67
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.4905105433769054,
+              "points_mae": 62.371287614331365
+            },
+            "by_position": {
+              "QB": {
+                "n": 19,
+                "spearman": -0.043878898475993064,
+                "points_mae": 81.40691058524781
+              },
+              "RB": {
+                "n": 37,
+                "spearman": 0.4537695590327169,
+                "points_mae": 71.26127638156167
+              },
+              "TE": {
+                "n": 10,
+                "spearman": 0.5757575757575757,
+                "points_mae": 37.75710313760531
+              },
+              "WR": {
+                "n": 54,
+                "spearman": 0.25866702247927253,
+                "points_mae": 54.14046213159667
+              }
+            }
+          }
+        },
+        "v2": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.39619418015139934,
+            "mean_abs_rank_delta": 29.383333333333333,
+            "median_abs_rank_delta": 23.0
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.58777326615751,
+            "edge_corr_residual_vs_actual_rank": 0.5689041631171099,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 185.48239999999998,
+            "mean_actual_points_when_model_lower": 155.0304347826087,
+            "points_surplus_model_higher_minus_lower": 30.45196521739129,
+            "top24_hit_rate_when_model_higher": 0.26,
+            "n_model_higher": 50,
+            "n_model_lower": 69
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.6171384917456986,
+              "points_mae": 55.794319834822254
+            },
+            "by_position": {
+              "QB": {
+                "n": 19,
+                "spearman": 0.3010092435453124,
+                "points_mae": 62.19700592637983
+              },
+              "RB": {
+                "n": 37,
+                "spearman": 0.4537695590327169,
+                "points_mae": 68.48529459112007
+              },
+              "TE": {
+                "n": 10,
+                "spearman": 0.309090909090909,
+                "points_mae": 39.22621008170899
+              },
+              "WR": {
+                "n": 54,
+                "spearman": 0.5140559188263291,
+                "points_mae": 47.91402346090598
+              }
+            }
+          }
+        },
+        "carry_forward": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.5427529689561774,
+            "mean_abs_rank_delta": 24.333333333333332,
+            "median_abs_rank_delta": 17.0
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.30580406052593206,
+            "edge_corr_residual_vs_actual_rank": 0.27027458124234816,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 165.46830188679246,
+            "mean_actual_points_when_model_lower": 169.74092307692308,
+            "points_surplus_model_higher_minus_lower": -4.2726211901306215,
+            "top24_hit_rate_when_model_higher": 0.20754716981132076,
+            "n_model_higher": 53,
+            "n_model_lower": 65
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.37635022107442895,
+              "points_mae": 74.09283333333333
+            },
+            "by_position": {
+              "QB": {
+                "n": 19,
+                "spearman": -0.1132075580680621,
+                "points_mae": 102.47263157894737
+              },
+              "RB": {
+                "n": 37,
+                "spearman": 0.3862929294210538,
+                "points_mae": 80.31729729729729
+              },
+              "TE": {
+                "n": 10,
+                "spearman": 0.41945482513924454,
+                "points_mae": 53.07000000000001
+              },
+              "WR": {
+                "n": 54,
+                "spearman": 0.2545322891808263,
+                "points_mae": 63.73555555555555
+              }
+            }
+          }
+        },
+        "blend": {
+          "agreement": {
+            "n": 120,
+            "spearman_vs_market": 0.49116605319813866,
+            "mean_abs_rank_delta": 26.683333333333334,
+            "median_abs_rank_delta": 21.0
+          },
+          "edge": {
+            "n": 120,
+            "has_actuals": true,
+            "edge_corr_residual_vs_actual_points": -0.5050895698374416,
+            "edge_corr_residual_vs_actual_rank": 0.4589994808483744,
+            "actionable_points_edge": true,
+            "actionable_rank_edge": true,
+            "mean_actual_points_when_model_higher": 170.68226415094335,
+            "mean_actual_points_when_model_lower": 165.72757575757575,
+            "points_surplus_model_higher_minus_lower": 4.954688393367604,
+            "top24_hit_rate_when_model_higher": 0.22641509433962265,
+            "n_model_higher": 53,
+            "n_model_lower": 66
+          },
+          "accuracy_on_matched": {
+            "overall": {
+              "n": 120,
+              "spearman": 0.5283780851133637,
+              "points_mae": 58.30452581563639
+            },
+            "by_position": {
+              "QB": {
+                "n": 19,
+                "spearman": 0.16849497014781337,
+                "points_mae": 56.2434486659812
+              },
+              "RB": {
+                "n": 37,
+                "spearman": 0.4537695590327169,
+                "points_mae": 71.26127638156167
+              },
+              "TE": {
+                "n": 10,
+                "spearman": 0.5757575757575757,
+                "points_mae": 36.76653919987215
+              },
+              "WR": {
+                "n": 54,
+                "spearman": 0.25866702247927253,
+                "points_mae": 54.14046213159667
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "actionable_summary": {
+    "v1": {
+      "seasons_with_points_edge": [
+        2023,
+        2024,
+        2025
+      ],
+      "multi_season_edge": true
+    },
+    "v2": {
+      "seasons_with_points_edge": [
+        2023,
+        2024,
+        2025
+      ],
+      "multi_season_edge": true
+    },
+    "blend": {
+      "seasons_with_points_edge": [
+        2023,
+        2024,
+        2025
+      ],
+      "multi_season_edge": true
+    },
+    "carry_forward": {
+      "seasons_with_points_edge": [
+        2023,
+        2024,
+        2025
+      ],
+      "multi_season_edge": true
+    }
+  }
+}

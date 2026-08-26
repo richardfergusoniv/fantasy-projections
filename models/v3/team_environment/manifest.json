@@ -1,0 +1,28 @@
+{
+  "cells": {
+    "passing_yards": {
+      "label_col": "team_passing_yards_pg",
+      "resid_std": 24.030975193270223,
+      "dispersion": 577.4877687395688,
+      "model_path": "team_passing_yards.joblib"
+    },
+    "pass_attempts": {
+      "label_col": "team_pass_attempts_pg",
+      "resid_std": 3.1673686727682573,
+      "dispersion": 10.03222430923375,
+      "model_path": "team_pass_attempts.joblib"
+    },
+    "carries": {
+      "label_col": "team_carries_pg",
+      "resid_std": 2.7778421608681625,
+      "dispersion": 7.716407070696702,
+      "model_path": "team_carries.joblib"
+    },
+    "rushing_yards": {
+      "label_col": "team_rushing_yards_pg",
+      "resid_std": 20.322161164822248,
+      "dispersion": 412.99023440900953,
+      "model_path": "team_rushing_yards.joblib"
+    }
+  }
+}

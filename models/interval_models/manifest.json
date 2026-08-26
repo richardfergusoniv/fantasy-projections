@@ -1,0 +1,307 @@
+{
+  "quantiles": [
+    0.1,
+    0.9
+  ],
+  "cells": {
+    "QB:attempts": {
+      "n_train": 219,
+      "models": {
+        "0.1": "QB_attempts_q10.joblib",
+        "0.9": "QB_attempts_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "QB:carries": {
+      "n_train": 219,
+      "models": {
+        "0.1": "QB_carries_q10.joblib",
+        "0.9": "QB_carries_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "QB:completions": {
+      "n_train": 219,
+      "models": {
+        "0.1": "QB_completions_q10.joblib",
+        "0.9": "QB_completions_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "QB:interceptions": {
+      "n_train": 219,
+      "models": {
+        "0.1": "QB_interceptions_q10.joblib",
+        "0.9": "QB_interceptions_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "QB:passing_tds": {
+      "n_train": 219,
+      "models": {
+        "0.1": "QB_passing_tds_q10.joblib",
+        "0.9": "QB_passing_tds_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "QB:passing_yards": {
+      "n_train": 219,
+      "models": {
+        "0.1": "QB_passing_yards_q10.joblib",
+        "0.9": "QB_passing_yards_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "QB:rushing_tds": {
+      "n_train": 219,
+      "models": {
+        "0.1": "QB_rushing_tds_q10.joblib",
+        "0.9": "QB_rushing_tds_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "QB:rushing_yards": {
+      "n_train": 219,
+      "models": {
+        "0.1": "QB_rushing_yards_q10.joblib",
+        "0.9": "QB_rushing_yards_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "RB:carries": {
+      "n_train": 344,
+      "models": {
+        "0.1": "RB_carries_q10.joblib",
+        "0.9": "RB_carries_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "RB:receiving_tds": {
+      "n_train": 344,
+      "models": {
+        "0.1": "RB_receiving_tds_q10.joblib",
+        "0.9": "RB_receiving_tds_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "RB:receiving_yards": {
+      "n_train": 344,
+      "models": {
+        "0.1": "RB_receiving_yards_q10.joblib",
+        "0.9": "RB_receiving_yards_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "RB:receptions": {
+      "n_train": 344,
+      "models": {
+        "0.1": "RB_receptions_q10.joblib",
+        "0.9": "RB_receptions_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "RB:rushing_tds": {
+      "n_train": 344,
+      "models": {
+        "0.1": "RB_rushing_tds_q10.joblib",
+        "0.9": "RB_rushing_tds_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "RB:rushing_yards": {
+      "n_train": 344,
+      "models": {
+        "0.1": "RB_rushing_yards_q10.joblib",
+        "0.9": "RB_rushing_yards_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "RB:targets": {
+      "n_train": 344,
+      "models": {
+        "0.1": "RB_targets_q10.joblib",
+        "0.9": "RB_targets_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "TE:receiving_tds": {
+      "n_train": 336,
+      "models": {
+        "0.1": "TE_receiving_tds_q10.joblib",
+        "0.9": "TE_receiving_tds_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "TE:receiving_yards": {
+      "n_train": 336,
+      "models": {
+        "0.1": "TE_receiving_yards_q10.joblib",
+        "0.9": "TE_receiving_yards_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "TE:receptions": {
+      "n_train": 336,
+      "models": {
+        "0.1": "TE_receptions_q10.joblib",
+        "0.9": "TE_receptions_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "TE:targets": {
+      "n_train": 336,
+      "models": {
+        "0.1": "TE_targets_q10.joblib",
+        "0.9": "TE_targets_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "WR:receiving_tds": {
+      "n_train": 602,
+      "models": {
+        "0.1": "WR_receiving_tds_q10.joblib",
+        "0.9": "WR_receiving_tds_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "WR:receiving_yards": {
+      "n_train": 602,
+      "models": {
+        "0.1": "WR_receiving_yards_q10.joblib",
+        "0.9": "WR_receiving_yards_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "WR:receptions": {
+      "n_train": 602,
+      "models": {
+        "0.1": "WR_receptions_q10.joblib",
+        "0.9": "WR_receptions_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    },
+    "WR:targets": {
+      "n_train": 602,
+      "models": {
+        "0.1": "WR_targets_q10.joblib",
+        "0.9": "WR_targets_q90.joblib"
+      },
+      "features": [
+        "pred",
+        "depth_tier",
+        "experience_bucket",
+        "volume_bucket"
+      ]
+    }
+  }
+}

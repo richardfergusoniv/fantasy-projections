@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-08-26T00:06:03.334019+00:00",
+  "season": 2026,
+  "verdict": "simulation_ready",
+  "rationale": "v3 simulation overlay is ready for percentiles/volatility UI only. Do not replace the v1 point engine; means backtest has not cleared promote_v3_means gates.",
+  "gates": {
+    "simulation_ready": true,
+    "calibration_within_5pp": true,
+    "mean_interval_coverage": 0.797744366109395,
+    "v3_simulation_exists": true,
+    "means_backtest_exists": true,
+    "interim_beats_v1_and_blend": false,
+    "generative_beats_v1_and_blend": false,
+    "promote_v3_means": false,
+    "holdout_2025": {
+      "v1_mae": 27.714018153332695,
+      "blend_mae": 27.714018153332695,
+      "v3_interim_mae": 29.79164860051741,
+      "v3_generative_mae": 47.20524104358796,
+      "v1_spearman": 0.7583060301223868,
+      "blend_spearman": 0.7583060301223868,
+      "v3_interim_spearman": 0.6975008928437265,
+      "v3_generative_spearman": 0.610944300456787
+    }
+  },
+  "architecture_rule": "v1 compose_board owns point rates/totals; optional v2 blend owns draft mean points when enabled; v3 owns distributional overlay until promote_v3_means."
+}

@@ -1,0 +1,76 @@
+{
+  "description": "2024->2025 holdout QB partial-season prior shrink",
+  "threshold_games": 12,
+  "variants": [
+    {
+      "variant": "baseline",
+      "holdout": {
+        "starter_depth_tier_1": {
+          "rate_spearman": 0.2118,
+          "rate_mae": 4.179,
+          "mean_bias": -2.833,
+          "tier_hits": "6/12"
+        },
+        "starter_8plus_games": {
+          "rate_spearman": 0.1377,
+          "rate_mae": 4.156,
+          "mean_bias": -3.661,
+          "tier_hits": "7/12"
+        }
+      },
+      "partial_2024_cases": [
+        {
+          "display_name": "Lamar Jackson",
+          "player_id": "00-0034796",
+          "source_2024_games": 17.0,
+          "actual_rate_ppg": 16.835,
+          "model_rate_ppg": 17.068,
+          "bias_ppg": 0.232
+        },
+        {
+          "display_name": "Joe Burrow",
+          "player_id": "00-0036442",
+          "source_2024_games": 17.0,
+          "actual_rate_ppg": 16.808,
+          "model_rate_ppg": 16.539,
+          "bias_ppg": -0.269
+        }
+      ]
+    },
+    {
+      "variant": "partial_prior_shrink",
+      "holdout": {
+        "starter_depth_tier_1": {
+          "rate_spearman": 0.2296,
+          "rate_mae": 4.134,
+          "mean_bias": -2.788,
+          "tier_hits": "6/12"
+        },
+        "starter_8plus_games": {
+          "rate_spearman": 0.1562,
+          "rate_mae": 4.105,
+          "mean_bias": -3.609,
+          "tier_hits": "7/12"
+        }
+      },
+      "partial_2024_cases": [
+        {
+          "display_name": "Lamar Jackson",
+          "player_id": "00-0034796",
+          "source_2024_games": 17.0,
+          "actual_rate_ppg": 16.835,
+          "model_rate_ppg": 17.068,
+          "bias_ppg": 0.232
+        },
+        {
+          "display_name": "Joe Burrow",
+          "player_id": "00-0036442",
+          "source_2024_games": 17.0,
+          "actual_rate_ppg": 16.808,
+          "model_rate_ppg": 16.432,
+          "bias_ppg": -0.375
+        }
+      ]
+    }
+  ]
+}

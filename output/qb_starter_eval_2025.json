@@ -1,0 +1,112 @@
+{
+  "metadata": {
+    "source_season": 2024,
+    "target_season": 2025,
+    "training_pairs": [
+      [
+        2021,
+        2022
+      ],
+      [
+        2022,
+        2023
+      ],
+      [
+        2023,
+        2024
+      ]
+    ],
+    "population_definition": "earliest regular-season weekly_rosters snapshot; statuses ACT/DEV/RES/INA/EXE; position/team frozen before outcomes",
+    "population_n": 755,
+    "rookie_n": 166,
+    "forecast_covered_n": 661,
+    "composition_pipeline": "src.projection.composition.compose_board - the same stage sequence src.projection.predict.project_season ships",
+    "composition_artifact_provenance": "refit_on_history_through_source_season",
+    "composition_stage_coverage": {
+      "apply_full_season_games_baseline": "active",
+      "apply_status_overrides": "no-op: no status_overrides_2025.csv",
+      "propagate_team_anchors": "active",
+      "reconcile_team_volume": "active",
+      "reconcile_td_rate_constraints": "active",
+      "reconcile_stat_constraints": "active",
+      "add_projected_season_totals": "active",
+      "_curated_depth_chart": "absent: src/depth_chart/starters_2025.csv does not exist. Curated membership, roles, formation roles and replacement-level rows are therefore unmeasurable on this fold."
+    },
+    "exposure_blend_alpha": 0.0,
+    "qb_partial_prior_shrink": false,
+    "qb_rush_td_clip_hi": null,
+    "qb_pass_td_t1_lite": false,
+    "tier_ranks": {
+      "QB": 12,
+      "RB": 24,
+      "WR": 36,
+      "TE": 12
+    },
+    "replacement_ranks": {
+      "QB": 13,
+      "RB": 25,
+      "WR": 37,
+      "TE": 13
+    },
+    "qb_starter_metrics": {
+      "starter_depth_tier_1": {
+        "n": 29,
+        "rate_spearman": 0.2591,
+        "rate_mae": 3.976,
+        "mean_bias": -2.585,
+        "points_mae": 79.4,
+        "tier_hits": "6/12"
+      },
+      "starter_8plus_games": {
+        "n": 25,
+        "rate_spearman": 0.2169,
+        "rate_mae": 3.941,
+        "mean_bias": -3.44,
+        "points_mae": 66.14,
+        "tier_hits": "7/12"
+      },
+      "all_eligible": {
+        "n": 107,
+        "rate_spearman": 0.7652,
+        "rate_mae": 3.475,
+        "mean_bias": -2.641,
+        "points_mae": 40.46,
+        "tier_hits": "6/12"
+      }
+    },
+    "coverage_limits": [
+      "Week-1 contracted roster snapshot excludes August camp cuts.",
+      "Veterans without a source-season feature row remain in all_eligible and score as zero model points.",
+      "Composition/allocation is the shipped pipeline itself (composition.compose_board), run over artifacts refit on seasons <= source_season. See composition_stage_coverage for the per-stage active/degraded map.",
+      "STAGES THAT CANNOT BE MEASURED ON A HISTORICAL FOLD, and why: (a) curated depth-chart membership, roles, formation roles and reviewed usage-share priors - src/depth_chart/starters_<season>.csv is hand-researched and exists for 2026 only, so apply_curated_availability_override, apply_depth_chart_gating's curated branch, replacement-level rows for curated players neither model path reaches, and the LWR/RWR/SWR within-WR split all no-op; (b) dated status overrides (IR/PUP) - status_overrides_<season>.csv is likewise 2026-only; (c) elite residual correction - models/corrections.joblib is fit on residuals spanning the target season; (d) prediction intervals - models/interval_residuals.csv is fit by backtest.py across the target season. None of these are faked or silently skipped: each degrades to an explicit pass-through recorded in composition_stage_coverage.",
+      "Roster reassignment (reassign_team_changers) is not run: the target team comes from the frozen Week-1 roster, which is a stricter preseason source than the seasonal_rosters lookup the shipped path uses.",
+      "No Sleeper or other external projection is used."
+    ]
+  },
+  "qb_starter_metrics": {
+    "starter_depth_tier_1": {
+      "n": 29,
+      "rate_spearman": 0.2591,
+      "rate_mae": 3.976,
+      "mean_bias": -2.585,
+      "points_mae": 79.4,
+      "tier_hits": "6/12"
+    },
+    "starter_8plus_games": {
+      "n": 25,
+      "rate_spearman": 0.2169,
+      "rate_mae": 3.941,
+      "mean_bias": -3.44,
+      "points_mae": 66.14,
+      "tier_hits": "7/12"
+    },
+    "all_eligible": {
+      "n": 107,
+      "rate_spearman": 0.7652,
+      "rate_mae": 3.475,
+      "mean_bias": -2.641,
+      "points_mae": 40.46,
+      "tier_hits": "6/12"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-08-25T01:10:40.218804+00:00",
+  "purpose": "Freeze v1/v2 boards and define draft-edge scoreboard (no model rewrite)",
+  "scoreboard": {
+    "primary_decision": "preseason_draft_value_vs_adp",
+    "primary_metrics": [
+      {
+        "id": "spearman_vs_adp",
+        "description": "Rank Spearman of model vs contemporaneous ADP inside matched set"
+      },
+      {
+        "id": "draft_edge_proxy",
+        "description": "After residualizing on ADP rank, correlate (model_rank - adp_rank) with actual season points; negative correlation => actionable edge"
+      },
+      {
+        "id": "points_surplus_model_higher",
+        "description": "Mean actual points when model ranks player above ADP minus when model ranks below"
+      }
+    ],
+    "secondary_metrics": [
+      "holdout_spearman",
+      "holdout_points_mae",
+      "tier_hit_rate"
+    ],
+    "non_goals": [
+      "sleeper_agreement",
+      "prop_closing_line_value",
+      "dfs_lineup_roi"
+    ],
+    "join_rules": [
+      "Match player_id then normalized name+position",
+      "Re-rank both sides inside the matched set",
+      "Optionally truncate to max_market_rank (draftable window)"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "output/fantasy_points_2026.csv",
+      "exists": true,
+      "bytes": 401905,
+      "sha256": "13f9753c9af29d873da865df7e9d0a2db61373b128a6e072a6899b6b20d007ad"
+    },
+    {
+      "path": "output/projections_2026.csv",
+      "exists": true,
+      "bytes": 1556159,
+      "sha256": "154f4c95904a8a75e1d969c65c6377ceb63405ede8e25bf2769a330031674840"
+    },
+    {
+      "path": "output/fantasy_evaluation_2025.csv",
+      "exists": true,
+      "bytes": 222786,
+      "sha256": "89a471c7391efc3f33cc8247b95a367d7e44634cd61dd7a74e9ad7d547ae8285"
+    },
+    {
+      "path": "output/fantasy_evaluation_summary_2025.json",
+      "exists": true,
+      "bytes": 45513,
+      "sha256": "89cb4a09f57aac13737781fe43266b83be6f9dfa05ceec9adf0289f3babc68c7"
+    },
+    {
+      "path": "output/model_accuracy_compare_2025.json",
+      "exists": true,
+      "bytes": 9985,
+      "sha256": "477542bc0c114195dba05b8d4d438ce4b56ab7a99f4aebc19f0ef42684b63fdb"
+    },
+    {
+      "path": "data/consensus/consensus_2026.json",
+      "exists": true,
+      "bytes": 85619,
+      "sha256": "18fbd17a43e47206632969b525d3c14c1779d3b587e7e03959a91a295b905f1e"
+    },
+    {
+      "path": "output/model_v2/fantasy_points_2026.csv",
+      "exists": true,
+      "bytes": 152922,
+      "sha256": "7f6a94eb3010c6a39768363d418c7ffe67575cfdf9fb0534a7bb56079dce25a4"
+    }
+  ]
+}
