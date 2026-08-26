@@ -400,3 +400,23 @@ def test_simulation_manifest_records_the_board_it_simulated(tmp_path, monkeypatc
     manifest = sim_mod.write_simulation_outputs(projections, 2026, n_draws=5)
     assert manifest["source_projection_run_id"] == "run-XYZ"
     assert manifest["mode"] == "full"
+
+
+def test_publish_runs_the_simulation_before_exporting_the_draft_board():
+    """Otherwise the provenance guard blocks the overlay forever.
+
+    Each publish mints a fresh projection_run_id, so a simulation generated
+    beforehand is stale against the board by construction. Running it inside
+    publish, after the projections are final and before export_draft_data, is
+    what makes the guard satisfiable rather than permanently closed.
+    """
+    import inspect
+    from src.projection import publish as publish_mod
+
+    src = inspect.getsource(publish_mod.publish)
+    assert "write_simulation_outputs(" in src
+    assert src.index("write_simulation_outputs(") < src.index("export_draft_data("), (
+        "the simulation must run before the draft board is exported")
+    assert src.index('projections["projection_run_id"] = run_id') < src.index(
+        "write_simulation_outputs("), (
+        "the simulation must see the run_id it will be checked against")

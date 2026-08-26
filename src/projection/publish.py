@@ -25,11 +25,13 @@ from src.projection.contracts import (
 )
 from src.projection.data_prep import get_conn
 from src.projection.fantasy_points import compute_fantasy_points
+from src.projection.inference.simulate import write_simulation_outputs
 from src.projection.predict import project_season, with_display_names
 from src.sentiment.snapshot import attach_sentiment
 from src.team_stats.prepare import export_team_stats
 
 
+SIMULATION_DRAWS = 1000
 MANIFEST_SCHEMA_VERSION = 1
 
 
@@ -134,8 +136,24 @@ def _write_manifest(path: Path, payload: dict) -> None:
         json.dump(payload, handle, indent=2, allow_nan=False)
 
 
-def publish(season: int, *, as_of: str | None = None) -> dict:
-    """Build, validate, and commit projections plus all downstream artifacts."""
+def publish(
+    season: int,
+    *,
+    as_of: str | None = None,
+    simulate: bool = True,
+    simulation_draws: int = SIMULATION_DRAWS,
+) -> dict:
+    """Build, validate, and commit projections plus all downstream artifacts.
+
+    The season simulation runs HERE, between the projections being finalised
+    and the draft board being exported. It cannot run outside: every publish
+    mints a fresh ``projection_run_id``, so a simulation generated beforehand
+    is stale against the board by construction and the percentile overlay's
+    provenance guard refuses it forever.
+
+    ``simulate=False`` skips it, which is only for a fast rebuild -- the board
+    then ships without percentile columns rather than with stale ones.
+    """
     run_id = str(uuid.uuid4())
     conn = get_conn()
     try:
@@ -151,6 +169,13 @@ def publish(season: int, *, as_of: str | None = None) -> dict:
     )
     validate_projection_contract(projections, season)
     fantasy = compute_fantasy_points(projections)
+
+    simulation_manifest = None
+    if simulate:
+        # Runs against the board just built, so the percentiles carry this
+        # run's id and the overlay's provenance guard accepts them.
+        simulation_manifest = write_simulation_outputs(
+            projections, season, n_draws=simulation_draws)
 
     final_paths = {
         "projections": Path(OUTPUT_DIR) / f"projections_{season}.csv",
@@ -198,6 +223,7 @@ def publish(season: int, *, as_of: str | None = None) -> dict:
             "data_snapshot": _data_snapshot(),
             "exposure_policy": "healthy_active_17_games; explicit IR/PUP/suspension overrides only",
             "composition_version": COMPOSITION_VERSION,
+            "simulation": simulation_manifest,
             "concentration_version": str(
                 projections["concentration_calibration_version"].replace(
                     "not_applicable", pd.NA
@@ -224,8 +250,23 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--season", type=int, required=True)
     parser.add_argument("--as-of", default=None)
+    parser.add_argument(
+        "--no-simulate",
+        action="store_true",
+        help=(
+            "Skip the season simulation. The board then ships WITHOUT "
+            "percentile columns; it never ships with stale ones."
+        ),
+    )
+    parser.add_argument(
+        "--simulation-draws", type=int, default=SIMULATION_DRAWS)
     args = parser.parse_args()
-    manifest = publish(args.season, as_of=args.as_of)
+    manifest = publish(
+        args.season,
+        as_of=args.as_of,
+        simulate=not args.no_simulate,
+        simulation_draws=args.simulation_draws,
+    )
     print(json.dumps(manifest, indent=2))
     return 0
 

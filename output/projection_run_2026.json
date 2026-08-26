@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "run_id": "ec234054-2af0-4260-8ad0-04c9b8346f15",
+  "run_id": "c85c46cd-e641-401c-a3fb-087c3ce66cbb",
   "season": 2026,
-  "created_at": "2026-08-26T01:33:57.476792+00:00",
+  "created_at": "2026-08-26T02:37:04.171927+00:00",
   "as_of": null,
   "code_revision": {
-    "commit": "e460aee4749ea66277d7ec2ee03ea412f724c937",
-    "dirty": false
+    "commit": "bc365665313cbd43a90ea84f5309e2bcb76ea53e",
+    "dirty": true
   },
   "artifact_hashes": {
     "models/corrections.joblib": "e44ee89c5f79cf327f576c96225de53e1227619e2a2c2237da7de436770fcfea",
@@ -58,19 +58,19 @@
   "files": {
     "projections": {
       "path": "output/projections_2026.csv",
-      "sha256": "58ec97e0f01d3ab6acf5a2208e299157c6a8051d066dbbe2fdac0e1b7b4712dc"
+      "sha256": "22b77fa9accd87b1cee2fad411322e6554fbb3b06fd4c9cfef79685852df9ebd"
     },
     "fantasy_points": {
       "path": "output/fantasy_points_2026.csv",
-      "sha256": "350b29061fc9822ea315007ccb7950433a89df2713ed4e15080380b94488add7"
+      "sha256": "82dd716d73dcc92221e9debadd5cc0d15cca45251f48407dd75d59845e8ed785"
     },
     "team_stats": {
       "path": "draft_assistant/data/team_stats_2026.json",
-      "sha256": "9f5bdd1b1912872e56d89dbd85cc3f00ade7d9abf9b95305b6125ea01bb027da"
+      "sha256": "420052f141af54fc843d40c5d058601e1f84c71f27cfbef74ddc7b3727caa2f8"
     },
     "draft_data": {
       "path": "draft_assistant/data/players_2026.json",
-      "sha256": "3dffd538e3646d448366cfff42b0e533c3bbecd5c8c1445be36f88d7b77a60e8"
+      "sha256": "54a09fab8828745aee23c8e8f22e4308f3c1ad3add93f94018c4e3fe6a4e8e9a"
     }
   }
 }
