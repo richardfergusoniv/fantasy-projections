@@ -35,7 +35,10 @@ from src.projection.contracts import (
 )
 from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features
-from src.projection.fantasy_evaluation import build_leakage_safe_forecasts
+from src.projection.fantasy_evaluation import (
+    attach_actual_outcomes,
+    build_leakage_safe_forecasts,
+)
 
 OUT_PATH = ROOT / "output" / "ablation_qb_volume_share.json"
 
@@ -110,6 +113,9 @@ def run_season(conn, feat, source_season: int, target_season: int) -> dict:
             target_season=target_season,
             **_resolve(spec),
         )
+        # Outcomes are attached only after the forecast is built, using the
+        # shipped path's own helper so every arm is scored the same way.
+        forecasts = attach_actual_outcomes(forecasts, feat, target_season)
         results[name] = {
             "overall": _score(forecasts),
             "QB": _score(forecasts, "QB"),

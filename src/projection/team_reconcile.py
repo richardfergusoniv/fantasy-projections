@@ -449,12 +449,20 @@ def reconcile_team_volume(
     teams projecting more QB pass attempts than any NFL team recorded in
     2021-2024.
 
-    Partial by design. `TEAM_RECONCILE_ALPHA` is 0.5, not 1.0, and the reason
-    is measured rather than cautious: forcing the sum to the anchor is the
-    best setting when the projected population covers the whole team and the
-    WORST when it does not (+2.93% MAE on backtest folds averaging 85%
-    coverage, -7.31% on folds above 90%). 0.5 is the strongest setting that
-    improves in both regimes. See contracts.TEAM_RECONCILE_ALPHA.
+    Partial by design, and the reason is measured rather than cautious:
+    forcing the sum to the anchor is the best setting when the projected
+    population covers the whole team and the WORST when it does not (+2.93%
+    MAE on backtest folds averaging 85% coverage, -7.31% on folds above 90%),
+    so the shipped value is the strongest setting that improves in both
+    regimes.
+
+    That value is now FITTED, not the constant. With ``alpha=None`` the
+    per-cell alpha comes from models/reconcile_calibration.json (currently a
+    0.75 default, chosen by rolling origin on player-level season-total MAE);
+    `TEAM_RECONCILE_ALPHA` = 0.5 is only the fallback when that artifact is
+    missing. Passing ``alpha`` explicitly overrides both and is for
+    ablations. See contracts.TEAM_RECONCILE_ALPHA and
+    scripts/fit_reconcile_alpha.py.
 
     This is deliberately NOT the "rescale receivers to match the QB's
     predicted volume" idea that backtested worse (8.94 -> 9.47 MAE) earlier in
