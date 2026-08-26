@@ -52,7 +52,9 @@ def _actual_fantasy_points(conn, feat, season: int) -> pd.Series:
     return scored.set_index("player_id")["actual_points"]
 
 
-def score_mode(board: pd.DataFrame, actual: pd.Series, *, mode: str, n_draws: int) -> dict:
+def score_mode(
+    board: pd.DataFrame, actual: pd.Series, *, mode: str, n_draws: int
+) -> dict:
     draws = simulate_season_distributions(board, n_draws=n_draws, mode=mode)
     if draws.empty:
         return {"mode": mode, "n": 0}
@@ -61,17 +63,24 @@ def score_mode(board: pd.DataFrame, actual: pd.Series, *, mode: str, n_draws: in
         subset=["p10", "p50", "p90", "actual"])
     if joined.empty:
         return {"mode": mode, "n": 0}
-    covered = (joined["p10"] <= joined["actual"]) & (joined["actual"] <= joined["p90"])
-    return {
-        "mode": mode,
-        "n": int(len(joined)),
-        "coverage": float(covered.mean()),
-        "coverage_gap": float(covered.mean() - TARGET),
-        "mean_width": float((joined["p90"] - joined["p10"]).mean()),
-        "p50_mae": float((joined["p50"] - joined["actual"]).abs().mean()),
-        "p50_bias": float((joined["p50"] - joined["actual"]).mean()),
-        "p50_spearman": float(joined["p50"].corr(joined["actual"], method="spearman")),
+
+    def _stats(frame: pd.DataFrame) -> dict:
+        covered = (frame["p10"] <= frame["actual"]) & (frame["actual"] <= frame["p90"])
+        return {
+            "n": int(len(frame)),
+            "coverage": float(covered.mean()),
+            "coverage_gap": float(covered.mean() - TARGET),
+            "mean_width": float((frame["p90"] - frame["p10"]).mean()),
+            "p50_mae": float((frame["p50"] - frame["actual"]).abs().mean()),
+            "p50_bias": float((frame["p50"] - frame["actual"]).mean()),
+            "p50_spearman": float(frame["p50"].corr(frame["actual"], method="spearman")),
+        }
+
+    out = {"mode": mode, **_stats(joined)}
+    out["by_position"] = {
+        str(pos): _stats(grp) for pos, grp in joined.groupby("position", observed=True)
     }
+    return out
 
 
 def main() -> int:
@@ -115,6 +124,9 @@ def main() -> int:
             continue
         print(f"{r['mode']:10s} {r['n']:5d} {r['coverage']:9.4f} {r['mean_width']:9.2f} "
               f"{r['p50_mae']:9.3f} {r['p50_bias']:+9.3f} {r['p50_spearman']:7.4f}")
+        for pos, cell in sorted((r.get("by_position") or {}).items()):
+            print(f"    {pos:6s} {cell['n']:5d} {cell['coverage']:9.4f} {cell['mean_width']:9.2f} "
+                  f"{cell['p50_mae']:9.3f} {cell['p50_bias']:+9.3f} {cell['p50_spearman']:7.4f}")
     return 0
 
 

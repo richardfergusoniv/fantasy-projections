@@ -105,19 +105,76 @@ the whole remaining gap. (An earlier note in this work put that gap at an
 order of magnitude; that was wrong — the Dirichlet share draw contributes
 more spread than it credited.)
 
+## Step 2 done: projection uncertainty closes most of the gap
+
+Implemented as `src/projection/models/uncertainty.py`, fit leakage-safely by
+`scripts/fit_v3_uncertainty.py` from rolling OOF folds:
+
+- **Team environment**: correlated multivariate-normal residual on team
+  (pass_attempts, carries), covariance fitted from OOF team-level residuals
+  — captures the two stats moving together, not just each independently.
+- **Opportunity shares**: Dirichlet concentration fitted by method-of-moments
+  from actual-vs-predicted share variance, per pool (`qb_attempts`,
+  `receiving_targets`, `rb_carries`), replacing a flat `concentration=10.0`.
+- **Availability**: beta-binomial games draw, concentration fitted from
+  actual-vs-expected games variance, bucketed by position and a fragility
+  flag (expected games < 14).
+- **Conversion sigmas**: same measurement as step 1, now fit inside the same
+  leakage-safe manifest rather than hard-coded, with the step-1 constants
+  kept as fallback.
+- **Replacement sink**: `allocate_opportunities` tracks volume that could not
+  be allocated when a room's prior is zero, rather than inventing a share
+  for a player who is not there.
+
+Fit through 2024 (`training_seasons: [2023, 2024]`), measured held out on
+2025, confirmed stable across two seeds and two draw counts (300 and 500):
+
+| position | interim | full (this step) | target |
+|---|---|---|---|
+| QB | 0.48–0.50 | 0.57–0.58 | 0.80 |
+| RB | 0.41 | 0.69–0.71 | 0.80 |
+| TE | 0.54–0.55 | 0.83–0.84 | 0.80 |
+| WR | 0.53 | 0.73–0.75 | 0.80 |
+| **overall** | 0.50 | **0.72–0.73** | 0.80 |
+
+Coverage gap closed from −0.26 to roughly −0.08 overall. p50 MAE is flat to
+slightly worse (34.6 vs 33.1 after step 1 alone) and band width nearly
+doubled (60.6 → ~93) — expected, since representing "the projection could be
+wrong" necessarily widens the band; the useful number is coverage, not width.
+
+**Correction to an in-progress misdiagnosis, left in for the record.** A
+first pass reported QB coverage identical to four decimal places between
+interim and full (0.5244 both) and read that as a shared defect — the
+`qb_attempts` share concentration hit its fitted floor of 1.0, so the
+worry was that uncertainty wasn't reaching QB at all. It was a coincidental
+tie: both modes happened to cover exactly 43 of 82 QBs at that seed. A
+different seed gave 0.500 vs 0.561, with 38% of individual QBs flipping
+their covered/uncovered verdict between modes — ordinary sampling noise
+around a real rate, not two mechanisms failing the same way. Confirmed by
+re-running at 500 draws.
+
+**QB remains the weakest position** (0.57 vs 0.80) even after correcting
+that misdiagnosis. The `concentration=1.0` floor may still be part of it —
+QB rooms are the most top-heavy of the three pools, so a wide Dirichlet
+occasionally hands a backup a large, unrealistic share — but real QB outcome
+variance (benchings, injuries, in-season role changes) may also just exceed
+what the fitted covariance captures. Not chased further here.
+
 ## Next, in order
 
 1. ~~Recalibrate the conversion sigmas for season aggregates.~~ Done; helps
-   p50, not coverage.
-2. **Add projection uncertainty — this is the whole remaining gap.**
-   `team_environment` already stores `resid_std` per team stat and it is
-   unused; the player's share needs a matching widening, since a fixed
-   team volume and a tight Dirichlet together under-disperse volume ~2x.
-3. Re-measure; if coverage still falls short, take the band from a joint
-   bootstrap (0.757 on the same grain) and keep generative for p50 and rank.
-4. Re-point the calibration gate at fantasy-points coverage. It currently
+   p50, not coverage on its own.
+2. ~~Add projection uncertainty.~~ Done; overall coverage 0.538 -> 0.72-0.73.
+   RB/TE/WR land near or above target; QB remains under at ~0.57.
+3. Investigate the QB shortfall specifically — start with whether
+   `qb_attempts` concentration is a fitting artifact (only 3 pools total,
+   QB is the most top-heavy) versus genuine unmodeled QB variance.
+4. Re-measure after any QB-specific fix; if overall coverage still falls
+   short, take the band from a joint bootstrap (0.757 on the old grain) for
+   the remaining gap and keep generative for p50 and rank.
+5. Re-point the calibration gate at fantasy-points coverage. It currently
    reports 0.8013, which is genuine but per-stat-rate; the percentiles it
-   authorises cover 0.538.
+   authorises cover ~0.72, not that number.
 
 ## Note on interim
 

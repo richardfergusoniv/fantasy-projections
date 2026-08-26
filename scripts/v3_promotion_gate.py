@@ -27,24 +27,54 @@ def _read_json(path: Path) -> dict | None:
 
 
 def evaluate_promotion_gate(season: int = 2026) -> dict:
-    calibration = _read_json(REPO_ROOT / "output" / "backtest" / "calibration_report.json") or {}
+    calibration_path = REPO_ROOT / "output" / "backtest" / "v3_fantasy_interval_calibration.json"
+    uncertainty_path = REPO_ROOT / "models" / "v3" / "uncertainty" / "manifest.json"
+    simulation_manifest_path = OUT_DIR / f"simulation_manifest_{season}.json"
+    calibration = _read_json(calibration_path) or {}
+    uncertainty = _read_json(uncertainty_path) or {}
+    simulation_manifest = _read_json(simulation_manifest_path) or {}
     means_backtest = _read_json(OUT_DIR / "means_backtest.json") or {}
     v3_summary = OUT_DIR / f"simulation_summary_{season}.csv"
 
-    # Read the HELD-OUT coverage, not the in-sample one. The in-sample figure
-    # is the empirical quantile of the rows it scores, so it lands on 0.80 by
-    # construction and cannot fail -- gating on it authorised the percentile
-    # overlay on a check that could not have said no. A report predating
-    # forward_summary fails closed rather than falling back to the in-sample
-    # number, which would silently restore the old behaviour.
-    forward = calibration.get("forward_summary") or {}
-    coverage = forward.get("mean_coverage")
-    coverage_in_sample = calibration.get("summary", {}).get("mean_coverage")
-    calibration_ok = coverage is not None and abs(float(coverage) - 0.80) <= 0.05
+    selected_mode = calibration.get("selected_distribution_mode")
+    acceptance_key = {
+        "generative_projection_uncertainty": "option_a_acceptance",
+        "joint_bootstrap": "fallback_acceptance",
+    }.get(selected_mode)
+    selected_acceptance = calibration.get(acceptance_key) or {} if acceptance_key else {}
+    selected_arm = {
+        "generative_projection_uncertainty": "option_a",
+        "joint_bootstrap": "joint_bootstrap",
+    }.get(selected_mode)
+    aggregate = calibration.get("aggregate") or {}
+    selected_metrics = aggregate.get(selected_arm, {}).get("overall", {}) if selected_arm else {}
+    coverage = selected_metrics.get("coverage")
+
+    # These checks deliberately fail closed. The gate is valid only for the
+    # exact season-fantasy-points production path, and only when the live full
+    # simulation used the same selected distribution and uncertainty artifact.
+    calibration_basis_ok = calibration.get("basis") == (
+        "rolling_origin_exact_full_simulator_season_fantasy_points"
+    ) and calibration.get("simulation_mode") == "full"
+    calibration_ok = bool(selected_acceptance.get("pass") and calibration_basis_ok)
+    uncertainty_matches = bool(
+        uncertainty
+        and uncertainty.get("selected_distribution_mode") == selected_mode
+        and uncertainty.get("calibration_artifact") == str(calibration_path)
+    )
+    simulation_mode_ok = simulation_manifest.get("mode") == "full"
+    simulation_distribution_ok = simulation_manifest.get("distribution_mode") == selected_mode
+    simulation_hash_ok = bool(
+        uncertainty.get("artifact_hash")
+        and simulation_manifest.get("uncertainty_artifact_hash") == uncertainty.get("artifact_hash")
+    )
     simulation_ready = bool(
         v3_summary.exists()
-        and bool(calibration)
         and calibration_ok
+        and uncertainty_matches
+        and simulation_mode_ok
+        and simulation_distribution_ok
+        and simulation_hash_ok
     )
 
     summary = means_backtest.get("summary") or {}
@@ -96,10 +126,18 @@ def evaluate_promotion_gate(season: int = 2026) -> dict:
             )
     else:
         verdict = "hold_v1_default"
-        rationale = (
-            "Keep v1 (+ optional v1/v2 draft blend) as the point engine. "
-            "v3 simulation and/or calibration artifacts are incomplete."
-        )
+        if calibration and selected_mode == "hold":
+            rationale = (
+                "Keep v1 (+ optional v1/v2 draft blend) as the point engine and do not "
+                "publish a v3 distributional overlay. Neither the bounded generative "
+                "calibration nor the exact-grain bootstrap fallback cleared every gate."
+            )
+        else:
+            rationale = (
+                "Keep v1 (+ optional v1/v2 draft blend) as the point engine. "
+                "The exact season-distribution calibration or its matching full-simulation "
+                "artifacts are missing, stale, or differently configured."
+            )
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -108,11 +146,16 @@ def evaluate_promotion_gate(season: int = 2026) -> dict:
         "rationale": rationale,
         "gates": {
             "simulation_ready": simulation_ready,
-            "calibration_within_5pp": calibration_ok,
-            "mean_interval_coverage": coverage,
-            "mean_interval_coverage_basis": forward.get("basis") or "missing",
-            "mean_interval_coverage_n_scored": forward.get("n_scored"),
-            "mean_interval_coverage_in_sample": coverage_in_sample,
+            "season_distribution_calibration_passed": calibration_ok,
+            "selected_distribution_mode": selected_mode or "missing",
+            "p10_p90_coverage": coverage,
+            "season_distribution_basis": calibration.get("basis") or "missing",
+            "season_distribution_n_scored": selected_metrics.get("n"),
+            "season_distribution_acceptance": selected_acceptance.get("gates") or {},
+            "uncertainty_manifest_matches_calibration": uncertainty_matches,
+            "simulation_mode_full": simulation_mode_ok,
+            "simulation_distribution_matches": simulation_distribution_ok,
+            "simulation_uncertainty_hash_matches": simulation_hash_ok,
             "v3_simulation_exists": v3_summary.exists(),
             "means_backtest_exists": bool(means_backtest),
             "interim_beats_v1_and_blend": interim_ok,

@@ -67,6 +67,8 @@ def simulate_season_distributions(
     n_draws: int = 1000,
     seed: int = 42,
     mode: str = SIMULATION_MODE,
+    uncertainty_manifest: dict | None = None,
+    use_projection_uncertainty: bool = True,
 ) -> pd.DataFrame:
     """Draw season stat totals and fantasy points from projection board.
 
@@ -87,7 +89,13 @@ def simulate_season_distributions(
     represented. See docs/decisions/SIMULATION_MODE_2026-08-26.md.
     """
     if mode == "full":
-        return _simulate_full_generative(projections, n_draws=n_draws, seed=seed)
+        return _simulate_full_generative(
+            projections,
+            n_draws=n_draws,
+            seed=seed,
+            uncertainty_manifest=uncertainty_manifest,
+            use_projection_uncertainty=use_projection_uncertainty,
+        )
     rng = np.random.default_rng(seed)
     residuals = _load_residuals()
     stat_rows = projections.copy()
@@ -134,10 +142,17 @@ def _simulate_full_generative(
     *,
     n_draws: int = 1000,
     seed: int = 42,
+    uncertainty_manifest: dict | None = None,
+    use_projection_uncertainty: bool = True,
 ) -> pd.DataFrame:
     from src.projection.inference.reconcile import (
         reconcile_v3_generative,
         team_environment_from_board,
+    )
+    from src.projection.models.uncertainty import (
+        draw_availability,
+        draw_team_environment,
+        load_uncertainty_manifest,
     )
 
     rng = np.random.default_rng(seed)
@@ -145,11 +160,27 @@ def _simulate_full_generative(
     # Each team's fitted RidgeCV anchors, already on the board. The 600/400
     # constants this replaces gave every team the same volume draw.
     team_env = team_environment_from_board(players)
-    share_manifest = _load_share_manifest()
+    if uncertainty_manifest is None:
+        uncertainty_manifest = load_uncertainty_manifest()
+    uncertainty_manifest = uncertainty_manifest or {}
+    share_manifest = uncertainty_manifest or _load_share_manifest()
     draws = []
     for draw_idx in range(n_draws):
+        drawn_env = (
+            draw_team_environment(team_env, uncertainty_manifest, rng=rng)
+            if use_projection_uncertainty and uncertainty_manifest else team_env
+        )
+        availability = (
+            draw_availability(players, uncertainty_manifest, rng=rng)
+            if use_projection_uncertainty and uncertainty_manifest else None
+        )
         generative = reconcile_v3_generative(
-            players, team_env, rng=rng, share_manifest=share_manifest)
+            players,
+            drawn_env,
+            rng=rng,
+            share_manifest=share_manifest,
+            availability_games=availability,
+        )
         if generative.empty:
             continue
         # Availability is NOT drawn separately here. The generative path emits
@@ -180,10 +211,41 @@ def write_simulation_outputs(
     *,
     n_draws: int = 1000,
     mode: str = SIMULATION_MODE,
+    uncertainty_manifest: dict | None = None,
 ) -> dict:
     out_dir = Path(MODEL_V3_DIR)
     out_dir.mkdir(parents=True, exist_ok=True)
-    draws = simulate_season_distributions(projections, n_draws=n_draws, mode=mode)
+    if uncertainty_manifest is None:
+        from src.projection.models.uncertainty import load_uncertainty_manifest
+
+        uncertainty_manifest = load_uncertainty_manifest()
+    selected_mode = uncertainty_manifest.get("selected_distribution_mode") if uncertainty_manifest else None
+    # calibrate_v3_distribution.py's acceptance gate can verdict "hold" -- and
+    # a manifest that predates the gate, or one whose calibration errored, has
+    # no verdict at all. Either way the manifest itself was never accepted, so
+    # applying it here is exactly the thing "hold" exists to prevent. Score
+    # generatively but with NO option_a artifacts, matching how the gate's own
+    # "baseline" arm was measured -- not "no simulation", "the last accepted
+    # configuration". _simulate_full_generative applying the manifest whenever
+    # it is merely non-empty, regardless of this field, is what let a
+    # gate-rejected candidate (0.733 coverage, failing every acceptance gate)
+    # ship to production the moment it was fitted.
+    effective_manifest = uncertainty_manifest
+    if selected_mode not in ("generative_projection_uncertainty", "joint_bootstrap"):
+        effective_manifest = {}
+    draws = simulate_season_distributions(
+        projections,
+        n_draws=n_draws,
+        mode=mode,
+        uncertainty_manifest=effective_manifest,
+    )
+    if mode == "full" and selected_mode == "joint_bootstrap":
+        from src.projection.models.uncertainty import JOINT_DONORS_PATH, joint_bootstrap_draws
+
+        if JOINT_DONORS_PATH.exists():
+            donors = pd.read_parquet(JOINT_DONORS_PATH)
+            draws = joint_bootstrap_draws(
+                draws, projections, donors, rng=np.random.default_rng(2026 + int(season)))
     summary = summarize_simulations(draws)
     draws_path = out_dir / f"simulations_{season}.parquet"
     summary_path = out_dir / f"simulation_summary_{season}.csv"
@@ -202,6 +264,17 @@ def write_simulation_outputs(
         "season": season,
         "n_draws": n_draws,
         "mode": mode,
+        # Reflects EFFECTIVE_MANIFEST, i.e. what the draws above actually used
+        # -- not the raw loaded manifest, which may have been zeroed out for a
+        # hold/unverdicted gate. A record that says "generative_projection_
+        # uncertainty" while the draws ran on an empty manifest is the same
+        # class of lie as the dirty flag that could never say clean.
+        "distribution_mode": selected_mode if effective_manifest else mode,
+        "uncertainty_gate_verdict": selected_mode,
+        "uncertainty_applied": bool(effective_manifest),
+        "uncertainty_version": effective_manifest.get("version") if effective_manifest else None,
+        "uncertainty_artifact_hash": effective_manifest.get("artifact_hash") if effective_manifest else None,
+        "uncertainty_training_cutoff": effective_manifest.get("training_cutoff") if effective_manifest else None,
         "source_projection_run_id": source_run_id,
         "draws_path": str(draws_path),
         "summary_path": str(summary_path),

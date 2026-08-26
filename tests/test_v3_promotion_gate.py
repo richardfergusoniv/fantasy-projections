@@ -114,12 +114,7 @@ def test_gate_reports_blend_arm_usability(tmp_path, monkeypatch):
     # simulation_ready preconditions
     pd.DataFrame({"player_id": ["a"], "p50": [1.0]}).to_csv(
         out_dir / "simulation_summary_2026.csv", index=False)
-    (tmp_path / "output" / "backtest" / "calibration_report.json").write_text(
-        json.dumps({
-            "summary": {"mean_coverage": 0.80, "basis": "in_sample"},
-            "forward_summary": {
-                "mean_coverage": 0.80, "basis": "forward_holdout", "n_scored": 500},
-        }), encoding="utf-8")
+    _write_exact_calibration(tmp_path)
     (out_dir / "means_backtest.json").write_text(json.dumps({
         "folds": [_fold(blend_mae=27.7)],
         "summary": {
@@ -222,48 +217,97 @@ def _gate_dirs(tmp_path, monkeypatch):
     (tmp_path / "output" / "backtest").mkdir(parents=True)
     pd.DataFrame({"player_id": ["a"], "p50": [1.0]}).to_csv(
         out_dir / "simulation_summary_2026.csv", index=False)
+    _write_exact_calibration(tmp_path)
     return out_dir
 
 
-def test_gate_reads_held_out_coverage_not_in_sample(tmp_path, monkeypatch):
-    """In-sample coverage is a tautology, so it must not open the gate."""
+def _write_exact_calibration(
+    tmp_path,
+    *,
+    selected_mode="generative_projection_uncertainty",
+    passed=True,
+    coverage=0.80,
+    simulation_mode="full",
+    simulation_hash="deadbeef",
+):
+    calibration_path = (
+        tmp_path / "output" / "backtest" / "v3_fantasy_interval_calibration.json")
+    calibration_path.parent.mkdir(parents=True, exist_ok=True)
+    report = {
+        "basis": "rolling_origin_exact_full_simulator_season_fantasy_points",
+        "simulation_mode": simulation_mode,
+        "selected_distribution_mode": selected_mode,
+        "aggregate": {
+            "option_a": {"overall": {"n": 500, "coverage": coverage}},
+            "joint_bootstrap": {"overall": {"n": 500, "coverage": coverage}},
+        },
+        "option_a_acceptance": {"pass": passed, "gates": {"all": passed}},
+        "fallback_acceptance": {"pass": passed, "gates": {"all": passed}},
+    }
+    calibration_path.write_text(json.dumps(report), encoding="utf-8")
+
+    uncertainty_path = tmp_path / "models" / "v3" / "uncertainty" / "manifest.json"
+    uncertainty_path.parent.mkdir(parents=True, exist_ok=True)
+    uncertainty_path.write_text(json.dumps({
+        "artifact_hash": "deadbeef",
+        "selected_distribution_mode": selected_mode,
+        "calibration_artifact": str(calibration_path),
+    }), encoding="utf-8")
+
+    out_dir = tmp_path / "model_v3"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "simulation_manifest_2026.json").write_text(json.dumps({
+        "mode": "full",
+        "distribution_mode": selected_mode,
+        "uncertainty_artifact_hash": simulation_hash,
+    }), encoding="utf-8")
+
+
+def test_gate_reads_exact_season_calibration_not_old_rate_report(tmp_path, monkeypatch):
+    """The unrelated per-stat rate report must never authorize season bands."""
     _gate_dirs(tmp_path, monkeypatch)
+    _write_exact_calibration(tmp_path, passed=False, coverage=0.42)
     (tmp_path / "output" / "backtest" / "calibration_report.json").write_text(
-        json.dumps({
-            "summary": {"mean_coverage": 0.80, "basis": "in_sample"},
-            # Held-out says the intervals are badly miscalibrated.
-            "forward_summary": {
-                "mean_coverage": 0.42, "basis": "forward_holdout", "n_scored": 500},
-        }), encoding="utf-8")
+        json.dumps({"forward_summary": {"mean_coverage": 0.801}}), encoding="utf-8")
     report = evaluate_promotion_gate(2026)
-    assert report["gates"]["calibration_within_5pp"] is False
-    assert report["gates"]["mean_interval_coverage"] == 0.42
-    assert report["gates"]["mean_interval_coverage_basis"] == "forward_holdout"
+    assert report["gates"]["season_distribution_calibration_passed"] is False
+    assert report["gates"]["p10_p90_coverage"] == 0.42
     assert report["verdict"] == "hold_v1_default"
 
 
-def test_gate_fails_closed_on_a_report_without_forward_summary(tmp_path, monkeypatch):
-    """An older report must not fall back to the in-sample number."""
+def test_gate_fails_closed_on_missing_exact_season_report(tmp_path, monkeypatch):
     _gate_dirs(tmp_path, monkeypatch)
-    (tmp_path / "output" / "backtest" / "calibration_report.json").write_text(
-        json.dumps({"summary": {"mean_coverage": 0.80}}), encoding="utf-8")
+    (tmp_path / "output" / "backtest" / "v3_fantasy_interval_calibration.json").unlink()
     report = evaluate_promotion_gate(2026)
-    assert report["gates"]["calibration_within_5pp"] is False
-    assert report["gates"]["mean_interval_coverage_basis"] == "missing"
+    assert report["gates"]["season_distribution_calibration_passed"] is False
+    assert report["gates"]["season_distribution_basis"] == "missing"
     assert report["verdict"] == "hold_v1_default"
 
 
-def test_gate_opens_on_good_held_out_coverage(tmp_path, monkeypatch):
+def test_gate_opens_on_accepted_exact_season_calibration(tmp_path, monkeypatch):
     _gate_dirs(tmp_path, monkeypatch)
-    (tmp_path / "output" / "backtest" / "calibration_report.json").write_text(
-        json.dumps({
-            "summary": {"mean_coverage": 0.798, "basis": "in_sample"},
-            "forward_summary": {
-                "mean_coverage": 0.8013, "basis": "forward_holdout", "n_scored": 5252},
-        }), encoding="utf-8")
     report = evaluate_promotion_gate(2026)
-    assert report["gates"]["calibration_within_5pp"] is True
+    assert report["gates"]["season_distribution_calibration_passed"] is True
     assert report["verdict"] == "simulation_ready"
+
+
+def test_gate_fails_closed_on_stale_simulation_hash(tmp_path, monkeypatch):
+    _gate_dirs(tmp_path, monkeypatch)
+    _write_exact_calibration(tmp_path, simulation_hash="old-hash")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["simulation_uncertainty_hash_matches"] is False
+    assert report["verdict"] == "hold_v1_default"
+
+
+def test_gate_fails_closed_on_non_full_simulation(tmp_path, monkeypatch):
+    _gate_dirs(tmp_path, monkeypatch)
+    manifest_path = tmp_path / "model_v3" / "simulation_manifest_2026.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["mode"] = "interim"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["simulation_mode_full"] is False
+    assert report["verdict"] == "hold_v1_default"
 
 
 def test_blend_arm_uses_historical_v2_predictions_when_available(monkeypatch, tmp_path):
@@ -420,3 +464,87 @@ def test_publish_runs_the_simulation_before_exporting_the_draft_board():
     assert src.index('projections["projection_run_id"] = run_id') < src.index(
         "write_simulation_outputs("), (
         "the simulation must see the run_id it will be checked against")
+
+
+def _uncertainty_manifest(selected_mode=None, **extra):
+    m = {
+        "version": "test-v1",
+        "artifact_hash": "deadbeef",
+        "training_cutoff": 2024,
+        "team_environment": {"residual_covariance": [[100.0, 0.0], [0.0, 100.0]]},
+        "opportunity_shares": {"pools": {}},
+        "availability": {"cells": {}},
+        "conversion_sigmas": {"cells": {}, "defaults": {}},
+    }
+    if selected_mode is not None:
+        m["selected_distribution_mode"] = selected_mode
+    m.update(extra)
+    return m
+
+
+def _uncertainty_board():
+    return pd.DataFrame({
+        "player_id": ["qb1"] * 3,
+        "position": ["QB"] * 3,
+        "team": ["KC"] * 3,
+        "stat": ["attempts", "completions", "passing_yards"],
+        "pred_pg": [35.0, 23.0, 250.0],
+        "pred_season": [595.0, 391.0, 4250.0],
+        "projected_games": [17.0] * 3,
+        "projection_run_id": ["run-A"] * 3,
+    })
+
+
+def test_hold_verdict_does_not_apply_the_rejected_uncertainty(tmp_path, monkeypatch):
+    """A gate-rejected manifest must not ship anyway.
+
+    calibrate_v3_distribution.py can verdict "hold" -- option_a measured
+    0.733 aggregate coverage and failed every acceptance gate on its own
+    numbers. Before this fix, write_simulation_outputs applied the manifest
+    whenever it was merely non-empty, regardless of the verdict, so "hold"
+    changed nothing about what actually shipped.
+    """
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    manifest = _uncertainty_manifest(selected_mode="hold")
+    out = sim_mod.write_simulation_outputs(
+        _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
+    assert out["distribution_mode"] == "full"
+    assert out["uncertainty_gate_verdict"] == "hold"
+    assert out["uncertainty_applied"] is False
+
+
+def test_missing_verdict_is_treated_like_hold(tmp_path, monkeypatch):
+    """A manifest with no verdict at all (predates the gate) must not ship."""
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    manifest = _uncertainty_manifest(selected_mode=None)
+    out = sim_mod.write_simulation_outputs(
+        _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
+    assert out["uncertainty_applied"] is False
+    assert out["distribution_mode"] == "full"
+
+
+def test_accepted_verdict_does_apply_the_manifest(tmp_path, monkeypatch):
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    manifest = _uncertainty_manifest(selected_mode="generative_projection_uncertainty")
+    out = sim_mod.write_simulation_outputs(
+        _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
+    assert out["uncertainty_applied"] is True
+    assert out["distribution_mode"] == "generative_projection_uncertainty"
+
+
+def test_joint_bootstrap_verdict_still_applies_option_a_underneath(tmp_path, monkeypatch):
+    """joint_bootstrap corrects option_a draws; it needs them to run first."""
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    manifest = _uncertainty_manifest(selected_mode="joint_bootstrap")
+    out = sim_mod.write_simulation_outputs(
+        _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
+    assert out["uncertainty_applied"] is True
+    assert out["distribution_mode"] == "joint_bootstrap"
