@@ -16,6 +16,7 @@ from src.projection.contracts import BACKTEST_DIR
 from src.projection.evaluation.calibration import (
     coverage_by_group,
     reliability_table,
+    summarize_forward_interval_calibration,
     summarize_interval_calibration,
 )
 
@@ -49,7 +50,12 @@ def build_report(backtest_dir: Path) -> dict:
         coverage_groups.append(cov)
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        # `summary` is in-sample and lands on the nominal target by
+        # construction; `forward_summary` is the held-out number, and is what
+        # the promotion gate reads. Both are kept so the gap between them is
+        # visible rather than inferred.
         "summary": summarize_interval_calibration(residuals),
+        "forward_summary": summarize_forward_interval_calibration(residuals),
         "by_position_stat": rows,
         "coverage_by_position_season": pd.concat(coverage_groups, ignore_index=True).to_dict("records")
         if coverage_groups
@@ -67,7 +73,12 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(f"Wrote {out}")
-    print(f"Mean coverage: {report['summary'].get('mean_coverage')}")
+    print(f"Mean coverage (in-sample, target 0.80): {report['summary'].get('mean_coverage')}")
+    fwd = report.get("forward_summary") or {}
+    print(
+        f"Mean coverage (held-out, target 0.80):   {fwd.get('mean_coverage')}"
+        f"  [n_scored={fwd.get('n_scored')}]"
+    )
     return 0
 
 

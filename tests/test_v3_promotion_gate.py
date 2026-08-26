@@ -114,7 +114,11 @@ def test_gate_reports_blend_arm_usability(tmp_path, monkeypatch):
     pd.DataFrame({"player_id": ["a"], "p50": [1.0]}).to_csv(
         out_dir / "simulation_summary_2026.csv", index=False)
     (tmp_path / "output" / "backtest" / "calibration_report.json").write_text(
-        json.dumps({"summary": {"mean_coverage": 0.80}}), encoding="utf-8")
+        json.dumps({
+            "summary": {"mean_coverage": 0.80, "basis": "in_sample"},
+            "forward_summary": {
+                "mean_coverage": 0.80, "basis": "forward_holdout", "n_scored": 500},
+        }), encoding="utf-8")
     (out_dir / "means_backtest.json").write_text(json.dumps({
         "folds": [_fold(blend_mae=27.7)],
         "summary": {
@@ -207,3 +211,55 @@ def test_percentile_overlay_skips_when_gate_never_ran(tmp_path, monkeypatch):
     _, meta = attach_v3_simulation_percentiles(_board(), 2026)
     assert meta["applied"] is False
     assert meta["gate_verdict"] is None
+
+
+def _gate_dirs(tmp_path, monkeypatch):
+    monkeypatch.setattr("scripts.v3_promotion_gate.REPO_ROOT", tmp_path)
+    monkeypatch.setattr("scripts.v3_promotion_gate.OUT_DIR", tmp_path / "model_v3")
+    out_dir = tmp_path / "model_v3"
+    out_dir.mkdir(parents=True)
+    (tmp_path / "output" / "backtest").mkdir(parents=True)
+    pd.DataFrame({"player_id": ["a"], "p50": [1.0]}).to_csv(
+        out_dir / "simulation_summary_2026.csv", index=False)
+    return out_dir
+
+
+def test_gate_reads_held_out_coverage_not_in_sample(tmp_path, monkeypatch):
+    """In-sample coverage is a tautology, so it must not open the gate."""
+    _gate_dirs(tmp_path, monkeypatch)
+    (tmp_path / "output" / "backtest" / "calibration_report.json").write_text(
+        json.dumps({
+            "summary": {"mean_coverage": 0.80, "basis": "in_sample"},
+            # Held-out says the intervals are badly miscalibrated.
+            "forward_summary": {
+                "mean_coverage": 0.42, "basis": "forward_holdout", "n_scored": 500},
+        }), encoding="utf-8")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["calibration_within_5pp"] is False
+    assert report["gates"]["mean_interval_coverage"] == 0.42
+    assert report["gates"]["mean_interval_coverage_basis"] == "forward_holdout"
+    assert report["verdict"] == "hold_v1_default"
+
+
+def test_gate_fails_closed_on_a_report_without_forward_summary(tmp_path, monkeypatch):
+    """An older report must not fall back to the in-sample number."""
+    _gate_dirs(tmp_path, monkeypatch)
+    (tmp_path / "output" / "backtest" / "calibration_report.json").write_text(
+        json.dumps({"summary": {"mean_coverage": 0.80}}), encoding="utf-8")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["calibration_within_5pp"] is False
+    assert report["gates"]["mean_interval_coverage_basis"] == "missing"
+    assert report["verdict"] == "hold_v1_default"
+
+
+def test_gate_opens_on_good_held_out_coverage(tmp_path, monkeypatch):
+    _gate_dirs(tmp_path, monkeypatch)
+    (tmp_path / "output" / "backtest" / "calibration_report.json").write_text(
+        json.dumps({
+            "summary": {"mean_coverage": 0.798, "basis": "in_sample"},
+            "forward_summary": {
+                "mean_coverage": 0.8013, "basis": "forward_holdout", "n_scored": 5252},
+        }), encoding="utf-8")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["calibration_within_5pp"] is True
+    assert report["verdict"] == "simulation_ready"

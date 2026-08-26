@@ -94,9 +94,21 @@ def summarize_interval_calibration(
     quantiles: tuple[float, float] = (0.10, 0.90),
     group_cols: list[str] | None = None,
 ) -> dict:
-    """Summarize pooled and forward-fold interval calibration."""
+    """In-sample interval calibration. NOT evidence the intervals are valid.
+
+    The band here is the empirical quantile of the very rows it is then
+    scored against, so coverage lands on the nominal target by construction:
+    the 10th/90th percentile of a sample contains 80% of that sample whatever
+    the model did. Reported ``coverage`` near 0.80 therefore says nothing
+    about held-out validity -- the tell is cells returning exactly k/n for
+    the k that brackets the target.
+
+    Use :func:`summarize_forward_interval_calibration` for a number a gate
+    can rest on. This one is kept for fit diagnostics and for comparison
+    against the forward figure, and is labelled ``basis="in_sample"``.
+    """
     if residuals.empty:
-        return {"n": 0}
+        return {"n": 0, "basis": "in_sample"}
     lo_q, hi_q = quantiles
     target = hi_q - lo_q
     group_cols = group_cols or ["position", "stat"]
@@ -122,8 +134,70 @@ def summarize_interval_calibration(
     summary = pd.DataFrame(rows)
     return {
         "n": int(len(residuals)),
+        "basis": "in_sample",
         "mean_coverage": float(summary["coverage"].mean()) if not summary.empty else float("nan"),
         "mean_coverage_gap": float(summary["coverage_gap"].mean()) if not summary.empty else float("nan"),
         "mean_crps_gaussian": float(summary["crps_gaussian"].mean()) if not summary.empty else float("nan"),
+        "by_group": summary.to_dict("records"),
+    }
+
+
+def summarize_forward_interval_calibration(
+    residuals: pd.DataFrame,
+    *,
+    quantiles: tuple[float, float] = (0.10, 0.90),
+    group_cols: list[str] | None = None,
+    season_col: str = "test_season",
+) -> dict:
+    """Held-out interval calibration: calibrate on earlier folds only.
+
+    For each group and each test season after its first, the band is the
+    empirical quantile of residuals from STRICTLY EARLIER seasons, and
+    coverage is measured on the untouched season. That makes the number a
+    real out-of-sample check rather than a property of the quantile.
+
+    Mirrors ``backtest.forward_interval_coverage``, but reads a persisted
+    residual frame instead of refitting from the database, so a report can
+    be regenerated without touching models.
+
+    The earliest season of each group has nothing before it and is skipped;
+    ``n_scored`` records how many rows were actually scored.
+    """
+    if residuals.empty or season_col not in residuals.columns:
+        return {"n": 0, "n_scored": 0, "basis": "forward_holdout"}
+    lo_q, hi_q = quantiles
+    target = hi_q - lo_q
+    group_cols = group_cols or ["position", "stat"]
+    rows = []
+    for keys, grp in residuals.groupby(group_cols, observed=True):
+        seasons = sorted(grp[season_col].unique())
+        for season in seasons[1:]:
+            calibration = grp[grp[season_col] < season]["resid"]
+            test = grp[grp[season_col] == season]
+            if calibration.empty or test.empty:
+                continue
+            lo, hi = np.quantile(calibration, quantiles)
+            covered = test["actual"].between(test["pred"] + lo, test["pred"] + hi)
+            row = dict(zip(group_cols, keys if isinstance(keys, tuple) else (keys,)))
+            row.update({
+                season_col: int(season),
+                "n_calibration": int(len(calibration)),
+                "n_test": int(len(test)),
+                "resid_low": float(lo),
+                "resid_high": float(hi),
+                "coverage": float(covered.mean()),
+                "target_coverage": target,
+                "coverage_gap": float(covered.mean() - target),
+            })
+            rows.append(row)
+    summary = pd.DataFrame(rows)
+    if summary.empty:
+        return {"n": int(len(residuals)), "n_scored": 0, "basis": "forward_holdout"}
+    return {
+        "n": int(len(residuals)),
+        "n_scored": int(summary["n_test"].sum()),
+        "basis": "forward_holdout",
+        "mean_coverage": float(summary["coverage"].mean()),
+        "mean_coverage_gap": float(summary["coverage_gap"].mean()),
         "by_group": summary.to_dict("records"),
     }

@@ -31,7 +31,15 @@ def evaluate_promotion_gate(season: int = 2026) -> dict:
     means_backtest = _read_json(OUT_DIR / "means_backtest.json") or {}
     v3_summary = OUT_DIR / f"simulation_summary_{season}.csv"
 
-    coverage = calibration.get("summary", {}).get("mean_coverage")
+    # Read the HELD-OUT coverage, not the in-sample one. The in-sample figure
+    # is the empirical quantile of the rows it scores, so it lands on 0.80 by
+    # construction and cannot fail -- gating on it authorised the percentile
+    # overlay on a check that could not have said no. A report predating
+    # forward_summary fails closed rather than falling back to the in-sample
+    # number, which would silently restore the old behaviour.
+    forward = calibration.get("forward_summary") or {}
+    coverage = forward.get("mean_coverage")
+    coverage_in_sample = calibration.get("summary", {}).get("mean_coverage")
     calibration_ok = coverage is not None and abs(float(coverage) - 0.80) <= 0.05
     simulation_ready = bool(
         v3_summary.exists()
@@ -102,6 +110,9 @@ def evaluate_promotion_gate(season: int = 2026) -> dict:
             "simulation_ready": simulation_ready,
             "calibration_within_5pp": calibration_ok,
             "mean_interval_coverage": coverage,
+            "mean_interval_coverage_basis": forward.get("basis") or "missing",
+            "mean_interval_coverage_n_scored": forward.get("n_scored"),
+            "mean_interval_coverage_in_sample": coverage_in_sample,
             "v3_simulation_exists": v3_summary.exists(),
             "means_backtest_exists": bool(means_backtest),
             "interim_beats_v1_and_blend": interim_ok,
