@@ -69,7 +69,7 @@ def draw_dirichlet_shares(
     if prior_col and prior_col in room_players.columns:
         candidate = pd.to_numeric(
             room_players[prior_col], errors="coerce").fillna(0.0).to_numpy()
-        if candidate.sum() > 0:
+        if candidate.sum() > 0 or allow_replacement_sink:
             prior = candidate
     if prior is None and "pred_season" in room_players.columns:
         candidate = pd.to_numeric(
@@ -77,8 +77,8 @@ def draw_dirichlet_shares(
         if candidate.sum() > 0:
             prior = candidate
     if prior is None:
-        prior = pd.to_numeric(
-            room_players.get("pred_pg"), errors="coerce").fillna(0.0).to_numpy()
+        pred_pg = room_players.get("pred_pg", pd.Series(0.0, index=room_players.index))
+        prior = pd.to_numeric(pred_pg, errors="coerce").fillna(0.0).to_numpy()
     if prior.sum() <= 0:
         if allow_replacement_sink:
             return np.zeros(n)

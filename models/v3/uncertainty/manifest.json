@@ -78,52 +78,214 @@
         "n": 801,
         "fallback": false
       },
-      "QB:fragile": {
-        "concentration": 2.6022712483364194,
-        "rho": 0.2776026376308598,
-        "n": 224,
+      "QB:depth:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 89,
         "fallback": false
       },
-      "QB:standard": {
+      "QB:rotation:all": {
+        "concentration": 2.909716597311062,
+        "rho": 0.2557730145166424,
+        "n": 96,
+        "fallback": false
+      },
+      "QB:starter:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 87,
+        "fallback": false
+      },
+      "RB:depth:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 212,
+        "fallback": false
+      },
+      "RB:rotation:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 143,
+        "fallback": false
+      },
+      "RB:starter:all": {
+        "concentration": 2.0550202063151604,
+        "rho": 0.327330077206317,
+        "n": 100,
+        "fallback": false
+      },
+      "TE:depth:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 179,
+        "fallback": false
+      },
+      "TE:rotation:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 139,
+        "fallback": false
+      },
+      "TE:starter:all": {
+        "concentration": 3.7405650990826365,
+        "rho": 0.21094531539995381,
+        "n": 106,
+        "fallback": false
+      },
+      "WR:depth:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 435,
+        "fallback": false
+      },
+      "WR:rotation:all": {
+        "concentration": 2.011492973306987,
+        "rho": 0.33206120979318704,
+        "n": 176,
+        "fallback": false
+      },
+      "WR:starter:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 190,
+        "fallback": false
+      },
+      "QB:depth:fragile": {
+        "concentration": 2.0669330374641137,
+        "rho": 0.32605863505479327,
+        "n": 85,
+        "fallback": false
+      },
+      "QB:depth:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 89,
+        "fallback": true
+      },
+      "QB:rotation:fragile": {
+        "concentration": 2.909716597311062,
+        "rho": 0.2557730145166424,
+        "n": 96,
+        "fallback": false
+      },
+      "QB:starter:fragile": {
+        "concentration": 2.6882496225261474,
+        "rho": 0.2711313230786918,
+        "n": 43,
+        "fallback": false
+      },
+      "QB:starter:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 44,
+        "fallback": false
+      },
+      "RB:depth:fragile": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 210,
+        "fallback": false
+      },
+      "RB:depth:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 212,
+        "fallback": true
+      },
+      "RB:rotation:fragile": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 122,
+        "fallback": false
+      },
+      "RB:rotation:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 21,
+        "fallback": false
+      },
+      "RB:starter:fragile": {
+        "concentration": 3.8741133212767194,
+        "rho": 0.20516552121075043,
+        "n": 52,
+        "fallback": false
+      },
+      "RB:starter:standard": {
         "concentration": 1.8571428571428572,
         "rho": 0.35,
         "n": 48,
         "fallback": false
       },
-      "RB:fragile": {
+      "TE:depth:fragile": {
         "concentration": 1.8571428571428572,
         "rho": 0.35,
-        "n": 384,
+        "n": 168,
         "fallback": false
       },
-      "RB:standard": {
+      "TE:depth:standard": {
         "concentration": 1.8571428571428572,
         "rho": 0.35,
-        "n": 71,
-        "fallback": false
+        "n": 179,
+        "fallback": true
       },
-      "TE:fragile": {
+      "TE:rotation:fragile": {
         "concentration": 1.8571428571428572,
         "rho": 0.35,
-        "n": 266,
+        "n": 72,
         "fallback": false
       },
-      "TE:standard": {
-        "concentration": 1.9955035573463298,
-        "rho": 0.3338336880113354,
-        "n": 158,
-        "fallback": false
-      },
-      "WR:fragile": {
+      "TE:rotation:standard": {
         "concentration": 1.8571428571428572,
         "rho": 0.35,
-        "n": 578,
+        "n": 67,
         "fallback": false
       },
-      "WR:standard": {
+      "TE:starter:fragile": {
+        "concentration": 5.974874356814239,
+        "rho": 0.14337175823433013,
+        "n": 26,
+        "fallback": false
+      },
+      "TE:starter:standard": {
+        "concentration": 2.9559839150441536,
+        "rho": 0.25278161425204854,
+        "n": 80,
+        "fallback": false
+      },
+      "WR:depth:fragile": {
         "concentration": 1.8571428571428572,
         "rho": 0.35,
-        "n": 223,
+        "n": 419,
+        "fallback": false
+      },
+      "WR:depth:standard": {
+        "concentration": 2.683115612800397,
+        "rho": 0.27150926148627363,
+        "n": 16,
+        "fallback": false
+      },
+      "WR:rotation:fragile": {
+        "concentration": 2.1002553883697046,
+        "rho": 0.3225540720778679,
+        "n": 117,
+        "fallback": false
+      },
+      "WR:rotation:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 59,
+        "fallback": false
+      },
+      "WR:starter:fragile": {
+        "concentration": 2.720638806953388,
+        "rho": 0.26877105031832993,
+        "n": 42,
+        "fallback": false
+      },
+      "WR:starter:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 148,
         "fallback": false
       }
     },
@@ -172,8 +334,8 @@
     },
     "basis": "strictly_earlier_rolling_residuals"
   },
-  "artifact_hash": "10df9106af6caba9208ba883204f2cdb894e6beb8a0aa9afef91856dbe873cb1",
+  "artifact_hash": "29b99ea804e05ae77f7797809e7cc2cb079bd66e5d04dcac2d709bbc8907b585",
   "selected_distribution_mode": "hold",
   "calibration_artifact": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\backtest\\v3_fantasy_interval_calibration.json",
-  "calibration_generated_at": "2026-08-26T04:42:51.787614+00:00"
+  "calibration_generated_at": "2026-08-26T05:21:39.942479+00:00"
 }

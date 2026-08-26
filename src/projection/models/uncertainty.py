@@ -249,13 +249,26 @@ def fit_uncertainty_manifest(
     if not availability_rows.empty:
         for position, grp in availability_rows.groupby("position", observed=True):
             availability[f"{position}:all"] = _fit_availability_cell(grp)
-        for (position, bucket), grp in availability_rows.groupby(
-            ["position", "fragility_bucket"], observed=True
+        for (position, role), grp in availability_rows.groupby(
+            ["position", "role_bucket"], observed=True
         ):
             cell = _fit_availability_cell(grp)
             if cell["fallback"]:
                 cell = {**availability.get(f"{position}:all", cell), "fallback": True}
-            availability[f"{position}:{bucket}"] = cell
+            availability[f"{position}:{role}:all"] = cell
+        for (position, role, bucket), grp in availability_rows.groupby(
+            ["position", "role_bucket", "fragility_bucket"], observed=True
+        ):
+            cell = _fit_availability_cell(grp)
+            if cell["fallback"]:
+                cell = {
+                    **availability.get(
+                        f"{position}:{role}:all",
+                        availability.get(f"{position}:all", cell),
+                    ),
+                    "fallback": True,
+                }
+            availability[f"{position}:{role}:{bucket}"] = cell
 
     conversion_cells: dict[str, dict] = {}
     conversion_defaults: dict[str, dict] = {}
@@ -390,14 +403,28 @@ def draw_availability(
         pd.to_numeric(frame.get("projected_games"), errors="coerce")
     ).fillna(SEASON_GAMES).clip(0, SEASON_GAMES)
     frame["fragility_bucket"] = np.where(expected < 14.0, "fragile", "standard")
+    frame["role_bucket"] = _role_bucket(frame)
     cells = (manifest.get("availability") or {}).get("cells", {})
     draws = []
     for (_, row), mu in zip(frame.iterrows(), expected.to_numpy(dtype=float)):
-        key = f"{row.get('position', '')}:{row['fragility_bucket']}"
+        key = (
+            f"{row.get('position', '')}:{row['role_bucket']}:"
+            f"{row['fragility_bucket']}"
+        )
+        role_fallback_key = f"{row.get('position', '')}:{row['role_bucket']}:all"
         fallback_key = f"{row.get('position', '')}:all"
-        concentration = float((cells.get(key) or cells.get(fallback_key) or {}).get(
-            "concentration", 25.0
-        ))
+        # Accept the pre-v1 position:fragility shape as a read fallback, but
+        # newly fitted manifests always use position + role + fragility.
+        legacy_key = f"{row.get('position', '')}:{row['fragility_bucket']}"
+        concentration = float(
+            (
+                cells.get(key)
+                or cells.get(role_fallback_key)
+                or cells.get(legacy_key)
+                or cells.get(fallback_key)
+                or {}
+            ).get("concentration", 25.0)
+        )
         p = float(np.clip(mu / SEASON_GAMES, 0.001, 0.999))
         active_p = rng.beta(p * concentration, (1.0 - p) * concentration)
         draws.append(int(rng.binomial(SEASON_GAMES, active_p)))
@@ -454,6 +481,11 @@ def joint_bootstrap_draws(
         else:
             centered = pool - np.median(pool)
             residual = rng.choice(centered, size=n_draws, replace=True)
+            # The published draw set, not merely its donor population, must
+            # be centered on generative p50. A finite resample's median can
+            # otherwise drift enough to change the displayed p50 and its
+            # ranking metrics even though fallback is distribution-only.
+            residual = residual - np.median(residual)
         values = np.clip(float(row.fantasy_pts_season) + residual, 0.0, None)
         rows.append(pd.DataFrame({
             "player_id": row.player_id,

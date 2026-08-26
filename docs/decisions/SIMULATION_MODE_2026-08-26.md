@@ -182,21 +182,49 @@ directly: a hold-verdicted manifest still injected real draw variance (std
 own baseline arm was measured. Live gate verdict is now correctly
 `hold_v1_default`.
 
+## Step 3 in progress: QB availability refined by role, joint_bootstrap now one gate short
+
+Availability cells were fit on `position:fragility` alone (2 cells per
+position). Refit on `position:role_bucket:fragility` (starter/rotation/depth
+crossed with fragile/standard, with a fallback chain down to the coarser
+keys for cells too thin to fit) — QB rooms are the most top-heavy of the
+three pools, so folding starter/depth into the same availability cell was
+losing exactly the shape that matters most there. `draw_availability` reads
+the new key with the legacy `position:fragility` key still accepted for
+manifests fit before this change.
+
+Separately, `joint_bootstrap_draws`'s per-player fallback path resampled
+from a centered donor pool but never re-centered the finite draw actually
+used, so a small sample's median could drift off the generative p50 it was
+supposed to preserve — silently moving both the displayed p50 and the rank
+metrics scored against it. Now re-centers the resample itself.
+
+Re-run of the two-fold exact calibration after both fixes:
+
+| arm | coverage | QB coverage | p50 MAE | rho |
+|---|---|---|---|---|
+| option_a | 0.730 | 0.567 | 33.689 | .764 |
+| joint_bootstrap | 0.749 | **0.774** | 33.688 | .760 |
+
+`joint_bootstrap` now clears 5 of 6 acceptance gates — fold coverage,
+position floor (QB 0.774 vs a 0.70 floor), MAE, and rho all pass. It misses
+only the aggregate coverage band by **0.0015** (0.7485 vs the 0.75 floor).
+That is within plausible sampling noise at 300 draws over 2 folds; the next
+step is a higher-draw or more-fold re-run to see whether it's a real miss or
+noise, not a threshold change to force a pass.
+
 ## Next, in order
 
-1. ~~Recalibrate the conversion sigmas for season aggregates.~~ Done; helps
-   p50, not coverage on its own.
-2. ~~Add projection uncertainty.~~ Done; overall coverage 0.538 -> 0.72-0.73.
-   RB/TE/WR land near or above target; QB remains under at ~0.57.
-3. **Investigate the QB shortfall specifically** — start with whether
-   `qb_attempts` concentration is a fitting artifact (only 3 pools total,
-   QB is the most top-heavy) versus genuine unmodeled QB variance. The
-   two-fold exact calibration found joint_bootstrap alone gets QB to 0.793
-   (from a 0.317 baseline) — worth understanding why before choosing.
-4. Re-measure after any QB-specific fix; if overall coverage still falls
-   short, promote `joint_bootstrap` as `selected_distribution_mode` for the
-   remaining gap (it already nearly clears every gate except a 0.011 rho
-   regression) and keep generative for p50 and rank.
+1. ~~Recalibrate the conversion sigmas for season aggregates.~~ Done.
+2. ~~Add projection uncertainty.~~ Done.
+3. QB shortfall: role-bucketed availability shipped, joint_bootstrap now at
+   0.774 QB coverage (from 0.317 baseline). One aggregate-coverage gate
+   remains 0.0015 short — re-run at higher draws/folds to resolve whether
+   that's noise before deciding whether `joint_bootstrap` clears on its own
+   or needs one more adjustment.
+4. If it clears: promote `joint_bootstrap` as `selected_distribution_mode`.
+   If not: identify which position/fold is still short and target that,
+   rather than loosening a gate.
 5. ~~Re-point the calibration gate at fantasy-points coverage.~~ Done.
 
 ## Note on interim
