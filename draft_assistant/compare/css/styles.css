@@ -1,0 +1,59 @@
+.compare-meta {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.compare-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.compare-table th.sortable:hover {
+  color: var(--accent);
+}
+
+.compare-table th.sorted-asc::after {
+  content: " ↑";
+  opacity: 0.8;
+}
+
+.compare-table th.sorted-desc::after {
+  content: " ↓";
+  opacity: 0.8;
+}
+
+.compare-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.compare-table .col-sentiment {
+  text-align: center;
+  width: 3.75rem;
+}
+
+.compare-table .delta-up {
+  color: var(--mine);
+  font-weight: 600;
+}
+
+.compare-table .delta-down {
+  color: #f87171;
+  font-weight: 600;
+}
+
+.compare-table .delta-flat {
+  color: var(--text-muted);
+}
+
+.compare-foot {
+  margin-top: 1.25rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.compare-foot a {
+  color: var(--accent);
+}

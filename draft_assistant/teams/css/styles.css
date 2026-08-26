@@ -321,6 +321,25 @@ body {
   z-index: 1;
 }
 
+.stats-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.stats-table th.sortable:hover {
+  color: var(--text);
+}
+
+.stats-table th.sorted-asc::after {
+  content: " ↑";
+  opacity: 0.8;
+}
+
+.stats-table th.sorted-desc::after {
+  content: " ↓";
+  opacity: 0.8;
+}
+
 .stats-table th.col-player,
 .stats-table td.col-player {
   text-align: left;
@@ -528,10 +547,57 @@ body {
   font-size: 0.85rem;
 }
 
+.history-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-table th,
+.history-table td {
+  padding: 0.35rem 0.45rem;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-table th {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--bg-header, var(--bg-panel));
+}
+
+.history-table th.col-year,
+.history-table td.col-year {
+  text-align: left;
+  font-weight: 700;
+}
+
+.history-table tbody tr.is-proj td {
+  color: var(--accent);
+  font-weight: 600;
+  background: var(--accent-soft);
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .player-card-hover {
   position: fixed;
   z-index: 40;
-  width: min(340px, calc(100vw - 1.5rem));
+  width: min(520px, calc(100vw - 1.5rem));
   padding: 0.85rem 0.95rem;
   background: var(--bg-panel);
   border: 1px solid var(--border-strong);
@@ -540,7 +606,7 @@ body {
 }
 
 .player-card-full {
-  width: min(720px, 100%);
+  width: min(860px, 100%);
   max-height: min(90vh, 900px);
   overflow: auto;
   padding: 1.5rem 1.6rem 1.75rem;
@@ -617,7 +683,7 @@ body {
 
 .card-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.55rem;
   margin-bottom: 0.85rem;
 }

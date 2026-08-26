@@ -1,5 +1,48 @@
 # State of the build — 2026-08-15
 
+> **Update (2026-08-25 — v3 point-engine decision):** v3 does **not** replace
+> the LightGBM/`compose_board` point engine yet. Hardened
+> `scripts/v3_promotion_gate.py` splits `simulation_ready` (percentile UI)
+> from `promote_v3_means` (requires `output/model_v3/means_backtest.json`
+> generative win vs v1 and blend). Draft `--v3-means` cutover exists but
+> defaults off. See `docs/decisions/V3_PROBABILISTIC_PIPELINE.md`.
+
+> **Update (2026-08-25 — v3 probabilistic pipeline):** A parallel v3 path adds
+> rolling backtest persistence, learned reconcile weights, conditional interval
+> models, Monte Carlo simulation, compositional share models, and generative
+> conversion layers under `src/projection/{evaluation,models,inference,data}/`.
+> Outputs land in `output/model_v3/` and `output/backtest/`. v1 ship path and
+> v1/v2 draft ensemble remain production defaults until
+> `scripts/v3_promotion_gate.py` passes. See
+> `docs/decisions/V3_PROBABILISTIC_PIPELINE.md`.
+
+> **Update (2026-08-24 — diagnostic player sentiment):** The 32 local
+> `perplexity research/` team summaries and the frozen ECR/ADP snapshot now
+> produce an audited, position-relative player sentiment score for every
+> projected QB/RB/WR/TE. The fields ship in projection/fantasy CSVs and both
+> dashboards; missing evidence stays null. `models/sentiment_manifest.json`
+> keeps every position inactive because only one point-in-time season exists,
+> so sentiment currently changes no projection, rank, tier, or VORP. See
+> `src/sentiment/README.md`.
+
+> **Update (2026-08-24 — two models detangled):** This repo is the **v1
+> rate-forecast** pipeline. The sibling folder `../fantasy-projections-2` is a
+> separate **v2 team-first** model. Canonical `output/fantasy_points_*.csv` and
+> `output/projections_*.csv` here are v1 only. Optional archived v2 syncs land
+> under `output/model_v2/` via `src.draft_assistant.from_v2` and must not
+> overwrite the native board. Head-to-head 2025 holdout numbers:
+> `output/model_accuracy_compare_2025.json` (`scripts/compare_model_accuracy.py`).
+> Draft UI: this repo port **8766** (v1); v2 repo port **8765**.
+> Season pass/catch identities (recv yds = pass yds, etc.) are restored on
+> shipped season totals by `reconcile_team_season_identities` in
+> `compose_board` — rates untouched; no v2 re-merge.
+>
+> **Update (2026-08-24 — draft ensemble shipped):** Test-before-rewrite go/no-go
+> was `do_not_rewrite`. Draft `prepare` defaults to a v1/v2 season-points blend
+> (`src/draft_assistant/ensemble_weights.json` + `output/model_v2/`) when both
+> exist; `--no-ensemble` for pure v1. Does not change `compose_board` or
+> LightGBM. Decision: `docs/decisions/TEST_BEFORE_REWRITE_2026-08-24.md`.
+
 > **Update (volume composition retired):** `compose_board` no longer runs
 > hierarchical pass/rush, usage-share priors, QB volume-game reconcile, or
 > team volume normalizers. Shipped `pred_pg` is forecast rates after Gate A/B
@@ -300,7 +343,7 @@ python -m src.projection.fantasy_evaluation
 # 7. Draft assistant
 python -m src.draft_assistant.prepare --season 2026
 python -m src.team_stats.prepare --season 2026
-python -m src.draft_assistant.serve --open      # http://127.0.0.1:8765/
+python -m src.draft_assistant.serve --open      # http://127.0.0.1:8766/
 
 # Tests
 python -m pytest

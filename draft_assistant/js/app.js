@@ -11,9 +11,12 @@ const ROSTER_TEMPLATE = [
 
 const STARTERS = { QB: 1, RB: 2, WR: 3, TE: 1 };
 const FLEX_SHARE = { QB: 0, RB: 0.4, WR: 0.5, TE: 0.1 };
-const OVERALL_VORP_TIER_GAP = 0.75;
-const POS_VORP_TIER_GAPS = { QB: 0.85, RB: 0.75, WR: 0.55, TE: 0.5 };
-const FLEX_VORP_TIER_GAP = 0.65;
+// Season-point scale, matching src/draft_assistant/{vorp,tiers}.py. The board
+// ranks season totals, not a per-game rate, so a pick prices availability.
+const OVERALL_VORP_TIER_GAP = 12.75;
+const POS_VORP_TIER_GAPS = { QB: 14.45, RB: 12.75, WR: 9.35, TE: 8.5 };
+const FLEX_VORP_TIER_GAP = 11.05;
+const SEASON_GAMES = 17;
 const SKILL_STARTER_SLOTS = 7; // 2 RB + 3 WR + 1 TE + 1 FLEX
 const SEASON = 2026;
 
@@ -44,6 +47,8 @@ const state = {
   hideDrafted: true,
   usePosTiers: true,
   vorpTeamCount: null,
+  sortKey: "rank",
+  sortDir: "asc",
   hoverId: null,
   hoverTimer: null,
 };
@@ -62,6 +67,13 @@ async function init() {
     if (!res.ok) throw new Error(`Failed to load projections (${res.status})`);
     state.data = await res.json();
     document.getElementById("seasonBadge").textContent = state.data.meta.season;
+    const modelBadge = document.getElementById("modelBadge");
+    if (modelBadge) {
+      const id = state.data.meta.model_id || "v1_rate_forecast";
+      const engine = state.data.meta.projection_engine || "";
+      modelBadge.textContent = id === "v1_rate_forecast" ? "v1 rate-forecast" : id;
+      modelBadge.title = engine || id;
+    }
   } catch (err) {
     document.getElementById("rankingsBody").innerHTML =
       `<tr><td colspan="6" class="empty-state">${err.message}. Run: python -m src.draft_assistant.prepare --season ${SEASON}</td></tr>`;
@@ -144,6 +156,19 @@ function bindEvents() {
     els.positionTabs.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
     btn.classList.add("active");
     state.positionFilter = btn.dataset.pos;
+    state.sortKey = "rank";
+    state.sortDir = "asc";
+    renderRankings();
+  });
+
+  document.querySelector(".rankings-table thead")?.addEventListener("click", (e) => {
+    const th = e.target.closest("th.sortable");
+    if (!th) return;
+    FantasySort.toggleSort(state, th.dataset.sort, {
+      keyProp: "sortKey",
+      dirProp: "sortDir",
+      defaultDir: th.dataset.defaultDir || "asc",
+    });
     renderRankings();
   });
 
@@ -197,11 +222,40 @@ function availablePlayers() {
   return state.data.players.filter((p) => !state.drafted.has(p.player_id));
 }
 
-function replacementRank(position, teamCount) {
+function replacementRank(position, teamCount, availabilityFactor = 1) {
   const starters = STARTERS[position];
   if (starters == null) return 1;
   const share = FLEX_SHARE[position] ?? 0;
-  return Math.floor(teamCount * starters + teamCount * share) + 1;
+  const demand = (teamCount * starters + teamCount * share) * availabilityFactor;
+  return Math.floor(demand) + 1;
+}
+
+// A starting slot consumes more than one player over a season, because
+// starters miss games. Mirrors vorp.availability_factors.
+function availabilityFactor(group, teamCount, position) {
+  const depth = Math.max(replacementRank(position, teamCount) - 1, 1);
+  const games = group
+    .slice()
+    .sort((a, b) => seasonPts(b) - seasonPts(a))
+    .slice(0, depth)
+    .map((p) => Number(p.projected_games))
+    .filter((g) => Number.isFinite(g) && g > 0);
+  if (!games.length) return 1;
+  const mean = games.reduce((a, b) => a + b, 0) / games.length;
+  return SEASON_GAMES / mean;
+}
+
+function seasonPts(p) {
+  const season = Number(p.fantasy_pts_season);
+  const base = Number.isFinite(season)
+    ? season
+    : (Number(p.fantasy_pts) || 0) * SEASON_GAMES;
+  // Rookies rank on a haircut without changing the stored projection, exactly
+  // as vorp.add_vorp_columns does. Skipping it here made the client-side board
+  // disagree with the published one about where rookies belong.
+  const scale = Number(p.rookie_rank_scale);
+  const isRookie = p.low_confidence === true || p.source === "rookie_rule";
+  return isRookie && Number.isFinite(scale) ? base * scale : base;
 }
 
 function kthScore(values, rank) {
@@ -231,6 +285,25 @@ function applyLiveVorp(teamCount = state.teamCount) {
   if (!state.data?.players) return;
   if (state.vorpTeamCount === teamCount) return;
 
+  // At the league size the board was published for, use the published ranking
+  // rather than re-deriving it. The server has inputs the client does not, so a
+  // recompute can only introduce disagreement; recomputing is for when the user
+  // actually changes the league size.
+  if (teamCount === state.data?.meta?.vorp_team_count) {
+    for (const p of state.data.players) {
+      p.live_vorp = Number(p.vorp) ?? 0;
+      p.live_replacement_pts = Number(p.replacement_pts) ?? 0;
+      p.live_overall_rank = p.overall_rank;
+      p.live_overall_tier = p.overall_tier;
+      p.live_pos_rank = p.pos_rank;
+      p.live_pos_tier = p.pos_tier;
+      p.live_flex_rank = p.flex_rank;
+      p.live_flex_tier = p.flex_tier;
+    }
+    state.vorpTeamCount = teamCount;
+    return;
+  }
+
   const players = state.data.players;
   const byPos = { QB: [], RB: [], WR: [], TE: [] };
   for (const p of players) {
@@ -239,20 +312,52 @@ function applyLiveVorp(teamCount = state.teamCount) {
 
   const baselines = {};
   for (const pos of Object.keys(byPos)) {
-    const pts = byPos[pos].map((p) => Number(p.fantasy_pts) || 0);
-    baselines[pos] = kthScore(pts, replacementRank(pos, teamCount));
+    const pts = byPos[pos].map(seasonPts);
+    const rank = replacementRank(
+      pos,
+      teamCount,
+      availabilityFactor(byPos[pos], teamCount, pos)
+    );
+    baselines[pos] = kthScore(pts, rank);
+  }
+
+  const curveWeight = state.data?.meta?.vorp_curve_weight ?? {};
+  const curves = state.data?.meta?.vorp_position_curves ?? {};
+  const posOrder = {};
+  for (const pos of Object.keys(byPos)) {
+    posOrder[pos] = byPos[pos]
+      .slice()
+      .sort((a, b) => seasonPts(b) - seasonPts(a));
   }
 
   for (const p of players) {
     const baseline = baselines[p.position] ?? 0;
-    const ppg = Number(p.fantasy_pts) || 0;
+    // Signed on purpose. Clipping at zero tied together every sub-replacement
+    // player -- most of the board -- so the late rounds ordered themselves by
+    // whatever the sort tiebreak happened to be.
     p.live_replacement_pts = baseline;
-    p.live_vorp = Math.max(0, ppg - baseline);
+    p.live_vorp = seasonPts(p) - baseline;
+  }
+
+  // Same position-curve shape correction the server applies, so changing league
+  // size cannot quietly undo it.
+  for (const pos of Object.keys(byPos)) {
+    const w = Number(curveWeight[pos]) || 0;
+    const curve = curves[pos];
+    if (!w || !curve || !curve.length) continue;
+    const rank = replacementRank(pos, teamCount, availabilityFactor(byPos[pos], teamCount, pos));
+    const curveRepl = curve[Math.min(rank, curve.length) - 1];
+    posOrder[pos].forEach((p, i) => {
+      const r = i + 1;
+      if (r > curve.length) return; // tail keeps our own surplus
+      const hist = curve[r - 1] - curveRepl;
+      p.live_vorp = (1 - w) * p.live_vorp + w * hist;
+    });
   }
 
   const ordered = players.slice().sort((a, b) => {
     if (b.live_vorp !== a.live_vorp) return b.live_vorp - a.live_vorp;
-    return (b.fantasy_pts || 0) - (a.fantasy_pts || 0);
+    return seasonPts(b) - seasonPts(a);
   });
   const tiers = assignTiers(
     ordered.map((p) => p.live_vorp),
@@ -268,7 +373,7 @@ function applyLiveVorp(teamCount = state.teamCount) {
       .slice()
       .sort((a, b) => {
         if (b.live_vorp !== a.live_vorp) return b.live_vorp - a.live_vorp;
-        return (b.fantasy_pts || 0) - (a.fantasy_pts || 0);
+        return seasonPts(b) - seasonPts(a);
       });
     const posTiers = assignTiers(
       group.map((p) => p.live_vorp),
@@ -285,7 +390,7 @@ function applyLiveVorp(teamCount = state.teamCount) {
     .slice()
     .sort((a, b) => {
       if (b.live_vorp !== a.live_vorp) return b.live_vorp - a.live_vorp;
-      return (b.fantasy_pts || 0) - (a.fantasy_pts || 0);
+      return seasonPts(b) - seasonPts(a);
     });
   const flexTiers = assignTiers(
     flexPool.map((p) => p.live_vorp),
@@ -384,6 +489,19 @@ function rankingView(player) {
   };
 }
 
+function sentimentHtml(player) {
+  const score = player.sentiment_score;
+  if (score == null) return '<span class="sentiment-score none" title="No reviewed sentiment signal">—</span>';
+  const cls = score > 15 ? "positive" : score < -15 ? "negative" : "neutral";
+  const sign = score > 0 ? "+" : "";
+  const confidence = player.sentiment_confidence == null
+    ? "unknown"
+    : `${Math.round(100 * Number(player.sentiment_confidence))}%`;
+  const mode = player.sentiment_model_active ? "active model feature" : "diagnostic only";
+  const title = `Player sentiment ${sign}${Math.round(score)} · ${confidence} confidence · ${mode} · as of ${player.sentiment_as_of || "unknown"}`;
+  return `<span class="sentiment-score ${cls}" title="${escapeHtml(title)}">${sign}${Math.round(score)}</span>`;
+}
+
 function scoreSuggestion(player, needs) {
   const { tier, rank, vorp } = rankingView(player);
   let score = (vorp ?? 0) - (rank ?? 999) * 0.01;
@@ -434,10 +552,20 @@ function filteredRankings() {
     rows = rows.filter((p) => !state.drafted.has(p.player_id));
   }
 
-  rows.sort((a, b) => {
-    const rankA = rankingView(a).rank ?? 9999;
-    const rankB = rankingView(b).rank ?? 9999;
-    return rankA - rankB;
+  const key = state.sortKey;
+  const dir = state.sortDir;
+  rows = FantasySort.sortRows(rows, {
+    key,
+    dir,
+    getValue: (p) => {
+      if (key === "rank") return rankingView(p).rank ?? 9999;
+      if (key === "tier") return rankingView(p).tier ?? 999;
+      if (key === "display_name") return p.display_name || "";
+      if (key === "position") return p.position || "";
+      if (key === "team") return p.team || "";
+      if (key === "sentiment_score") return p.sentiment_score;
+      return p[key];
+    },
   });
 
   return rows;
@@ -446,6 +574,7 @@ function filteredRankings() {
 function renderRankings() {
   const rows = filteredRankings();
   let lastTier = null;
+  const showTier = state.sortKey === "rank";
 
   els.rankingsBody.innerHTML = rows
     .map((p) => {
@@ -457,10 +586,10 @@ function renderRankings() {
       if (drafted?.mine) classes.push("mine");
 
       let tierHeader = "";
-      if (tier !== lastTier) {
+      if (showTier && tier !== lastTier) {
         lastTier = tier;
         classes.push("tier-break");
-        tierHeader = `<tr class="tier-header"><td colspan="6">Tier ${tier}</td></tr>`;
+        tierHeader = `<tr class="tier-header"><td colspan="7">Tier ${tier}</td></tr>`;
       }
 
       const conf = p.low_confidence
@@ -481,9 +610,12 @@ function renderRankings() {
           </td>
           <td class="col-pos"><span class="pos-badge pos-${p.position}">${p.position}</span></td>
           <td class="col-team">${p.team}</td>
+          <td class="col-sentiment">${sentimentHtml(p)}</td>
         </tr>`;
     })
     .join("");
+
+  FantasySort.markStaticHeaders(document.querySelector(".rankings-table"), state.sortKey, state.sortDir);
 
   els.rankingsBody.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
     cb.addEventListener("change", (e) => {
@@ -684,6 +816,7 @@ function cardPlayer(playerId) {
     drivers: detail?.drivers || {},
     pg: detail?.pg || {},
     season: detail?.season || {},
+    history: detail?.history || [],
     depth_rank: detail?.depth_rank ?? draft?.depth_rank ?? null,
     fantasy_pts: draft?.fantasy_pts ?? detail?.fantasy_pts,
     fantasy_pts_season: draft?.fantasy_pts_season ?? detail?.fantasy_pts_season,
@@ -709,71 +842,6 @@ function fantasyBreakdown(p) {
   return { pass, rush, rec, total: pass + rush + rec };
 }
 
-function scaleDrivers(p) {
-  const d = p.drivers || {};
-  const items = [];
-  const map = [
-    ["Pass attempts volume scale", "normalization_scale_attempts"],
-    ["Pass yards volume scale", "normalization_scale_passing_yards"],
-    ["Carry volume scale", "normalization_scale_carries"],
-    ["Rush yards volume scale", "normalization_scale_rushing_yards"],
-    ["Receptions volume scale", "normalization_scale_receptions"],
-    ["Rec yards volume scale", "normalization_scale_receiving_yards"],
-    ["Rec TD volume scale", "normalization_scale_receiving_tds"],
-  ];
-  for (const [label, key] of map) {
-    const v = d[key];
-    if (v == null || Math.abs(v - 1) < 0.005) continue;
-    items.push({ label, value: v });
-  }
-  if (d.role_discount_applied && d.role_discount_factor != null && d.role_discount_factor < 0.999) {
-    items.push({ label: "Role / depth discount", value: d.role_discount_factor });
-  }
-  if (d.qb_volume_games_scale != null && Math.abs(d.qb_volume_games_scale - 1) >= 0.005) {
-    items.push({ label: "QB volume-games scale", value: d.qb_volume_games_scale });
-  }
-  if (d.rookie_vacancy_scale != null && Math.abs(d.rookie_vacancy_scale - 1) >= 0.005) {
-    items.push({ label: "Rookie vacancy scale", value: d.rookie_vacancy_scale });
-  }
-  return items;
-}
-
-function contextFacts(p) {
-  const d = p.drivers || {};
-  const facts = [];
-  const sourceLabel =
-    p.source === "rookie_rule"
-      ? "Rookie rule path"
-      : p.source === "veteran_model"
-        ? "Veteran model"
-        : p.source || "Model";
-  facts.push({ k: "Projection path", v: sourceLabel });
-
-  const overall = p.live_overall_rank ?? p.overall_rank;
-  if (overall != null) facts.push({ k: "Overall rank (VORP)", v: String(overall) });
-  if (p.pos_rank != null) facts.push({ k: "Position rank", v: String(p.pos_rank) });
-  if (p.role) facts.push({ k: "Role", v: String(p.role).replace(/_/g, " ") });
-  if (p.depth_rank != null) facts.push({ k: "Depth rank", v: String(Math.round(p.depth_rank)) });
-  if (d.nfl_depth_rank != null) {
-    facts.push({ k: "NFL depth rank", v: String(Math.round(d.nfl_depth_rank)) });
-  }
-  if (p.depth_chart_status) {
-    facts.push({ k: "Depth status", v: String(p.depth_chart_status).replace(/_/g, " ") });
-  }
-  if (p.projected_games != null) facts.push({ k: "Projected games", v: fmt(p.projected_games, 1) });
-  if (d.team_changed) facts.push({ k: "Team change", v: "Yes (new team)" });
-  if (d.rookie_tier) facts.push({ k: "Rookie tier", v: String(d.rookie_tier) });
-  if (d.team_pass_attempts_pg_pred != null && ["QB", "WR", "TE", "RB"].includes(p.position)) {
-    facts.push({ k: "Team pass att/G", v: fmt(d.team_pass_attempts_pg_pred, 1) });
-  }
-  if (d.team_passing_yards_pg_pred != null && ["QB", "WR", "TE"].includes(p.position)) {
-    facts.push({ k: "Team pass yds/G", v: fmt(d.team_passing_yards_pg_pred, 1) });
-  }
-  if (d.team_carries_pg_pred != null && ["RB", "QB"].includes(p.position)) {
-    facts.push({ k: "Team carries/G", v: fmt(d.team_carries_pg_pred, 1) });
-  }
-  return facts;
-}
 
 function buildCardHtml(p, { full = false } = {}) {
   const d = p.drivers || {};
@@ -789,15 +857,14 @@ function buildCardHtml(p, { full = false } = {}) {
   else pills.push(`<span class="pill ok">Modeled</span>`);
   if (d.any_stat_low_n_flag) pills.push(`<span class="pill warn">Low-N interval</span>`);
   if (d.role_discount_applied) pills.push(`<span class="pill warn">Role discounted</span>`);
+  if (p.sentiment_model_active) pills.push(`<span class="pill ok">Sentiment active</span>`);
+  else pills.push(`<span class="pill">Sentiment diagnostic</span>`);
 
   const contrib = [
     { label: "Passing", pts: br.pass, cls: "pass" },
     { label: "Rushing", pts: br.rush, cls: "rush" },
     { label: "Receiving", pts: br.rec, cls: "rec" },
   ].filter((c) => Math.abs(c.pts) >= 0.05);
-
-  const scales = scaleDrivers(p);
-  const facts = contextFacts(p);
 
   return `
     <div class="player-card-header">
@@ -824,12 +891,24 @@ function buildCardHtml(p, { full = false } = {}) {
       <div class="card-stat">
         <span class="label">Season</span>
         <span class="value">${fmt(p.fantasy_pts_season, 0)}</span>
+        ${
+          p.fantasy_pts_p10 != null && p.fantasy_pts_p90 != null
+            ? `<span class="muted">P10–P90 ${fmt(p.fantasy_pts_p10, 0)} – ${fmt(p.fantasy_pts_p90, 0)}${
+                p.volatility_flag ? " · high volatility" : ""
+              }</span>`
+            : ""
+        }
         <span class="hint">${fmt(p.projected_games, 1)} games</span>
       </div>
       <div class="card-stat">
         <span class="label">VORP</span>
         <span class="value">${formatVorp(vorp)}</span>
         <span class="hint">vs replacement / G</span>
+      </div>
+      <div class="card-stat">
+        <span class="label">Sentiment</span>
+        <span class="value">${p.sentiment_score == null ? "—" : `${p.sentiment_score > 0 ? "+" : ""}${Math.round(p.sentiment_score)}`}</span>
+        <span class="hint">${escapeHtml(p.sentiment_coverage || "no signal")} · ${p.sentiment_confidence == null ? 0 : Math.round(100 * Number(p.sentiment_confidence))}% confidence</span>
       </div>
       ${
         full
@@ -865,45 +944,7 @@ function buildCardHtml(p, { full = false } = {}) {
       <p class="driver-note">Half-PPR · 4-pt pass TD. Bars show share of this player's projected fantasy points.</p>
     </div>
 
-    ${
-      scales.length
-        ? `<div class="driver-section">
-            <h4>Volume / role adjustments</h4>
-            ${scales
-              .map((s) => {
-                const pct = Math.min(140, Math.round(100 * s.value));
-                const delta = s.value - 1;
-                const deltaTxt =
-                  delta >= 0 ? `+${fmt(100 * delta, 0)}%` : `${fmt(100 * delta, 0)}%`;
-                return `<div class="driver-row">
-                  <span class="driver-label">${escapeHtml(s.label)}</span>
-                  <div class="driver-bar scale"><span style="width:${Math.min(100, pct)}%"></span></div>
-                  <span class="driver-value">${fmt(s.value, 2)}× (${deltaTxt})</span>
-                </div>`;
-              })
-              .join("")}
-          </div>`
-        : full
-          ? `<div class="driver-section">
-              <h4>Volume / role adjustments</h4>
-              <p class="driver-note">No material volume or role scales applied — rates sit near the model baseline.</p>
-            </div>`
-          : ""
-    }
-
-    <div class="driver-section">
-      <h4>Context</h4>
-      <ul class="driver-list">
-        ${facts
-          .map(
-            (f) =>
-              `<li><span class="k">${escapeHtml(f.k)}</span><span class="v">${escapeHtml(
-                f.v
-              )}</span></li>`
-          )
-          .join("")}
-      </ul>
-    </div>
+    ${buildHistoryTableHtml(p, { perGame: false, season: SEASON })}
   `;
 }
 

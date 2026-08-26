@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team Projections 2026</title>
+  <title>Total Projections 2026</title>
+  <link rel="stylesheet" href="../teams/css/styles.css" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -12,21 +13,28 @@
       <div class="header-brand">
         <div class="brand-block">
           <p class="brand-label">Fantasy Tools</p>
-          <h1>Team Projections</h1>
+          <h1>Total Projections</h1>
         </div>
         <span class="season-badge" id="seasonBadge">2026</span>
         <nav class="app-nav" aria-label="App">
           <a href="/">Draft</a>
-          <a href="/teams/" class="active" aria-current="page">Team Projections</a>
-          <a href="/totals/">Total Projections</a>
+          <a href="/teams/">Team Projections</a>
+          <a href="/totals/" class="active" aria-current="page">Total Projections</a>
           <a href="/compare/">Compare</a>
         </nav>
       </div>
       <div class="header-controls">
         <label class="control">
-          Team
-          <select id="teamSelect"></select>
+          Position
+          <select id="posSelect">
+            <option value="ALL">All</option>
+            <option value="QB">QB</option>
+            <option value="RB">RB</option>
+            <option value="WR">WR</option>
+            <option value="TE">TE</option>
+          </select>
         </label>
+        <input id="searchInput" type="search" placeholder="Search players..." />
         <div class="view-toggle" role="group" aria-label="Projection view">
           <button type="button" class="toggle-btn active" data-view="season" id="viewSeason">
             Total
@@ -38,20 +46,19 @@
       </div>
     </header>
 
-    <section class="team-hero" id="teamHero">
+    <section class="team-hero" id="totalsHero">
       <div class="team-hero-text">
-        <p class="team-kicker" id="teamKicker">NFC East</p>
-        <h2 id="teamName">Philadelphia Eagles</h2>
-        <p class="team-sub" id="teamSub">2026 projected offensive stats</p>
+        <p class="team-kicker" id="heroKicker">League leaders</p>
+        <h2 id="heroTitle">Total Projections</h2>
+        <p class="team-sub" id="heroSub">2026 projected offensive stats</p>
       </div>
-      <div class="team-summary" id="teamSummary"></div>
+      <div class="team-summary" id="totalsSummary"></div>
     </section>
 
     <nav class="stat-tabs" id="statTabs" aria-label="Views">
       <button type="button" class="stat-tab active" data-section="passing">Passing</button>
       <button type="button" class="stat-tab" data-section="rushing">Rushing</button>
       <button type="button" class="stat-tab" data-section="receiving">Receiving</button>
-      <button type="button" class="stat-tab" data-section="depth">Depth Chart</button>
     </nav>
 
     <main class="main" id="mainContent">
@@ -90,27 +97,6 @@
           <table class="stats-table">
             <thead id="receivingHead"></thead>
             <tbody id="receivingBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="stat-section" id="section-depth" data-section="depth" hidden>
-        <div class="section-header">
-          <h3>Depth Chart</h3>
-          <p class="section-caption" id="depthCaption">Offense</p>
-        </div>
-        <div class="table-wrap depth-table-wrap">
-          <table class="depth-table" id="depthTable">
-            <thead>
-              <tr>
-                <th class="col-pos"></th>
-                <th>Starter</th>
-                <th>2nd</th>
-                <th>3rd</th>
-                <th>4th</th>
-              </tr>
-            </thead>
-            <tbody id="depthBody"></tbody>
           </table>
         </div>
       </section>

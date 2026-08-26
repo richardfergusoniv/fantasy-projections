@@ -1,0 +1,50 @@
+/* Totals-only tweaks on top of shared Team Projections styles */
+
+.header-controls .control select#posSelect {
+  min-width: 5.5rem;
+}
+
+#searchInput {
+  min-width: 10rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-panel);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+#searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+#searchInput:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.stats-table th.col-team,
+.stats-table td.col-team {
+  width: 3.25rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.stats-table td.col-team a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.stats-table td.col-team a:hover {
+  color: var(--accent);
+}
+
+.stats-table th.col-rank,
+.stats-table td.col-rank {
+  width: 2.5rem;
+  text-align: right;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}

@@ -12,10 +12,19 @@ const SCORING = {
   recTd: 6,
 };
 
+const POS_DEFAULT_SECTION = {
+  ALL: "passing",
+  QB: "passing",
+  RB: "rushing",
+  WR: "receiving",
+  TE: "receiving",
+};
+
 const state = {
   data: null,
   byId: new Map(),
-  team: "PHI",
+  position: "ALL",
+  search: "",
   view: "season", // "season" | "pg"
   section: "passing",
   sort: {
@@ -36,33 +45,42 @@ async function init() {
   bindEvents();
 
   try {
-    const res = await fetch(`../data/team_stats_${SEASON}.json`);
+    const res = await fetch(`../data/team_stats_${SEASON}.json?v=${Date.now()}`, {
+      cache: "no-store",
+    });
     if (!res.ok) throw new Error(`Failed to load projections (${res.status})`);
     state.data = await res.json();
     state.byId = new Map(state.data.players.map((p) => [p.player_id, p]));
     els.seasonBadge.textContent = state.data.meta.season;
-    populateTeamSelect();
+
     const params = new URLSearchParams(window.location.search);
-    const teamParam = (params.get("team") || "").toUpperCase();
-    if (teamParam && state.data.teams.some((t) => t.abbr === teamParam)) {
-      state.team = teamParam;
-      els.teamSelect.value = teamParam;
+    const posParam = (params.get("pos") || "").toUpperCase();
+    if (["ALL", "QB", "RB", "WR", "TE"].includes(posParam)) {
+      state.position = posParam;
+      els.posSelect.value = posParam;
     }
+    const sectionParam = (params.get("section") || "").toLowerCase();
+    if (["passing", "rushing", "receiving"].includes(sectionParam)) {
+      state.section = sectionParam;
+    } else {
+      state.section = POS_DEFAULT_SECTION[state.position] || "passing";
+    }
+    setSection(state.section, { skipUrl: true });
     renderAll();
   } catch (err) {
     const msg = `${err.message}. Run: python -m src.team_stats.prepare --season ${SEASON}`;
-    els.passingBody.innerHTML = emptyRow(10, msg);
-    els.depthBody.innerHTML = `<tr><td colspan="5" class="empty-row">${escapeHtml(msg)}</td></tr>`;
+    els.passingBody.innerHTML = emptyRow(12, msg);
   }
 }
 
 function cacheElements() {
   els.seasonBadge = document.getElementById("seasonBadge");
-  els.teamSelect = document.getElementById("teamSelect");
-  els.teamKicker = document.getElementById("teamKicker");
-  els.teamName = document.getElementById("teamName");
-  els.teamSub = document.getElementById("teamSub");
-  els.teamSummary = document.getElementById("teamSummary");
+  els.posSelect = document.getElementById("posSelect");
+  els.searchInput = document.getElementById("searchInput");
+  els.heroKicker = document.getElementById("heroKicker");
+  els.heroTitle = document.getElementById("heroTitle");
+  els.heroSub = document.getElementById("heroSub");
+  els.totalsSummary = document.getElementById("totalsSummary");
   els.statTabs = document.getElementById("statTabs");
   els.passingHead = document.getElementById("passingHead");
   els.passingBody = document.getElementById("passingBody");
@@ -73,8 +91,6 @@ function cacheElements() {
   els.passingCaption = document.getElementById("passingCaption");
   els.rushingCaption = document.getElementById("rushingCaption");
   els.receivingCaption = document.getElementById("receivingCaption");
-  els.depthCaption = document.getElementById("depthCaption");
-  els.depthBody = document.getElementById("depthBody");
   els.footerNote = document.getElementById("footerNote");
   els.viewSeason = document.getElementById("viewSeason");
   els.viewPg = document.getElementById("viewPg");
@@ -85,11 +101,16 @@ function cacheElements() {
 }
 
 function bindEvents() {
-  els.teamSelect.addEventListener("change", () => {
-    state.team = els.teamSelect.value;
-    const url = new URL(window.location.href);
-    url.searchParams.set("team", state.team);
-    window.history.replaceState({}, "", url);
+  els.posSelect.addEventListener("change", () => {
+    state.position = els.posSelect.value;
+    state.section = POS_DEFAULT_SECTION[state.position] || "passing";
+    setSection(state.section);
+    hideHoverCard();
+    renderAll();
+  });
+
+  els.searchInput.addEventListener("input", () => {
+    state.search = els.searchInput.value.trim().toLowerCase();
     hideHoverCard();
     renderAll();
   });
@@ -100,13 +121,7 @@ function bindEvents() {
   els.statTabs.addEventListener("click", (e) => {
     const btn = e.target.closest(".stat-tab");
     if (!btn) return;
-    state.section = btn.dataset.section;
-    document.querySelectorAll(".stat-tab").forEach((el) => {
-      el.classList.toggle("active", el.dataset.section === state.section);
-    });
-    document.querySelectorAll(".stat-section").forEach((el) => {
-      el.hidden = el.dataset.section !== state.section;
-    });
+    setSection(btn.dataset.section);
     hideHoverCard();
   });
 
@@ -130,15 +145,15 @@ function bindEvents() {
 
   FantasySort.bindHeader(els.passingHead, (key, defaultDir) => {
     FantasySort.toggleSort(state.sort.passing, key, { defaultDir });
-    renderPassing(teamPlayers());
+    renderPassing(filteredPlayers());
   });
   FantasySort.bindHeader(els.rushingHead, (key, defaultDir) => {
     FantasySort.toggleSort(state.sort.rushing, key, { defaultDir });
-    renderRushing(teamPlayers());
+    renderRushing(filteredPlayers());
   });
   FantasySort.bindHeader(els.receivingHead, (key, defaultDir) => {
     FantasySort.toggleSort(state.sort.receiving, key, { defaultDir });
-    renderReceiving(teamPlayers());
+    renderReceiving(filteredPlayers());
   });
 }
 
@@ -150,38 +165,38 @@ function setView(view) {
   renderAll();
 }
 
-function populateTeamSelect() {
-  const groups = { AFC: {}, NFC: {} };
-  for (const team of state.data.teams) {
-    if (!groups[team.conference][team.division]) {
-      groups[team.conference][team.division] = [];
-    }
-    groups[team.conference][team.division].push(team);
-  }
-
-  const frag = document.createDocumentFragment();
-  for (const conf of ["AFC", "NFC"]) {
-    for (const div of ["East", "North", "South", "West"]) {
-      const teams = groups[conf][div] || [];
-      if (!teams.length) continue;
-      const og = document.createElement("optgroup");
-      og.label = `${conf} ${div}`;
-      for (const t of teams) {
-        const opt = document.createElement("option");
-        opt.value = t.abbr;
-        opt.textContent = t.name;
-        if (t.abbr === state.team) opt.selected = true;
-        og.appendChild(opt);
-      }
-      frag.appendChild(og);
-    }
-  }
-  els.teamSelect.innerHTML = "";
-  els.teamSelect.appendChild(frag);
+function setSection(section, { skipUrl = false } = {}) {
+  state.section = section;
+  document.querySelectorAll(".stat-tab").forEach((el) => {
+    el.classList.toggle("active", el.dataset.section === state.section);
+  });
+  document.querySelectorAll(".stat-section").forEach((el) => {
+    el.hidden = el.dataset.section !== state.section;
+  });
+  if (!skipUrl) syncUrl();
 }
 
-function teamPlayers() {
-  return state.data.players.filter((p) => p.team === state.team);
+function syncUrl() {
+  const url = new URL(window.location.href);
+  if (state.position && state.position !== "ALL") url.searchParams.set("pos", state.position);
+  else url.searchParams.delete("pos");
+  url.searchParams.set("section", state.section);
+  window.history.replaceState({}, "", url);
+}
+
+function filteredPlayers() {
+  let list = state.data.players;
+  if (state.position !== "ALL") {
+    list = list.filter((p) => p.position === state.position);
+  }
+  if (state.search) {
+    list = list.filter((p) => {
+      const name = (p.display_name || "").toLowerCase();
+      const team = (p.team || "").toLowerCase();
+      return name.includes(state.search) || team.includes(state.search);
+    });
+  }
+  return list;
 }
 
 function statsOf(player) {
@@ -219,6 +234,14 @@ function playerCell(p) {
       </span>
     </div>
   </td>`;
+}
+
+function teamCell(p) {
+  const team = p.team || "FA";
+  if (!p.team) return `<td class="col-team">${escapeHtml(team)}</td>`;
+  return `<td class="col-team"><a href="/teams/?team=${encodeURIComponent(team)}">${escapeHtml(
+    team
+  )}</a></td>`;
 }
 
 function escapeHtml(str) {
@@ -264,8 +287,6 @@ function buildCardHtml(p, { full = false } = {}) {
   if (d.any_stat_low_n_flag) pills.push(`<span class="pill warn">Low-N interval</span>`);
   if (d.any_receiving_share_capped) pills.push(`<span class="pill warn">Share capped</span>`);
   if (d.role_discount_applied) pills.push(`<span class="pill warn">Role discounted</span>`);
-  if (d.sentiment_model_active) pills.push(`<span class="pill ok">Sentiment active</span>`);
-  else pills.push(`<span class="pill">Sentiment diagnostic</span>`);
 
   const contrib = [
     { label: "Passing", pts: br.pass, cls: "pass" },
@@ -310,11 +331,6 @@ function buildCardHtml(p, { full = false } = {}) {
         <span class="value">${p.depth_rank != null ? Math.round(p.depth_rank) : "—"}</span>
         <span class="hint">${escapeHtml((p.depth_chart_status || "chart").replace(/_/g, " "))}</span>
       </div>
-      <div class="card-stat">
-        <span class="label">Sentiment</span>
-        <span class="value">${d.sentiment_score == null ? "—" : `${d.sentiment_score > 0 ? "+" : ""}${Math.round(d.sentiment_score)}`}</span>
-        <span class="hint">${escapeHtml(d.sentiment_coverage || "no signal")} · ${d.sentiment_confidence == null ? 0 : Math.round(100 * Number(d.sentiment_confidence))}% confidence</span>
-      </div>
     </div>
 
     <div class="driver-section">
@@ -352,9 +368,10 @@ function onPlayerMouseOver(e) {
 function onPlayerMouseOut(e) {
   const link = e.target.closest(".player-link");
   if (!link) return;
-  const next = e.relatedTarget && e.relatedTarget.closest
-    ? e.relatedTarget.closest(".player-link")
-    : null;
+  const next =
+    e.relatedTarget && e.relatedTarget.closest
+      ? e.relatedTarget.closest(".player-link")
+      : null;
   if (next && next.dataset.playerId === link.dataset.playerId) return;
   clearTimeout(state.hoverTimer);
   state.hoverTimer = setTimeout(hideHoverCard, 80);
@@ -428,26 +445,24 @@ function closeModal() {
 }
 
 function renderAll() {
-  const team = state.data.teams.find((t) => t.abbr === state.team);
-  if (!team) return;
-
-  const players = teamPlayers();
+  const players = filteredPlayers();
   const isPg = state.view === "pg";
   const caption = isPg ? "Projected per game" : "Projected season totals";
+  const posLabel = state.position === "ALL" ? "All positions" : state.position;
 
-  els.teamKicker.textContent = `${team.conference} ${team.division}`;
-  els.teamName.textContent = team.name;
-  els.teamSub.textContent = `${state.data.meta.season} projected offensive stats · ${players.length} players`;
+  els.heroKicker.textContent = "League leaders";
+  els.heroTitle.textContent =
+    state.position === "ALL" ? "Total Projections" : `${state.position} Projections`;
+  els.heroSub.textContent = `${state.data.meta.season} projected offensive stats · ${players.length} players · ${posLabel}`;
   els.passingCaption.textContent = caption;
   els.rushingCaption.textContent = caption;
   els.receivingCaption.textContent = caption;
-  els.depthCaption.textContent = "Offense";
 
   renderSummary(players);
   renderPassing(players);
   renderRushing(players);
   renderReceiving(players);
-  renderDepthChart(players);
+  syncUrl();
 
   els.footerNote.textContent = `Source: ${state.data.meta.source_file} · generated ${new Date(
     state.data.meta.generated_at
@@ -456,131 +471,54 @@ function renderAll() {
 
 function renderSummary(players) {
   const isPg = state.view === "pg";
-  let passYds = 0;
-  let rushYds = 0;
-  let recYds = 0;
-  let passTd = 0;
-  let rushTd = 0;
-  let recTd = 0;
+  const byFpts = [...players].sort(
+    (a, b) =>
+      (isPg ? b.fantasy_pts || 0 : b.fantasy_pts_season || 0) -
+      (isPg ? a.fantasy_pts || 0 : a.fantasy_pts_season || 0)
+  );
+  const top = byFpts[0];
+  const topPass = [...players]
+    .filter((p) => (statsOf(p).passing_yards || 0) > 0)
+    .sort((a, b) => (statsOf(b).passing_yards || 0) - (statsOf(a).passing_yards || 0))[0];
+  const topRush = [...players]
+    .filter((p) => (statsOf(p).rushing_yards || 0) > 0)
+    .sort((a, b) => (statsOf(b).rushing_yards || 0) - (statsOf(a).rushing_yards || 0))[0];
+  const topRec = [...players]
+    .filter((p) => (statsOf(p).receiving_yards || 0) > 0)
+    .sort((a, b) => (statsOf(b).receiving_yards || 0) - (statsOf(a).receiving_yards || 0))[0];
 
-  for (const p of players) {
-    const s = p.season || {};
-    passYds += s.passing_yards || 0;
-    rushYds += s.rushing_yards || 0;
-    recYds += s.receiving_yards || 0;
-    passTd += s.passing_tds || 0;
-    rushTd += s.rushing_tds || 0;
-    recTd += s.receiving_tds || 0;
-  }
-
-  const TEAM_GAMES = 17;
-  const scale = isPg ? 1 / TEAM_GAMES : 1;
-  const tdDigits = isPg ? 2 : 1;
-  const sentiment = players
-    .map((p) => ({
-      score: p.drivers?.sentiment_score,
-      confidence: Number(p.drivers?.sentiment_confidence || 0),
-    }))
-    .filter((x) => x.score != null && x.confidence > 0);
-  const sentimentWeight = sentiment.reduce((sum, x) => sum + x.confidence, 0);
-  const sentimentScore = sentimentWeight
-    ? sentiment.reduce((sum, x) => sum + Number(x.score) * x.confidence, 0) / sentimentWeight
-    : null;
   const items = [
-    { label: isPg ? "Pass Yds/G" : "Pass Yds", value: fmt(passYds * scale, isPg ? 1 : 0) },
-    { label: isPg ? "Rush Yds/G" : "Rush Yds", value: fmt(rushYds * scale, isPg ? 1 : 0) },
-    { label: isPg ? "Rec Yds/G" : "Rec Yds", value: fmt(recYds * scale, isPg ? 1 : 0) },
-    { label: isPg ? "Pass TD/G" : "Pass TD", value: fmt(passTd * scale, tdDigits) },
-    { label: isPg ? "Rush TD/G" : "Rush TD", value: fmt(rushTd * scale, tdDigits) },
-    { label: isPg ? "Rec TD/G" : "Rec TD", value: fmt(recTd * scale, tdDigits) },
     {
-      label: "Sentiment",
-      value: sentimentScore == null ? "—" : `${sentimentScore > 0 ? "+" : ""}${Math.round(sentimentScore)}`,
+      label: isPg ? "Top PPG" : "Top FPTS",
+      value: top ? `${top.display_name.split(" ").slice(-1)[0]} ${fmt(isPg ? top.fantasy_pts : top.fantasy_pts_season, 1)}` : "—",
+    },
+    {
+      label: isPg ? "Pass Yds/G" : "Pass Yds",
+      value: topPass
+        ? `${fmt(statsOf(topPass).passing_yards, isPg ? 1 : 0)}`
+        : "—",
+    },
+    {
+      label: isPg ? "Rush Yds/G" : "Rush Yds",
+      value: topRush
+        ? `${fmt(statsOf(topRush).rushing_yards, isPg ? 1 : 0)}`
+        : "—",
+    },
+    {
+      label: isPg ? "Rec Yds/G" : "Rec Yds",
+      value: topRec
+        ? `${fmt(statsOf(topRec).receiving_yards, isPg ? 1 : 0)}`
+        : "—",
     },
   ];
 
-  els.teamSummary.innerHTML = items
+  els.totalsSummary.innerHTML = items
     .map(
       (i) =>
-        `<div class="summary-stat"><span class="label">${i.label}</span><span class="value">${i.value}</span></div>`
+        `<div class="summary-stat"><span class="label">${i.label}</span><span class="value">${escapeHtml(
+          String(i.value)
+        )}</span></div>`
     )
-    .join("");
-}
-
-function depthSortKey(p) {
-  const chartRank = p.depth_rank != null ? p.depth_rank : 50;
-  const nflRank =
-    p.drivers && p.drivers.nfl_depth_rank != null
-      ? p.drivers.nfl_depth_rank
-      : 50;
-  const pts = -(p.fantasy_pts || 0);
-  return [chartRank, nflRank, pts, p.display_name || ""];
-}
-
-function compareDepth(a, b) {
-  const ka = depthSortKey(a);
-  const kb = depthSortKey(b);
-  for (let i = 0; i < ka.length; i++) {
-    if (ka[i] < kb[i]) return -1;
-    if (ka[i] > kb[i]) return 1;
-  }
-  return 0;
-}
-
-function depthPlayerCell(p, { starter = false } = {}) {
-  if (!p) return `<td class="depth-cell"><span class="empty">-</span></td>`;
-  return `<td class="depth-cell${starter ? " is-starter" : ""}">
-    <button type="button" class="player-link" data-player-id="${escapeHtml(
-      p.player_id
-    )}" aria-haspopup="dialog">${escapeHtml(p.display_name)}</button>
-  </td>`;
-}
-
-/** Build ESPN-style rows: Pos | Starter | 2nd | 3rd | 4th */
-function buildDepthRows(players) {
-  const DEPTH_COLS = 4;
-  const groups = [
-    { pos: "QB", slots: 1 },
-    { pos: "RB", slots: 1 },
-    { pos: "WR", slots: 3 },
-    { pos: "TE", slots: 1 },
-  ];
-  const rows = [];
-
-  for (const group of groups) {
-    const sorted = players.filter((p) => p.position === group.pos).sort(compareDepth);
-    const slotCount = Math.min(group.slots, Math.max(1, sorted.length));
-    for (let slot = 0; slot < slotCount; slot++) {
-      const cells = [];
-      for (let depth = 0; depth < DEPTH_COLS; depth++) {
-        // Column-major fill across slots (ESPN WR lanes)
-        cells.push(sorted[slot + depth * slotCount] || null);
-      }
-      // Skip empty trailing WR lanes if no players at that slot
-      if (group.slots > 1 && !cells.some(Boolean)) continue;
-      const label = group.slots > 1 ? `${group.pos}${slot + 1}` : group.pos;
-      rows.push({ label, players: cells });
-    }
-  }
-  return rows;
-}
-
-function renderDepthChart(players) {
-  const rows = buildDepthRows(players);
-  if (!rows.length) {
-    els.depthBody.innerHTML = `<tr><td colspan="5" class="empty-row">No projected players</td></tr>`;
-    return;
-  }
-  els.depthBody.innerHTML = rows
-    .map((row) => {
-      const cells = row.players
-        .map((p, i) => depthPlayerCell(p, { starter: i === 0 }))
-        .join("");
-      return `<tr>
-        <td class="col-pos">${row.label}</td>
-        ${cells}
-      </tr>`;
-    })
     .join("");
 }
 
@@ -589,6 +527,7 @@ function renderPassing(players) {
   const sort = state.sort.passing;
   const cols = [
     { label: "Player", key: "name", className: "col-player", defaultDir: "asc" },
+    { label: "Team", key: "team", className: "col-team", defaultDir: "asc" },
     { label: "GP", key: "gp", defaultDir: "desc" },
     { label: "CMP", key: "cmp", defaultDir: "desc" },
     { label: "ATT", key: "att", defaultDir: "desc" },
@@ -603,7 +542,7 @@ function renderPassing(players) {
     { label: "FPTS", key: "fpts", defaultDir: "desc" }
   );
 
-  els.passingHead.innerHTML = `<tr>${cols
+  els.passingHead.innerHTML = `<tr><th class="col-rank">#</th>${cols
     .map((c) =>
       FantasySort.thAttrs({
         ...c,
@@ -624,6 +563,7 @@ function renderPassing(players) {
       return {
         p,
         name: p.display_name || "",
+        team: p.team || "",
         gp,
         cmp,
         att,
@@ -640,14 +580,16 @@ function renderPassing(players) {
   rows = FantasySort.sortRows(rows, { key: sort.key, dir: sort.dir });
 
   if (!rows.length) {
-    els.passingBody.innerHTML = emptyRow(cols.length, "No projected passers");
+    els.passingBody.innerHTML = emptyRow(cols.length + 1, "No projected passers");
     return;
   }
 
   els.passingBody.innerHTML = rows
-    .map((r) => {
+    .map((r, i) => {
       const cells = [
+        `<td class="col-rank">${i + 1}</td>`,
         playerCell(r.p),
+        teamCell(r.p),
         `<td>${fmt(r.gp, 1)}</td>`,
         `<td>${fmt(r.cmp, isPg ? 1 : 0)}</td>`,
         `<td>${fmt(r.att, isPg ? 1 : 0)}</td>`,
@@ -671,6 +613,7 @@ function renderRushing(players) {
   const sort = state.sort.rushing;
   const cols = [
     { label: "Player", key: "name", className: "col-player", defaultDir: "asc" },
+    { label: "Team", key: "team", className: "col-team", defaultDir: "asc" },
     { label: "GP", key: "gp", defaultDir: "desc" },
     { label: "CAR", key: "car", defaultDir: "desc" },
     { label: "YDS", key: "yds", defaultDir: "desc" },
@@ -682,7 +625,7 @@ function renderRushing(players) {
     { label: "FPTS", key: "fpts", defaultDir: "desc" }
   );
 
-  els.rushingHead.innerHTML = `<tr>${cols
+  els.rushingHead.innerHTML = `<tr><th class="col-rank">#</th>${cols
     .map((c) =>
       FantasySort.thAttrs({
         ...c,
@@ -702,6 +645,7 @@ function renderRushing(players) {
       return {
         p,
         name: p.display_name || "",
+        team: p.team || "",
         gp,
         car,
         yds,
@@ -715,14 +659,16 @@ function renderRushing(players) {
   rows = FantasySort.sortRows(rows, { key: sort.key, dir: sort.dir });
 
   if (!rows.length) {
-    els.rushingBody.innerHTML = emptyRow(cols.length, "No projected rushers");
+    els.rushingBody.innerHTML = emptyRow(cols.length + 1, "No projected rushers");
     return;
   }
 
   els.rushingBody.innerHTML = rows
-    .map((r) => {
+    .map((r, i) => {
       const cells = [
+        `<td class="col-rank">${i + 1}</td>`,
         playerCell(r.p),
+        teamCell(r.p),
         `<td>${fmt(r.gp, 1)}</td>`,
         `<td>${fmt(r.car, isPg ? 1 : 0)}</td>`,
         `<td class="num-strong">${fmt(r.yds, isPg ? 1 : 0)}</td>`,
@@ -743,6 +689,7 @@ function renderReceiving(players) {
   const sort = state.sort.receiving;
   const cols = [
     { label: "Player", key: "name", className: "col-player", defaultDir: "asc" },
+    { label: "Team", key: "team", className: "col-team", defaultDir: "asc" },
     { label: "GP", key: "gp", defaultDir: "desc" },
     { label: "REC", key: "rec", defaultDir: "desc" },
     { label: "TGTS", key: "tgt", defaultDir: "desc" },
@@ -755,7 +702,7 @@ function renderReceiving(players) {
     { label: "FPTS", key: "fpts", defaultDir: "desc" }
   );
 
-  els.receivingHead.innerHTML = `<tr>${cols
+  els.receivingHead.innerHTML = `<tr><th class="col-rank">#</th>${cols
     .map((c) =>
       FantasySort.thAttrs({
         ...c,
@@ -779,6 +726,7 @@ function renderReceiving(players) {
       return {
         p,
         name: p.display_name || "",
+        team: p.team || "",
         gp,
         rec,
         tgt,
@@ -793,14 +741,16 @@ function renderReceiving(players) {
   rows = FantasySort.sortRows(rows, { key: sort.key, dir: sort.dir });
 
   if (!rows.length) {
-    els.receivingBody.innerHTML = emptyRow(cols.length, "No projected receivers");
+    els.receivingBody.innerHTML = emptyRow(cols.length + 1, "No projected receivers");
     return;
   }
 
   els.receivingBody.innerHTML = rows
-    .map((r) => {
+    .map((r, i) => {
       const cells = [
+        `<td class="col-rank">${i + 1}</td>`,
         playerCell(r.p),
+        teamCell(r.p),
         `<td>${fmt(r.gp, 1)}</td>`,
         `<td>${fmt(r.rec, isPg ? 1 : 0)}</td>`,
         `<td>${fmt(r.tgt, isPg ? 1 : 0)}</td>`,
