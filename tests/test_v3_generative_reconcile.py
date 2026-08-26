@@ -260,3 +260,44 @@ def test_rooms_claim_only_the_share_they_own():
     expected_rb = 400.0 * rb_share
     assert abs(rb_total - expected_rb) < 0.20 * expected_rb, (
         f"RB room drew {rb_total:.0f} against an owned {expected_rb:.0f}")
+
+
+def test_quarterbacks_get_a_rushing_line():
+    """QB rushing was dropped entirely, costing 18.4 points per QB.
+
+    The rush room filters on RB, so QBs never received a rushing draw. It is
+    not part of the RB carry pool -- RB owns 0.810 of team carries and
+    scrambles sit in the remainder -- so it is drawn from the QB's own
+    projected carries.
+    """
+    board = _board()
+    board["pred_season"] = board["pred_pg"] * 17.0
+    out = reconcile_v3_generative(
+        board, _env(), rng=np.random.default_rng(5), share_manifest={})
+    qb = out[out["player_id"].eq("qb_starter")].iloc[0]
+    assert qb["carries"] > 0, "QB emitted no rushing volume"
+    assert qb["rushing_yards"] > 0, "QB emitted no rushing yards"
+    # And it must not come out of the RB pool.
+    rb = out[out["player_id"].eq("rb1")].iloc[0]
+    assert rb["carries"] > 100, "RB carries were consumed by the QB draw"
+
+
+def test_qb_rushing_scales_with_the_board_projection():
+    """A running QB must out-rush a pocket passer, not draw a league mean."""
+    board = _board()
+    board["pred_season"] = board["pred_pg"] * 17.0
+    runner = board.copy()
+    mask = runner["player_id"].eq("qb_starter") & runner["stat"].eq("carries")
+    runner.loc[mask, "pred_season"] = 130.0
+    pocket = board.copy()
+    mask2 = pocket["player_id"].eq("qb_starter") & pocket["stat"].eq("carries")
+    pocket.loc[mask2, "pred_season"] = 20.0
+
+    def qb_carries(frame, seed):
+        out = reconcile_v3_generative(
+            frame, _env(), rng=np.random.default_rng(seed), share_manifest={})
+        return out[out["player_id"].eq("qb_starter")].iloc[0]["carries"]
+
+    hi = np.mean([qb_carries(runner, s) for s in range(6)])
+    lo = np.mean([qb_carries(pocket, s) for s in range(6)])
+    assert hi > lo + 50, f"running QB {hi:.0f} vs pocket {lo:.0f} carries"

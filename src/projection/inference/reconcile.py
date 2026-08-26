@@ -66,6 +66,38 @@ def _player_stat_table(room: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def _player_season_table(room: pd.DataFrame) -> pd.DataFrame:
+    """One row per player, per-stat SEASON volume as columns.
+
+    Prefers ``pred_season``; falls back to ``pred_pg`` scaled by the player's
+    own exposure so a board without season totals still draws in season units.
+    """
+    if room.empty:
+        return pd.DataFrame()
+    frame = room.copy()
+    if "pred_season" in frame.columns:
+        value = pd.to_numeric(frame["pred_season"], errors="coerce")
+    else:
+        value = pd.Series(np.nan, index=frame.index)
+    if "projected_games" in frame.columns:
+        games = pd.to_numeric(
+            frame["projected_games"], errors="coerce").fillna(SEASON_GAMES)
+    else:
+        games = pd.Series(float(SEASON_GAMES), index=frame.index)
+    fallback = pd.to_numeric(frame["pred_pg"], errors="coerce") * games
+    frame["_season_value"] = value.fillna(fallback)
+    return frame.pivot_table(
+        index="player_id", columns="stat", values="_season_value", aggfunc="first"
+    )
+
+
+def _season_volume(season_table: pd.DataFrame, player_id, stat: str) -> float:
+    if season_table.empty or player_id not in season_table.index:
+        return 0.0
+    value = pd.to_numeric(season_table.loc[player_id].get(stat), errors="coerce")
+    return 0.0 if pd.isna(value) or value <= 0 else float(value)
+
+
 def _position_share(position: str, stat: str) -> float:
     """Fraction of the team anchor this position room actually owns.
 
@@ -120,6 +152,7 @@ def reconcile_v3_generative(
         rush_attempts = _team_volume(
             team_row, "team_carries_mean", DEFAULT_TEAM_CARRIES)
         stats = _player_stat_table(room)
+        season = _player_season_table(room)
 
         def rate(player_id, num_stat, den_stat, bound_key, default):
             if stats.empty or player_id not in stats.index:
@@ -148,6 +181,20 @@ def reconcile_v3_generative(
                 int_rate=rate(pid, "interceptions", "attempts", "int_rate", 0.025),
                 rng=rng,
             )
+            # QB rushing. Not part of the RB carry pool -- RB owns 0.810 of
+            # team carries and scrambles are in the remainder -- so it is drawn
+            # from the QB's own projected carries rather than a team share.
+            # Omitting it cost 18.4 fantasy points per QB, which was the whole
+            # of the -19.6 gap between the simulated QB p50 and the board.
+            qb_carries = _season_volume(season, pid, "carries")
+            if qb_carries > 0:
+                rush_line = draw_rushing_line(
+                    qb_carries,
+                    ypc=rate(pid, "rushing_yards", "carries", "ypc", 4.3),
+                    td_rate=rate(pid, "rushing_tds", "carries", "rush_td_rate", 0.02),
+                    rng=rng,
+                )
+                line.update(rush_line)
             line.update({"player_id": pid, "position": "QB", "team": team})
             rows.append(line)
 
