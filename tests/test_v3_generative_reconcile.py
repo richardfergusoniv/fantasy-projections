@@ -235,3 +235,28 @@ def test_team_receiving_volume_is_not_multiplied_by_position_count():
     # this catches is ~1700 from a three-times allocation.
     assert 450 < total_targets < 750, (
         f"team emitted {total_targets:.0f} targets; one team's worth is ~571")
+
+
+def test_rooms_claim_only_the_share_they_own():
+    """A position room does not get the whole team anchor.
+
+    Measured contracts put QB at 0.941 of team pass attempts and RB at 0.810
+    of team carries; the rest is scrambles, sweeps and the like. Allocating
+    100% put RB 23% over and left the simulated p50 disagreeing with the board
+    by +8.6 at RB and -16.9 at QB.
+    """
+    from src.projection.contracts import TEAM_VOLUME_SHARES
+
+    out = _run(env=_env(pass_attempts=600.0, carries=400.0))
+    qb_share = TEAM_VOLUME_SHARES[("QB", "attempts")][1]
+    rb_share = TEAM_VOLUME_SHARES[("RB", "carries")][1]
+
+    qb_total = out[out["position"].eq("QB")]["pass_attempts"].sum()
+    expected_qb = 600.0 * qb_share
+    assert abs(qb_total - expected_qb) < 0.15 * expected_qb, (
+        f"QB room drew {qb_total:.0f} against an owned {expected_qb:.0f}")
+
+    rb_total = out[out["position"].eq("RB")]["carries"].sum()
+    expected_rb = 400.0 * rb_share
+    assert abs(rb_total - expected_rb) < 0.20 * expected_rb, (
+        f"RB room drew {rb_total:.0f} against an owned {expected_rb:.0f}")

@@ -16,6 +16,7 @@ from src.projection.models.opportunity_shares import allocate_opportunities
 from src.projection.models.receiving import draw_receiving_line
 from src.projection.models.rushing import draw_rushing_line
 from src.projection.models.passing import draw_passing_line
+from src.projection.contracts import TEAM_VOLUME_SHARES
 from src.projection.team_reconcile import TARGETS_PER_ATTEMPT
 from src.projection.transitions import SEASON_GAMES
 
@@ -63,6 +64,22 @@ def _player_stat_table(room: pd.DataFrame) -> pd.DataFrame:
     return room.pivot_table(
         index="player_id", columns="stat", values="pred_pg", aggfunc="first"
     )
+
+
+def _position_share(position: str, stat: str) -> float:
+    """Fraction of the team anchor this position room actually owns.
+
+    A room does not get the whole team total. The measured contracts put QB at
+    0.941 of team pass attempts and RB at 0.810 of team carries -- the rest is
+    QB scrambles, receiver sweeps and the like. Handing each room 100% put RB
+    23% over and left the simulated p50 disagreeing with the board it is meant
+    to describe by +8.6 points at RB and -16.9 at QB.
+
+    Reuses TEAM_VOLUME_SHARES so the generative path and compose_board cannot
+    drift apart on what a room owns.
+    """
+    entry = TEAM_VOLUME_SHARES.get((position, stat))
+    return float(entry[1]) if entry else 1.0
 
 
 def _team_volume(team_row, key: str, default: float) -> float:
@@ -115,7 +132,11 @@ def reconcile_v3_generative(
             room["position"].eq("QB") & room["stat"].eq(QB_VOLUME_STAT)
         ]
         qb_alloc = allocate_opportunities(
-            qb_room, pass_attempts, rng=rng, manifest=share_manifest)
+            qb_room,
+            pass_attempts * _position_share("QB", "attempts"),
+            rng=rng,
+            manifest=share_manifest,
+        )
         for _, pl in qb_alloc.iterrows():
             pid = pl["player_id"]
             line = draw_passing_line(
@@ -163,7 +184,11 @@ def reconcile_v3_generative(
             room["position"].eq("RB") & room["stat"].eq(RUSHING_VOLUME_STAT)
         ]
         rush = allocate_opportunities(
-            rush_room, rush_attempts, rng=rng, manifest=share_manifest)
+            rush_room,
+            rush_attempts * _position_share("RB", "carries"),
+            rng=rng,
+            manifest=share_manifest,
+        )
         for _, pl in rush.iterrows():
             pid = pl["player_id"]
             line = draw_rushing_line(

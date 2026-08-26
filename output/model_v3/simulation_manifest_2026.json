@@ -1,7 +1,8 @@
 {
   "season": 2026,
   "n_draws": 1000,
-  "mode": "interim",
+  "mode": "full",
+  "source_projection_run_id": "ec234054-2af0-4260-8ad0-04c9b8346f15",
   "draws_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulations_2026.parquet",
   "summary_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulation_summary_2026.csv"
 }
