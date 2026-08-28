@@ -810,12 +810,18 @@ function cardPlayer(playerId) {
   const detail = state.cardById.get(playerId);
   if (!draft && !detail) return null;
 
+  const adjustedStats = FantasyProjectionAdjustment.derive(draft, detail, SCORING);
+
   const merged = {
     ...(detail || {}),
     ...(draft || {}),
     drivers: detail?.drivers || {},
-    pg: detail?.pg || {},
-    season: detail?.season || {},
+    pg: adjustedStats.pg,
+    season: adjustedStats.season,
+    canonical_pg: detail?.pg || {},
+    canonical_season: detail?.season || {},
+    projection_adjustment: adjustedStats.meta,
+    projection_model_id: state.data?.meta?.model_id || null,
     history: detail?.history || [],
     depth_rank: detail?.depth_rank ?? draft?.depth_rank ?? null,
     fantasy_pts: draft?.fantasy_pts ?? detail?.fantasy_pts,
@@ -857,6 +863,11 @@ function buildCardHtml(p, { full = false } = {}) {
   else pills.push(`<span class="pill ok">Modeled</span>`);
   if (d.any_stat_low_n_flag) pills.push(`<span class="pill warn">Low-N interval</span>`);
   if (d.role_discount_applied) pills.push(`<span class="pill warn">Role discounted</span>`);
+  if (p.projection_adjustment?.adjusted) {
+    pills.push(
+      '<span class="pill ok" title="Canonical stat mix scaled to reconcile with the blended fantasy-point forecast">Blend-adjusted stats</span>'
+    );
+  }
   if (p.sentiment_model_active) pills.push(`<span class="pill ok">Sentiment active</span>`);
   else pills.push(`<span class="pill">Sentiment diagnostic</span>`);
 
@@ -873,7 +884,7 @@ function buildCardHtml(p, { full = false } = {}) {
         <${titleTag}${titleId}>${escapeHtml(p.display_name)}</${titleTag}>
         <p class="player-card-sub">${escapeHtml(p.team || "")} · ${escapeHtml(
     (p.role || "unlisted").replace(/_/g, " ")
-  )} · what drives this projection</p>
+  )} · what drives ${p.projection_adjustment?.adjusted ? "the blended forecast" : "this projection"}</p>
         <div class="player-card-pills">${pills.join("")}</div>
       </div>
     </div>
@@ -922,7 +933,7 @@ function buildCardHtml(p, { full = false } = {}) {
     </div>
 
     <div class="driver-section">
-      <h4>Fantasy points drivers (per game)</h4>
+      <h4>${p.projection_adjustment?.adjusted ? "Blend-adjusted" : "Fantasy points"} drivers (per game)</h4>
       ${
         contrib.length
           ? contrib
@@ -941,7 +952,11 @@ function buildCardHtml(p, { full = false } = {}) {
                 : "Run team_stats.prepare for volume drivers on this card."
             }</p>`
       }
-      <p class="driver-note">Half-PPR · 4-pt pass TD. Bars show share of this player's projected fantasy points.</p>
+      <p class="driver-note">Half-PPR · 4-pt pass TD. Bars show share of this player's projected fantasy points.${
+        p.projection_adjustment?.adjusted
+          ? " Displayed stats preserve the canonical model's stat mix and are proportionally scaled to the blended point forecast."
+          : ""
+      }</p>
     </div>
 
     ${buildHistoryTableHtml(p, { perGame: false, season: SEASON })}

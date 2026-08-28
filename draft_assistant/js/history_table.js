@@ -89,6 +89,13 @@ function buildHistoryTableHtml(p, { perGame = false, season = 2026 } = {}) {
     })
     .join("");
 
+  const projectionNote = p.projection_adjustment?.adjusted
+    ? `The ${season} projection row proportionally scales the canonical stat mix to match ${historyFmt(
+        p.fantasy_pts_season,
+        1
+      )} blended points; prior years are REG season actuals.`
+    : `Projection row uses ${season} model output; prior years are REG season actuals.`;
+
   return `<div class="driver-section">
     <h4>${title}</h4>
     <div class="history-table-wrap">
@@ -97,6 +104,6 @@ function buildHistoryTableHtml(p, { perGame = false, season = 2026 } = {}) {
         <tbody>${body}</tbody>
       </table>
     </div>
-    <p class="driver-note">Half-PPR · 4-pt pass TD. Projection row uses ${season} model output; prior years are REG season actuals.</p>
+    <p class="driver-note">Half-PPR · 4-pt pass TD. ${projectionNote}</p>
   </div>`;
 }
