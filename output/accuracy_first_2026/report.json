@@ -1,0 +1,790 @@
+{
+  "generated_at": "2026-08-28T02:38:37.371679+00:00",
+  "objective": "2026 top-120 ADP half-PPR point MAE with non-regressing rank correlation",
+  "verdict": "promote_accuracy_ensemble",
+  "chronology": {
+    "market_calibration_starts": 2023,
+    "ensemble_fit": 2024,
+    "untouched_selection_holdout": 2025,
+    "production_refit": [
+      2024,
+      2025
+    ]
+  },
+  "candidate_models": {
+    "model_only": [
+      "v1_pred",
+      "v2_pred",
+      "v3_p50"
+    ],
+    "market_no_v3": [
+      "v1_pred",
+      "v2_pred",
+      "adp_points"
+    ],
+    "full": [
+      "v1_pred",
+      "v2_pred",
+      "v3_p50",
+      "adp_points"
+    ]
+  },
+  "fit_weights_2024": {
+    "model_only": {
+      "QB": {
+        "v1_pred": 0.0,
+        "v2_pred": 0.0,
+        "v3_p50": 1.0
+      },
+      "RB": {
+        "v1_pred": 0.8,
+        "v2_pred": 0.0,
+        "v3_p50": 0.2
+      },
+      "WR": {
+        "v1_pred": 0.2,
+        "v2_pred": 0.75,
+        "v3_p50": 0.05
+      },
+      "TE": {
+        "v1_pred": 0.45,
+        "v2_pred": 0.0,
+        "v3_p50": 0.55
+      }
+    },
+    "market_no_v3": {
+      "QB": {
+        "v1_pred": 0.95,
+        "v2_pred": 0.0,
+        "adp_points": 0.05
+      },
+      "RB": {
+        "v1_pred": 0.35,
+        "v2_pred": 0.0,
+        "adp_points": 0.65
+      },
+      "WR": {
+        "v1_pred": 0.0,
+        "v2_pred": 0.5,
+        "adp_points": 0.5
+      },
+      "TE": {
+        "v1_pred": 0.0,
+        "v2_pred": 0.0,
+        "adp_points": 1.0
+      }
+    },
+    "full": {
+      "QB": {
+        "v1_pred": 0.0,
+        "v2_pred": 0.0,
+        "v3_p50": 0.9,
+        "adp_points": 0.1
+      },
+      "RB": {
+        "v1_pred": 0.0,
+        "v2_pred": 0.0,
+        "v3_p50": 0.45,
+        "adp_points": 0.55
+      },
+      "WR": {
+        "v1_pred": 0.0,
+        "v2_pred": 0.5,
+        "v3_p50": 0.0,
+        "adp_points": 0.5
+      },
+      "TE": {
+        "v1_pred": 0.0,
+        "v2_pred": 0.0,
+        "v3_p50": 0.0,
+        "adp_points": 1.0
+      }
+    }
+  },
+  "holdout_2025": {
+    "verdict": "promote_accuracy_ensemble",
+    "proposed_position_selections": {
+      "QB": "incumbent",
+      "RB": "market_no_v3",
+      "WR": "market_no_v3",
+      "TE": "incumbent"
+    },
+    "final_position_selections": {
+      "QB": "incumbent",
+      "RB": "market_no_v3",
+      "WR": "market_no_v3",
+      "TE": "incumbent"
+    },
+    "position_evidence": {
+      "QB": {
+        "selected": "incumbent",
+        "arms": {
+          "incumbent": {
+            "n": 17,
+            "points_mae": 57.21661700001073,
+            "spearman": 0.17535257741027593,
+            "by_position": {
+              "QB": {
+                "n": 17,
+                "points_mae": 57.21661700001073,
+                "spearman": 0.17535257741027593
+              }
+            }
+          },
+          "model_only": {
+            "n": 17,
+            "points_mae": 83.53667122564127,
+            "spearman": -0.3090129336181086,
+            "by_position": {
+              "QB": {
+                "n": 17,
+                "points_mae": 83.53667122564127,
+                "spearman": -0.3090129336181086
+              }
+            }
+          },
+          "market_no_v3": {
+            "n": 17,
+            "points_mae": 80.64510049452304,
+            "spearman": -0.02329859420136533,
+            "by_position": {
+              "QB": {
+                "n": 17,
+                "points_mae": 80.64510049452304,
+                "spearman": -0.02329859420136533
+              }
+            }
+          },
+          "full": {
+            "n": 17,
+            "points_mae": 82.51015436589135,
+            "spearman": -0.26854695421573727,
+            "by_position": {
+              "QB": {
+                "n": 17,
+                "points_mae": 82.51015436589135,
+                "spearman": -0.26854695421573727
+              }
+            }
+          }
+        }
+      },
+      "RB": {
+        "selected": "market_no_v3",
+        "arms": {
+          "incumbent": {
+            "n": 37,
+            "points_mae": 71.2612763815617,
+            "spearman": 0.4537695590327169,
+            "by_position": {
+              "RB": {
+                "n": 37,
+                "points_mae": 71.2612763815617,
+                "spearman": 0.4537695590327169
+              }
+            }
+          },
+          "model_only": {
+            "n": 37,
+            "points_mae": 72.8337815063405,
+            "spearman": 0.4186818397344712,
+            "by_position": {
+              "RB": {
+                "n": 37,
+                "points_mae": 72.8337815063405,
+                "spearman": 0.4186818397344712
+              }
+            }
+          },
+          "market_no_v3": {
+            "n": 37,
+            "points_mae": 65.24917821361149,
+            "spearman": 0.525841631104789,
+            "by_position": {
+              "RB": {
+                "n": 37,
+                "points_mae": 65.24917821361149,
+                "spearman": 0.525841631104789
+              }
+            }
+          },
+          "full": {
+            "n": 37,
+            "points_mae": 67.96357753971569,
+            "spearman": 0.4141773352299668,
+            "by_position": {
+              "RB": {
+                "n": 37,
+                "points_mae": 67.96357753971569,
+                "spearman": 0.4141773352299668
+              }
+            }
+          }
+        }
+      },
+      "WR": {
+        "selected": "market_no_v3",
+        "arms": {
+          "incumbent": {
+            "n": 53,
+            "points_mae": 54.59667568517274,
+            "spearman": 0.23165618448637315,
+            "by_position": {
+              "WR": {
+                "n": 53,
+                "points_mae": 54.59667568517274,
+                "spearman": 0.23165618448637315
+              }
+            }
+          },
+          "model_only": {
+            "n": 53,
+            "points_mae": 48.30583479751411,
+            "spearman": 0.46669891952910825,
+            "by_position": {
+              "WR": {
+                "n": 53,
+                "points_mae": 48.30583479751411,
+                "spearman": 0.46669891952910825
+              }
+            }
+          },
+          "market_no_v3": {
+            "n": 53,
+            "points_mae": 46.46880752779753,
+            "spearman": 0.5271730366069989,
+            "by_position": {
+              "WR": {
+                "n": 53,
+                "points_mae": 46.46880752779753,
+                "spearman": 0.5271730366069989
+              }
+            }
+          },
+          "full": {
+            "n": 53,
+            "points_mae": 46.46880752779753,
+            "spearman": 0.5271730366069989,
+            "by_position": {
+              "WR": {
+                "n": 53,
+                "points_mae": 46.46880752779753,
+                "spearman": 0.5271730366069989
+              }
+            }
+          }
+        }
+      },
+      "TE": {
+        "selected": "incumbent",
+        "arms": {
+          "incumbent": {
+            "n": 10,
+            "points_mae": 36.76653919987215,
+            "spearman": 0.5757575757575757,
+            "by_position": {
+              "TE": {
+                "n": 10,
+                "points_mae": 36.76653919987215,
+                "spearman": 0.5757575757575757
+              }
+            }
+          },
+          "model_only": {
+            "n": 10,
+            "points_mae": 38.75528097088522,
+            "spearman": 0.5151515151515151,
+            "by_position": {
+              "TE": {
+                "n": 10,
+                "points_mae": 38.75528097088522,
+                "spearman": 0.5151515151515151
+              }
+            }
+          },
+          "market_no_v3": {
+            "n": 10,
+            "points_mae": 32.890989010989,
+            "spearman": 0.5132023220686198,
+            "by_position": {
+              "TE": {
+                "n": 10,
+                "points_mae": 32.890989010989,
+                "spearman": 0.5132023220686198
+              }
+            }
+          },
+          "full": {
+            "n": 10,
+            "points_mae": 32.890989010989,
+            "spearman": 0.5132023220686198,
+            "by_position": {
+              "TE": {
+                "n": 10,
+                "points_mae": 32.890989010989,
+                "spearman": 0.5132023220686198
+              }
+            }
+          }
+        }
+      }
+    },
+    "overall_gate": {
+      "pass": true,
+      "candidate_changes_any_position": true,
+      "incumbent": {
+        "n": 117,
+        "points_mae": 58.72340955923798,
+        "spearman": 0.5039076256913304,
+        "by_position": {
+          "QB": {
+            "n": 17,
+            "points_mae": 57.21661700001073,
+            "spearman": 0.17535257741027593
+          },
+          "RB": {
+            "n": 37,
+            "points_mae": 71.2612763815617,
+            "spearman": 0.4537695590327169
+          },
+          "TE": {
+            "n": 10,
+            "points_mae": 36.76653919987215,
+            "spearman": 0.5757575757575757
+          },
+          "WR": {
+            "n": 53,
+            "points_mae": 54.59667568517274,
+            "spearman": 0.23165618448637315
+          }
+        }
+      },
+      "proposed": {
+        "n": 117,
+        "points_mae": 53.14029293910937,
+        "spearman": 0.601583281523291,
+        "by_position": {
+          "QB": {
+            "n": 17,
+            "points_mae": 57.21661700001073,
+            "spearman": 0.17535257741027593
+          },
+          "RB": {
+            "n": 37,
+            "points_mae": 65.24917821361149,
+            "spearman": 0.525841631104789
+          },
+          "TE": {
+            "n": 10,
+            "points_mae": 36.76653919987215,
+            "spearman": 0.5757575757575757
+          },
+          "WR": {
+            "n": 53,
+            "points_mae": 46.46880752779753,
+            "spearman": 0.5271730366069989
+          }
+        }
+      }
+    },
+    "final": {
+      "overall": {
+        "n": 117,
+        "points_mae": 53.14029293910937,
+        "spearman": 0.601583281523291,
+        "by_position": {
+          "QB": {
+            "n": 17,
+            "points_mae": 57.21661700001073,
+            "spearman": 0.17535257741027593
+          },
+          "RB": {
+            "n": 37,
+            "points_mae": 65.24917821361149,
+            "spearman": 0.525841631104789
+          },
+          "TE": {
+            "n": 10,
+            "points_mae": 36.76653919987215,
+            "spearman": 0.5757575757575757
+          },
+          "WR": {
+            "n": 53,
+            "points_mae": 46.46880752779753,
+            "spearman": 0.5271730366069989
+          }
+        }
+      },
+      "by_position": {
+        "QB": {
+          "incumbent": {
+            "n": 17,
+            "points_mae": 57.21661700001073,
+            "spearman": 0.17535257741027593,
+            "by_position": {
+              "QB": {
+                "n": 17,
+                "points_mae": 57.21661700001073,
+                "spearman": 0.17535257741027593
+              }
+            }
+          },
+          "selected": {
+            "n": 17,
+            "points_mae": 57.21661700001073,
+            "spearman": 0.17535257741027593,
+            "by_position": {
+              "QB": {
+                "n": 17,
+                "points_mae": 57.21661700001073,
+                "spearman": 0.17535257741027593
+              }
+            }
+          },
+          "paired_error": {
+            "n": 17,
+            "mean_delta_mae": 0.0,
+            "median_delta_absolute_error": 0.0,
+            "fraction_improved": 0.0,
+            "fraction_tied": 1.0
+          }
+        },
+        "RB": {
+          "incumbent": {
+            "n": 37,
+            "points_mae": 71.2612763815617,
+            "spearman": 0.4537695590327169,
+            "by_position": {
+              "RB": {
+                "n": 37,
+                "points_mae": 71.2612763815617,
+                "spearman": 0.4537695590327169
+              }
+            }
+          },
+          "selected": {
+            "n": 37,
+            "points_mae": 65.24917821361149,
+            "spearman": 0.525841631104789,
+            "by_position": {
+              "RB": {
+                "n": 37,
+                "points_mae": 65.24917821361149,
+                "spearman": 0.525841631104789
+              }
+            }
+          },
+          "paired_error": {
+            "n": 37,
+            "mean_delta_mae": -6.012098167950214,
+            "median_delta_absolute_error": -3.3066705410421093,
+            "fraction_improved": 0.6216216216216216,
+            "fraction_tied": 0.0
+          }
+        },
+        "WR": {
+          "incumbent": {
+            "n": 53,
+            "points_mae": 54.59667568517274,
+            "spearman": 0.23165618448637315,
+            "by_position": {
+              "WR": {
+                "n": 53,
+                "points_mae": 54.59667568517274,
+                "spearman": 0.23165618448637315
+              }
+            }
+          },
+          "selected": {
+            "n": 53,
+            "points_mae": 46.46880752779753,
+            "spearman": 0.5271730366069989,
+            "by_position": {
+              "WR": {
+                "n": 53,
+                "points_mae": 46.46880752779753,
+                "spearman": 0.5271730366069989
+              }
+            }
+          },
+          "paired_error": {
+            "n": 53,
+            "mean_delta_mae": -8.127868157375225,
+            "median_delta_absolute_error": -6.2713351608007315,
+            "fraction_improved": 0.6037735849056604,
+            "fraction_tied": 0.0
+          }
+        },
+        "TE": {
+          "incumbent": {
+            "n": 10,
+            "points_mae": 36.76653919987215,
+            "spearman": 0.5757575757575757,
+            "by_position": {
+              "TE": {
+                "n": 10,
+                "points_mae": 36.76653919987215,
+                "spearman": 0.5757575757575757
+              }
+            }
+          },
+          "selected": {
+            "n": 10,
+            "points_mae": 36.76653919987215,
+            "spearman": 0.5757575757575757,
+            "by_position": {
+              "TE": {
+                "n": 10,
+                "points_mae": 36.76653919987215,
+                "spearman": 0.5757575757575757
+              }
+            }
+          },
+          "paired_error": {
+            "n": 10,
+            "mean_delta_mae": 0.0,
+            "median_delta_absolute_error": 0.0,
+            "fraction_improved": 0.0,
+            "fraction_tied": 1.0
+          }
+        }
+      },
+      "paired_error": {
+        "n": 117,
+        "mean_delta_mae": -5.58311662012859,
+        "median_delta_absolute_error": 0.0,
+        "fraction_improved": 0.4700854700854701,
+        "fraction_tied": 0.23076923076923078
+      },
+      "bootstrap": {
+        "n_boot": 2000,
+        "seed": 2026,
+        "mae_delta_candidate_minus_incumbent": {
+          "mean": -5.578423015228113,
+          "p025": -9.814153922108114,
+          "p975": -1.6634426939879663
+        },
+        "spearman_delta_candidate_minus_incumbent": {
+          "mean": 0.09616034073906905,
+          "p025": 0.026126506855108787,
+          "p975": 0.17911994470617948
+        }
+      }
+    }
+  },
+  "v3_marginal_value": {
+    "selected": false,
+    "selected_positions": [],
+    "refit_v3_weights": {
+      "QB": 0.0,
+      "RB": 0.0,
+      "WR": 0.0,
+      "TE": 0.0
+    },
+    "conclusion": "v3 adds no selected marginal point accuracy; retain it as the distribution overlay"
+  },
+  "folds": {
+    "2024": {
+      "v3": {
+        "source_season": 2023,
+        "target_season": 2024,
+        "n_draws": 1000,
+        "uncertainty_training_seasons": [
+          2023
+        ],
+        "uncertainty_artifact_hash": "5af895eb5ef4e68466ef6db753c64a07b35bf2b5584cefffeaa55c4ec1f34e94",
+        "joint_donor_seasons": [
+          2023
+        ]
+      },
+      "parity": {
+        "pass": true,
+        "deltas": {
+          "n": 0.0,
+          "coverage": 0.0,
+          "p50_mae": 0.0,
+          "p50_spearman": 0.0
+        },
+        "expected": {
+          "n": 597,
+          "coverage": 0.7738693467336684,
+          "mean_width": 90.0694811445836,
+          "interval_score": 158.62042479325356,
+          "crps": 23.9846288721615,
+          "p50_mae": 32.712473145643614,
+          "p50_bias": -6.4721965212911226,
+          "p50_spearman": 0.7961833093653038
+        },
+        "observed": {
+          "n": 597,
+          "coverage": 0.7738693467336684,
+          "mean_width": 90.0694811445836,
+          "interval_score": 158.62042479325356,
+          "crps": 23.9846288721615,
+          "p50_mae": 32.712473145643614,
+          "p50_bias": -6.4721965212911226,
+          "p50_spearman": 0.7961833093653038
+        }
+      },
+      "coverage": {
+        "n": 756,
+        "v2_raw": 569,
+        "v3_raw": 644,
+        "adp_raw": 156,
+        "draft_relevant_top120": 124
+      },
+      "market": {
+        "target_season": 2024,
+        "target_as_of": "2024-09-01",
+        "target_sha256": "8303855d11508cefc5f0de38943d93ba7a1fde55ff02707388163fbfcc31a1ac",
+        "calibration_seasons": [
+          {
+            "season": 2023,
+            "as_of": "2023-09-01",
+            "sha256": "6201895b8105fe25f95b1fd41b57f4b8732e208fcae1c3b41b57c0f1005a4dec",
+            "n": 168
+          }
+        ],
+        "ecr_used_as_weight": false
+      }
+    },
+    "2025": {
+      "v3": {
+        "source_season": 2024,
+        "target_season": 2025,
+        "n_draws": 1000,
+        "uncertainty_training_seasons": [
+          2023,
+          2024
+        ],
+        "uncertainty_artifact_hash": "ad8c94bf112e78bad690e1801c1a1da3281fa6e486de6b68c364a714010ed045",
+        "joint_donor_seasons": [
+          2023,
+          2024
+        ]
+      },
+      "parity": {
+        "pass": true,
+        "deltas": {
+          "n": 0.0,
+          "coverage": 0.0,
+          "p50_mae": 0.0,
+          "p50_spearman": 0.0
+        },
+        "expected": {
+          "n": 600,
+          "coverage": 0.7366666666666667,
+          "mean_width": 80.3008165018289,
+          "interval_score": 179.86256555194302,
+          "crps": 25.943341944111133,
+          "p50_mae": 34.61066031787307,
+          "p50_bias": -4.619639646482942,
+          "p50_spearman": 0.7280397674179825
+        },
+        "observed": {
+          "n": 600,
+          "coverage": 0.7366666666666667,
+          "mean_width": 80.3008165018289,
+          "interval_score": 179.86256555194302,
+          "crps": 25.943341944111133,
+          "p50_mae": 34.61066031787307,
+          "p50_bias": -4.619639646482942,
+          "p50_spearman": 0.7280397674179825
+        }
+      },
+      "coverage": {
+        "n": 755,
+        "v2_raw": 574,
+        "v3_raw": 661,
+        "adp_raw": 144,
+        "draft_relevant_top120": 117
+      },
+      "market": {
+        "target_season": 2025,
+        "target_as_of": "2025-09-01",
+        "target_sha256": "aad650aac0d8f3609766ecfd5c9d2d3c1480651f493b1775fd467ec4cc225d1b",
+        "calibration_seasons": [
+          {
+            "season": 2023,
+            "as_of": "2023-09-01",
+            "sha256": "6201895b8105fe25f95b1fd41b57f4b8732e208fcae1c3b41b57c0f1005a4dec",
+            "n": 168
+          },
+          {
+            "season": 2024,
+            "as_of": "2024-09-01",
+            "sha256": "8303855d11508cefc5f0de38943d93ba7a1fde55ff02707388163fbfcc31a1ac",
+            "n": 156
+          }
+        ],
+        "ecr_used_as_weight": false
+      }
+    }
+  },
+  "application_2026": {
+    "applied": true,
+    "board_path": "output/accuracy_first_2026/fantasy_points_2026.csv",
+    "n_players": 778,
+    "n_accuracy_ensemble_applied": 93,
+    "market_diagnostic": {
+      "n_adp": 117,
+      "points_vs_adp_spearman": 0.49725098208154245,
+      "n_ecr": 117,
+      "points_vs_ecr_spearman": 0.583277135877954,
+      "note": "ECR is diagnostic only and has zero fitted weight"
+    },
+    "reproduction_check": {
+      "pass": true,
+      "n": 778,
+      "max_abs_delta": 0.0
+    },
+    "coverage": {
+      "n": 778,
+      "v2_raw": 767,
+      "v3_raw": 778,
+      "adp_raw": 188,
+      "draft_relevant_top120": 117
+    },
+    "market": {
+      "target_season": 2026,
+      "target_as_of": "2026-08-23",
+      "target_sha256": "18fbd17a43e47206632969b525d3c14c1779d3b587e7e03959a91a295b905f1e",
+      "calibration_seasons": [
+        {
+          "season": 2023,
+          "as_of": "2023-09-01",
+          "sha256": "6201895b8105fe25f95b1fd41b57f4b8732e208fcae1c3b41b57c0f1005a4dec",
+          "n": 168
+        },
+        {
+          "season": 2024,
+          "as_of": "2024-09-01",
+          "sha256": "8303855d11508cefc5f0de38943d93ba7a1fde55ff02707388163fbfcc31a1ac",
+          "n": 156
+        },
+        {
+          "season": 2025,
+          "as_of": "2025-09-01",
+          "sha256": "aad650aac0d8f3609766ecfd5c9d2d3c1480651f493b1775fd467ec4cc225d1b",
+          "n": 144
+        }
+      ],
+      "ecr_used_as_weight": false
+    },
+    "live_v3": {
+      "projection_run_id": "0b8c9cb1-e3ed-4936-88ef-94b51df10e96",
+      "simulation_manifest_sha256": "480b144e7a7bc20ec42e8771f1443ba1cfb2a3aa1287df96894127f44ee42b04",
+      "distribution_mode": "joint_bootstrap",
+      "n_draws": 1000
+    },
+    "sources": {
+      "output/fantasy_points_2026.csv": "861acaecc8e84a780d68e8760d6166675e8c7a843ad63d9befb15004eb42d9a2",
+      "output/model_v2/fantasy_points_2026.csv": "7f6a94eb3010c6a39768363d418c7ffe67575cfdf9fb0534a7bb56079dce25a4",
+      "output/model_v3/simulation_summary_2026.csv": "3ee2d6d7c292593c8a111707d8a1d1a8dd5a68cf1cd4ff76b01630c97a98e914"
+    }
+  },
+  "artifacts": {
+    "players": "output/accuracy_first_2026/evaluation_players.parquet",
+    "weights": "output/accuracy_first_2026/ensemble_weights.json"
+  }
+}

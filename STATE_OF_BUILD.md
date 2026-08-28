@@ -1,5 +1,12 @@
 # State of the build — 2026-08-15
 
+> **Update (2026-08-27 — accuracy-first 2026 board):** A leakage-safe
+> top-120 ADP bake-off promotes a separate accuracy-first point board: 2025
+> holdout MAE 58.72 → 53.14 and Spearman .504 → .602. The gain comes from
+> ADP-assisted RB/WR weights; v3 receives zero selected point weight and stays
+> the calibrated distribution overlay. Native v1 output remains unchanged.
+> See `docs/decisions/ACCURACY_FIRST_ENSEMBLE_2026-08-27.md`.
+
 > **Update (2026-08-25 — v3 point-engine decision):** v3 does **not** replace
 > the LightGBM/`compose_board` point engine yet. Hardened
 > `scripts/v3_promotion_gate.py` splits `simulation_ready` (percentile UI)

@@ -1,0 +1,54 @@
+{
+  "version": "accuracy_first_2026_v1",
+  "verdict": "promote_accuracy_ensemble",
+  "fit_season": 2024,
+  "holdout_season": 2025,
+  "refit_seasons": [
+    2024,
+    2025
+  ],
+  "population": {
+    "market": "adp",
+    "max_rank": 120.0
+  },
+  "selection_rule": "MAE <= incumbent and Spearman >= incumbent, by position and overall",
+  "positions": {
+    "QB": {
+      "arm": "incumbent",
+      "weights": {
+        "v1_pred": 0.4,
+        "v2_pred": 0.6
+      }
+    },
+    "RB": {
+      "arm": "market_no_v3",
+      "weights": {
+        "v1_pred": 0.1,
+        "v2_pred": 0.3,
+        "adp_points": 0.6
+      }
+    },
+    "WR": {
+      "arm": "market_no_v3",
+      "weights": {
+        "v1_pred": 0.0,
+        "v2_pred": 0.55,
+        "adp_points": 0.45
+      }
+    },
+    "TE": {
+      "arm": "incumbent",
+      "weights": {
+        "v1_pred": 0.9,
+        "v2_pred": 0.1
+      }
+    }
+  },
+  "source_hashes": {
+    "v3_calibration": "4324d5609a8c80a9ebc53c11aee7e42e75c4e8e741afa461cb1dae06d658d6d4",
+    "incumbent_weights": "e05b46d01a038ae574bdbc8742bc4738ecae8fe9e6423a3718c174ea8b02633a",
+    "v3_exact_p50_2024": "e68846ea7653769e84f46f801768dc9f9e7d0dc0285d3438edb2f60de61820be",
+    "v3_exact_p50_2025": "8c33dc430a04d72d77fb09a34218c0e5ab749ad97f192e38e6d3af75007fe417"
+  },
+  "artifact_hash": "cd70f94b8149cd8483cbbd9078e0346b38b996e54f8b6965059457cc879c1a02"
+}

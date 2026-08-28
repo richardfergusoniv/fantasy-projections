@@ -1,0 +1,102 @@
+{
+  "source_season": 2023,
+  "target_season": 2024,
+  "n_draws": 1000,
+  "calibration_sha256": "4324d5609a8c80a9ebc53c11aee7e42e75c4e8e741afa461cb1dae06d658d6d4",
+  "p50_sha256": "e68846ea7653769e84f46f801768dc9f9e7d0dc0285d3438edb2f60de61820be",
+  "metrics": {
+    "overall": {
+      "n": 597,
+      "coverage": 0.7738693467336684,
+      "mean_width": 90.0694811445836,
+      "interval_score": 158.62042479325356,
+      "crps": 23.9846288721615,
+      "p50_mae": 32.712473145643614,
+      "p50_bias": -6.4721965212911226,
+      "p50_spearman": 0.7961833093653038
+    },
+    "by_position": {
+      "QB": {
+        "n": 82,
+        "coverage": 0.7804878048780488,
+        "mean_width": 171.35231246452608,
+        "interval_score": 214.17434521290764,
+        "crps": 36.15183759737668,
+        "p50_mae": 50.102515574524446,
+        "p50_bias": -7.721735441589445,
+        "p50_spearman": 0.7181608906594621
+      },
+      "RB": {
+        "n": 135,
+        "coverage": 0.8074074074074075,
+        "mean_width": 104.61853280909453,
+        "interval_score": 204.89146787178,
+        "crps": 29.310799913598068,
+        "p50_mae": 39.5733382179058,
+        "p50_bias": -7.138301316606252,
+        "p50_spearman": 0.807080331648335
+      },
+      "TE": {
+        "n": 132,
+        "coverage": 0.75,
+        "mean_width": 47.43392057512049,
+        "interval_score": 102.93054290079881,
+        "crps": 15.618023042722909,
+        "p50_mae": 21.20751408238852,
+        "p50_bias": -7.586952173928039,
+        "p50_spearman": 0.7969451842515397
+      },
+      "WR": {
+        "n": 248,
+        "coverage": 0.7661290322580645,
+        "mean_width": 77.96698054871617,
+        "interval_score": 144.70531237305724,
+        "crps": 21.5154666279047,
+        "p50_mae": 29.35140190542607,
+        "p50_bias": -5.103107468952098,
+        "p50_spearman": 0.8094539855821665
+      }
+    }
+  },
+  "provenance": {
+    "source_season": 2023,
+    "target_season": 2024,
+    "n_draws": 1000,
+    "uncertainty_training_seasons": [
+      2023
+    ],
+    "uncertainty_artifact_hash": "5af895eb5ef4e68466ef6db753c64a07b35bf2b5584cefffeaa55c4ec1f34e94",
+    "joint_donor_seasons": [
+      2023
+    ]
+  },
+  "parity": {
+    "pass": true,
+    "deltas": {
+      "n": 0.0,
+      "coverage": 0.0,
+      "p50_mae": 0.0,
+      "p50_spearman": 0.0
+    },
+    "expected": {
+      "n": 597,
+      "coverage": 0.7738693467336684,
+      "mean_width": 90.0694811445836,
+      "interval_score": 158.62042479325356,
+      "crps": 23.9846288721615,
+      "p50_mae": 32.712473145643614,
+      "p50_bias": -6.4721965212911226,
+      "p50_spearman": 0.7961833093653038
+    },
+    "observed": {
+      "n": 597,
+      "coverage": 0.7738693467336684,
+      "mean_width": 90.0694811445836,
+      "interval_score": 158.62042479325356,
+      "crps": 23.9846288721615,
+      "p50_mae": 32.712473145643614,
+      "p50_bias": -6.4721965212911226,
+      "p50_spearman": 0.7961833093653038
+    }
+  }
+}
