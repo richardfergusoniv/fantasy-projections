@@ -189,6 +189,25 @@ def load_ensemble_weights(path: str | None) -> dict | None:
     return payload.get("weights") or payload
 
 
+def accuracy_ensemble_metadata(df: pd.DataFrame) -> dict | None:
+    """Describe a pre-blended accuracy-first board when one is supplied."""
+    if "accuracy_ensemble_applied" not in df.columns:
+        return None
+    applied = df["accuracy_ensemble_applied"].fillna(False).astype(bool)
+    if not applied.any():
+        return None
+    arms = (
+        df.loc[applied, "accuracy_ensemble_arm"].fillna("unknown").astype(str).value_counts().to_dict()
+        if "accuracy_ensemble_arm" in df.columns else {}
+    )
+    return {
+        "applied": True,
+        "n_players": int(applied.sum()),
+        "arms": {str(key): int(value) for key, value in arms.items()},
+        "note": "Accuracy-first top-120 ADP point blend; canonical v1 engine unchanged",
+    }
+
+
 def default_v2_points_path(season: int) -> str:
     return os.path.join(OUTPUT_DIR, "model_v2", f"fantasy_points_{season}.csv")
 
@@ -451,6 +470,7 @@ def export_draft_data(
     out_path: str | None = None,
 ) -> str:
     df = load_projections(season, fantasy_path)
+    accuracy_meta = accuracy_ensemble_metadata(df)
     ensemble_meta = None
     weights_path = resolve_ensemble_weights_path(
         season=season,
@@ -501,20 +521,30 @@ def export_draft_data(
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "player_count": len(players),
             "scoring": "half-PPR, 4pt passing TD",
-            "source_file": f"output/fantasy_points_{season}.csv",
+            "source_file": (
+                fantasy_path.replace("\\", "/")
+                if fantasy_path else f"output/fantasy_points_{season}.csv"
+            ),
             "projection_engine": (
                 "v3 simulation p50 means (flagged cutover); compose_board unchanged"
                 if v3_means_meta and v3_means_meta.get("applied")
                 else (
-                    "v1/v2 draft ensemble (post-process); compose_board unchanged"
-                    if ensemble_meta
-                    else engine
+                    "accuracy-first v1/v2/ADP ensemble; compose_board unchanged"
+                    if accuracy_meta else (
+                        "v1/v2 draft ensemble (post-process); compose_board unchanged"
+                        if ensemble_meta else engine
+                    )
                 )
             ),
             "model_id": (
                 "v3_means"
                 if v3_means_meta and v3_means_meta.get("applied")
-                else ("v1_v2_ensemble" if ensemble_meta else "v1_rate_forecast")
+                else (
+                    "accuracy_first_ensemble"
+                    if accuracy_meta else (
+                        "v1_v2_ensemble" if ensemble_meta else "v1_rate_forecast"
+                    )
+                )
             ),
             "source_mix": sources,
             "roster": "1QB, 2RB, 3WR, 1TE, 1FLEX",
@@ -538,6 +568,7 @@ def export_draft_data(
             "vorp_flex_share": FLEX_SHARE,
             "rookie_rank_scale": float(rookie_rank_scale),
             "ensemble": ensemble_meta,
+            "accuracy_ensemble": accuracy_meta,
             "v3_simulation": v3_sim_meta,
             "v3_means": v3_means_meta,
         },

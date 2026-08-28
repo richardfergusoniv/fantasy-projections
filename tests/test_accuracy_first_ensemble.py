@@ -224,3 +224,16 @@ def test_canonical_hash_detects_weight_or_provenance_change():
     assert first == canonical_json_hash(dict(payload))
     changed = {**payload, "source_hash": "def"}
     assert canonical_json_hash(changed) != first
+
+
+def test_draft_metadata_identifies_accuracy_first_board():
+    from src.draft_assistant.prepare import accuracy_ensemble_metadata
+
+    frame = pd.DataFrame({
+        "accuracy_ensemble_applied": [True, True, False],
+        "accuracy_ensemble_arm": ["market_no_v3", "market_no_v3", "incumbent"],
+    })
+    meta = accuracy_ensemble_metadata(frame)
+    assert meta["n_players"] == 2
+    assert meta["arms"] == {"market_no_v3": 2}
+    assert accuracy_ensemble_metadata(pd.DataFrame({"x": [1]})) is None
