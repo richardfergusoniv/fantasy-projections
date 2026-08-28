@@ -39,6 +39,26 @@ def test_objective_injury_negative_is_not_sentiment():
     assert score_sentiment("Neutral") == 0.0
 
 
+def test_section_heading_does_not_override_an_explicit_label():
+    """A "## Top positive signals" heading must not flip a bearish row positive.
+
+    The heading is a fallback for rows that carry no label of their own. Scoring
+    label and heading together matched the positive tier on the heading's wording
+    and returned before the negative branch, so an explicit "Strongly bearish"
+    row scored +0.55. Headings of this form appear in 18+ of the 32 summaries.
+    """
+    assert score_sentiment("Strongly bearish", "Top positive signals") == -0.9
+    assert score_sentiment("Bearish", "Strongest positives") == -0.55
+    assert score_sentiment("Neutral", "Strongest positive signals") == 0.0
+    # ... while an unlabelled row still inherits the heading as its polarity.
+    assert score_sentiment("Jonah Coleman", "Strongest positives") == 0.55
+    assert score_sentiment("someone", "Strongly bearish outlook") == -0.9
+    # ... and a qualifying heading still tempers a positive row beneath it.
+    assert score_sentiment("Positive", "Positive but role-dependent") == 0.3
+    assert score_sentiment("Positive", "Positive, but conditional") == 0.3
+    assert score_sentiment("Positive", "Strongest positives") == 0.55
+
+
 def test_markdown_parser_finds_signal_for_every_team():
     players = pd.read_csv(REPO_ROOT / "output" / "fantasy_points_2026.csv")
     players = players.drop_duplicates("player_id")

@@ -73,11 +73,11 @@
   "files": {
     "projections": {
       "path": "output/projections_2026.csv",
-      "sha256": "27c46dd9a6a5b3e03991cd575bc06769365203d350396bd9e9b1f79e7de69dde"
+      "sha256": "0f628dcb5f144f69df63e91a9b8f2f8812e3063653856220b3a2f34a6e82d10c"
     },
     "fantasy_points": {
       "path": "output/fantasy_points_2026.csv",
-      "sha256": "861acaecc8e84a780d68e8760d6166675e8c7a843ad63d9befb15004eb42d9a2"
+      "sha256": "1a780d38d31022f89230b60a4e17a92a06935b52b50928b5f5e5c64908419a20"
     },
     "team_stats": {
       "path": "draft_assistant/data/team_stats_2026.json",
@@ -87,5 +87,7 @@
       "path": "draft_assistant/data/players_2026.json",
       "sha256": "958fb9ee58963a25246df9a8fbff1606417fc6c9c8de057a103d8efeb3e80b1e"
     }
-  }
+  },
+  "sentiment_refreshed_at": "2026-08-28T04:43:24.124962+00:00",
+  "sentiment_as_of": "2026-08-24"
 }

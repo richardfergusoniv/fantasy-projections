@@ -204,8 +204,45 @@ def score_sentiment(label: str, heading: str = "", context: str = "") -> float |
 
     Positive ability plus an injury caveat remains positive; injury-only
     negative labels are excluded because availability is already modeled.
+
+    The section heading plays two distinct roles and only one of them was wrong.
+    It legitimately *supplies* polarity for a row carrying no label of its own,
+    and it legitimately *qualifies* a row that has one -- "## Positive, but
+    conditional" really does temper every row beneath it.  What it must not do
+    is *override* an explicit label: scoring ``label + heading`` as one string
+    let a heading such as "## Top positive signals" match the positive tier and
+    return before the negative branch was reached, scoring an explicit
+    "Strongly bearish" row at +0.55.
+
+    So polarity is read from the label alone, falling back to the heading only
+    when the label carries no signal, while the dampening qualifiers are still
+    read from label and heading together.  Bullets already resolve the heading
+    as a fallback when they build their label; see ``_bullet_candidates``.
     """
-    primary = f"{label} {heading}".lower().replace("–", "-").replace("—", "-")
+    score = _score_label(label, context)
+    if score is None and heading:
+        score = _score_label(f"{label} {heading}", context)
+    if score is not None and score > 0 and heading:
+        score = _damp_positive(score, f"{label} {heading}")
+    return score
+
+
+def _normalize(text: str) -> str:
+    return text.lower().replace("–", "-").replace("—", "-")
+
+
+def _damp_positive(score: float, text: str) -> float:
+    """Temper a positive reading with the caveats attached to it."""
+    primary = _normalize(text)
+    if any(term in primary for term in ("mild", "cautious", "mixed", "conditional", "developmental", "role-dependent", "role-capped", "volatile")):
+        return min(score, 0.3)
+    if any(term in primary for term in ("neutral-to-positive", "neutral to positive", "neutral-positive")):
+        return 0.15
+    return score
+
+
+def _score_label(text: str, context: str) -> float | None:
+    primary = _normalize(text)
     all_text = f"{primary} {context.lower()}"
     if any(term in all_text for term in NO_SIGNAL):
         return None
@@ -220,11 +257,7 @@ def score_sentiment(label: str, heading: str = "", context: str = "") -> float |
         None,
     )
     if positive_score is not None:
-        if any(term in primary for term in ("mild", "cautious", "mixed", "conditional", "developmental", "role-dependent", "role-capped", "volatile")):
-            positive_score = min(positive_score, 0.3)
-        elif any(term in primary for term in ("neutral-to-positive", "neutral to positive", "neutral-positive")):
-            positive_score = 0.15
-        return positive_score
+        return _damp_positive(positive_score, primary)
 
     negative_score = None
     if any(term in primary for term in ("strongly bearish", "strongly negative", "extremely negative")):

@@ -489,19 +489,6 @@ function rankingView(player) {
   };
 }
 
-function sentimentHtml(player) {
-  const score = player.sentiment_score;
-  if (score == null) return '<span class="sentiment-score none" title="No reviewed sentiment signal">—</span>';
-  const cls = score > 15 ? "positive" : score < -15 ? "negative" : "neutral";
-  const sign = score > 0 ? "+" : "";
-  const confidence = player.sentiment_confidence == null
-    ? "unknown"
-    : `${Math.round(100 * Number(player.sentiment_confidence))}%`;
-  const mode = player.sentiment_model_active ? "active model feature" : "diagnostic only";
-  const title = `Player sentiment ${sign}${Math.round(score)} · ${confidence} confidence · ${mode} · as of ${player.sentiment_as_of || "unknown"}`;
-  return `<span class="sentiment-score ${cls}" title="${escapeHtml(title)}">${sign}${Math.round(score)}</span>`;
-}
-
 function scoreSuggestion(player, needs) {
   const { tier, rank, vorp } = rankingView(player);
   let score = (vorp ?? 0) - (rank ?? 999) * 0.01;
@@ -563,7 +550,6 @@ function filteredRankings() {
       if (key === "display_name") return p.display_name || "";
       if (key === "position") return p.position || "";
       if (key === "team") return p.team || "";
-      if (key === "sentiment_score") return p.sentiment_score;
       return p[key];
     },
   });
@@ -589,7 +575,7 @@ function renderRankings() {
       if (showTier && tier !== lastTier) {
         lastTier = tier;
         classes.push("tier-break");
-        tierHeader = `<tr class="tier-header"><td colspan="7">Tier ${tier}</td></tr>`;
+        tierHeader = `<tr class="tier-header"><td colspan="6">Tier ${tier}</td></tr>`;
       }
 
       const conf = p.low_confidence
@@ -610,7 +596,6 @@ function renderRankings() {
           </td>
           <td class="col-pos"><span class="pos-badge pos-${p.position}">${p.position}</span></td>
           <td class="col-team">${p.team}</td>
-          <td class="col-sentiment">${sentimentHtml(p)}</td>
         </tr>`;
     })
     .join("");
@@ -868,8 +853,6 @@ function buildCardHtml(p, { full = false } = {}) {
       '<span class="pill ok" title="Canonical stat mix scaled to reconcile with the blended fantasy-point forecast">Blend-adjusted stats</span>'
     );
   }
-  if (p.sentiment_model_active) pills.push(`<span class="pill ok">Sentiment active</span>`);
-  else pills.push(`<span class="pill">Sentiment diagnostic</span>`);
 
   const contrib = [
     { label: "Passing", pts: br.pass, cls: "pass" },
@@ -915,11 +898,6 @@ function buildCardHtml(p, { full = false } = {}) {
         <span class="label">VORP</span>
         <span class="value">${formatVorp(vorp)}</span>
         <span class="hint">vs replacement / G</span>
-      </div>
-      <div class="card-stat">
-        <span class="label">Sentiment</span>
-        <span class="value">${p.sentiment_score == null ? "—" : `${p.sentiment_score > 0 ? "+" : ""}${Math.round(p.sentiment_score)}`}</span>
-        <span class="hint">${escapeHtml(p.sentiment_coverage || "no signal")} · ${p.sentiment_confidence == null ? 0 : Math.round(100 * Number(p.sentiment_confidence))}% confidence</span>
       </div>
       ${
         full

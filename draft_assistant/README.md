@@ -1,10 +1,13 @@
 # Fantasy Tools
 
-Player cards, the draft board, and the team view now display a
-position-relative sentiment score with evidence confidence. It is labeled
-**diagnostic** while `models/sentiment_manifest.json` has no active positions;
-the score does not change VORP, tiers, suggestions, or projected fantasy
-points. See `src/sentiment/README.md` for refresh and gate commands.
+Sentiment lives on the **Sleepers** view only. It is not on the draft board:
+the signal is 91.5% positive / 1.2% negative across the parsed research corpus,
+is missing for 56% of the players outside the top-120 ADP, and has never been
+validated against outcomes, so it is not strong enough to order a board. The
+Compare and Team views still carry it. It stays labeled **diagnostic** while
+`models/sentiment_manifest.json` has no active positions, and it does not change
+VORP, tiers, suggestions, or projected fantasy points. See
+`src/sentiment/README.md` for refresh and gate commands.
 
 Local static app with views powered by **this repo’s rate-forecast (v1) pipeline**, with an optional **v1/v2 draft ensemble** post-process on the board:
 

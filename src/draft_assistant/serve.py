@@ -50,6 +50,7 @@ def main() -> None:
         url = f"http://127.0.0.1:{args.port}/"
         print(f"Serving Fantasy Tools at {url}")
         print(f"  Draft:             {url}")
+        print(f"  Sleepers:          {url}sleepers/")
         print(f"  Team Projections:  {url}teams/")
         print(f"  Total Projections: {url}totals/")
         print(f"  Compare:           {url}compare/")
