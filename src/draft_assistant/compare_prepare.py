@@ -241,6 +241,91 @@ def build_comparison(
     }
 
 
+def rebase_comparison_payload(board: dict, comparison: dict) -> dict[str, Any]:
+    """Replace only our side of a frozen market comparison.
+
+    ECR/ADP snapshots are time-sensitive.  When a new board is selected after
+    those snapshots were captured, rebuilding the comparison should not
+    silently refetch a different market.  This transform preserves every
+    market field and updates our rank, points, VORP, sentiment, and deltas.
+    """
+    board_players = board.get("players") or []
+    old_by_id = {
+        str(row.get("player_id")): row
+        for row in (comparison.get("players") or [])
+        if row.get("player_id") is not None
+    }
+
+    def delta(our_rank, market_rank):
+        if our_rank is None or market_rank is None:
+            return None
+        return round(float(our_rank) - float(market_rank), 2)
+
+    rows: list[dict] = []
+    for player in board_players:
+        player_id = str(player.get("player_id"))
+        old = dict(old_by_id.get(player_id) or {})
+        old.update(
+            {
+                "player_id": player_id,
+                "display_name": player.get("display_name"),
+                "position": player.get("position"),
+                "team": player.get("team"),
+                "our_rank": player.get("overall_rank"),
+                "our_pos_rank": player.get("pos_rank"),
+                "fantasy_pts": player.get("fantasy_pts"),
+                "fantasy_pts_season": player.get("fantasy_pts_season"),
+                "vorp": player.get("vorp"),
+                "sentiment_score": player.get("sentiment_score"),
+                "sentiment_confidence": player.get("sentiment_confidence"),
+                "sentiment_coverage": player.get("sentiment_coverage"),
+                "sentiment_as_of": player.get("sentiment_as_of"),
+                "sentiment_model_active": player.get("sentiment_model_active"),
+            }
+        )
+        old["matched_ecr"] = old.get("ecr") is not None
+        old["matched_adp"] = old.get("adp") is not None
+        old["delta_ecr"] = delta(old.get("our_rank"), old.get("ecr"))
+        old["delta_adp"] = delta(old.get("our_rank"), old.get("adp"))
+        rows.append(old)
+
+    rows.sort(key=lambda row: (row.get("our_rank") is None, row.get("our_rank") or 9999))
+    board_meta = board.get("meta") or {}
+    meta = dict(comparison.get("meta") or {})
+    meta.update(
+        {
+            "season": board_meta.get("season", meta.get("season")),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "player_count": len(rows),
+            "matched_ecr": sum(1 for row in rows if row["matched_ecr"]),
+            "matched_adp": sum(1 for row in rows if row["matched_adp"]),
+            "board_generated_at": board_meta.get("generated_at"),
+            "board_model_id": board_meta.get("model_id"),
+            "board_source_file": board_meta.get("source_file"),
+            "market_snapshot_preserved": True,
+        }
+    )
+    return {"meta": meta, "players": rows}
+
+
+def rebase_comparison_file(
+    players_path: str,
+    comparison_path: str,
+    *,
+    out_path: str | None = None,
+) -> str:
+    with open(players_path, encoding="utf-8") as fh:
+        board = json.load(fh)
+    with open(comparison_path, encoding="utf-8") as fh:
+        comparison = json.load(fh)
+    payload = rebase_comparison_payload(board, comparison)
+    destination = out_path or comparison_path
+    os.makedirs(os.path.dirname(os.path.abspath(destination)), exist_ok=True)
+    with open(destination, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, indent=2, allow_nan=False)
+    return destination
+
+
 def export_comparison(
     season: int = 2026,
     *,
@@ -266,7 +351,29 @@ def main() -> None:
         default="half-ppr",
         choices=["half-ppr", "ppr", "standard"],
     )
+    parser.add_argument(
+        "--players-path",
+        default=None,
+        help="Rebase a frozen comparison onto this players JSON without refetching markets",
+    )
+    parser.add_argument(
+        "--comparison-path",
+        default=None,
+        help="Existing comparison JSON whose ECR/ADP snapshot should be preserved",
+    )
+    parser.add_argument("--out", default=None, help="Optional comparison JSON output path")
     args = parser.parse_args()
+    if args.players_path:
+        comparison_path = args.comparison_path or os.path.join(
+            DRAFT_DATA_DIR, f"comparison_{args.season}.json"
+        )
+        path = rebase_comparison_file(
+            args.players_path,
+            comparison_path,
+            out_path=args.out,
+        )
+        print(f"Wrote {path}")
+        return
     path = export_comparison(
         args.season, team_count=args.teams, ffc_scoring=args.ffc_scoring
     )
