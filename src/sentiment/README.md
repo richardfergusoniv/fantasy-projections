@@ -29,6 +29,18 @@ python -m src.sentiment.gate
 2026 markdown set has a shared cutoff of 2026-08-24 and is not used for an
 earlier as-of date.
 
+## Snapshot history
+
+`snapshot.py` writes a dated `data/sentiment/sentiment_<season>_<as-of>.csv`
+alongside a coverage summary. **These files are tracked on purpose.** They are
+the point-in-time record the model gate below is waiting on: a new as-of date
+produces a new file, so re-running never destroys an earlier observation.
+
+`/data/*` is ignored wholesale, so `data/sentiment/` needs the explicit negation
+in `.gitignore` to survive. Until that negation existed, every run wrote to an
+untracked path and the three-season history could not accumulate at all -- the
+gate was waiting on evidence the repo was discarding.
+
 ## Model gate
 
 `models/sentiment_manifest.json` is the only activation surface. All positions

@@ -1,0 +1,52 @@
+{
+  "version": "markdown_market_v1",
+  "players": 778,
+  "teams": 32,
+  "team_codes": [
+    "ARI",
+    "ATL",
+    "BAL",
+    "BUF",
+    "CAR",
+    "CHI",
+    "CIN",
+    "CLE",
+    "DAL",
+    "DEN",
+    "DET",
+    "GB",
+    "HOU",
+    "IND",
+    "JAX",
+    "KC",
+    "LA",
+    "LAC",
+    "LV",
+    "MIA",
+    "MIN",
+    "NE",
+    "NO",
+    "NYG",
+    "NYJ",
+    "PHI",
+    "PIT",
+    "SEA",
+    "SF",
+    "TB",
+    "TEN",
+    "WAS"
+  ],
+  "non_null_scores": 408,
+  "coverage": {
+    "none": 370,
+    "medium": 221,
+    "high": 181,
+    "low": 6
+  },
+  "active_by_position": {
+    "QB": false,
+    "RB": false,
+    "TE": false,
+    "WR": false
+  }
+}

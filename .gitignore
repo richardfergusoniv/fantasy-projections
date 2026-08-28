@@ -2,10 +2,18 @@
 __pycache__/
 *.pyc
 # Ignore everything under /data/ (parquet cache, SQLite DB) EXCEPT the frozen
-# market snapshots. A directory-level `/data/` exclusion cannot be un-excluded
-# from inside, so this has to list the contents and then negate.
+# market snapshots and the sentiment snapshots. A directory-level `/data/`
+# exclusion cannot be un-excluded from inside, so this has to list the contents
+# and then negate.
+#
+# /data/sentiment/ has to be tracked or sentiment can never be activated.
+# models/sentiment_manifest.json holds sentiment at "diagnostic" pending three
+# seasons of point-in-time history, and these dated snapshots are that history.
+# While they were ignored, every run overwrote an untracked file and the record
+# the gate is waiting on could not accumulate.
 /data/*
 !/data/consensus/
+!/data/sentiment/
 *.db
 ingest_log*.txt
 phase0_results.json
