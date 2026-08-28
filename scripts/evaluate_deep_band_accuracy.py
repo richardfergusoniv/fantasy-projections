@@ -42,11 +42,26 @@ POSITIONS = ("QB", "RB", "WR", "TE")
 
 # Band edges on projected season-points rank, inclusive.
 BANDS = (
-    (1, 120, "top120"),
+    (1, 60, "top60"),
+    (61, 120, "deep_core"),
     (121, 200, "deep_primary"),
     (201, 300, "deep_speculative"),
     (301, 10_000, "tail"),
 )
+
+# Bands the sleeper view never shows regardless of how accurate they measure.
+# Rank 1-60 is core draft-board territory by projected points -- it is the most
+# accurate band in the table, and that is exactly why it is not a sleeper
+# population.  Naming it here rather than testing a band name inline keeps the
+# exclusion from silently lapsing if the band edges are recut again.
+PAGE_EXCLUDED_BANDS = ("top60",)
+
+# The sleeper view shows flex positions only.  Quarterbacks accumulate large raw
+# season totals while being replacement-rich, so they rank high on points while
+# carrying deeply negative VORP -- a points-rank band cannot compare them against
+# RB/WR/TE coherently.  Hit rates quoted on that page therefore have to describe
+# this population, not the pooled one.
+SLEEPER_POSITIONS = ("RB", "WR", "TE")
 
 # A band earns a place on the sleeper board if a real share of it produces a
 # startable half-PPR season.  100 points is roughly a flex-worthy floor over a
@@ -130,6 +145,11 @@ def build_report(scored: pd.DataFrame) -> dict:
             position: metrics(cell[cell["preseason_position"] == position])
             for position in POSITIONS
         }
+        # What the sleeper view will actually display, so the rates it quotes
+        # describe the same population it renders.
+        block["sleeper_population"] = metrics(
+            cell[cell["preseason_position"].isin(SLEEPER_POSITIONS)]
+        )
         block["admitted"] = bool(
             block.get("n", 0) >= MIN_CELL_N
             and block.get("p_startable_100", 0.0) >= MIN_STARTABLE_RATE
@@ -137,7 +157,9 @@ def build_report(scored: pd.DataFrame) -> dict:
         bands[name] = block
 
     admitted = [
-        name for name, block in bands.items() if block["admitted"] and name != "top120"
+        name
+        for name, block in bands.items()
+        if block["admitted"] and name not in PAGE_EXCLUDED_BANDS
     ]
     sleeper_low = min((low for low, _, n in BANDS if n in admitted), default=None)
     sleeper_high = max(
@@ -167,6 +189,8 @@ def build_report(scored: pd.DataFrame) -> dict:
             "admitted_bands": admitted,
             "proj_rank_min": sleeper_low,
             "proj_rank_max": sleeper_high,
+            "positions": list(SLEEPER_POSITIONS),
+            "excluded_bands": list(PAGE_EXCLUDED_BANDS),
         },
         "caveats": [
             "The top-120 accuracy-first ensemble does not cover any band below top120; "
@@ -180,6 +204,15 @@ def build_report(scored: pd.DataFrame) -> dict:
             "and is NOT interchangeable with it.",
             f"Cells with n < {MIN_CELL_N} are marked thin_cell and must not be read as a "
             "group difference.",
+            "The sleeper view shows "
+            + "/".join(SLEEPER_POSITIONS)
+            + " only. Quarterbacks rank high on raw season points while being "
+            "replacement-rich, so a points-rank band cannot compare them against flex "
+            "positions coherently. Quote sleeper_population, not the pooled band rates, "
+            "anywhere that page reports a hit rate.",
+            "top60 is the most accurate band measured and is still excluded: rank 1-60 is "
+            "core draft-board territory, not a sleeper population. Accuracy admits a band; "
+            "it does not make it a sleeper.",
         ],
     }
 

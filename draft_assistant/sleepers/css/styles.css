@@ -130,3 +130,10 @@
   text-transform: uppercase;
   color: var(--text-muted);
 }
+
+/* 61-120 is the strongest admitted band (73.5% startable for RB/WR/TE, against
+   36% for 121-200), so it reads brighter than .primary rather than reusing it. */
+.band-pill.core {
+  background: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+}

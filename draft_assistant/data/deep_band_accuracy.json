@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T04:52:52.853957+00:00",
+  "generated_at": "2026-08-28T17:52:39.392698+00:00",
   "seasons": [
     2023,
     2024,
@@ -15,57 +15,127 @@
     "rationale": "MAE and Spearman both improve as a band approaches the zero floor and cannot separate skill from a dead tail; the hit rate can."
   },
   "bands": {
-    "top120": {
-      "n": 360,
-      "points_mae": 62.7913,
-      "spearman": 0.4296,
-      "spearman_p": 0.0,
-      "mean_projected": 181.983,
-      "mean_actual": 174.158,
-      "p_startable_100": 0.8,
-      "p_starter_150": 0.5944,
+    "top60": {
+      "n": 180,
+      "points_mae": 73.913,
+      "spearman": 0.2502,
+      "spearman_p": 0.000706,
+      "mean_projected": 221.054,
+      "mean_actual": 207.233,
+      "p_startable_100": 0.8667,
+      "p_starter_150": 0.7222,
       "thin_cell": false,
       "rank_range": [
         1,
-        120
+        60
       ],
       "per_season_n": {
-        "2023": 120,
-        "2024": 120,
-        "2025": 120
+        "2023": 60,
+        "2024": 60,
+        "2025": 60
       },
       "by_position": {
         "QB": {
-          "n": 95,
-          "points_mae": 82.8185,
-          "spearman": 0.2634,
-          "spearman_p": 0.009915,
-          "mean_projected": 231.997,
-          "mean_actual": 217.929,
-          "p_startable_100": 0.8632,
-          "p_starter_150": 0.6947,
+          "n": 81,
+          "points_mae": 83.1384,
+          "spearman": 0.1913,
+          "spearman_p": 0.08713,
+          "mean_projected": 245.964,
+          "mean_actual": 226.962,
+          "p_startable_100": 0.8889,
+          "p_starter_150": 0.716,
           "thin_cell": false
         },
         "RB": {
-          "n": 118,
-          "points_mae": 65.9076,
-          "spearman": 0.3506,
-          "spearman_p": 9.9e-05,
-          "mean_projected": 171.156,
-          "mean_actual": 168.429,
-          "p_startable_100": 0.7881,
-          "p_starter_150": 0.6186,
+          "n": 56,
+          "points_mae": 67.575,
+          "spearman": 0.1384,
+          "spearman_p": 0.30899,
+          "mean_projected": 202.651,
+          "mean_actual": 198.399,
+          "p_startable_100": 0.875,
+          "p_starter_150": 0.7857,
           "thin_cell": false
         },
         "WR": {
-          "n": 114,
-          "points_mae": 51.4269,
-          "spearman": 0.3054,
-          "spearman_p": 0.000954,
-          "mean_projected": 165.922,
-          "mean_actual": 158.433,
-          "p_startable_100": 0.807,
-          "p_starter_150": 0.5702,
+          "n": 43,
+          "points_mae": 64.789,
+          "spearman": 0.2126,
+          "spearman_p": 0.171031,
+          "mean_projected": 198.096,
+          "mean_actual": 181.573,
+          "p_startable_100": 0.814,
+          "p_starter_150": 0.6512,
+          "thin_cell": false
+        },
+        "TE": {
+          "n": 0
+        }
+      },
+      "sleeper_population": {
+        "n": 99,
+        "points_mae": 66.3649,
+        "spearman": 0.1788,
+        "spearman_p": 0.076561,
+        "mean_projected": 200.672,
+        "mean_actual": 191.091,
+        "p_startable_100": 0.8485,
+        "p_starter_150": 0.7273,
+        "thin_cell": false
+      },
+      "admitted": true
+    },
+    "deep_core": {
+      "n": 180,
+      "points_mae": 51.6695,
+      "spearman": 0.2463,
+      "spearman_p": 0.000859,
+      "mean_projected": 142.912,
+      "mean_actual": 141.083,
+      "p_startable_100": 0.7333,
+      "p_starter_150": 0.4667,
+      "thin_cell": false,
+      "rank_range": [
+        61,
+        120
+      ],
+      "per_season_n": {
+        "2023": 60,
+        "2024": 60,
+        "2025": 60
+      },
+      "by_position": {
+        "QB": {
+          "n": 14,
+          "points_mae": 80.9679,
+          "spearman": -0.033,
+          "spearman_p": 0.910919,
+          "mean_projected": 151.184,
+          "mean_actual": 165.664,
+          "p_startable_100": 0.7143,
+          "p_starter_150": 0.5714,
+          "thin_cell": true
+        },
+        "RB": {
+          "n": 62,
+          "points_mae": 64.4015,
+          "spearman": 0.1342,
+          "spearman_p": 0.298223,
+          "mean_projected": 142.71,
+          "mean_actual": 141.359,
+          "p_startable_100": 0.7097,
+          "p_starter_150": 0.4677,
+          "thin_cell": false
+        },
+        "WR": {
+          "n": 71,
+          "points_mae": 43.3344,
+          "spearman": 0.2343,
+          "spearman_p": 0.049176,
+          "mean_projected": 146.436,
+          "mean_actual": 144.419,
+          "p_startable_100": 0.8028,
+          "p_starter_150": 0.5211,
           "thin_cell": false
         },
         "TE": {
@@ -79,6 +149,17 @@
           "p_starter_150": 0.303,
           "thin_cell": false
         }
+      },
+      "sleeper_population": {
+        "n": 166,
+        "points_mae": 49.1986,
+        "spearman": 0.2642,
+        "spearman_p": 0.000583,
+        "mean_projected": 142.215,
+        "mean_actual": 139.01,
+        "p_startable_100": 0.7349,
+        "p_starter_150": 0.4578,
+        "thin_cell": false
       },
       "admitted": true
     },
@@ -147,6 +228,17 @@
           "thin_cell": false
         }
       },
+      "sleeper_population": {
+        "n": 222,
+        "points_mae": 46.163,
+        "spearman": 0.2296,
+        "spearman_p": 0.000565,
+        "mean_projected": 86.936,
+        "mean_actual": 87.886,
+        "p_startable_100": 0.3604,
+        "p_starter_150": 0.1667,
+        "thin_cell": false
+      },
       "admitted": true
     },
     "deep_speculative": {
@@ -213,6 +305,17 @@
           "p_starter_150": 0.0513,
           "thin_cell": false
         }
+      },
+      "sleeper_population": {
+        "n": 262,
+        "points_mae": 35.9124,
+        "spearman": 0.179,
+        "spearman_p": 0.00365,
+        "mean_projected": 50.604,
+        "mean_actual": 55.779,
+        "p_startable_100": 0.1794,
+        "p_starter_150": 0.0458,
+        "thin_cell": false
       },
       "admitted": true
     },
@@ -281,21 +384,43 @@
           "thin_cell": false
         }
       },
+      "sleeper_population": {
+        "n": 931,
+        "points_mae": 15.1469,
+        "spearman": 0.4784,
+        "spearman_p": 0.0,
+        "mean_projected": 14.513,
+        "mean_actual": 14.572,
+        "p_startable_100": 0.0161,
+        "p_starter_150": 0.0032,
+        "thin_cell": false
+      },
       "admitted": false
     }
   },
   "sleeper_band": {
     "admitted_bands": [
+      "deep_core",
       "deep_primary",
       "deep_speculative"
     ],
-    "proj_rank_min": 121,
-    "proj_rank_max": 300
+    "proj_rank_min": 61,
+    "proj_rank_max": 300,
+    "positions": [
+      "RB",
+      "WR",
+      "TE"
+    ],
+    "excluded_bands": [
+      "top60"
+    ]
   },
   "caveats": [
     "The top-120 accuracy-first ensemble does not cover any band below top120; players outside the top 120 ADP carry the untouched incumbent forecast.",
     "The tail band posts the lowest MAE and often the highest Spearman of any band while almost never producing a startable season. Its MAE is deflated by near-zero actuals and its Spearman is rank noise around a floor. Do not read either as evidence the tail is well projected.",
     "Bands are cut on projected points rank so that measurement and board selection use the same ordering; the board's own overall_rank is VORP-based and is NOT interchangeable with it.",
-    "Cells with n < 30 are marked thin_cell and must not be read as a group difference."
+    "Cells with n < 30 are marked thin_cell and must not be read as a group difference.",
+    "The sleeper view shows RB/WR/TE only. Quarterbacks rank high on raw season points while being replacement-rich, so a points-rank band cannot compare them against flex positions coherently. Quote sleeper_population, not the pooled band rates, anywhere that page reports a hit rate.",
+    "top60 is the most accurate band measured and is still excluded: rank 1-60 is core draft-board territory, not a sleeper population. Accuracy admits a band; it does not make it a sleeper."
   ]
 }

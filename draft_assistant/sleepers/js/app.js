@@ -32,14 +32,23 @@ const TOP_ADP = 120;
 // Fallback band edges, used only if deep_band_accuracy.json has not been built.
 // The real edges come from the measurement.
 const FALLBACK_BANDS = [
+  { name: "deep_core", low: 61, high: 120 },
   { name: "deep_primary", low: 121, high: 200 },
   { name: "deep_speculative", low: 201, high: 300 },
 ];
 
 const BAND_LABEL = {
+  deep_core: { text: "61-120", cls: "core" },
   deep_primary: { text: "121-200", cls: "primary" },
   deep_speculative: { text: "201-300", cls: "speculative" },
 };
+
+// Quarterbacks are not sleeper output. They post large raw season totals while
+// being replacement-rich, so a points-rank band ranks them alongside flex
+// players it cannot actually compare them to -- deep QBs led this board on raw
+// upside while carrying roughly -210 VORP. The band measurement reports a
+// matching RB/WR/TE-only population for the rates quoted below.
+const EXCLUDED_POSITIONS = new Set(["QB"]);
 
 const state = {
   rows: [],
@@ -214,6 +223,7 @@ async function loadData() {
     const adp = m.adp ?? null;
     if (adp != null && adp <= TOP_ADP) continue; // belongs to the draft board
     if (p.source === "replacement_level") continue; // synthetic filler, not a player
+    if (EXCLUDED_POSITIONS.has(p.position)) continue;
     const band = bandOf(p.points_rank);
     if (!band) continue;
 
@@ -264,7 +274,9 @@ function renderAccuracyNote() {
   }
 
   const parts = state.bands.map((b) => {
-    const blk = acc.bands[b.name] || {};
+    // sleeper_population is the RB/WR/TE-only cut, matching what this page
+    // renders; the pooled band rate would describe a different population.
+    const blk = acc.bands[b.name]?.sleeper_population || acc.bands[b.name] || {};
     return (
       `<strong>${BAND_LABEL[b.name]?.text || b.name}</strong>: ` +
       `${Math.round(100 * (blk.p_startable_100 ?? 0))}% produced a 100+ point season ` +
@@ -278,8 +290,16 @@ function renderAccuracyNote() {
     "carries the untouched incumbent forecast. Inclusion is gated on a separate measurement of " +
     `${seasonRange(acc.seasons)} outcomes, banded by projected season-points rank: ${parts.join("; ")}.</p>` +
     "<p>Ranks beyond 300 are excluded on evidence: that band produced a startable season " +
-    `${Math.round(100 * (acc.bands?.tail?.p_startable_100 ?? 0))}% of the time. Its MAE and rank ` +
-    "correlation look better than any band shown here, but both are artifacts of a near-zero floor.</p>" +
+    `${Math.round(100 * (acc.bands?.tail?.sleeper_population?.p_startable_100 ?? 0))}% of the time. ` +
+    "Its MAE and rank correlation look better than any band shown here, but both are artifacts " +
+    "of a near-zero floor. Ranks inside " +
+    `${(acc.bands?.top60?.rank_range || [1, 60]).join("-")} are excluded for the opposite reason: ` +
+    `at ${Math.round(100 * (acc.bands?.top60?.sleeper_population?.p_startable_100 ?? 0))}% they are ` +
+    "the most accurate band measured, which makes them draft-board players rather than sleepers.</p>" +
+    `<p>Quarterbacks are excluded. Every rate above is the ${(acc.sleeper_band?.positions || []).join("/")} ` +
+    "cut, matching what this table shows. QBs post large raw season totals while being " +
+    "replacement-rich, so a points-rank band ranks them against flex players it cannot " +
+    "meaningfully compare them to.</p>" +
     "<p><strong>Proj</strong> is the blended board projection; <strong>Median</strong> and " +
     "<strong>Upside</strong> come from the simulated season distribution, and the two are not " +
     "centered on each other — board-wide the simulated median runs about 0.85&times; the blended " +
