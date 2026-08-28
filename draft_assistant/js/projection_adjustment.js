@@ -91,5 +91,27 @@
     };
   }
 
-  global.FantasyProjectionAdjustment = { derive, scaleStats, scoreStats };
+  function mergeBoard(players, boardPlayers, scoring, modelId = null) {
+    const targets = new Map(
+      (boardPlayers || []).map((player) => [String(player.player_id), player])
+    );
+    return (players || []).map((detail) => {
+      const draft = targets.get(String(detail.player_id));
+      if (!draft) return detail;
+      const adjusted = derive(draft, detail, scoring);
+      return {
+        ...detail,
+        pg: adjusted.pg,
+        season: adjusted.season,
+        canonical_pg: detail.pg || {},
+        canonical_season: detail.season || {},
+        projection_adjustment: adjusted.meta,
+        projection_model_id: modelId,
+        fantasy_pts: draft.fantasy_pts ?? detail.fantasy_pts,
+        fantasy_pts_season: draft.fantasy_pts_season ?? detail.fantasy_pts_season,
+      };
+    });
+  }
+
+  global.FantasyProjectionAdjustment = { derive, mergeBoard, scaleStats, scoreStats };
 })(typeof window !== "undefined" ? window : globalThis);

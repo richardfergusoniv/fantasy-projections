@@ -49,4 +49,20 @@ assert.equal(fallback.meta.adjusted, false);
 assert.deepEqual(fallback.pg, {});
 assert.deepEqual(fallback.season, {});
 
+const merged = globalThis.FantasyProjectionAdjustment.mergeBoard(
+  [{ player_id: "wr1", ...detail, fantasy_pts: 12.5, fantasy_pts_season: 212.5 }],
+  [{ player_id: "wr1", ...draft }],
+  scoring,
+  "accuracy_first_ensemble"
+);
+assert.equal(merged[0].fantasy_pts_season, 272);
+assert.equal(merged[0].projection_model_id, "accuracy_first_ensemble");
+assert.equal(merged[0].projection_adjustment.adjusted, true);
+assert.deepEqual(merged[0].canonical_season, detail.season);
+assert.ok(
+  Math.abs(
+    globalThis.FantasyProjectionAdjustment.scoreStats(merged[0].season, scoring) - 272
+  ) < 1e-9
+);
+
 console.log("projection adjustment tests passed");

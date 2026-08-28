@@ -45,11 +45,22 @@ async function init() {
   bindEvents();
 
   try {
-    const res = await fetch(`../data/team_stats_${SEASON}.json?v=${Date.now()}`, {
-      cache: "no-store",
-    });
+    const [res, boardRes] = await Promise.all([
+      fetch(`../data/team_stats_${SEASON}.json?v=${Date.now()}`, { cache: "no-store" }),
+      fetch(`../data/players_${SEASON}.json?v=${Date.now()}`, { cache: "no-store" }),
+    ]);
     if (!res.ok) throw new Error(`Failed to load projections (${res.status})`);
     state.data = await res.json();
+    if (boardRes.ok) {
+      const board = await boardRes.json();
+      state.data.players = FantasyProjectionAdjustment.mergeBoard(
+        state.data.players,
+        board.players,
+        SCORING,
+        board.meta?.model_id || null
+      );
+      state.data.meta.display_board = board.meta || null;
+    }
     state.byId = new Map(state.data.players.map((p) => [p.player_id, p]));
     els.seasonBadge.textContent = state.data.meta.season;
 
@@ -287,6 +298,9 @@ function buildCardHtml(p, { full = false } = {}) {
   if (d.any_stat_low_n_flag) pills.push(`<span class="pill warn">Low-N interval</span>`);
   if (d.any_receiving_share_capped) pills.push(`<span class="pill warn">Share capped</span>`);
   if (d.role_discount_applied) pills.push(`<span class="pill warn">Role discounted</span>`);
+  if (p.projection_adjustment?.adjusted) {
+    pills.push(`<span class="pill ok">Blend-adjusted stats</span>`);
+  }
 
   const contrib = [
     { label: "Passing", pts: br.pass, cls: "pass" },
@@ -306,7 +320,7 @@ function buildCardHtml(p, { full = false } = {}) {
         <${titleTag}${titleId}>${escapeHtml(p.display_name)}</${titleTag}>
         <p class="player-card-sub">${escapeHtml(p.team || "")} · ${escapeHtml(
     (p.role || "unlisted").replace(/_/g, " ")
-  )} · what drives this projection</p>
+  )} · what drives ${p.projection_adjustment?.adjusted ? "the blended forecast" : "this projection"}</p>
         <div class="player-card-pills">${pills.join("")}</div>
       </div>
     </div>
@@ -334,7 +348,7 @@ function buildCardHtml(p, { full = false } = {}) {
     </div>
 
     <div class="driver-section">
-      <h4>Fantasy points drivers (per game)</h4>
+      <h4>${p.projection_adjustment?.adjusted ? "Blend-adjusted" : "Fantasy points"} drivers (per game)</h4>
       ${
         contrib.length
           ? contrib
@@ -349,7 +363,11 @@ function buildCardHtml(p, { full = false } = {}) {
               .join("")
           : `<p class="driver-note">No meaningful scoring volume projected.</p>`
       }
-      <p class="driver-note">Half-PPR · 4-pt pass TD. Bars show share of this player's projected fantasy points.</p>
+      <p class="driver-note">Half-PPR · 4-pt pass TD. Bars show share of this player's projected fantasy points.${
+        p.projection_adjustment?.adjusted
+          ? " Displayed stats preserve the canonical stat mix and reconcile to the blended point forecast."
+          : ""
+      }</p>
     </div>
 
     ${buildHistoryTableHtml(p, { perGame: state.view === "pg", season: SEASON })}
@@ -447,13 +465,18 @@ function closeModal() {
 function renderAll() {
   const players = filteredPlayers();
   const isPg = state.view === "pg";
-  const caption = isPg ? "Projected per game" : "Projected season totals";
+  const blendApplied = players.some((p) => p.projection_adjustment?.adjusted);
+  const caption = `${blendApplied ? "Blend-adjusted " : ""}${
+    isPg ? "projected per game" : "projected season totals"
+  }`;
   const posLabel = state.position === "ALL" ? "All positions" : state.position;
 
   els.heroKicker.textContent = "League leaders";
   els.heroTitle.textContent =
     state.position === "ALL" ? "Total Projections" : `${state.position} Projections`;
-  els.heroSub.textContent = `${state.data.meta.season} projected offensive stats · ${players.length} players · ${posLabel}`;
+  els.heroSub.textContent = `${state.data.meta.season} ${
+    blendApplied ? "blend-adjusted " : ""
+  }projected offensive stats · ${players.length} players · ${posLabel}`;
   els.passingCaption.textContent = caption;
   els.rushingCaption.textContent = caption;
   els.receivingCaption.textContent = caption;
@@ -464,9 +487,10 @@ function renderAll() {
   renderReceiving(players);
   syncUrl();
 
-  els.footerNote.textContent = `Source: ${state.data.meta.source_file} · generated ${new Date(
-    state.data.meta.generated_at
-  ).toLocaleString()}`;
+  const boardId = state.data.meta.display_board?.model_id;
+  els.footerNote.textContent = `Source: ${state.data.meta.source_file}${
+    boardId ? ` · displayed against ${boardId}` : ""
+  } · generated ${new Date(state.data.meta.generated_at).toLocaleString()}`;
 }
 
 function renderSummary(players) {
