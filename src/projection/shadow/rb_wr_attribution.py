@@ -507,6 +507,7 @@ def run_shadow_attribution(
                 )
 
             need_generate: list[tuple[int, int]] = []
+            eval_parity_reports: dict[str, Any] = {}
             for source_season, target_season in folds:
                 scores = scores_by_season.get(target_season)
                 rates = rates_by_season.get(target_season)
@@ -528,17 +529,26 @@ def run_shadow_attribution(
                 from src.projection.features import build_player_season_features
 
                 conn = get_conn()
-                feature_table = build_player_season_features(conn)
-                for source_season, target_season in need_generate:
-                    generated = generate_fold_stage_evidence(
-                        conn=conn,
-                        feature_table=feature_table,
-                        out_dir=dest,
-                        source_season=source_season,
-                        target_season=target_season,
-                    )
-                    scores_by_season[target_season] = generated["stage_scores"]
-                    rates_by_season[target_season] = generated["player_rates"]
+                try:
+                    feature_table = build_player_season_features(conn)
+                    for source_season, target_season in need_generate:
+                        generated = generate_fold_stage_evidence(
+                            conn=conn,
+                            feature_table=feature_table,
+                            out_dir=dest,
+                            source_season=source_season,
+                            target_season=target_season,
+                        )
+                        scores_by_season[target_season] = generated["stage_scores"]
+                        rates_by_season[target_season] = generated["player_rates"]
+                        eval_parity_reports[f"{source_season}->{target_season}"] = generated[
+                            "parity"
+                        ]
+                        eval_parity_reports[f"{source_season}->{target_season}"][
+                            "compose_board_parity"
+                        ] = (generated.get("checkpoint") or {}).get("parity")
+                finally:
+                    conn.close()
 
             for source_season, target_season in folds:
                 if not stage_evidence_complete(scores_by_season.get(target_season)):
@@ -583,6 +593,11 @@ def run_shadow_attribution(
 
             dominance = _component_dominance(players_all)
             finalization_analysis = analyze_finalization_remainder(players_all)
+            parity_defects = [
+                fold
+                for fold, report in eval_parity_reports.items()
+                if not (report or {}).get("ok", True)
+            ]
             flagged = []
             for position in RB_WR:
                 for stage in (
@@ -611,7 +626,7 @@ def run_shadow_attribution(
                     )
 
             diagnosis = classify_diagnosis(
-                parity_defects=[],
+                parity_defects=parity_defects,
                 component_dominance=dominance,
                 flagged_stages=flagged,
                 stages_complete=True,
@@ -638,13 +653,19 @@ def run_shadow_attribution(
             summary = {
                 "schema_version": SCHEMA_VERSION,
                 "generated_at": datetime.now(timezone.utc).isoformat(),
+                "producing_commit": _git_commit(),
                 "folds": [f"{a}->{b}" for a, b in folds],
                 "positions": list(RB_WR),
                 "populations": ["all_eligible", "top120"],
+                "status": "ok",
+                "stages_complete": True,
                 "diagnosis": diagnosis,
                 "component_dominance": dominance,
                 "finalization_analysis": finalization_analysis,
+                "eval_csv_parity": eval_parity_reports,
+                "parity_defects": parity_defects,
                 "repair_candidates": flagged,
+                "candidate_freeze_allowed": True,
                 "hold_verdict": "hold_v1_structural_role",
                 "notes": {
                     "2023": "ADP rank/membership diagnostics only; no ADP-point MAE",
@@ -652,12 +673,19 @@ def run_shadow_attribution(
                     "2025": "existing holdout",
                     "selected_ensemble_replay": "descriptive_not_untouched_evidence",
                     "stages": "leakage_safe_compose_checkpoints_required",
+                    "v1_source": "traced_compose_season_totals",
+                    "eval_csv": (
+                        "soft_parity_only; stale CSVs yield parity_or_data_defect "
+                        "without discarding traced attribution"
+                    ),
                 },
                 "player_rows": int(len(players_all)),
                 "metric_rows": int(len(metrics_df)),
                 "stage_rows": int(len(stage_df)),
             }
-            summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+            summary_path.write_text(
+                json.dumps(summary, indent=2, default=str), encoding="utf-8"
+            )
             output_hashes["attribution_summary.json"] = sha256_file(summary_path)
 
             after = snapshot_production_artifacts()
