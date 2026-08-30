@@ -363,8 +363,17 @@ def publish_release_bundle(
     if players_doc.get("players"):
         overlay_ids = [str(row["player_id"]) for row in players_doc["players"]]
 
+    # The v2 board is an input the bundle previously referenced but never
+    # sealed: it lives in a separate repository and is synced in as a CSV, so
+    # without a copy inside the namespace the manifest could not pin the file
+    # that carries 0.55 of the published WR mean and 0.30 of RB. Copy it in and
+    # enumerate it like any other artifact.
+    v2_rel = f"model_v2_fantasy_points_{season}.csv"
+    shutil.copy2(v2_path, root / v2_rel)
+
     artifact_specs = [
         ("selected_board", selected_rel, True, False),
+        ("v2_points", v2_rel, True, False),
         ("projections", projections_rel, True, False),
         ("application_contract", contract_rel, True, False),
         ("projection_run", "projection_run.json", True, False),

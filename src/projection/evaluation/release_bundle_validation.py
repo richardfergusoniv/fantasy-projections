@@ -19,6 +19,7 @@ from src.projection.release_bundle import (
     canonical_dumps,
     load_sealed_manifest,
     player_id_set_hash,
+    sha256_file,
     verify_artifact_hashes,
     verify_provenance_identities,
 )
@@ -179,6 +180,52 @@ def validate_release_bundle(
             )
         except Exception as exc:
             checks.append(_check("application_contract_hash", False, error=str(exc)))
+
+        # The v2 board comes from a separate repository. Pinning its hash in the
+        # contract only means something if the sealed copy is checked against it
+        # -- otherwise the input that carries most of the RB/WR mean could be
+        # swapped and every other hash in the chain would still validate.
+        #
+        # Bundles sealed before v2 was pinned have neither the hash nor the
+        # artifact; those skip rather than fail. A contract that DOES pin v2
+        # while the bundle omits the copy is a real gap and fails.
+        try:
+            contract = json.loads((root / contract_entry["path"]).read_text(encoding="utf-8"))
+            v2_expected = (contract.get("source_hashes") or {}).get(f"v2_points_{season}")
+            v2_entry = next(
+                (entry for entry in manifest["artifacts"] if entry["role"] == "v2_points"),
+                None,
+            )
+            if v2_expected is None and v2_entry is None:
+                pass  # sealed before v2 was pinned
+            elif v2_entry is None:
+                checks.append(
+                    _check(
+                        "v2_points_source_hash",
+                        False,
+                        error="contract pins v2_points but bundle has no v2_points artifact",
+                    )
+                )
+            elif v2_expected is None:
+                checks.append(
+                    _check(
+                        "v2_points_source_hash",
+                        False,
+                        error="bundle seals a v2_points artifact the contract does not pin",
+                    )
+                )
+            else:
+                actual = sha256_file(root / v2_entry["path"])
+                checks.append(
+                    _check(
+                        "v2_points_source_hash",
+                        actual == str(v2_expected),
+                        contract=v2_expected,
+                        bundle=actual,
+                    )
+                )
+        except Exception as exc:
+            checks.append(_check("v2_points_source_hash", False, error=str(exc)))
 
     sim_entry = next(
         (entry for entry in manifest["artifacts"] if entry["role"] == "simulation_manifest"),
