@@ -2,21 +2,21 @@
   "schema_version": "active_release_pointer_v1",
   "season": 2026,
   "status": "active",
-  "namespace": "v2_baseline_20260830",
-  "release_id": "e92edd22-40d9-4219-87f6-47a651489d15",
-  "manifest_path": "data/releases/v2_baseline_20260830/release_bundle_manifest.json",
-  "manifest_sha256": "ef783c9a06bcc89801c8f8082786eed3e1fe0889001202f9028cb11b665ce076",
-  "activated_at": "2026-08-30T07:42:47.174673+00:00",
+  "namespace": "v2_candidate_20260830",
+  "release_id": "4348bf20-7910-4bfe-9c1a-67832ddbe3ce",
+  "manifest_path": "data/releases/v2_candidate_20260830/release_bundle_manifest.json",
+  "manifest_sha256": "a4cbfc2fd90c2a58e2b2ebe321564965dad98c7aeb776ce5ec05b7b49ded18c3",
+  "activated_at": "2026-08-30T09:41:42.542158+00:00",
   "previous": {
-    "namespace": "phase1_rehearsal_20260829",
-    "release_id": "c17b8f4c-d8bc-4a3f-8077-974eb533a03b"
+    "namespace": "v2_baseline_20260830",
+    "release_id": "e92edd22-40d9-4219-87f6-47a651489d15"
   },
-  "public_base": "data/releases/v2_baseline_20260830",
+  "public_base": "data/releases/v2_candidate_20260830",
   "public_urls": {
-    "players": "data/releases/v2_baseline_20260830/players_2026.json",
-    "team_stats": "data/releases/v2_baseline_20260830/team_stats_2026.json",
-    "comparison": "data/releases/v2_baseline_20260830/comparison_2026.json",
-    "deep_band_accuracy": "data/releases/v2_baseline_20260830/deep_band_accuracy.json",
-    "manifest": "data/releases/v2_baseline_20260830/release_bundle_manifest.json"
+    "players": "data/releases/v2_candidate_20260830/players_2026.json",
+    "team_stats": "data/releases/v2_candidate_20260830/team_stats_2026.json",
+    "comparison": "data/releases/v2_candidate_20260830/comparison_2026.json",
+    "deep_band_accuracy": "data/releases/v2_candidate_20260830/deep_band_accuracy.json",
+    "manifest": "data/releases/v2_candidate_20260830/release_bundle_manifest.json"
   }
 }
