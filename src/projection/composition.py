@@ -134,12 +134,101 @@ def leakage_safe_context(conn, target_season, source_season):
     return ctx
 
 
-def compose_board(rows, ctx):
-    """Post-forecast hygiene from concatenated player rows to finished board.
+# Shared stage names for production composition and shadow diagnostics.
+COMPOSE_CHECKPOINT_NAMES = (
+    "raw_forecast",
+    "exposure_status_baseline",
+    "team_volume_reconcile",
+    "concentration",
+    "td_constraints",
+    "counting_stat_constraints",
+    "season_total_finalization",
+)
 
-    Draft exposure is a full season except IR / PUP / suspension overrides.
-    ``projected_volume_games`` equals ``projected_games``.
+# Legacy aliases kept for QB ablation scripts that keyed off earlier names.
+COMPOSE_CHECKPOINT_ALIASES = {
+    "raw_model": "exposure_status_baseline",
+    "post_team_volume_reconcile": "team_volume_reconcile",
+    "post_concentration": "concentration",
+    "post_td_clip": "td_constraints",
+    "final_shipped": "season_total_finalization",
+}
+
+
+def _score_checkpoint_fantasy(frame: pd.DataFrame) -> dict:
+    """Score fantasy PPG (and season points when present) for every position."""
+    from src.projection.fantasy_points import SCORING
+
+    if frame.empty or "stat" not in frame.columns or "pred_pg" not in frame.columns:
+        return {}
+    work = frame.copy()
+    work["player_id"] = work["player_id"].astype(str)
+    wide = work.pivot_table(
+        index="player_id",
+        columns="stat",
+        values="pred_pg",
+        aggfunc="first",
+    )
+    score = pd.Series(0.0, index=wide.index, dtype=float)
+    for stat, weight in SCORING.items():
+        if stat in wide.columns:
+            score = score + pd.to_numeric(wide[stat], errors="coerce").fillna(0.0) * weight
+
+    season_score = None
+    if "pred_season" in work.columns:
+        season_wide = work.pivot_table(
+            index="player_id",
+            columns="stat",
+            values="pred_season",
+            aggfunc="first",
+        )
+        season_score = pd.Series(0.0, index=season_wide.index, dtype=float)
+        for stat, weight in SCORING.items():
+            if stat in season_wide.columns:
+                season_score = season_score + (
+                    pd.to_numeric(season_wide[stat], errors="coerce").fillna(0.0) * weight
+                )
+
+    meta = work.drop_duplicates("player_id").set_index("player_id")
+    names = meta["display_name"] if "display_name" in meta.columns else pd.Series(dtype=str)
+    teams = meta["team"] if "team" in meta.columns else pd.Series(dtype=str)
+    positions = meta["position"] if "position" in meta.columns else pd.Series(dtype=str)
+    games = (
+        pd.to_numeric(meta["projected_games"], errors="coerce")
+        if "projected_games" in meta.columns
+        else pd.Series(dtype=float)
+    )
+    out = {}
+    for pid, ppg in score.items():
+        row = {
+            "fantasy_ppg": round(float(ppg), 6),
+            "display_name": str(names.get(pid, pid)),
+            "team": str(teams.get(pid, "")),
+            "position": str(positions.get(pid, "")),
+        }
+        if pid in games.index and pd.notna(games.get(pid)):
+            row["projected_games"] = float(games.get(pid))
+        if season_score is not None and pid in season_score.index:
+            row["fantasy_pts_season"] = round(float(season_score.loc[pid]), 6)
+        out[str(pid)] = row
+    return out
+
+
+def run_compose_stages(rows, ctx, *, capture_checkpoints: bool = False):
+    """Run the shipped composition sequence; optionally capture long-form boards.
+
+    Production and diagnostics share this runner so stage attribution cannot
+    drift from ``compose_board``. When ``capture_checkpoints`` is False the
+    path matches the historical in-place stage chain (no intermediate copies).
     """
+    checkpoints: dict[str, pd.DataFrame] = {}
+
+    def _capture(name: str, frame: pd.DataFrame) -> None:
+        if capture_checkpoints:
+            checkpoints[name] = frame.copy(deep=True)
+
+    _capture("raw_forecast", rows)
+
     out = apply_full_season_games_baseline(
         rows,
         season_games=ctx.season_games,
@@ -148,6 +237,8 @@ def compose_board(rows, ctx):
     out = apply_status_overrides(out, ctx.status_overrides)
     out = propagate_team_anchors(out)
     out["projected_volume_games"] = pd.to_numeric(out.get("projected_games"), errors="coerce")
+    _capture("exposure_status_baseline", out)
+
     # Top-down: pull each team's summed volume toward its own anchor before
     # the counting-stat identities and the season totals are materialised.
     out = reconcile_team_volume(
@@ -156,82 +247,61 @@ def compose_board(rows, ctx):
         volume_shares=ctx.team_volume_shares,
         volume_siblings=ctx.team_volume_siblings,
     )
+    _capture("team_volume_reconcile", out)
+
     out = apply_concentration(out)
+    _capture("concentration", out)
+
     out = reconcile_td_rate_constraints(out, rush_td_hi=ctx.qb_rush_td_clip_hi)
     if ctx.qb_pass_td_t1_lite:
         out = reconcile_pass_td_t1_lite(out)
+    _capture("td_constraints", out)
+
     out = reconcile_stat_constraints(out)
+    _capture("counting_stat_constraints", out)
+
     out = add_projected_season_totals(out)
     # Season totals use each player's own projected_games, so QB rooms and
     # receiver rooms can diverge even when rates were coherent. Restore the
     # hard pass/catch identities on season columns only (rates untouched).
-    return reconcile_team_season_identities(out)
+    out = reconcile_team_season_identities(out)
+    _capture("season_total_finalization", out)
+    return out, checkpoints
 
 
-def compose_board_stages(rows, ctx):
-    """Return fantasy-relevant compose checkpoints for stage attribution."""
-    from src.projection.fantasy_points import SCORING
+def compose_board(rows, ctx):
+    """Post-forecast hygiene from concatenated player rows to finished board.
 
-    def _qb_ppg(frame):
-        if frame.empty:
-            return {}
-        qb = frame[frame["position"].eq("QB")].copy()
-        if qb.empty:
-            return {}
-        wide = qb.pivot_table(
-            index="player_id",
-            columns="stat",
-            values="pred_pg",
-            aggfunc="first",
-        )
-        score = pd.Series(0.0, index=wide.index)
-        for stat, weight in SCORING.items():
-            if stat in wide.columns:
-                score = score + pd.to_numeric(wide[stat], errors="coerce").fillna(0.0) * weight
-        names = (
-            qb.drop_duplicates("player_id").set_index("player_id")["display_name"]
-            if "display_name" in qb.columns
-            else pd.Series(index=wide.index, dtype=str)
-        )
-        teams = qb.drop_duplicates("player_id").set_index("player_id")["team"]
-        out = {}
-        for pid, ppg in score.items():
-            out[pid] = {
-                "fantasy_ppg": round(float(ppg), 3),
-                "display_name": str(names.get(pid, pid)),
-                "team": str(teams.get(pid, "")),
-            }
-        return out
+    Draft exposure is a full season except IR / PUP / suspension overrides.
+    ``projected_volume_games`` equals ``projected_games``.
+    """
+    final, _ = run_compose_stages(rows, ctx, capture_checkpoints=False)
+    return final
 
-    baseline = apply_full_season_games_baseline(
-        rows,
-        season_games=ctx.season_games,
-        blend_alpha=ctx.exposure_blend_alpha,
-    )
-    baseline = apply_status_overrides(baseline, ctx.status_overrides)
-    baseline = propagate_team_anchors(baseline)
-    baseline["projected_volume_games"] = pd.to_numeric(
-        baseline.get("projected_games"), errors="coerce"
-    )
-    post_reconcile = reconcile_team_volume(
-        baseline.copy(),
-        alpha=ctx.reconcile_alpha,
-        volume_shares=ctx.team_volume_shares,
-        volume_siblings=ctx.team_volume_siblings,
-    )
-    post_concentration = apply_concentration(post_reconcile.copy())
-    post_td = reconcile_td_rate_constraints(
-        post_concentration.copy(), rush_td_hi=ctx.qb_rush_td_clip_hi
-    )
-    if ctx.qb_pass_td_t1_lite:
-        post_td = reconcile_pass_td_t1_lite(post_td)
-    final = reconcile_stat_constraints(post_td.copy())
-    final = add_projected_season_totals(final)
-    final = reconcile_team_season_identities(final)
-    return {
-        "raw_model": _qb_ppg(baseline),
-        "post_team_volume_reconcile": _qb_ppg(post_reconcile),
-        "post_concentration": _qb_ppg(post_concentration),
-        "post_td_clip": _qb_ppg(post_td),
-        "final_shipped": _qb_ppg(final),
+
+def compose_board_stages(rows, ctx, *, return_boards: bool = False):
+    """Return fantasy-relevant compose checkpoints for stage attribution.
+
+    Scores every skill position. Legacy alias keys remain for older QB
+    ablation scripts; prefer ``COMPOSE_CHECKPOINT_NAMES``.
+    """
+    final, boards = run_compose_stages(rows, ctx, capture_checkpoints=True)
+    # Final board is the same object compose_board would return.
+    del final
+    scored = {
+        name: _score_checkpoint_fantasy(boards[name])
+        for name in COMPOSE_CHECKPOINT_NAMES
+        if name in boards
     }
+    for alias, canonical in COMPOSE_CHECKPOINT_ALIASES.items():
+        if canonical in scored:
+            scored[alias] = scored[canonical]
+    if return_boards:
+        scored["_boards"] = boards
+    return scored
+
+
+def checkpoint_boards_long(stage_payload: dict) -> dict[str, pd.DataFrame]:
+    """Extract long-form checkpoint boards from ``compose_board_stages`` output."""
+    boards = stage_payload.get("_boards") or {}
+    return {name: boards[name] for name in COMPOSE_CHECKPOINT_NAMES if name in boards}

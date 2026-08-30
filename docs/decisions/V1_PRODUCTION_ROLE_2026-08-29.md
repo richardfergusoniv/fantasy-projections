@@ -33,6 +33,13 @@ Until 2026 outcomes exist:
 4. Implement at most one candidate fix at a time; evaluate with nested rolling-origin fits.
 5. Freeze any candidate as `shadow_v1_rb_wr` — **never** change production weights in-season.
 
+Implementation (2026-08-30): library under `src/projection/shadow/`
+(`rb_wr_attribution`, `consensus_pin`, `error_decomposition`, `forbidden`,
+`production_guard`, `decision_rules`, `repair`); artifacts only under
+`output/shadow_v1_rb_wr/`. Consensus is hash-pinned against
+`output/accuracy_first_2026/freeze_manifest.json`. Composition checkpoints share
+`run_compose_stages` with production `compose_board`.
+
 After 2026 outcomes:
 
 - A frozen candidate may regain RB/WR weight only when the unchanged accuracy-first selector gives it nonzero weight, every affected position improves MAE without reducing Spearman, and the overall ensemble passes the same rule.

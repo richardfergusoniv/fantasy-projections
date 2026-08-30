@@ -18,23 +18,37 @@ from scripts.qb_tracks_util import KEY_QB_IDS, KEY_QB_NAMES, write_json
 from src.projection.composition import compose_board_stages, shipped_context
 
 STAGES = (
-    "raw_model",
-    "post_team_volume_reconcile",
-    "post_td_clip",
-    "final_shipped",
+    "raw_forecast",
+    "exposure_status_baseline",
+    "team_volume_reconcile",
+    "concentration",
+    "td_constraints",
+    "counting_stat_constraints",
+    "season_total_finalization",
 )
-
+# Prefer canonical names; aliases still exist on the stage payload.
 
 def _stage_delta(stages: dict, pid: str) -> dict:
-    raw = stages["raw_model"].get(pid, {}).get("fantasy_ppg")
+    raw = stages["raw_forecast"].get(pid, {}).get("fantasy_ppg")
+    if raw is None:
+        raw = stages.get("raw_model", {}).get(pid, {}).get("fantasy_ppg")
     out = {}
-    for stage in STAGES[1:]:
-        val = stages[stage].get(pid, {}).get("fantasy_ppg")
+    for stage in STAGES:
+        val = stages.get(stage, {}).get(pid, {}).get("fantasy_ppg")
         out[stage] = {
             "fantasy_ppg": val,
-            "delta_from_raw": round(val - raw, 3) if val is not None and raw is not None else None,
+            "delta_from_raw": (
+                round(val - raw, 3) if val is not None and raw is not None else None
+            ),
         }
-    out["raw_model"] = {"fantasy_ppg": raw, "delta_from_raw": 0.0}
+    # Keep legacy keys for downstream JSON consumers.
+    for legacy, canonical in (
+        ("raw_model", "raw_forecast"),
+        ("post_team_volume_reconcile", "team_volume_reconcile"),
+        ("post_td_clip", "td_constraints"),
+        ("final_shipped", "season_total_finalization"),
+    ):
+        out[legacy] = out[canonical]
     return out
 
 
@@ -70,7 +84,7 @@ def main() -> None:
 
     players = {}
     for pid in focus_ids:
-        meta = stages["final_shipped"].get(pid, {})
+        meta = stages["season_total_finalization"].get(pid, {})
         players[pid] = {
             "display_name": meta.get("display_name", pid),
             "team": meta.get("team", ""),
@@ -79,8 +93,8 @@ def main() -> None:
 
     elite_hurt = []
     for pid, info in players.items():
-        raw = info["stages"]["raw_model"]["fantasy_ppg"]
-        final = info["stages"]["final_shipped"]["fantasy_ppg"]
+        raw = info["stages"]["raw_forecast"]["fantasy_ppg"]
+        final = info["stages"]["season_total_finalization"]["fantasy_ppg"]
         if raw is None or final is None:
             continue
         delta = final - raw
