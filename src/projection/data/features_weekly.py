@@ -26,15 +26,14 @@ def build_player_week_features(conn=None, seasons: list[int] | None = None) -> p
     usage["carries_share"] = usage.groupby(["season", "week", "team"])["carries"].transform(
         lambda s: s / s.sum() if s.sum() > 0 else 0.0
     )
-    rolling = (
-        usage.sort_values(["player_id", "season", "week"])
-        .groupby("player_id")[["targets_share", "carries_share"]]
-        .rolling(3, min_periods=1)
-        .mean()
-        .reset_index(level=0, drop=True)
+    # Lag one week before rolling so target-week features exclude current-week outcomes.
+    usage = usage.sort_values(["player_id", "season", "week"]).copy()
+    usage["targets_share_roll3"] = usage.groupby("player_id")["targets_share"].transform(
+        lambda s: s.shift(1).rolling(3, min_periods=1).mean()
     )
-    usage["targets_share_roll3"] = rolling["targets_share"]
-    usage["carries_share_roll3"] = rolling["carries_share"]
+    usage["carries_share_roll3"] = usage.groupby("player_id")["carries_share"].transform(
+        lambda s: s.shift(1).rolling(3, min_periods=1).mean()
+    )
     if own_conn:
         conn.close()
     return usage
