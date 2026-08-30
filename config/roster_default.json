@@ -1,0 +1,20 @@
+{
+  "league_size": 12,
+  "starting_qb": 1,
+  "starting_rb": 2,
+  "starting_wr": 3,
+  "starting_te": 1,
+  "starting_flex": 1,
+  "superflex": 0,
+  "bench_slots": 0,
+  "flex_position_weights": {
+    "QB": 0.0,
+    "RB": 0.40,
+    "WR": 0.50,
+    "TE": 0.10
+  },
+  "availability_adjustment_configuration": {
+    "enabled": true,
+    "season_games": 17.0
+  }
+}
