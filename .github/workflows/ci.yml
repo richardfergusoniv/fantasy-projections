@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: uv sync --frozen --all-extras --dev
+
+      - name: Entrypoint import smoke test
+        run: uv run pytest tests/test_entrypoint_smoke.py -q
+
+      - name: Run test suite
+        run: uv run pytest -q
+
+      - name: Verify promotion invariant tamper tests
+        run: uv run pytest tests/test_promotion_invariants.py -q
+
+      - name: Verify browser surfaces
+        shell: pwsh
+        run: |
+          $proc = Start-Process -FilePath uv -ArgumentList @('run','python','-m','src.draft_assistant.serve','--port','8766') -PassThru -WindowStyle Hidden
+          try {
+            $deadline = (Get-Date).AddSeconds(30)
+            do {
+              try {
+                $resp = Invoke-WebRequest -Uri 'http://127.0.0.1:8766/index.html' -UseBasicParsing -TimeoutSec 2
+                if ($resp.StatusCode -eq 200) { break }
+              } catch {
+                Start-Sleep -Milliseconds 500
+              }
+            } while ((Get-Date) -lt $deadline)
+            if ((Get-Date) -ge $deadline) { throw 'draft assistant server did not become healthy' }
+            uv run python scripts/verify_browser_surfaces.py --base-url http://127.0.0.1:8766 --season 2026 --expect-legacy
+          } finally {
+            if ($proc -and -not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
+          }

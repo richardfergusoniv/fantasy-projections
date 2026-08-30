@@ -20,7 +20,7 @@ from src.projection.evaluation.release_bundle_validation import validate_release
 from src.projection.promote_release import PromoteReleaseError, promote_release, rollback_release
 from src.projection.release_bundle import (
     MANIFEST_FILENAME,
-    SCHEMA_VERSION,
+    SCHEMA_VERSION_V2,
     player_id_set_hash,
     selected_points_vector_hash,
     treatment_block,
@@ -70,53 +70,22 @@ def _stage_bundle(tmp_path: Path, namespace: str, *, season: int = 2026) -> Path
     return root
 
 
+from tests.fixtures.release_bundle_v2 import seal_v2_bundle
+
+
 def _seal(tmp_path: Path, namespace: str, *, release_id: str = "rel-1") -> tuple[dict, str]:
-    root = _stage_bundle(tmp_path, namespace)
-    specs = [
-        ("selected_board", "selected_board.csv", True, False),
-        ("players", "players_2026.json", True, True),
-        ("team_stats", "team_stats_2026.json", True, True),
-        ("comparison", "comparison_2026.json", True, True),
-        ("release_report", "release_report_2026.json", True, False),
-        ("release_report_simulation", "release_report_simulation_2026.json", True, False),
-        ("release_report_board", "release_report_board_2026.json", True, False),
-        ("application_contract", "application_contract.json", True, False),
-        ("simulation_manifest", "simulation_manifest_2026.json", True, False),
-    ]
-    board_hash = hashlib.sha256((root / "selected_board.csv").read_bytes()).hexdigest()
-    return seal_staged_bundle(
-        season=2026,
-        namespace=namespace,
-        root=root,
-        release_id=release_id,
-        application={"contract_version": "accuracy_first_2026_v1", "contract_hash": "a" * 64},
-        runs={"projection_run_id": "proj-1", "simulation_run_id": "sim-1"},
-        board={
-            "selected_board_file_hash": board_hash,
-            "selected_points_vector_hash": selected_points_vector_hash({"a": 100.0}),
-        },
-        simulation={
-            "profile": "publish",
-            "draw_count": 10000,
-            "configuration_hash": "b" * 64,
-            "calibration_hashes": {"v3_interval": "c" * 64},
-            "joint_donor_hash": "d" * 64,
-        },
-        overlay={
-            "simulated_player_population_hash": player_id_set_hash(["a"]),
-            "simulated_player_count": 1,
-        },
-        contract_treatments={
-            "selected": treatment_block(["a"]),
-            "incumbent": treatment_block([]),
-            "new_player_v1_only": treatment_block([]),
-        },
-        artifact_specs=specs,
-    )
+    return seal_v2_bundle(tmp_path, namespace, release_id=release_id)
+
+
+def _patch_git(monkeypatch, tmp_path: Path, source_commit: str = "abc123def4567890abcdef1234567890abcdef12") -> None:
+    monkeypatch.setattr("src.projection.git_provenance.REPO_ROOT", str(tmp_path))
+    monkeypatch.setattr("src.projection.git_provenance.working_tree_dirty", lambda **_: False)
+    monkeypatch.setattr("src.projection.git_provenance.current_head_commit", lambda **_: source_commit)
 
 
 def test_candidate_seal_leaves_active_pointer_unchanged(tmp_path, monkeypatch):
     _patch_roots(tmp_path, monkeypatch)
+    _patch_git(monkeypatch, tmp_path)
     pointer = build_active_pointer(
         season=2026,
         namespace="already_live",
@@ -134,6 +103,7 @@ def test_candidate_seal_leaves_active_pointer_unchanged(tmp_path, monkeypatch):
 
 def test_tampering_required_artifact_or_run_id_blocks_promotion(tmp_path, monkeypatch):
     _patch_roots(tmp_path, monkeypatch)
+    _patch_git(monkeypatch, tmp_path)
     manifest, digest = _seal(tmp_path, "promo_ns")
     from src.projection.release_bundle import bundle_root
 
@@ -159,6 +129,7 @@ def test_tampering_required_artifact_or_run_id_blocks_promotion(tmp_path, monkey
 
 def test_promotion_and_rollback_change_only_the_pointer(tmp_path, monkeypatch):
     _patch_roots(tmp_path, monkeypatch)
+    _patch_git(monkeypatch, tmp_path)
     manifest_a, digest_a = _seal(tmp_path, "ns_a", release_id="rel-a")
     manifest_b, digest_b = _seal(tmp_path, "ns_b", release_id="rel-b")
     from src.projection.release_bundle import bundle_root, sha256_bytes
@@ -199,6 +170,7 @@ def test_missing_pointer_is_none_for_legacy_bootstrap(tmp_path, monkeypatch):
 
 def test_browser_views_share_one_frozen_namespace(tmp_path, monkeypatch):
     _patch_roots(tmp_path, monkeypatch)
+    _patch_git(monkeypatch, tmp_path)
     manifest, digest = _seal(tmp_path, "shared_ns")
     pointer = build_active_pointer(
         season=2026,
@@ -259,6 +231,7 @@ def test_browser_pages_load_through_release_loader():
 
 def test_require_active_passes_only_after_promotion(tmp_path, monkeypatch):
     _patch_roots(tmp_path, monkeypatch)
+    _patch_git(monkeypatch, tmp_path)
     _seal(tmp_path, "need_active")
     inactive = validate_release_bundle(season=2026, namespace="need_active", require_active=True)
     assert inactive["verdict"] == "fail"
@@ -271,4 +244,4 @@ def test_require_active_passes_only_after_promotion(tmp_path, monkeypatch):
 
     sealed, _ = load_sealed_manifest(bundle_root(2026, "need_active"))
     assert "status" not in sealed
-    assert sealed["schema_version"] == SCHEMA_VERSION
+    assert sealed["schema_version"] == SCHEMA_VERSION_V2

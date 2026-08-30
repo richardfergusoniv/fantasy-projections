@@ -1,0 +1,99 @@
+{
+  "schema_version": "draw_count_rollout_decision_v2",
+  "phase": "phase_2_closed",
+  "generated_at": "2026-08-29T08:36:19.864845+00:00",
+  "season": 2026,
+  "freeze_id": "draw_stability_intermediate_v20k_2026",
+  "frozen_evidence_manifest_hash": "eb062a6517ccb00391fb29d9dfcab8aa6492f41cd06f1526dc2549360cdb93ca",
+  "reference_draw_count": 20000,
+  "nested_prefix_provenance_verdict": "ok",
+  "selected_board_hash": "67f2c4b88ad370b15e2363d4f915e5ec915d1ea6280625df528edfbd75d41700",
+  "canonical_projection_run_id": "d494c516-f86a-4fc3-afdd-dd8635b72ec5",
+  "draw_count_decision_schema": "draw_count_decision_v2",
+  "draw_count_decision_recommendation": "decision_stable_sub20k_numerical_fail_schedule_rc_or_20k",
+  "current_production_profile": "decision_stable_compromise_10000",
+  "current_production_draw_count": 10000,
+  "current_production_release_pointer": "output/model_v3/releases/release_2026_current.json",
+  "release_report_risk_flag": "draw_count: decision_stable_compromise_10000 (10000 draws); decision-stable vs 20k nested-prefix (0 material / 0 core-player events) but fails strict numerical gate; see draw_count_rollout_decision.json",
+  "rc_experiment": {
+    "namespace": "rc_10k_20260828",
+    "profile": "release_candidate_10000",
+    "rollout_label": "decision-stable_numerically-not-validated_rc",
+    "simulation_run_id": "d494c516-f86a-4fc3-afdd-dd8635b72ec5__rc__rc_10k_20260828",
+    "draw_count": 10000,
+    "runtime_seconds": 9656.042,
+    "runtime_minutes_measured": 160.9,
+    "runtime_estimate_minutes": 84.0,
+    "runtime_estimate_basis": "planning estimate only; superseded by measured RC runtime_seconds",
+    "runtime_budget_seconds": 10800,
+    "validation_path": "output/model_v3/release_candidates/season=2026/namespace=rc_10k_20260828/release_candidate_validation_2026.json",
+    "public_immutability_pass": true,
+    "overlay_record_count": 778,
+    "validation_verdict": "pass"
+  },
+  "overlay_comparison": {
+    "verdict": "compare",
+    "reason": null,
+    "player_count": 778,
+    "metric_deltas": {
+      "fantasy_pts_p50": {
+        "median_abs_delta": 0.02,
+        "p95_abs_delta": 4.319000000000001
+      },
+      "fantasy_pts_p10": {
+        "median_abs_delta": 0.0,
+        "p95_abs_delta": 7.139000000000019
+      },
+      "fantasy_pts_p90": {
+        "median_abs_delta": 2.454999999999991,
+        "p95_abs_delta": 7.971999999999981
+      },
+      "p_finish_top12": {
+        "median_abs_delta": 0.0,
+        "p95_abs_delta": 0.019999999999999997
+      },
+      "p_finish_top24": {
+        "median_abs_delta": 0.0,
+        "p95_abs_delta": 0.020000000000000018
+      }
+    },
+    "mismatches_by_profile": {
+      "production_1k": [],
+      "rc_rc_10k_20260828": []
+    }
+  },
+  "promotion_gate_10k": {
+    "policy": "decision_stable_compromise_10000",
+    "promote": true,
+    "checks": {
+      "overlay_identity_compare": true,
+      "material_decision_events_zero": true,
+      "core_adp_decision_events_zero": true,
+      "runtime_within_budget": true
+    },
+    "runtime_seconds": 9656.042,
+    "runtime_budget_seconds": 10800,
+    "material_decision_events": 0,
+    "core_adp_decision_events": 0,
+    "overlay_comparison_verdict": "compare",
+    "overlay_comparison_reason": null
+  },
+  "operational_policy": "decision_stable_compromise_10000",
+  "operational_policy_label": "Move to 10,000 draws with explicit sign-off: decision-stable but not numerically validated",
+  "chosen_production_draw_count": 10000,
+  "strict_gate_promotion": false,
+  "rc_is_non_public": true,
+  "phase_2_status": "closed",
+  "human_decision": {
+    "decided_at": "2026-08-29T08:36:19.865348+00:00",
+    "decided_by": "Richard",
+    "record_path": "docs/decisions/DRAW_COUNT_ROLLOUT_HUMAN_DECISION_2026-08-29.md",
+    "rationale": "Clean 1k\u2194RC-10k overlay compare after excluding generated_at from replacement_contract_hash; nested-prefix 10k has 0 material and 0 core-player decision events; measured RC runtime 9656s within 3h budget. Promote decision_stable_compromise_10000 (not strict numerical vs 20k)."
+  },
+  "rollback": {
+    "method": "atomic_release_pointer_restore",
+    "release_pointer_previous": "output/model_v3/releases/release_2026_previous_1k.json",
+    "fallback_republish_command": "python -m src.projection.publish --season 2026 --simulation-draws 1000",
+    "note": "fallback_republish_command generates a new 1k run under current inputs; it is not an operational rollback."
+  }
+}

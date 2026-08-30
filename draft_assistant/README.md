@@ -27,6 +27,17 @@ The sibling repo `fantasy-projections-2` is a **different** model (team-first Ri
 - **Draft checkboxes** — mark players drafted; state persists in your browser.
 - **Snake draft tracking** — set league size, your draft slot, and current pick to see who is on the clock.
 - **Suggested picks** — blends VORP, positional need, and tier.
+
+### Simulation overlays (uncertainty, not authoritative ranks)
+
+When gates pass, the board may include additive fields from recentered v3 draws:
+
+- **`p_finish_top*`** — probability of finishing top-N within position per draw. Uses **`first_occurrence`** tie policy (pandas `rank(method="first")`).
+- **`sim_vorp_*` / `p_vorp_positive`** — signed points over a fixed replacement level from the displayed board; not a rerank.
+- **`expected_pos_rank` / `median_pos_rank`** — draw-level positional rank moments. Uses **`minimum_competition_rank`** tie policy (pandas `rank(method="min")`).
+
+These rank-derived groups use **different tie conventions on purpose**. See `meta.draft_value_simulation.rank_tie_policies` in `players_<season>.json` and `docs/PIPELINE_MAP.md` §7. Deterministic `vorp`, `rank`, `position_rank`, and `tier` are unchanged.
+
 - **Roster builder** — QB/RB/WR/TE/FLEX/BN slots fill as you draft yourself.
 
 ### Team Projections

@@ -57,3 +57,29 @@ output/model_v3/draw_stability/
 
 # Long-running publish/evaluation console logs.
 output/*.log
+
+# Regenerable evaluation sweeps, shadow runs, and working reports. Frozen
+# evidence and rollout decisions under output/model_v3/frozen/ and
+# draw_count_rollout_decision.json stay tracked.
+output/evaluation/
+output/shadow_opportunity_mean/
+output/weekly_audit/
+output/model_v3/decision_change_*
+output/model_v3/draw_count_decision.json
+output/model_v3/draw_stability_*.json
+output/model_v3/finish_probability_gate.json
+output/model_v3/holdout_*.json
+output/model_v3/holdout_*.parquet
+output/model_v3/holdout_finish_probs_*.parquet
+output/model_v3/holdout_scored_*.parquet
+output/model_v3/overlay_comparison_*.json
+output/model_v3/player_stability_diagnostics_*.parquet
+output/model_v3/promotion_gate_*.json
+output/model_v3/recentered_holdout_*.json
+output/model_v3/release_archive/
+output/model_v3/release_report_*.json
+output/model_v3/releases/
+output/model_v3/simulated_vorp/
+output/model_v3/training_draws_*.json
+output/model_v3/wr_calibration.json
+output/model_v3/simulation_summary_recentered_*.csv

@@ -499,6 +499,29 @@ def write_simulation_outputs(
         if recentered_draws is not None and wr_calibration and WR_CALIBRATION_PATH.exists()
         else None
     )
+    calibration_hashes = {
+        key: value
+        for key, value in {
+            "calibration_hash": calibration_hash or None,
+            "wr_calibration_artifact_hash": wr_calibration_artifact_hash,
+            "finish_probability_gate_hash": None,
+            "segment_report_hash": segment_report_hash,
+        }.items()
+        if value
+    }
+    partition_identity = None
+    from src.projection.inference.simulation_config import partition_identity_key
+    from src.projection.simulation_profile_resolver import resolve_simulation_profile_identity
+
+    profile_identity = resolve_simulation_profile_identity(profile_key=simulation_profile)
+    partition_identity = partition_identity_key(
+        season=season,
+        board_hash=board_hash,
+        calibration_hashes=calibration_hashes,
+        configuration_hash=profile_identity["configuration_hash"],
+        policy_hash=profile_identity["policy_hash"],
+        seed=deterministic_seed,
+    )
     manifest = {
         "season": season,
         "n_draws": n_draws,
@@ -542,6 +565,7 @@ def write_simulation_outputs(
         "recentered_draws_path": str(recentered_draws_path) if recentered_draws_path else None,
         "recentered_summary_path": str(recentered_summary_path) if recentered_summary_path else None,
         "runtime_seconds": runtime_seconds,
+        "partition_identity_key": partition_identity,
         **partition_meta,
     }
     if partition_meta.get("partition_hashes"):

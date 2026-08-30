@@ -18,6 +18,7 @@ from src.draft_assistant.draft_value_simulation import (
 from src.draft_assistant.prepare import DRAFT_DATA_DIR, export_draft_data
 from src.projection.accuracy_application import (
     DEFAULT_CONTRACT_PATH,
+    DEFAULT_WEIGHTS_PATH,
     MODEL_ID,
     apply_application_contract,
     freeze_application_contract_from_artifacts,
@@ -28,6 +29,7 @@ from src.projection.accuracy_application import (
 from src.projection.active_release import pointer_path
 from src.projection.contracts import MODEL_V3_DIR, OUTPUT_DIR, REPO_ROOT
 from src.projection.evaluation.accuracy_first import canonical_json_hash, sha256_file
+from src.projection.inference.simulation_config import CONFIG_PATH
 from src.projection.evaluation.release_bundle_validation import validate_release_bundle
 from src.projection.evaluation.release_report import (
     build_release_report_simulation,
@@ -36,8 +38,12 @@ from src.projection.evaluation.release_report import (
 from src.projection.inference.recenter import board_points_series
 from src.projection.inference.simulate import write_simulation_outputs
 from src.projection.inference.simulation_config import load_simulation_config, profile_draws
+from src.projection.git_provenance import capture_git_provenance
+from src.projection.overlay_coverage import compute_overlay_coverage
 from src.projection.release_bundle import (
     MANIFEST_FILENAME,
+    SCHEMA_VERSION,
+    SCHEMA_VERSION_V2,
     artifact_record,
     build_manifest,
     bundle_root,
@@ -48,6 +54,7 @@ from src.projection.release_bundle import (
     treatment_block,
     validate_namespace,
 )
+from src.projection.simulation_profile_resolver import resolve_simulation_profile_identity
 from src.projection.release_candidate import (
     assert_public_artifacts_unchanged,
     snapshot_public_artifact_hashes,
@@ -138,6 +145,10 @@ def seal_staged_bundle(
     contract_treatments: Mapping[str, Any],
     artifact_specs: list[tuple[str, str, bool, bool]],
     created_at: str | None = None,
+    overlay_coverage: Mapping[str, Any] | None = None,
+    ensemble: Mapping[str, Any] | None = None,
+    git: Mapping[str, Any] | None = None,
+    schema_version: str = SCHEMA_VERSION,
 ) -> tuple[dict[str, Any], str]:
     """Hash staged files, seal the manifest, copy browser artifacts, write attestation.
 
@@ -148,6 +159,9 @@ def seal_staged_bundle(
         _artifact(role, rel, root, required=required, browser_consumed=browser)
         for role, rel, required, browser in artifact_specs
     ]
+    board_payload = dict(board)
+    if "selected_board_sha256" not in board_payload:
+        board_payload["selected_board_sha256"] = board_payload.get("selected_board_file_hash")
     payload = build_manifest(
         season=season,
         namespace=namespace,
@@ -156,11 +170,15 @@ def seal_staged_bundle(
         created_at=created_at,
         application=application,
         runs=runs,
-        board=board,
+        board=board_payload,
         simulation=simulation,
         overlay=overlay,
         artifacts=artifacts,
         contract_treatments=contract_treatments,
+        overlay_coverage=overlay_coverage,
+        ensemble=ensemble,
+        git=git,
+        schema_version=schema_version,
     )
     manifest, digest = seal_manifest(payload, root=root)
     copy_browser_consumed(root=root, manifest=manifest, manifest_sha256=digest)
@@ -336,9 +354,15 @@ def publish_release_bundle(
     if recentered_path.exists():
         _attach_overlays(root / players_rel, recentered_path, selected)
 
+    players_doc = json.loads((root / players_rel).read_text(encoding="utf-8"))
+    overlay_coverage = compute_overlay_coverage(players_doc)
+    board_file_hash = sha256_file(root / selected_rel)
+    players_doc.setdefault("meta", {})["selected_board_sha256"] = board_file_hash
+    players_doc["meta"]["model_id"] = MODEL_ID
+    (root / players_rel).write_text(json.dumps(players_doc, indent=2, allow_nan=False), encoding="utf-8")
+
     comparison_rel = f"comparison_{season}.json"
     legacy_comparison = Path(DRAFT_DATA_DIR) / f"comparison_{season}.json"
-    players_doc = json.loads((root / players_rel).read_text(encoding="utf-8"))
     if legacy_comparison.exists():
         comparison = rebase_comparison_payload(
             players_doc,
@@ -370,10 +394,69 @@ def publish_release_bundle(
     # enumerate it like any other artifact.
     v2_rel = f"model_v2_fantasy_points_{season}.csv"
     shutil.copy2(v2_path, root / v2_rel)
+    adp_rel = f"consensus_{season}.json"
+    shutil.copy2(consensus_path, root / adp_rel)
+    weights_rel = "ensemble_weights.json"
+    shutil.copy2(DEFAULT_WEIGHTS_PATH, root / weights_rel)
+    rollout_rel = "draw_count_rollout_decision.json"
+    rollout_src = Path(MODEL_V3_DIR) / "draw_count_rollout_decision.json"
+    if not rollout_src.is_file():
+        raise ReleaseBundlePublishError(f"missing rollout decision artifact: {rollout_src}")
+    shutil.copy2(rollout_src, root / rollout_rel)
+    sim_config_rel = "simulation_config.json"
+    if not CONFIG_PATH.is_file():
+        raise ReleaseBundlePublishError(f"missing simulation config: {CONFIG_PATH}")
+    shutil.copy2(CONFIG_PATH, root / sim_config_rel)
+
+    profile_identity = resolve_simulation_profile_identity(
+        profile_key="publish",
+        rollout_path=root / rollout_rel,
+        simulation_config_path_arg=root / sim_config_rel,
+    )
+    if simulation_manifest is not None:
+        simulation_manifest.update(
+            {
+                "profile_key": profile_identity["profile_key"],
+                "profile_label": profile_identity["profile_label"],
+                "chunk_size": profile_identity["chunk_size"],
+                "configuration_hash": profile_identity["configuration_hash"],
+                "policy_hash": profile_identity["policy_hash"],
+                "selected_board_sha256": board_file_hash,
+            }
+        )
+        _write_json(root / f"simulation_manifest_{season}.json", simulation_manifest)
+
+    release_report = {
+        "schema_version": "release_report_v1",
+        "season": season,
+        "board": {"selected_board_sha256": board_file_hash},
+        "overlay_coverage": overlay_coverage,
+        "simulation": {key: profile_identity[key] for key in (
+            "profile_key",
+            "profile_label",
+            "draw_count",
+            "chunk_size",
+            "configuration_hash",
+            "policy_hash",
+        )},
+    }
+    _write_json(root / f"release_report_{season}.json", release_report)
+
+    ensemble_block = {
+        "contract_hash": contract["contract_hash"],
+        "ensemble_weights_hash": sha256_file(root / weights_rel),
+        "v2_points_hash": sha256_file(root / v2_rel),
+        "adp_source_hash": sha256_file(root / adp_rel),
+    }
+    git_block = capture_git_provenance()
 
     artifact_specs = [
         ("selected_board", selected_rel, True, False),
         ("v2_points", v2_rel, True, False),
+        ("adp_source", adp_rel, True, False),
+        ("ensemble_weights", weights_rel, True, False),
+        ("simulation_config", sim_config_rel, True, False),
+        ("draw_count_rollout_decision", rollout_rel, True, False),
         ("projections", projections_rel, True, False),
         ("application_contract", contract_rel, True, False),
         ("projection_run", "projection_run.json", True, False),
@@ -434,13 +517,18 @@ def publish_release_bundle(
             "simulation_run_id": (simulation_manifest or {}).get("simulation_run_id") or simulation_run_id,
         },
         board={
-            "selected_board_file_hash": sha256_file(root / selected_rel),
+            "selected_board_sha256": board_file_hash,
+            "selected_board_file_hash": board_file_hash,
             "selected_points_vector_hash": selected_points_vector_hash(board_points),
         },
         simulation={
-            "profile": "publish",
-            "draw_count": int((simulation_manifest or {}).get("draw_count") or draws),
-            "configuration_hash": _simulation_configuration_hash("publish"),
+            "profile": profile_identity["profile_key"],
+            "profile_key": profile_identity["profile_key"],
+            "profile_label": profile_identity["profile_label"],
+            "draw_count": int(profile_identity["draw_count"]),
+            "chunk_size": int(profile_identity["chunk_size"]),
+            "configuration_hash": profile_identity["configuration_hash"],
+            "policy_hash": profile_identity["policy_hash"],
             "calibration_hashes": cal_hashes or {"placeholder": "0" * 64},
             "joint_donor_hash": joint_hash,
         },
@@ -448,12 +536,16 @@ def publish_release_bundle(
             "simulated_player_population_hash": player_id_set_hash(overlay_ids),
             "simulated_player_count": len(set(overlay_ids)),
         },
+        overlay_coverage=overlay_coverage,
+        ensemble=ensemble_block,
+        git=git_block,
         contract_treatments={
             "selected": treatment_block(treatments["player_ids"]["selected"]),
             "incumbent": treatment_block(treatments["player_ids"]["incumbent"]),
             "new_player_v1_only": treatment_block(treatments["player_ids"]["new_player_v1_only"]),
         },
         artifact_specs=artifact_specs,
+        schema_version=SCHEMA_VERSION_V2,
     )
 
     after = live_release_snapshot(season)

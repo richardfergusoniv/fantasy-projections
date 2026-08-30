@@ -4,8 +4,10 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+from typing import Any, Mapping
 
 from src.projection.contracts import REPO_ROOT
+from src.projection.evaluation.accuracy_first import canonical_json_hash
 
 CONFIG_PATH = Path(REPO_ROOT) / "config" / "simulation.json"
 
@@ -103,6 +105,27 @@ def stability_simulation_seed(
     )
     digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
     return int(digest[:8], 16) % (2**31 - 1)
+
+
+def partition_identity_key(
+    *,
+    season: int,
+    board_hash: str,
+    calibration_hashes: Mapping[str, str],
+    configuration_hash: str,
+    policy_hash: str,
+    seed: int,
+) -> str:
+    """Stable key for resumable simulation partitions."""
+    payload = {
+        "season": int(season),
+        "board_hash": str(board_hash),
+        "calibration_hashes": dict(sorted(calibration_hashes.items())),
+        "configuration_hash": str(configuration_hash),
+        "policy_hash": str(policy_hash),
+        "seed": int(seed),
+    }
+    return canonical_json_hash(payload)
 
 
 def rng_for_draw(master_seed: int, draw_id: int):

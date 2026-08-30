@@ -18,7 +18,10 @@ from src.projection.evaluation.accuracy_first import canonical_json_hash, sha256
 
 
 SCHEMA_VERSION = "release_bundle_manifest_v1"
+SCHEMA_VERSION_V2 = "release_bundle_manifest_v2"
 BUNDLE_SCHEMA_VERSION = 1
+BUNDLE_SCHEMA_VERSION_V2 = 2
+PROMOTION_ELIGIBLE_SCHEMAS = frozenset({SCHEMA_VERSION_V2})
 MANIFEST_FILENAME = "release_bundle_manifest.json"
 VALIDATION_FILENAME = "release_bundle_validation.json"
 SIDECAR_FILENAMES = frozenset({MANIFEST_FILENAME, VALIDATION_FILENAME})
@@ -55,6 +58,12 @@ REQUIRED_IDENTITY_SECTIONS = (
     "overlay",
     "artifacts",
     "contract_treatments",
+)
+
+REQUIRED_IDENTITY_SECTIONS_V2 = REQUIRED_IDENTITY_SECTIONS + (
+    "overlay_coverage",
+    "ensemble",
+    "git",
 )
 
 
@@ -271,14 +280,23 @@ def validate_artifact_enumeration(
     return normalized
 
 
-def validate_manifest_schema(payload: Mapping[str, Any]) -> dict[str, Any]:
-    if not isinstance(payload, Mapping):
-        raise ReleaseBundleError("manifest must be a JSON object")
-    _assert_no_mutable_status(payload)
-    if payload.get("schema_version") != SCHEMA_VERSION:
-        raise ReleaseBundleError(
-            f"unsupported manifest schema_version: {payload.get('schema_version')!r}"
-        )
+def promotion_eligible(manifest: Mapping[str, Any]) -> bool:
+    schema = manifest.get("schema_version")
+    if schema not in PROMOTION_ELIGIBLE_SCHEMAS:
+        return False
+    if manifest.get("promotion_eligible") is not True:
+        return False
+    return True
+
+
+def _validate_sha256_field(value: Any, *, name: str) -> str:
+    digest = str(value).strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", digest):
+        raise ReleaseBundleError(f"{name} is not a sha256 digest")
+    return digest
+
+
+def _validate_manifest_schema_v1(payload: Mapping[str, Any]) -> dict[str, Any]:
     for section in REQUIRED_IDENTITY_SECTIONS:
         if section not in payload:
             raise ReleaseBundleError(f"manifest missing section {section!r}")
@@ -297,8 +315,7 @@ def validate_manifest_schema(payload: Mapping[str, Any]) -> dict[str, Any]:
 
     application = payload["application"]
     _require_keys(application, ("contract_version", "contract_hash"), name="application")
-    if not re.fullmatch(r"[0-9a-f]{64}", str(application["contract_hash"]).lower()):
-        raise ReleaseBundleError("application.contract_hash is not a sha256 digest")
+    _validate_sha256_field(application["contract_hash"], name="application.contract_hash")
 
     runs = payload["runs"]
     _require_keys(runs, ("projection_run_id", "simulation_run_id"), name="runs")
@@ -309,6 +326,13 @@ def validate_manifest_schema(payload: Mapping[str, Any]) -> dict[str, Any]:
         ("selected_board_file_hash", "selected_points_vector_hash"),
         name="board",
     )
+    _validate_sha256_field(board["selected_board_file_hash"], name="board.selected_board_file_hash")
+    _validate_sha256_field(board["selected_points_vector_hash"], name="board.selected_points_vector_hash")
+    if board.get("selected_board_sha256") is not None:
+        if board["selected_board_sha256"] != board["selected_board_file_hash"]:
+            raise ReleaseBundleError(
+                "board.selected_board_sha256 must equal board.selected_board_file_hash"
+            )
 
     simulation = payload["simulation"]
     _require_keys(
@@ -340,6 +364,121 @@ def validate_manifest_schema(payload: Mapping[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def _validate_manifest_schema_v2(payload: Mapping[str, Any]) -> dict[str, Any]:
+    for section in REQUIRED_IDENTITY_SECTIONS_V2:
+        if section not in payload:
+            raise ReleaseBundleError(f"manifest missing section {section!r}")
+    if payload.get("promotion_eligible") is not True:
+        raise ReleaseBundleError("v2 manifest must set promotion_eligible=true")
+
+    bundle = payload["bundle"]
+    _require_keys(
+        bundle,
+        ("season", "namespace", "release_id", "created_at", "model_id", "schema_version"),
+        name="bundle",
+    )
+    if int(bundle["schema_version"]) != BUNDLE_SCHEMA_VERSION_V2:
+        raise ReleaseBundleError("bundle.schema_version must be 2")
+    validate_namespace(str(bundle["namespace"]))
+    if int(bundle["season"]) < 2000:
+        raise ReleaseBundleError("bundle.season is implausible")
+
+    application = payload["application"]
+    _require_keys(application, ("contract_version", "contract_hash"), name="application")
+    _validate_sha256_field(application["contract_hash"], name="application.contract_hash")
+
+    runs = payload["runs"]
+    _require_keys(runs, ("projection_run_id", "simulation_run_id"), name="runs")
+
+    board = payload["board"]
+    _require_keys(
+        board,
+        ("selected_board_sha256", "selected_board_file_hash", "selected_points_vector_hash"),
+        name="board",
+    )
+    board_sha = _validate_sha256_field(board["selected_board_sha256"], name="board.selected_board_sha256")
+    file_sha = _validate_sha256_field(board["selected_board_file_hash"], name="board.selected_board_file_hash")
+    if board_sha != file_sha:
+        raise ReleaseBundleError("board.selected_board_sha256 must equal board.selected_board_file_hash")
+    _validate_sha256_field(board["selected_points_vector_hash"], name="board.selected_points_vector_hash")
+
+    simulation = payload["simulation"]
+    _require_keys(
+        simulation,
+        (
+            "profile_key",
+            "profile_label",
+            "profile",
+            "draw_count",
+            "chunk_size",
+            "configuration_hash",
+            "policy_hash",
+            "calibration_hashes",
+            "joint_donor_hash",
+        ),
+        name="simulation",
+    )
+    if int(simulation["draw_count"]) <= 0:
+        raise ReleaseBundleError("simulation.draw_count must be positive")
+    if int(simulation["chunk_size"]) <= 0:
+        raise ReleaseBundleError("simulation.chunk_size must be positive")
+    if not isinstance(simulation["calibration_hashes"], Mapping):
+        raise ReleaseBundleError("simulation.calibration_hashes must be an object")
+    _validate_sha256_field(simulation["configuration_hash"], name="simulation.configuration_hash")
+    _validate_sha256_field(simulation["policy_hash"], name="simulation.policy_hash")
+
+    overlay = payload["overlay"]
+    _require_keys(
+        overlay,
+        ("simulated_player_population_hash", "simulated_player_count"),
+        name="overlay",
+    )
+    if int(overlay["simulated_player_count"]) < 0:
+        raise ReleaseBundleError("overlay.simulated_player_count must be >= 0")
+
+    overlay_coverage = payload["overlay_coverage"]
+    _require_keys(overlay_coverage, ("total_players", "fields"), name="overlay_coverage")
+    if not isinstance(overlay_coverage["fields"], Mapping):
+        raise ReleaseBundleError("overlay_coverage.fields must be an object")
+
+    ensemble = payload["ensemble"]
+    _require_keys(
+        ensemble,
+        ("contract_hash", "ensemble_weights_hash", "v2_points_hash", "adp_source_hash"),
+        name="ensemble",
+    )
+    for key in ("contract_hash", "ensemble_weights_hash", "v2_points_hash", "adp_source_hash"):
+        _validate_sha256_field(ensemble[key], name=f"ensemble.{key}")
+
+    git = payload["git"]
+    _require_keys(git, ("source_commit", "source_dirty"), name="git")
+    if git.get("source_dirty") is not False:
+        raise ReleaseBundleError("git.source_dirty must be false")
+    if not str(git.get("source_commit") or "").strip():
+        raise ReleaseBundleError("git.source_commit must be non-empty")
+
+    artifacts = validate_artifact_enumeration(payload["artifacts"])
+    treatments = normalize_treatments(payload["contract_treatments"])
+
+    normalized = json.loads(canonical_dumps(payload).decode("utf-8"))
+    normalized["artifacts"] = artifacts
+    normalized["contract_treatments"] = treatments
+    _assert_no_mutable_status(normalized)
+    return normalized
+
+
+def validate_manifest_schema(payload: Mapping[str, Any]) -> dict[str, Any]:
+    if not isinstance(payload, Mapping):
+        raise ReleaseBundleError("manifest must be a JSON object")
+    _assert_no_mutable_status(payload)
+    schema = payload.get("schema_version")
+    if schema == SCHEMA_VERSION:
+        return _validate_manifest_schema_v1(payload)
+    if schema == SCHEMA_VERSION_V2:
+        return _validate_manifest_schema_v2(payload)
+    raise ReleaseBundleError(f"unsupported manifest schema_version: {schema!r}")
+
+
 def build_manifest(
     *,
     season: int,
@@ -354,25 +493,46 @@ def build_manifest(
     overlay: Mapping[str, Any],
     artifacts: Iterable[Mapping[str, Any]],
     contract_treatments: Mapping[str, Any],
+    overlay_coverage: Mapping[str, Any] | None = None,
+    ensemble: Mapping[str, Any] | None = None,
+    git: Mapping[str, Any] | None = None,
+    schema_version: str = SCHEMA_VERSION,
 ) -> dict[str, Any]:
-    payload = {
-        "schema_version": SCHEMA_VERSION,
+    board_payload = dict(board)
+    if schema_version == SCHEMA_VERSION_V2:
+        if "selected_board_sha256" not in board_payload:
+            board_payload["selected_board_sha256"] = board_payload.get("selected_board_file_hash")
+        if board_payload.get("selected_board_file_hash") != board_payload.get("selected_board_sha256"):
+            raise ReleaseBundleError("board hashes must agree before sealing v2 manifest")
+        bundle_schema_version = BUNDLE_SCHEMA_VERSION_V2
+        if overlay_coverage is None or ensemble is None or git is None:
+            raise ReleaseBundleError("v2 manifest requires overlay_coverage, ensemble, and git sections")
+    else:
+        bundle_schema_version = BUNDLE_SCHEMA_VERSION
+
+    payload: dict[str, Any] = {
+        "schema_version": schema_version,
         "bundle": {
             "season": int(season),
             "namespace": validate_namespace(namespace),
             "release_id": str(release_id),
             "created_at": created_at or datetime.now(timezone.utc).isoformat(),
             "model_id": str(model_id),
-            "schema_version": BUNDLE_SCHEMA_VERSION,
+            "schema_version": bundle_schema_version,
         },
         "application": dict(application),
         "runs": dict(runs),
-        "board": dict(board),
+        "board": board_payload,
         "simulation": dict(simulation),
         "overlay": dict(overlay),
         "artifacts": [normalize_artifact(entry) for entry in artifacts],
         "contract_treatments": normalize_treatments(contract_treatments),
     }
+    if schema_version == SCHEMA_VERSION_V2:
+        payload["promotion_eligible"] = True
+        payload["overlay_coverage"] = dict(overlay_coverage or {})
+        payload["ensemble"] = dict(ensemble or {})
+        payload["git"] = dict(git or {})
     return validate_manifest_schema(payload)
 
 

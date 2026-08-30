@@ -13,6 +13,11 @@ from src.projection.active_release import (
     read_active_pointer,
     write_active_pointer,
 )
+from src.projection.evaluation.promotion_invariants import (
+    copy_and_validate_public_browser_artifacts,
+    validate_promotion_invariants,
+    validate_sealed_promotion_invariants,
+)
 from src.projection.evaluation.release_bundle_validation import validate_release_bundle
 from src.projection.release_bundle import (
     MANIFEST_FILENAME,
@@ -38,6 +43,35 @@ def _browser_roles(manifest: dict[str, Any]) -> dict[str, str]:
             urls[entry["role"]] = f"data/releases/{namespace}/{entry['path']}"
     urls["manifest"] = f"data/releases/{namespace}/{MANIFEST_FILENAME}"
     return urls
+
+
+def _snapshot_public_namespace(namespace: str) -> dict[str, bytes | None]:
+    public = public_release_dir(namespace)
+    if not public.exists():
+        return {}
+    snapshot: dict[str, bytes | None] = {}
+    for path in public.rglob("*"):
+        if path.is_file():
+            rel = path.relative_to(public).as_posix()
+            snapshot[rel] = path.read_bytes()
+    return snapshot
+
+
+def _restore_public_namespace(namespace: str, snapshot: dict[str, bytes | None]) -> None:
+    import shutil
+
+    public = public_release_dir(namespace)
+    if public.exists():
+        shutil.rmtree(public)
+    if not snapshot:
+        return
+    public.mkdir(parents=True, exist_ok=True)
+    for rel, data in snapshot.items():
+        if data is None:
+            continue
+        dest = public / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(data)
 
 
 def assert_public_copies_match(manifest: dict[str, Any], manifest_sha256: str) -> None:
@@ -81,12 +115,41 @@ def promote_release(season: int, artifact_namespace: str) -> dict[str, Any]:
     manifest, digest = load_sealed_manifest(root)
     sealed_before = sha256_file(root / MANIFEST_FILENAME)
     verify_artifact_hashes(manifest, root=root)
-    assert_public_copies_match(manifest, digest)
+
+    invariant_report = validate_sealed_promotion_invariants(
+        season=season,
+        namespace=artifact_namespace,
+    )
+    if invariant_report.get("verdict") != "pass":
+        raise PromoteReleaseError(f"promotion invariants failed: {invariant_report}")
+
+    public_before = _snapshot_public_namespace(manifest["bundle"]["namespace"])
+    try:
+        copy_and_validate_public_browser_artifacts(
+            manifest,
+            source_root=root,
+            manifest_sha256=digest,
+        )
+    except Exception as exc:
+        _restore_public_namespace(manifest["bundle"]["namespace"], public_before)
+        raise PromoteReleaseError(f"public browser artifact promotion failed: {exc}") from exc
+
+    invariant_after_copy = validate_promotion_invariants(
+        season=season,
+        namespace=artifact_namespace,
+        include_git=False,
+    )
+    if invariant_after_copy.get("verdict") != "pass":
+        _restore_public_namespace(manifest["bundle"]["namespace"], public_before)
+        raise PromoteReleaseError(
+            f"post-copy promotion invariants failed: {invariant_after_copy}"
+        )
 
     current = None
     try:
         current = read_active_pointer(season)
     except ActiveReleaseError as exc:
+        _restore_public_namespace(manifest["bundle"]["namespace"], public_before)
         raise PromoteReleaseError(f"malformed active pointer blocks promotion: {exc}") from exc
 
     previous = None
@@ -101,7 +164,11 @@ def promote_release(season: int, artifact_namespace: str) -> dict[str, Any]:
         previous=previous,
         browser_roles=_browser_roles(manifest),
     )
-    write_active_pointer(pointer)
+    try:
+        write_active_pointer(pointer)
+    except Exception as exc:
+        _restore_public_namespace(manifest["bundle"]["namespace"], public_before)
+        raise PromoteReleaseError(f"pointer write failed; public namespace restored: {exc}") from exc
 
     sealed_after = sha256_file(root / MANIFEST_FILENAME)
     if sealed_after != sealed_before:
@@ -120,6 +187,7 @@ def promote_release(season: int, artifact_namespace: str) -> dict[str, Any]:
         "pointer_path": str(pointer_path(season)),
         "manifest_sha256": digest,
         "validation": active_report,
+        "promotion_invariants": invariant_after_copy,
     }
 
 

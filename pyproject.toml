@@ -1,0 +1,40 @@
+[project]
+name = "fantasy-projections"
+version = "0.1.0"
+description = "NFL fantasy projections, simulation, and release promotion pipeline"
+readme = "README.md"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "joblib>=1.5.0",
+    "lightgbm>=4.7.0",
+    "nfl-data-py>=0.3.3",
+    "numpy>=2.5.0",
+    "pandas>=3.0.0",
+    "pyarrow>=25.0.0",
+    "PyYAML>=6.0.0",
+    "requests>=2.34.0",
+    "scikit-learn>=1.6.0",
+    "scipy>=1.15.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.uv]
+override-dependencies = [
+    "pandas>=3.0.0",
+    "numpy>=2.5.0",
+]

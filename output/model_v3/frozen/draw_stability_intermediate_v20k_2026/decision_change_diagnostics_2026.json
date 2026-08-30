@@ -1,0 +1,112 @@
+{
+  "schema_version": "decision_change_diagnostics_v1",
+  "generated_at": "2026-08-28T19:55:05.522287+00:00",
+  "season": 2026,
+  "verdict": "ok",
+  "reason": null,
+  "provenance_checks": {
+    "passes": true,
+    "failures": [],
+    "checks": {
+      "season": {
+        "expected": 2026,
+        "actual": 2026,
+        "passes": true
+      },
+      "simulation_seed": {
+        "expected": 1495575565,
+        "actual": 1495575565,
+        "passes": true
+      },
+      "selected_board_model_id": {
+        "expected": "accuracy_first_ensemble",
+        "actual": "accuracy_first_ensemble",
+        "passes": true
+      },
+      "canonical_projection_run_id": {
+        "expected": "d494c516-f86a-4fc3-afdd-dd8635b72ec5",
+        "actual": "d494c516-f86a-4fc3-afdd-dd8635b72ec5",
+        "passes": true
+      },
+      "transform_version": {
+        "expected": "v1_median_correction",
+        "actual": "v1_median_correction",
+        "passes": true
+      },
+      "selected_board_hash": {
+        "expected": "67f2c4b88ad370b15e2363d4f915e5ec915d1ea6280625df528edfbd75d41700",
+        "actual": "67f2c4b88ad370b15e2363d4f915e5ec915d1ea6280625df528edfbd75d41700",
+        "passes": true
+      },
+      "roster_configuration_hash": {
+        "expected": "9059cd9471bbb3056950ffd1dfd076f9035f974a9b4db85ce70794c8fbe5b2ed",
+        "actual": "9059cd9471bbb3056950ffd1dfd076f9035f974a9b4db85ce70794c8fbe5b2ed",
+        "passes": true
+      },
+      "replacement_contract_hash": {
+        "expected": "437050022fe6f65ca257edabbf97d85ff9293dc1e19eeb9d36e823d2388aab79",
+        "actual": "437050022fe6f65ca257edabbf97d85ff9293dc1e19eeb9d36e823d2388aab79",
+        "passes": true
+      },
+      "finish_probability_gate_hash": {
+        "expected": "1c806c8b5a6b0165db57862a0d4e97122a4b568974f09655490e74ab9e6cabcb",
+        "actual": "1c806c8b5a6b0165db57862a0d4e97122a4b568974f09655490e74ab9e6cabcb",
+        "passes": true
+      },
+      "wr_calibration_artifact_hash": {
+        "expected": "9a1e986d844f06973a82398c1081a0b40f2d06af108448400a7a4a37996e2be8",
+        "actual": "9a1e986d844f06973a82398c1081a0b40f2d06af108448400a7a4a37996e2be8",
+        "passes": true
+      },
+      "draw_ids_0_to_primary_minus_one": {
+        "passes": true,
+        "missing_draw_ids": [],
+        "extra_draw_ids": [],
+        "rows_per_draw": 778,
+        "n_draw_ids": 10000,
+        "n_rows": 7780000
+      },
+      "nested_prefix_subset": {
+        "passes": true,
+        "scope": "raw_draws"
+      },
+      "prefix_hash_match": {
+        "primary_hash": "8744dedef3ae5eb886248752389f02b900023ffe1ffe7532c5e423fe8564a54a",
+        "diagnostic_prefix_hash": "8744dedef3ae5eb886248752389f02b900023ffe1ffe7532c5e423fe8564a54a",
+        "passes": true,
+        "scope": "raw_draws"
+      }
+    },
+    "primary_reference_draws": 10000,
+    "diagnostic_reference_draws": 20000
+  },
+  "unique_players_affected": 7,
+  "changes_by_candidate": {
+    "1000": 5,
+    "2000": 3,
+    "5000": 3
+  },
+  "changes_by_metric": {
+    "p_finish_top12": 4,
+    "p_vorp_positive": 7
+  },
+  "changes_by_category": {
+    "material": 11
+  },
+  "core_player_events_requiring_review": 0,
+  "resolution_hints": {
+    "option_1_display_rules": false,
+    "option_2_increase_draws": true,
+    "option_3_variance_reduction": true
+  },
+  "artifact_paths": {
+    "events_parquet": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\decision_change_events_2026.parquet",
+    "player_diagnostics_parquet": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\player_stability_diagnostics_2026.parquet",
+    "summary_json": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\decision_change_diagnostics_2026.json"
+  },
+  "active_decision_metrics": [
+    "p_finish_top12",
+    "p_finish_top24",
+    "p_vorp_positive"
+  ]
+}
