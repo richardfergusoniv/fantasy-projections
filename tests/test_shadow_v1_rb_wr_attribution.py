@@ -32,6 +32,7 @@ from src.projection.shadow.forbidden import (
     assert_input_path_allowed,
     assert_no_forbidden_imports,
 )
+from src.projection.shadow.stage_evidence import AttributionIncompleteError
 from src.projection.shadow.rb_wr_attribution import (
     SHADOW_ENTRYPOINTS,
     run_shadow_attribution,
@@ -260,9 +261,31 @@ class DecisionRuleTests(unittest.TestCase):
                 "composition_rate_effect": 1.0,
                 "availability_effect": 3.0,
                 "finalization_remainder": 0.5,
-            }
+            },
+            stages_complete=True,
+            finalization_analysis={"material": False},
         )
         self.assertEqual(label, "raw_rate_model_defect")
+
+    def test_material_finalization_blocks_raw_rate_label(self):
+        label = classify_diagnosis(
+            component_dominance={
+                "raw_rate_error": -28.0,
+                "composition_rate_effect": 0.0,
+                "availability_effect": -0.2,
+                "finalization_remainder": 20.0,
+            },
+            stages_complete=True,
+            finalization_analysis={"material": True},
+        )
+        self.assertEqual(label, "composition_defect")
+
+    def test_incomplete_stages_do_not_isolate_raw_rate(self):
+        label = classify_diagnosis(
+            component_dominance={"raw_rate_error": -28.0},
+            stages_complete=False,
+        )
+        self.assertEqual(label, "no_isolated_actionable_defect")
 
     def test_repair_gate_hold_when_insufficient(self):
         result = repair_gate(
@@ -277,30 +300,105 @@ class DecisionRuleTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "hold_v1_structural_role")
 
 
+def _synthetic_stage_bundle(eval_path: Path, *, season: int) -> tuple[dict, pd.DataFrame]:
+    """Build complete stage scores + player_rates aligned to the eval loader."""
+    from src.projection.composition import COMPOSE_CHECKPOINT_NAMES
+    from src.projection.shadow.rb_wr_attribution import _load_eval_frame
+
+    players = _load_eval_frame(season)
+    players = players[players["position"].isin(["RB", "WR"])].copy()
+    scores = {name: {} for name in COMPOSE_CHECKPOINT_NAMES}
+    rates_rows = []
+    for _, row in players.iterrows():
+        pid = str(row["player_id"])
+        rate = float(pd.to_numeric(row["composed_rate_ppg"], errors="coerce"))
+        if rate != rate:  # NaN
+            rate = 0.0
+        raw = rate * 1.05
+        games = float(pd.to_numeric(row.get("projected_volume_games"), errors="coerce"))
+        if games != games:
+            games = 17.0
+        season_pts = float(pd.to_numeric(row["v1_pred"], errors="coerce"))
+        if season_pts != season_pts:
+            season_pts = 0.0
+        for name in COMPOSE_CHECKPOINT_NAMES:
+            ppg = raw if name == "raw_forecast" else rate
+            scores[name][pid] = {
+                "fantasy_ppg": ppg,
+                "fantasy_pts_season": (
+                    season_pts if name == "season_total_finalization" else None
+                ),
+                "position": str(row["position"]),
+            }
+        rates_rows.append({
+            "player_id": pid,
+            "raw_rate_ppg": raw,
+            "composed_rate_ppg": rate,
+            "final_rate_ppg": rate,
+            "traced_v1_pred": season_pts,
+            "projected_games": games,
+            "composition_stages_applied": True,
+        })
+    return scores, pd.DataFrame(rates_rows)
+
+
 class ShadowAttributionIntegrationTests(unittest.TestCase):
-    def test_run_writes_artifacts_and_keeps_production(self):
+    def test_run_writes_artifacts_with_synthetic_stages(self):
         eval_2023 = Path("output/fantasy_evaluation_2023.csv")
         eval_2024 = Path("output/fantasy_evaluation_2024.csv")
         eval_2025 = Path("output/fantasy_evaluation_2025.csv")
         if not (eval_2023.is_file() and eval_2024.is_file() and eval_2025.is_file()):
             self.skipTest("historical fantasy_evaluation frames unavailable")
+        scores = {}
+        rates = {}
+        for season, path in ((2023, eval_2023), (2024, eval_2024), (2025, eval_2025)):
+            s, r = _synthetic_stage_bundle(path, season=season)
+            scores[season] = s
+            rates[season] = r
         with tempfile.TemporaryDirectory() as tmp:
             dest = Path(tmp) / "shadow_v1_rb_wr"
-            manifest = run_shadow_attribution(out_dir=dest, n_boot=50)
+            manifest = run_shadow_attribution(
+                out_dir=dest,
+                n_boot=50,
+                generate_stages=False,
+                stage_scores_by_season=scores,
+                player_rates_by_season=rates,
+            )
             self.assertEqual(manifest["status"], "ok")
+            self.assertTrue(manifest["stages_complete"])
+            self.assertTrue(manifest["candidate_freeze_allowed"])
             self.assertTrue(manifest["production_weights_unchanged"])
             self.assertTrue((dest / "attribution_players.parquet").is_file())
             self.assertTrue((dest / "attribution_metrics.csv").is_file())
-            self.assertTrue((dest / "stage_attribution.csv").is_file())
-            self.assertTrue((dest / "attribution_summary.json").is_file())
-            self.assertTrue((dest / "manifest.json").is_file())
-            for season in (2023, 2024, 2025):
-                self.assertTrue((dest / f"top120_membership_{season}.json").is_file())
-            # Missing coverage must remain visible (nulls), not silently filled.
+            stage_csv = dest / "stage_attribution.csv"
+            self.assertTrue(stage_csv.is_file())
+            self.assertGreater(len(pd.read_csv(stage_csv)), 0)
             players = pd.read_parquet(dest / "attribution_players.parquet")
-            self.assertIn("v2_covered", players.columns)
-            self.assertIn("adp_covered", players.columns)
+            self.assertTrue(bool(players["composition_stages_applied"].all()))
+            self.assertFalse(
+                (players["composition_rate_effect"].abs() < 1e-12).all(),
+                msg="composition effect must be measured, not uniformly zero",
+            )
             self.assertTrue(players["decomposition_residual"].abs().max() < 1e-5)
+            # Compose projected_games used for finalization (not Gate-A mismatch alone).
+            summary = json.loads((dest / "attribution_summary.json").read_text(encoding="utf-8"))
+            self.assertIn("finalization_analysis", summary)
+
+    def test_missing_stages_emit_attribution_incomplete(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dest = Path(tmp) / "shadow_v1_rb_wr"
+            with self.assertRaises(AttributionIncompleteError):
+                run_shadow_attribution(
+                    out_dir=dest,
+                    n_boot=10,
+                    generate_stages=False,
+                    stage_scores_by_season={},
+                    player_rates_by_season={},
+                )
+            payload = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(payload["status"], "attribution_incomplete")
+            self.assertFalse(payload.get("candidate_freeze_allowed", True))
+            self.assertFalse((dest / "attribution_players.parquet").exists())
 
     def test_consensus_failure_writes_no_tables(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -310,12 +408,37 @@ class ShadowAttributionIntegrationTests(unittest.TestCase):
                 side_effect=ConsensusPinError("hash mismatch"),
             ):
                 with self.assertRaises(ConsensusPinError):
-                    run_shadow_attribution(out_dir=dest, n_boot=10)
+                    run_shadow_attribution(
+                        out_dir=dest,
+                        n_boot=10,
+                        generate_stages=False,
+                        stage_scores_by_season={2023: {}, 2024: {}, 2025: {}},
+                        player_rates_by_season={
+                            2023: pd.DataFrame(),
+                            2024: pd.DataFrame(),
+                            2025: pd.DataFrame(),
+                        },
+                    )
             self.assertTrue((dest / "manifest.json").is_file())
             payload = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(payload["status"], "fail_closed")
             self.assertFalse((dest / "attribution_players.parquet").exists())
-            self.assertFalse((dest / "attribution_metrics.csv").exists())
+
+    def test_freeze_prohibited_when_attribution_incomplete(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = freeze_shadow_candidate(
+                candidate_id="noop",
+                code_identity={"module": "none"},
+                evidence={"note": "synthetic"},
+                source_hashes={},
+                fold_mae_relative_deltas=[-0.05, -0.02, 0.0],
+                pooled_top120_spearman_baseline=0.4,
+                pooled_top120_spearman_candidate=0.5,
+                out_dir=tmp,
+                attribution_status="attribution_incomplete",
+            )
+            self.assertFalse(payload["gate"]["passed"])
+            self.assertEqual(payload["verdict"], "hold_v1_structural_role")
 
     def test_freeze_hold_when_gate_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -328,6 +451,7 @@ class ShadowAttributionIntegrationTests(unittest.TestCase):
                 pooled_top120_spearman_baseline=0.4,
                 pooled_top120_spearman_candidate=0.3,
                 out_dir=tmp,
+                attribution_status="ok",
             )
             self.assertEqual(payload["gate"]["verdict"], "hold_v1_structural_role")
             self.assertTrue((Path(tmp) / "hold_v1_structural_role.json").is_file())

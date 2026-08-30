@@ -40,6 +40,15 @@ from src.projection.shadow.production_guard import (
     assert_production_unchanged,
     snapshot_production_artifacts,
 )
+from src.projection.shadow.stage_evidence import (
+    AttributionIncompleteError,
+    analyze_finalization_remainder,
+    assert_traced_points_match_eval,
+    load_fold_player_rates,
+    load_fold_stage_scores,
+    persist_fold_stage_artifacts,
+    stage_evidence_complete,
+)
 
 SHADOW_OUTPUT_DIR = Path(OUTPUT_DIR) / "shadow_v1_rb_wr"
 SCHEMA_VERSION = "shadow_v1_rb_wr_attribution_v1"
@@ -54,6 +63,7 @@ SHADOW_ENTRYPOINTS = (
     "src.projection.shadow.production_guard",
     "src.projection.shadow.forbidden",
     "src.projection.shadow.repair",
+    "src.projection.shadow.stage_evidence",
 )
 
 
@@ -244,35 +254,56 @@ def _metric_row(
     return row
 
 
-def apply_stage_rates(
+def apply_traced_rates(
     frame: pd.DataFrame,
-    stage_scores: dict[str, dict[str, dict]],
+    player_rates: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Overwrite raw/composed rates from compose checkpoints when available."""
+    """Overwrite rates / v1 points from leakage-safe compose player_rates."""
+    if player_rates is None or player_rates.empty:
+        raise AttributionIncompleteError("player_rates missing or empty")
+    required = (
+        "player_id",
+        "raw_rate_ppg",
+        "composed_rate_ppg",
+        "traced_v1_pred",
+        "projected_games",
+    )
+    missing_cols = [c for c in required if c not in player_rates.columns]
+    if missing_cols:
+        raise AttributionIncompleteError(
+            f"player_rates missing columns: {missing_cols}"
+        )
     out = frame.copy()
-    raw = stage_scores.get("raw_forecast") or {}
-    composed = stage_scores.get("counting_stat_constraints") or stage_scores.get(
-        "season_total_finalization"
-    ) or {}
-    final = stage_scores.get("season_total_finalization") or {}
-
-    raw_ppg = []
-    composed_ppg = []
-    v1_from_stage = []
-    for pid in out["player_id"].astype(str):
-        raw_ppg.append((raw.get(pid) or {}).get("fantasy_ppg"))
-        composed_ppg.append((composed.get(pid) or {}).get("fantasy_ppg"))
-        season_pts = (final.get(pid) or {}).get("fantasy_pts_season")
-        v1_from_stage.append(season_pts)
-
-    if any(v is not None for v in raw_ppg):
-        out["raw_rate_ppg"] = pd.to_numeric(pd.Series(raw_ppg, index=out.index), errors="coerce")
-        out["composed_rate_ppg"] = pd.to_numeric(
-            pd.Series(composed_ppg, index=out.index), errors="coerce"
-        ).fillna(out["composed_rate_ppg"])
-        stage_v1 = pd.to_numeric(pd.Series(v1_from_stage, index=out.index), errors="coerce")
-        out["v1_pred"] = stage_v1.fillna(out["v1_pred"])
-        out["composition_stages_applied"] = True
+    out["player_id"] = out["player_id"].astype(str)
+    rates = player_rates.loc[:, list(required)].copy()
+    rates["player_id"] = rates["player_id"].astype(str)
+    for col in ("raw_rate_ppg", "composed_rate_ppg", "traced_v1_pred", "projected_games"):
+        rates[col] = pd.to_numeric(rates[col], errors="coerce")
+    drop = [
+        c
+        for c in (
+            "raw_rate_ppg",
+            "composed_rate_ppg",
+            "traced_v1_pred",
+            "projected_games",
+        )
+        if c in out.columns
+    ]
+    if drop:
+        out = out.drop(columns=drop)
+    out = out.merge(rates, on="player_id", how="left")
+    incomplete = (
+        out["raw_rate_ppg"].isna()
+        | out["composed_rate_ppg"].isna()
+        | out["traced_v1_pred"].isna()
+        | out["projected_games"].isna()
+    )
+    if bool(incomplete.any()):
+        raise AttributionIncompleteError(
+            f"traced rates missing for {int(incomplete.sum())} players"
+        )
+    out["v1_pred"] = out["traced_v1_pred"]
+    out["composition_stages_applied"] = True
     return out
 
 
@@ -284,8 +315,18 @@ def build_fold_attribution(
     pin_record: dict[str, Any],
     consensus_by_season: dict[int, pd.DataFrame],
     stage_scores: dict[str, dict[str, dict]] | None = None,
+    player_rates: pd.DataFrame | None = None,
 ) -> tuple[pd.DataFrame, list[dict[str, Any]], pd.DataFrame]:
     """Build player attribution + metric rows for one rolling-origin fold."""
+    if not stage_evidence_complete(stage_scores):
+        raise AttributionIncompleteError(
+            f"Incomplete stage scores for {source_season}->{target_season}"
+        )
+    if player_rates is None or player_rates.empty:
+        raise AttributionIncompleteError(
+            f"Missing player rates for {source_season}->{target_season}"
+        )
+
     players = _load_eval_frame(target_season)
     players = players[players["position"].isin(RB_WR)].copy()
     players = _attach_consensus(players, consensus, pin_record=pin_record)
@@ -298,8 +339,7 @@ def build_fold_attribution(
     players = _attach_adp_points(
         players, target_season=target_season, consensus_by_season=consensus_by_season
     )
-    if stage_scores:
-        players = apply_stage_rates(players, stage_scores)
+    players = apply_traced_rates(players, player_rates)
     players["source_season"] = int(source_season)
     players["fold"] = f"{source_season}->{target_season}"
     players = decompose_prediction_error(players)
@@ -322,20 +362,56 @@ def build_fold_attribution(
                     )
                 )
 
-    stage_rows = pd.DataFrame()
-    if stage_scores:
-        stage_rows = stage_point_deltas(
-            stage_scores, player_ids=players["player_id"].astype(str).tolist()
+    stage_rows = stage_point_deltas(
+        stage_scores, player_ids=players["player_id"].astype(str).tolist()
+    )
+    if not stage_rows.empty:
+        stage_rows["source_season"] = int(source_season)
+        stage_rows["target_season"] = int(target_season)
+        stage_rows = stage_rows.merge(
+            players[["player_id", "draft_relevant_top120", "actual_points"]],
+            on="player_id",
+            how="left",
         )
-        if not stage_rows.empty:
-            stage_rows["source_season"] = int(source_season)
-            stage_rows["target_season"] = int(target_season)
-            stage_rows = stage_rows.merge(
-                players[["player_id", "draft_relevant_top120", "actual_points"]],
-                on="player_id",
-                how="left",
-            )
     return players, metric_rows, stage_rows
+
+
+def generate_fold_stage_evidence(
+    *,
+    conn: Any,
+    feature_table: pd.DataFrame,
+    out_dir: Path,
+    source_season: int,
+    target_season: int,
+) -> dict[str, Any]:
+    """Build, parity-check, and persist compose stage evidence for one fold."""
+    from src.projection.fantasy_evaluation import build_leakage_safe_compose_checkpoints
+
+    checkpoint = build_leakage_safe_compose_checkpoints(
+        conn, feature_table, source_season, target_season
+    )
+    eval_path = Path(OUTPUT_DIR) / f"fantasy_evaluation_{target_season}.csv"
+    assert_input_path_allowed(eval_path)
+    if not eval_path.is_file():
+        raise AttributionIncompleteError(f"Missing evaluation frame: {eval_path}")
+    eval_frame = pd.read_csv(eval_path)
+    eval_frame["player_id"] = eval_frame["player_id"].astype(str)
+    parity = assert_traced_points_match_eval(checkpoint["player_rates"], eval_frame)
+    artifact_hashes = persist_fold_stage_artifacts(
+        out_dir=Path(out_dir),
+        source_season=source_season,
+        target_season=target_season,
+        checkpoint=checkpoint,
+    )
+    return {
+        "source_season": int(source_season),
+        "target_season": int(target_season),
+        "stage_scores": checkpoint["stage_scores"],
+        "player_rates": checkpoint["player_rates"],
+        "parity": parity,
+        "artifact_hashes": artifact_hashes,
+        "checkpoint": checkpoint,
+    }
 
 
 def _component_dominance(players: pd.DataFrame) -> dict[str, float]:
@@ -353,28 +429,41 @@ def _component_dominance(players: pd.DataFrame) -> dict[str, float]:
     }
 
 
-def _write_fail_closed_error(out_dir: Path, error: Exception) -> Path:
+def _write_status_manifest(
+    out_dir: Path,
+    *,
+    status: str,
+    error: Exception | None = None,
+    extra: dict[str, Any] | None = None,
+) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
-    payload = {
+    payload: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
-        "status": "fail_closed",
-        "error_type": type(error).__name__,
-        "error": str(error),
+        "status": status,
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "producing_commit": _git_commit(),
         "production_weights_unchanged": True,
+        "candidate_freeze_allowed": status == "ok",
     }
+    if error is not None:
+        payload["error_type"] = type(error).__name__
+        payload["error"] = str(error)
+    if extra:
+        payload.update(extra)
+        # Freeze gate is status-driven even if extra tries to override.
+        payload["candidate_freeze_allowed"] = status == "ok"
     path = out_dir / "manifest.json"
-    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    # Ensure attribution tables are absent on consensus failure.
-    for name in (
-        "attribution_players.parquet",
-        "attribution_metrics.csv",
-        "stage_attribution.csv",
-        "attribution_summary.json",
-    ):
-        victim = out_dir / name
-        if victim.exists():
-            victim.unlink()
+    path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+    if status in {"fail_closed", "attribution_incomplete"}:
+        for name in (
+            "attribution_players.parquet",
+            "attribution_metrics.csv",
+            "stage_attribution.csv",
+            "attribution_summary.json",
+        ):
+            victim = out_dir / name
+            if victim.exists():
+                victim.unlink()
     return path
 
 
@@ -383,6 +472,8 @@ def run_shadow_attribution(
     out_dir: str | Path | None = None,
     folds: tuple[tuple[int, int], ...] = FOLDS,
     stage_scores_by_season: dict[int, dict] | None = None,
+    player_rates_by_season: dict[int, pd.DataFrame] | None = None,
+    generate_stages: bool = True,
     n_boot: int = 500,
 ) -> dict[str, Any]:
     """Run the full leakage-safe attribution study under output/shadow_v1_rb_wr/."""
@@ -392,6 +483,9 @@ def run_shadow_attribution(
     assert_no_forbidden_imports(SHADOW_ENTRYPOINTS)
     dest = Path(out_dir or SHADOW_OUTPUT_DIR)
     dest.mkdir(parents=True, exist_ok=True)
+
+    scores_by_season: dict[int, dict] = dict(stage_scores_by_season or {})
+    rates_by_season: dict[int, pd.DataFrame] = dict(player_rates_by_season or {})
 
     before = snapshot_production_artifacts()
     try:
@@ -412,18 +506,63 @@ def run_shadow_attribution(
                     pin_record=pin,
                 )
 
+            need_generate: list[tuple[int, int]] = []
+            for source_season, target_season in folds:
+                scores = scores_by_season.get(target_season)
+                rates = rates_by_season.get(target_season)
+                if stage_evidence_complete(scores) and rates is not None and not rates.empty:
+                    continue
+                try:
+                    scores = load_fold_stage_scores(dest, source_season, target_season)
+                    rates = load_fold_player_rates(dest, source_season, target_season)
+                    scores_by_season[target_season] = scores
+                    rates_by_season[target_season] = rates
+                except AttributionIncompleteError:
+                    if generate_stages:
+                        need_generate.append((source_season, target_season))
+                    else:
+                        raise
+
+            if need_generate:
+                from src.projection.data_prep import get_conn
+                from src.projection.features import build_player_season_features
+
+                conn = get_conn()
+                feature_table = build_player_season_features(conn)
+                for source_season, target_season in need_generate:
+                    generated = generate_fold_stage_evidence(
+                        conn=conn,
+                        feature_table=feature_table,
+                        out_dir=dest,
+                        source_season=source_season,
+                        target_season=target_season,
+                    )
+                    scores_by_season[target_season] = generated["stage_scores"]
+                    rates_by_season[target_season] = generated["player_rates"]
+
+            for source_season, target_season in folds:
+                if not stage_evidence_complete(scores_by_season.get(target_season)):
+                    raise AttributionIncompleteError(
+                        f"Incomplete stage evidence for {source_season}->{target_season}"
+                    )
+                rates = rates_by_season.get(target_season)
+                if rates is None or rates.empty:
+                    raise AttributionIncompleteError(
+                        f"Missing player rates for {source_season}->{target_season}"
+                    )
+
             player_frames = []
             metric_rows: list[dict[str, Any]] = []
             stage_frames = []
             for source_season, target_season in folds:
-                stage_scores = (stage_scores_by_season or {}).get(target_season)
                 players, metrics, stage_df = build_fold_attribution(
                     source_season=source_season,
                     target_season=target_season,
                     consensus=consensus_by_season[target_season],
                     pin_record=pins[target_season],
                     consensus_by_season=consensus_by_season,
-                    stage_scores=stage_scores,
+                    stage_scores=scores_by_season[target_season],
+                    player_rates=rates_by_season[target_season],
                 )
                 player_frames.append(players)
                 metric_rows.extend(metrics)
@@ -437,8 +576,13 @@ def run_shadow_attribution(
                 if stage_frames
                 else pd.DataFrame()
             )
+            if stage_df.empty:
+                raise AttributionIncompleteError(
+                    "stage_attribution.csv would be empty; complete stage evidence required"
+                )
 
             dominance = _component_dominance(players_all)
+            finalization_analysis = analyze_finalization_remainder(players_all)
             flagged = []
             for position in RB_WR:
                 for stage in (
@@ -448,9 +592,6 @@ def run_shadow_attribution(
                     "counting_stat_constraints",
                     "season_total_finalization",
                 ):
-                    # Without stage MAE series, skip flagging (composition evidence absent).
-                    if stage_df.empty:
-                        continue
                     pos_players = players_all[
                         players_all["position"].eq(position)
                         & players_all["draft_relevant_top120"]
@@ -473,6 +614,8 @@ def run_shadow_attribution(
                 parity_defects=[],
                 component_dominance=dominance,
                 flagged_stages=flagged,
+                stages_complete=True,
+                finalization_analysis=finalization_analysis,
             )
 
             players_path = dest / "attribution_players.parquet"
@@ -500,6 +643,7 @@ def run_shadow_attribution(
                 "populations": ["all_eligible", "top120"],
                 "diagnosis": diagnosis,
                 "component_dominance": dominance,
+                "finalization_analysis": finalization_analysis,
                 "repair_candidates": flagged,
                 "hold_verdict": "hold_v1_structural_role",
                 "notes": {
@@ -507,9 +651,11 @@ def run_shadow_attribution(
                     "2024": "training/diagnostic evidence",
                     "2025": "existing holdout",
                     "selected_ensemble_replay": "descriptive_not_untouched_evidence",
+                    "stages": "leakage_safe_compose_checkpoints_required",
                 },
                 "player_rows": int(len(players_all)),
                 "metric_rows": int(len(metrics_df)),
+                "stage_rows": int(len(stage_df)),
             }
             summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
             output_hashes["attribution_summary.json"] = sha256_file(summary_path)
@@ -517,36 +663,44 @@ def run_shadow_attribution(
             after = snapshot_production_artifacts()
             prod = assert_production_unchanged(before, after)
 
-            manifest = {
-                "schema_version": SCHEMA_VERSION,
-                "status": "ok",
-                "generated_at": summary["generated_at"],
-                "producing_commit": _git_commit(),
-                "production_weights_unchanged": True,
-                "production_guard": prod,
-                "consensus_pins": pins,
-                "membership_hashes": {
-                    str(season): pin["top120_membership_hash"]
-                    for season, pin in pins.items()
+            manifest = _write_status_manifest(
+                dest,
+                status="ok",
+                extra={
+                    "generated_at": summary["generated_at"],
+                    "producing_commit": _git_commit(),
+                    "production_guard": prod,
+                    "consensus_pins": pins,
+                    "membership_hashes": {
+                        str(season): pin["top120_membership_hash"]
+                        for season, pin in pins.items()
+                    },
+                    "input_hashes": {
+                        f"fantasy_evaluation_{target}.csv": sha256_file(
+                            Path(OUTPUT_DIR) / f"fantasy_evaluation_{target}.csv"
+                        )
+                        for _, target in folds
+                        if (Path(OUTPUT_DIR) / f"fantasy_evaluation_{target}.csv").is_file()
+                    },
+                    "output_hashes": output_hashes,
+                    "diagnosis": diagnosis,
+                    "finalization_analysis": finalization_analysis,
+                    "forbidden_modules_checked": True,
+                    "stages_complete": True,
                 },
-                "input_hashes": {
-                    f"fantasy_evaluation_{target}.csv": sha256_file(
-                        Path(OUTPUT_DIR) / f"fantasy_evaluation_{target}.csv"
-                    )
-                    for _, target in folds
-                    if (Path(OUTPUT_DIR) / f"fantasy_evaluation_{target}.csv").is_file()
-                },
-                "output_hashes": output_hashes,
-                "diagnosis": diagnosis,
-                "forbidden_modules_checked": True,
-            }
-            manifest_path = dest / "manifest.json"
-            manifest_path.write_text(json.dumps(manifest, indent=2, default=str), encoding="utf-8")
-            return manifest
+            )
+            return json.loads(manifest.read_text(encoding="utf-8"))
+    except AttributionIncompleteError as exc:
+        _write_status_manifest(dest, status="attribution_incomplete", error=exc)
+        assert_production_unchanged(before)
+        raise
     except ConsensusPinError as exc:
-        _write_fail_closed_error(dest, exc)
+        _write_status_manifest(dest, status="fail_closed", error=exc)
         assert_production_unchanged(before)
         raise
     except Exception:
         assert_production_unchanged(before)
         raise
+
+
+apply_stage_rates = apply_traced_rates

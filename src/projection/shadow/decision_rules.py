@@ -133,8 +133,17 @@ def classify_diagnosis(
     parity_defects: Iterable[str] | None = None,
     component_dominance: dict[str, float] | None = None,
     flagged_stages: list[dict[str, Any]] | None = None,
+    stages_complete: bool = True,
+    finalization_analysis: dict[str, Any] | None = None,
 ) -> str:
-    """Return exactly one diagnosis label."""
+    """Return exactly one diagnosis label.
+
+    Raw-rate defects are not labeled while stage evidence is incomplete, or
+    while a material finalization remainder remains unexplained (it can
+    conceal composition / reconciliation / rate-definition mismatch).
+    """
+    if not stages_complete:
+        return "no_isolated_actionable_defect"
     if parity_defects:
         return "parity_or_data_defect"
     flagged = [f for f in (flagged_stages or []) if f.get("flagged")]
@@ -143,6 +152,10 @@ def classify_diagnosis(
     dominance = component_dominance or {}
     if not dominance:
         return "no_isolated_actionable_defect"
+    fin = finalization_analysis or {}
+    if fin.get("material"):
+        # Prefer composition/finalization attribution before raw-rate labels.
+        return "composition_defect"
     # Largest absolute pooled contribution among the four components.
     winner = max(dominance.items(), key=lambda item: abs(float(item[1])))
     name, value = winner

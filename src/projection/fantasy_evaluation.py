@@ -20,7 +20,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.projection.composition import compose_board, leakage_safe_context
+from src.projection.composition import (
+    COMPOSE_CHECKPOINT_NAMES,
+    compose_board,
+    leakage_safe_context,
+    run_compose_stages,
+)
 from src.projection.data_prep import get_conn
 from src.projection.depth_history import (
     attach_availability_depth_rank,
@@ -532,23 +537,18 @@ def _rookie_forecasts(
     return long, wide[["player_id", "projected_games"]].drop_duplicates("player_id")
 
 
-def _compose_and_reconcile(
+def assemble_precompose_board(
     veteran_long: pd.DataFrame,
     rookie_long: pd.DataFrame,
     anchors: pd.DataFrame,
-    context,
     *,
     feature_table: pd.DataFrame | None = None,
     source_season: int | None = None,
 ) -> pd.DataFrame:
-    """Run the SHIPPED composition pipeline over leakage-safe artifacts.
+    """Build the long board immediately before ``compose_board``.
 
-    This function no longer contains any allocation logic of its own. It
-    attaches the refit team anchors, hands the veteran share rows and the
-    rookies' implied shares to the same ``_compose_reframed_receiving_
-    predictions`` the shipped path uses, and then calls ``compose_board`` —
-    which is literally the stage list ``project_season`` runs. Anything this
-    harness scores is therefore something the shipped board also does.
+    Shared by the ordinary compose path and by stage-checkpoint attribution so
+    traced finals cannot drift from shipped composition inputs.
     """
     veteran = veteran_long.merge(anchors, on="team", how="left")
     rookie = (
@@ -588,6 +588,34 @@ def _compose_and_reconcile(
             out[col] = out["pred_pg"]
         else:
             out[col] = pd.to_numeric(out[col], errors="coerce").fillna(out["pred_pg"])
+    return out
+
+
+def _compose_and_reconcile(
+    veteran_long: pd.DataFrame,
+    rookie_long: pd.DataFrame,
+    anchors: pd.DataFrame,
+    context,
+    *,
+    feature_table: pd.DataFrame | None = None,
+    source_season: int | None = None,
+) -> pd.DataFrame:
+    """Run the SHIPPED composition pipeline over leakage-safe artifacts.
+
+    This function no longer contains any allocation logic of its own. It
+    attaches the refit team anchors, hands the veteran share rows and the
+    rookies' implied shares to the same ``_compose_reframed_receiving_
+    predictions`` the shipped path uses, and then calls ``compose_board`` —
+    which is literally the stage list ``project_season`` runs. Anything this
+    harness scores is therefore something the shipped board also does.
+    """
+    out = assemble_precompose_board(
+        veteran_long,
+        rookie_long,
+        anchors,
+        feature_table=feature_table,
+        source_season=source_season,
+    )
     return compose_board(out, context)
 
 
@@ -717,6 +745,199 @@ def build_leakage_safe_long_board(
         feature_table=feature_table,
         use_qb_context=use_qb_context,
     )
+
+
+def _score_long_board_points(long: pd.DataFrame, *, value_col: str) -> pd.Series:
+    """Score fantasy points from a long board column (pred_pg or pred_season)."""
+    if long.empty or value_col not in long.columns:
+        return pd.Series(dtype=float)
+    wide = long.pivot_table(
+        index="player_id", columns="stat", values=value_col, aggfunc="first"
+    )
+    return _score_totals(wide)
+
+
+def assert_compose_parity(
+    traced_final: pd.DataFrame,
+    ordinary: pd.DataFrame,
+    *,
+    atol: float = 1e-9,
+) -> dict:
+    """Require traced final board to equal ordinary ``compose_board`` output."""
+    left = traced_final.sort_values(["player_id", "stat"]).reset_index(drop=True)
+    right = ordinary.sort_values(["player_id", "stat"]).reset_index(drop=True)
+    if list(left.columns) != list(right.columns):
+        missing = sorted(set(left.columns) ^ set(right.columns))
+        raise AssertionError(f"compose parity column mismatch: {missing}")
+    if len(left) != len(right):
+        raise AssertionError(
+            f"compose parity row count mismatch: traced={len(left)} ordinary={len(right)}"
+        )
+    for col in left.columns:
+        if pd.api.types.is_numeric_dtype(left[col]) or pd.api.types.is_numeric_dtype(right[col]):
+            a = pd.to_numeric(left[col], errors="coerce")
+            b = pd.to_numeric(right[col], errors="coerce")
+            if not np.allclose(a.fillna(0), b.fillna(0), atol=atol, equal_nan=True):
+                worst = float(np.nanmax(np.abs(a.fillna(0) - b.fillna(0))))
+                raise AssertionError(
+                    f"compose parity failed on {col}: max |delta|={worst}"
+                )
+        else:
+            if not left[col].astype(str).equals(right[col].astype(str)):
+                raise AssertionError(f"compose parity failed on non-numeric column {col}")
+    return {"ok": True, "n_rows": int(len(left)), "atol": atol}
+
+
+def build_leakage_safe_compose_checkpoints(
+    conn,
+    feature_table: pd.DataFrame,
+    source_season: int,
+    target_season: int,
+    *,
+    exposure_blend_alpha: float = 0.0,
+    qb_partial_prior_shrink: bool = False,
+    qb_rush_td_clip_hi: float | None = None,
+    qb_pass_td_t1_lite: bool = False,
+    team_volume_shares: dict | None = None,
+    team_volume_siblings: dict | None = None,
+    reconcile_alpha: float | None = None,
+    use_qb_context: bool = False,
+) -> dict:
+    """Generate pre-compose and stage boards for one leakage-safe fold.
+
+    Parity: the traced final board equals ``compose_board`` on the same
+    pre-compose input. Player-level rates/points are scored from the boards.
+    """
+    history = feature_table[feature_table["season"].le(source_season)].copy()
+    if history["season"].max() > source_season:
+        raise ValueError("forecast history extends beyond source_season")
+    pairs = safe_training_pairs(source_season)
+    if not pairs:
+        raise ValueError("no safe production-era training transitions")
+    rookie_cohort = build_preseason_rookie_cohort(
+        conn, feature_table, list(range(2016, target_season + 1))
+    )
+    population = build_preseason_population(conn, target_season, rookie_cohort)
+    rookie_safe = sanitize_target_rookie_outcomes(rookie_cohort, target_season)
+    anchors = _team_anchor_predictions(
+        history, source_season, pairs, target_season=target_season,
+        use_qb_context=use_qb_context, conn=conn,
+    )
+    veteran_long, _veteran_games = _veteran_forecasts(
+        conn, history, population, source_season, target_season, pairs,
+        qb_partial_prior_shrink=qb_partial_prior_shrink,
+        use_qb_context=use_qb_context,
+    )
+    rookie_long, _rookie_games = _rookie_forecasts(
+        rookie_safe, source_season, target_season
+    )
+    context = leakage_safe_context(conn, target_season, source_season)
+    context.exposure_blend_alpha = float(exposure_blend_alpha)
+    context.qb_rush_td_clip_hi = qb_rush_td_clip_hi
+    context.qb_pass_td_t1_lite = bool(qb_pass_td_t1_lite)
+    context.team_volume_shares = team_volume_shares
+    context.team_volume_siblings = team_volume_siblings
+    context.reconcile_alpha = reconcile_alpha
+
+    precompose = assemble_precompose_board(
+        veteran_long,
+        rookie_long,
+        anchors,
+        feature_table=feature_table,
+        source_season=source_season,
+    )
+    ordinary = compose_board(precompose.copy(deep=True), context)
+    traced_final, boards = run_compose_stages(
+        precompose.copy(deep=True), context, capture_checkpoints=True
+    )
+    parity = assert_compose_parity(traced_final, ordinary)
+
+    missing_stages = [name for name in COMPOSE_CHECKPOINT_NAMES if name not in boards]
+    if missing_stages:
+        raise RuntimeError(f"Incomplete compose checkpoints: {missing_stages}")
+
+    from src.projection.composition import _score_checkpoint_fantasy
+
+    stage_scores = {
+        name: _score_checkpoint_fantasy(boards[name])
+        for name in COMPOSE_CHECKPOINT_NAMES
+    }
+
+    raw_ppg = _score_long_board_points(boards["raw_forecast"], value_col="pred_pg")
+    # Last rate stage before season-total materialization.
+    composed_ppg = _score_long_board_points(
+        boards["counting_stat_constraints"], value_col="pred_pg"
+    )
+    final_ppg = _score_long_board_points(
+        boards["season_total_finalization"], value_col="pred_pg"
+    )
+    traced_season = _score_long_board_points(
+        boards["season_total_finalization"], value_col="pred_season"
+    )
+    games = (
+        boards["season_total_finalization"][["player_id", "projected_games"]]
+        .drop_duplicates("player_id")
+        .copy()
+    )
+    games["player_id"] = games["player_id"].astype(str)
+    games["projected_games"] = pd.to_numeric(games["projected_games"], errors="coerce")
+
+    player_rates = pd.DataFrame({
+        "player_id": raw_ppg.index.astype(str),
+        "raw_rate_ppg": raw_ppg.to_numpy(dtype=float),
+    })
+    player_rates = player_rates.merge(
+        composed_ppg.rename("composed_rate_ppg").rename_axis("player_id").reset_index().assign(
+            player_id=lambda d: d["player_id"].astype(str)
+        ),
+        on="player_id",
+        how="outer",
+    )
+    player_rates = player_rates.merge(
+        final_ppg.rename("final_rate_ppg").rename_axis("player_id").reset_index().assign(
+            player_id=lambda d: d["player_id"].astype(str)
+        ),
+        on="player_id",
+        how="outer",
+    )
+    player_rates = player_rates.merge(
+        traced_season.rename("traced_v1_pred").rename_axis("player_id").reset_index().assign(
+            player_id=lambda d: d["player_id"].astype(str)
+        ),
+        on="player_id",
+        how="outer",
+    )
+    player_rates = player_rates.merge(games, on="player_id", how="left")
+    player_rates["composition_stages_applied"] = True
+    player_rates["source_season"] = int(source_season)
+    player_rates["target_season"] = int(target_season)
+
+    # Rates must be unchanged by season-total finalization.
+    rate_delta = (
+        pd.to_numeric(player_rates["final_rate_ppg"], errors="coerce").fillna(0.0)
+        - pd.to_numeric(player_rates["composed_rate_ppg"], errors="coerce").fillna(0.0)
+    )
+    if not np.allclose(rate_delta.to_numpy(dtype=float), 0.0, atol=1e-9):
+        raise AssertionError(
+            "season_total_finalization moved pred_pg rates; "
+            f"max |delta|={float(np.nanmax(np.abs(rate_delta)))}"
+        )
+
+    return {
+        "source_season": int(source_season),
+        "target_season": int(target_season),
+        "precompose": precompose,
+        "boards": boards,
+        "stage_scores": stage_scores,
+        "final": traced_final,
+        "ordinary": ordinary,
+        "parity": parity,
+        "player_rates": player_rates,
+        "stage_coverage": context.describe_coverage(),
+        "artifact_provenance": context.artifact_provenance,
+        "complete": True,
+        "checkpoint_names": list(COMPOSE_CHECKPOINT_NAMES),
+    }
 
 
 def build_leakage_safe_forecasts(

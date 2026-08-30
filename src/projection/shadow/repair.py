@@ -37,10 +37,41 @@ def freeze_shadow_candidate(
     coverage_unchanged: bool = True,
     team_identity_unchanged: bool = True,
     out_dir: str | Path | None = None,
+    attribution_status: str | None = None,
 ) -> dict[str, Any]:
-    """Freeze one shadow candidate if it clears the repair gate; else hold."""
+    """Freeze one shadow candidate if it clears the repair gate; else hold.
+
+    Candidate freezing is prohibited when attribution status is incomplete.
+    """
     assert_no_forbidden_imports(REPAIR_ENTRYPOINTS)
     before = snapshot_production_artifacts()
+    dest = Path(out_dir or SHADOW_OUTPUT_DIR)
+    dest.mkdir(parents=True, exist_ok=True)
+
+    if attribution_status is None:
+        manifest_path = dest / "manifest.json"
+        if manifest_path.is_file():
+            attribution_status = json.loads(
+                manifest_path.read_text(encoding="utf-8")
+            ).get("status")
+    if attribution_status != "ok":
+        payload = {
+            "schema_version": "shadow_v1_rb_wr_candidate_freeze_v1",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "candidate_id": candidate_id,
+            "verdict": "hold_v1_structural_role",
+            "gate": {"passed": False, "reason": "attribution_incomplete"},
+            "attribution_status": attribution_status,
+            "production_weights_unchanged": True,
+            "promotion_authorized": False,
+            "note": "Candidate freezing prohibited until attribution status is ok.",
+        }
+        path = dest / "hold_v1_structural_role.json"
+        payload["artifact_hash"] = canonical_json_hash(payload)
+        path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        assert_production_unchanged(before)
+        return payload
+
     gate = repair_gate(
         fold_mae_deltas=fold_mae_relative_deltas,
         pooled_top120_spearman_baseline=pooled_top120_spearman_baseline,
@@ -49,8 +80,6 @@ def freeze_shadow_candidate(
         coverage_unchanged=coverage_unchanged,
         team_identity_unchanged=team_identity_unchanged,
     )
-    dest = Path(out_dir or SHADOW_OUTPUT_DIR)
-    dest.mkdir(parents=True, exist_ok=True)
     board_hash = None
     if board_2026_path is not None and Path(board_2026_path).is_file():
         board_hash = sha256_file(board_2026_path)
@@ -64,6 +93,7 @@ def freeze_shadow_candidate(
         "source_hashes": source_hashes,
         "board_2026_sha256": board_hash,
         "gate": gate,
+        "attribution_status": attribution_status,
         "production_weights_unchanged": True,
         "promotion_authorized": False,
         "note": (
