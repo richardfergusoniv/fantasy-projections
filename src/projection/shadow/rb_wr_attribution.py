@@ -292,16 +292,25 @@ def apply_traced_rates(
     if drop:
         out = out.drop(columns=drop)
     out = out.merge(rates, on="player_id", how="left")
-    incomplete = (
+    uncovered = (
         out["raw_rate_ppg"].isna()
         | out["composed_rate_ppg"].isna()
         | out["traced_v1_pred"].isna()
         | out["projected_games"].isna()
     )
-    if bool(incomplete.any()):
-        raise AttributionIncompleteError(
-            f"traced rates missing for {int(incomplete.sum())} players"
-        )
+    # Players absent from the compose long board (uncovered / zero-component)
+    # keep explicit zeros rather than silently inventing rates.
+    if bool(uncovered.any()):
+        out.loc[uncovered, "raw_rate_ppg"] = 0.0
+        out.loc[uncovered, "composed_rate_ppg"] = 0.0
+        out.loc[uncovered, "traced_v1_pred"] = 0.0
+        if "projected_volume_games" in out.columns:
+            out.loc[uncovered, "projected_games"] = pd.to_numeric(
+                out.loc[uncovered, "projected_volume_games"], errors="coerce"
+            ).fillna(0.0)
+        else:
+            out.loc[uncovered, "projected_games"] = 0.0
+    out["stage_rate_covered"] = ~uncovered
     out["v1_pred"] = out["traced_v1_pred"]
     out["composition_stages_applied"] = True
     return out
