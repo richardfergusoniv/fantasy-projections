@@ -36,22 +36,20 @@ async function init() {
   bindEvents();
 
   try {
-    const [res, boardRes] = await Promise.all([
-      fetch(`../data/team_stats_${SEASON}.json?v=${Date.now()}`, { cache: "no-store" }),
-      fetch(`../data/players_${SEASON}.json?v=${Date.now()}`, { cache: "no-store" }),
+    const ctx = await FantasyRelease.loadContext({ season: SEASON, dataRoot: "../data" });
+    state.release = ctx;
+    const [data, board] = await Promise.all([
+      FantasyRelease.loadJson(ctx, "team_stats"),
+      FantasyRelease.loadJson(ctx, "players"),
     ]);
-    if (!res.ok) throw new Error(`Failed to load projections (${res.status})`);
-    state.data = await res.json();
-    if (boardRes.ok) {
-      const board = await boardRes.json();
-      state.data.players = FantasyProjectionAdjustment.mergeBoard(
-        state.data.players,
-        board.players,
-        SCORING,
-        board.meta?.model_id || null
-      );
-      state.data.meta.display_board = board.meta || null;
-    }
+    state.data = data;
+    state.data.players = FantasyProjectionAdjustment.mergeBoard(
+      state.data.players,
+      board.players,
+      SCORING,
+      board.meta?.model_id || null
+    );
+    state.data.meta.display_board = board.meta || null;
     state.byId = new Map(state.data.players.map((p) => [p.player_id, p]));
     els.seasonBadge.textContent = state.data.meta.season;
     populateTeamSelect();

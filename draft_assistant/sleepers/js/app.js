@@ -174,18 +174,19 @@ async function loadJson(path, { required = true, hint = "" } = {}) {
 }
 
 async function loadData() {
+  const ctx = await FantasyRelease.loadContext({ season: SEASON, dataRoot: "../data" });
+  state.release = ctx;
   const [board, compare] = await Promise.all([
-    loadJson(`../data/players_${SEASON}.json`, {
-      hint: `run: python -m src.draft_assistant.prepare --season ${SEASON}`,
-    }),
-    loadJson(`../data/comparison_${SEASON}.json`, {
-      hint: `run: python -m src.draft_assistant.compare_prepare --season ${SEASON}`,
-    }),
+    FantasyRelease.loadJson(ctx, "players"),
+    FantasyRelease.loadJson(ctx, "comparison"),
   ]);
 
-  state.accuracy = await loadJson("../data/deep_band_accuracy.json", {
-    required: false,
-  });
+  try {
+    state.accuracy = await FantasyRelease.loadJson(ctx, "deep_band_accuracy");
+  } catch (err) {
+    if (ctx.mode === "namespaced" && ctx.urls.deep_band_accuracy) throw err;
+    state.accuracy = null;
+  }
   if (state.accuracy?.bands) {
     const admitted = state.accuracy.sleeper_band?.admitted_bands || [];
     const bands = admitted

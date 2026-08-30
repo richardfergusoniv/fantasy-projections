@@ -50,13 +50,9 @@ function escapeHtml(s) {
 }
 
 async function loadData() {
-  const res = await fetch(`../data/comparison_${SEASON}.json`, { cache: "no-store" });
-  if (!res.ok) {
-    throw new Error(
-      `Missing comparison_${SEASON}.json — run: python -m src.draft_assistant.compare_prepare --season ${SEASON}`
-    );
-  }
-  state.data = await res.json();
+  const ctx = await FantasyRelease.loadContext({ season: SEASON, dataRoot: "../data" });
+  state.release = ctx;
+  state.data = await FantasyRelease.loadJson(ctx, "comparison");
   state.byId = new Map((state.data.players || []).map((p) => [p.player_id, p]));
 
   document.getElementById("seasonBadge").textContent = String(
@@ -78,13 +74,10 @@ async function loadData() {
     (adp.teams ? ` / ${adp.teams} teams` : "");
 
   try {
-    const cardRes = await fetch(`../data/team_stats_${SEASON}.json`, { cache: "no-store" });
-    if (cardRes.ok) {
-      const cardData = await cardRes.json();
-      state.cardById = new Map((cardData.players || []).map((p) => [p.player_id, p]));
-    }
-  } catch {
-    /* cards degrade without team-stats detail */
+    const cardData = await FantasyRelease.loadJson(ctx, "team_stats");
+    state.cardById = new Map((cardData.players || []).map((p) => [p.player_id, p]));
+  } catch (err) {
+    if (ctx.mode === "namespaced") throw err;
   }
 
   render();

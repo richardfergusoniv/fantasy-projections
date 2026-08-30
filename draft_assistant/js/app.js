@@ -63,9 +63,9 @@ async function init() {
   populateDraftSlotOptions();
 
   try {
-    const res = await fetch(`data/players_${SEASON}.json`);
-    if (!res.ok) throw new Error(`Failed to load projections (${res.status})`);
-    state.data = await res.json();
+    const ctx = await FantasyRelease.loadContext({ season: SEASON, dataRoot: "data" });
+    state.release = ctx;
+    state.data = await FantasyRelease.loadJson(ctx, "players");
     document.getElementById("seasonBadge").textContent = state.data.meta.season;
     const modelBadge = document.getElementById("modelBadge");
     if (modelBadge) {
@@ -81,13 +81,14 @@ async function init() {
   }
 
   try {
-    const cardRes = await fetch(`data/team_stats_${SEASON}.json`);
-    if (cardRes.ok) {
-      const cardData = await cardRes.json();
-      state.cardById = new Map((cardData.players || []).map((p) => [p.player_id, p]));
+    const cardData = await FantasyRelease.loadJson(state.release, "team_stats");
+    state.cardById = new Map((cardData.players || []).map((p) => [p.player_id, p]));
+  } catch (err) {
+    if (state.release && state.release.mode === "namespaced") {
+      document.getElementById("rankingsBody").innerHTML =
+        `<tr><td colspan="6" class="empty-state">${err.message}</td></tr>`;
+      return;
     }
-  } catch {
-    /* cards degrade gracefully without team-stats detail */
   }
 
   loadPersistedState();
