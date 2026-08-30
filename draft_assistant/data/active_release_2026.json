@@ -1,0 +1,22 @@
+{
+  "schema_version": "active_release_pointer_v1",
+  "season": 2026,
+  "status": "active",
+  "namespace": "phase1_rehearsal_20260829",
+  "release_id": "c17b8f4c-d8bc-4a3f-8077-974eb533a03b",
+  "manifest_path": "data/releases/phase1_rehearsal_20260829/release_bundle_manifest.json",
+  "manifest_sha256": "a89865441775f67b46ceb6ce50898b859e4a4fc4295585a0b3d2b62bd121ab0c",
+  "activated_at": "2026-08-30T02:56:32.703129+00:00",
+  "previous": {
+    "namespace": "phase1_rehearsal_prior",
+    "release_id": "624e1437-fca2-434a-abce-7da938e88f9d"
+  },
+  "public_base": "data/releases/phase1_rehearsal_20260829",
+  "public_urls": {
+    "players": "data/releases/phase1_rehearsal_20260829/players_2026.json",
+    "team_stats": "data/releases/phase1_rehearsal_20260829/team_stats_2026.json",
+    "comparison": "data/releases/phase1_rehearsal_20260829/comparison_2026.json",
+    "deep_band_accuracy": "data/releases/phase1_rehearsal_20260829/deep_band_accuracy.json",
+    "manifest": "data/releases/phase1_rehearsal_20260829/release_bundle_manifest.json"
+  }
+}
