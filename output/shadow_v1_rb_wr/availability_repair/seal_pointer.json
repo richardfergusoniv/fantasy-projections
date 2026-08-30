@@ -1,0 +1,10 @@
+{
+  "schema_version": "shadow_v1_rb_wr_availability_repair_v1",
+  "candidate_id": "shadow_availability_gate_a_blend_v1",
+  "seal_path": "output/shadow_v1_rb_wr/availability_repair/seal.json",
+  "seal_sha256": "7fa8091a1385b7d785c034c2a3ecfd40c7b6b89f758a22b55feefb9f19546a36",
+  "config_sha256": "9e73d1db6fb064fe70dad40b844fb1158c3d8132d5ecfe7aa8b3f818d81e74d9",
+  "code_bundle_sha256": "9e4363a6093c7680b28c67b34ca87cd913b1293adae597ea24615409141a5428",
+  "verdict": "hold_v1_structural_role",
+  "promotion_authorized": false
+}

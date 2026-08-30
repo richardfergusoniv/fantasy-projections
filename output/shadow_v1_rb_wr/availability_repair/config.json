@@ -1,0 +1,31 @@
+{
+  "candidate_id": "shadow_availability_gate_a_blend_v1",
+  "schema_version": "shadow_v1_rb_wr_availability_repair_v1",
+  "positions": [
+    "RB",
+    "WR"
+  ],
+  "alpha_grid": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "cold_start_alpha": 1.0,
+  "season_games": 17,
+  "objective": "top120_mae_points",
+  "prediction_formula": "composed_rate_ppg * clip(alpha * gate_a_games + (1 - alpha) * season_games, 0, season_games) + finalization_remainder",
+  "untouched": [
+    "raw_rate_ppg",
+    "composed_rate_ppg",
+    "composition_stages",
+    "finalization_remainder",
+    "production_weights",
+    "application_contract",
+    "active_release_pointer"
+  ],
+  "gate_source": "stages/fold_*/precompose.parquet::projected_games",
+  "membership_source": "top120_membership_{season}.json (pinned)",
+  "counterfactual_gates": "src.projection.shadow.step6_decision.evaluate_candidate_gates"
+}

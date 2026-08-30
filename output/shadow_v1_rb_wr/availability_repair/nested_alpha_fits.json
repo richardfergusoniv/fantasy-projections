@@ -1,0 +1,95 @@
+[
+  {
+    "fold": "2022->2023",
+    "positions": {
+      "RB": {
+        "position": "RB",
+        "alpha": 1.0,
+        "source": "cold_start",
+        "train_n_top120": 0,
+        "train_mae_by_alpha": {}
+      },
+      "WR": {
+        "position": "WR",
+        "alpha": 1.0,
+        "source": "cold_start",
+        "train_n_top120": 0,
+        "train_mae_by_alpha": {}
+      }
+    },
+    "alpha_by_position": {
+      "RB": 1.0,
+      "WR": 1.0
+    }
+  },
+  {
+    "fold": "2023->2024",
+    "positions": {
+      "RB": {
+        "position": "RB",
+        "alpha": 0.0,
+        "source": "nested_prior_folds",
+        "train_n_top120": 44,
+        "train_mae_by_alpha": {
+          "0.0": 61.226617060213954,
+          "0.25": 62.33183759764915,
+          "0.5": 63.97687427225255,
+          "0.75": 66.78442730438609,
+          "1.0": 70.96246458960842
+        }
+      },
+      "WR": {
+        "position": "WR",
+        "alpha": 0.0,
+        "source": "nested_prior_folds",
+        "train_n_top120": 48,
+        "train_mae_by_alpha": {
+          "0.0": 48.58963462477021,
+          "0.25": 51.16677121279056,
+          "0.5": 54.84362721946539,
+          "0.75": 58.75249346073614,
+          "1.0": 62.663504385193754
+        }
+      }
+    },
+    "alpha_by_position": {
+      "RB": 0.0,
+      "WR": 0.0
+    }
+  },
+  {
+    "fold": "2024->2025",
+    "positions": {
+      "RB": {
+        "position": "RB",
+        "alpha": 0.0,
+        "source": "nested_prior_folds",
+        "train_n_top120": 87,
+        "train_mae_by_alpha": {
+          "0.0": 62.68383616454372,
+          "0.25": 63.58353893759362,
+          "0.5": 65.17067672129674,
+          "0.75": 67.73433131183941,
+          "1.0": 71.33180373415927
+        }
+      },
+      "WR": {
+        "position": "WR",
+        "alpha": 0.0,
+        "source": "nested_prior_folds",
+        "train_n_top120": 98,
+        "train_mae_by_alpha": {
+          "0.0": 50.74684099894381,
+          "0.25": 52.09531541418588,
+          "0.5": 54.04156789371499,
+          "0.75": 56.256531793791005,
+          "1.0": 58.72989912920721
+        }
+      }
+    },
+    "alpha_by_position": {
+      "RB": 0.0,
+      "WR": 0.0
+    }
+  }
+]

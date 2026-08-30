@@ -1,0 +1,250 @@
+{
+  "schema_version": "shadow_v1_rb_wr_candidate_freeze_v1",
+  "generated_at": "2026-08-30T19:02:07.251964+00:00",
+  "candidate_id": "shadow_availability_gate_a_blend_v1",
+  "code_identity": {
+    "candidate_id": "shadow_availability_gate_a_blend_v1",
+    "producing_commit": "57e03b9b776319af4f96f4c234948afb8b574401",
+    "entrypoint_files": {
+      "src.projection.shadow.availability_repair": {
+        "path": "src/projection/shadow/availability_repair.py",
+        "sha256": "daa14bcfd70ac6ab91e21653d3998e6f96461e3b9e2d039db966eb2f8fa85f60"
+      },
+      "src.projection.shadow.decision_rules": {
+        "path": "src/projection/shadow/decision_rules.py",
+        "sha256": "039f140f3e40ba444328b3e3ecacfb93e0df7f1ce2432ab7dccf31bc597763d9"
+      },
+      "src.projection.shadow.repair": {
+        "path": "src/projection/shadow/repair.py",
+        "sha256": "87a9cd51ca04db7d4d65deb7069199b679f2ae42e8136c86a592deac29e43b39"
+      },
+      "src.projection.shadow.forbidden": {
+        "path": "src/projection/shadow/forbidden.py",
+        "sha256": "4d85a264ccaa823a4c473073cbcd01daa159e6909bc4e37e60f1d39c0e919f07"
+      },
+      "src.projection.shadow.production_guard": {
+        "path": "src/projection/shadow/production_guard.py",
+        "sha256": "52fd15decfba593816fcb4d573784c61c9d6a347369da324df7bf214a2794446"
+      },
+      "src.projection.shadow.step6_decision": {
+        "path": "src/projection/shadow/step6_decision.py",
+        "sha256": "32735d342bad526ab6c8686e23458b4b0f955ecf71b08fa3b0a005f8c1a7c7b0"
+      }
+    },
+    "entrypoint_bundle_sha256": "9e4363a6093c7680b28c67b34ca87cd913b1293adae597ea24615409141a5428"
+  },
+  "evidence": {
+    "fit_log": [
+      {
+        "fold": "2022->2023",
+        "positions": {
+          "RB": {
+            "position": "RB",
+            "alpha": 1.0,
+            "source": "cold_start",
+            "train_n_top120": 0,
+            "train_mae_by_alpha": {}
+          },
+          "WR": {
+            "position": "WR",
+            "alpha": 1.0,
+            "source": "cold_start",
+            "train_n_top120": 0,
+            "train_mae_by_alpha": {}
+          }
+        },
+        "alpha_by_position": {
+          "RB": 1.0,
+          "WR": 1.0
+        }
+      },
+      {
+        "fold": "2023->2024",
+        "positions": {
+          "RB": {
+            "position": "RB",
+            "alpha": 0.0,
+            "source": "nested_prior_folds",
+            "train_n_top120": 44,
+            "train_mae_by_alpha": {
+              "0.0": 61.226617060213954,
+              "0.25": 62.33183759764915,
+              "0.5": 63.97687427225255,
+              "0.75": 66.78442730438609,
+              "1.0": 70.96246458960842
+            }
+          },
+          "WR": {
+            "position": "WR",
+            "alpha": 0.0,
+            "source": "nested_prior_folds",
+            "train_n_top120": 48,
+            "train_mae_by_alpha": {
+              "0.0": 48.58963462477021,
+              "0.25": 51.16677121279056,
+              "0.5": 54.84362721946539,
+              "0.75": 58.75249346073614,
+              "1.0": 62.663504385193754
+            }
+          }
+        },
+        "alpha_by_position": {
+          "RB": 0.0,
+          "WR": 0.0
+        }
+      },
+      {
+        "fold": "2024->2025",
+        "positions": {
+          "RB": {
+            "position": "RB",
+            "alpha": 0.0,
+            "source": "nested_prior_folds",
+            "train_n_top120": 87,
+            "train_mae_by_alpha": {
+              "0.0": 62.68383616454372,
+              "0.25": 63.58353893759362,
+              "0.5": 65.17067672129674,
+              "0.75": 67.73433131183941,
+              "1.0": 71.33180373415927
+            }
+          },
+          "WR": {
+            "position": "WR",
+            "alpha": 0.0,
+            "source": "nested_prior_folds",
+            "train_n_top120": 98,
+            "train_mae_by_alpha": {
+              "0.0": 50.74684099894381,
+              "0.25": 52.09531541418588,
+              "0.5": 54.04156789371499,
+              "0.75": 56.256531793791005,
+              "1.0": 58.72989912920721
+            }
+          }
+        },
+        "alpha_by_position": {
+          "RB": 0.0,
+          "WR": 0.0
+        }
+      }
+    ],
+    "gate_evaluation": {
+      "candidate": "shadow_availability_gate_a_blend_v1",
+      "population": "top120",
+      "eligible_for_freeze": true,
+      "direction_clears_gates": false,
+      "fold_relative_mae_deltas": [
+        {
+          "fold": "2022->2023",
+          "relative_mae_delta": 0.22717032081202798,
+          "n": 92
+        },
+        {
+          "fold": "2023->2024",
+          "relative_mae_delta": 0.0,
+          "n": 93
+        },
+        {
+          "fold": "2024->2025",
+          "relative_mae_delta": 0.0,
+          "n": 90
+        }
+      ],
+      "improves_folds": 0,
+      "pooled_top120_spearman_baseline": 0.4100547865107024,
+      "pooled_top120_spearman_candidate": 0.7163341522696728,
+      "all_eligible_ok": true,
+      "position_ok": true,
+      "position_regressions": [],
+      "component_shift": {
+        "ok": true,
+        "shifts": {
+          "raw_rate_error": {
+            "base_mean_abs": 45.44712912330185,
+            "after_mean_abs": 45.44712912330185,
+            "inflate": 0.0,
+            "repaired": false
+          },
+          "composition_rate_effect": {
+            "base_mean_abs": 3.7222238160079684,
+            "after_mean_abs": 3.7222238160079684,
+            "inflate": 0.0,
+            "repaired": false
+          },
+          "availability_effect": {
+            "base_mean_abs": 25.951522467818116,
+            "after_mean_abs": 0.0,
+            "inflate": 0.0,
+            "repaired": true
+          },
+          "finalization_remainder": {
+            "base_mean_abs": 6.594492776970589,
+            "after_mean_abs": 6.594492776970589,
+            "inflate": 0.0,
+            "repaired": false
+          }
+        },
+        "control_mae": 57.90105533997982,
+        "candidate_mae": 46.90676965960586
+      },
+      "gate": {
+        "passed": false,
+        "improves_folds": 0,
+        "relative_mae_ok": false,
+        "spearman_ok": true,
+        "all_eligible_ok": true,
+        "coverage_unchanged": true,
+        "team_identity_unchanged": true,
+        "verdict": "hold_v1_structural_role",
+        "unused": false
+      },
+      "verdict": "hold_v1_structural_role",
+      "implementable": true,
+      "oracle_residual_removal": false,
+      "rate_guard": {
+        "raw_rate_unchanged": true,
+        "composed_rate_unchanged": true,
+        "composition_stages_not_rerun": true,
+        "finalization_remainder_held_fixed": true
+      }
+    },
+    "rate_guard": {
+      "raw_rate_unchanged": true,
+      "composed_rate_unchanged": true,
+      "composition_stages_not_rerun": true,
+      "finalization_remainder_held_fixed": true
+    },
+    "config_sha256": "9e73d1db6fb064fe70dad40b844fb1158c3d8132d5ecfe7aa8b3f818d81e74d9"
+  },
+  "source_hashes": {
+    "manifest.json": "f3f2032aea907594c95252e07763314b2eeca7ad63c4421feceab315242b78f5",
+    "attribution_players.parquet": "cd0e5985d0904e97ff4e542141b0d5fa070b35b936c69ed312e5ef622e02b1ff",
+    "attribution_summary.json": "df75632604edcf33153faac9803cf97d517743d6ff9c2928b30072e55c51e0eb",
+    "step6_decision.json": "31b7e0887bfd37af2235f719ca09fffa0832993881049f31cdca441e67865828",
+    "top120_membership_2023.json": "f71c6f45f8daa882230bcb55bd349dae9e1471741de17edf57a710718a79e0a1",
+    "top120_membership_2024.json": "43405a8be994205476bb57336a9b8a27a0d781bf7ec546eb8a829c62a298486e",
+    "top120_membership_2025.json": "583ec40ee04206f86f5e47da9d00de4f89c73ef02799853ca80dd2755845b5d2",
+    "stages/fold_2022_2023/precompose.parquet": "8eb1a273919156c71143260f173f6f57abb521e3061fa5d946740e7179b130d9",
+    "stages/fold_2023_2024/precompose.parquet": "df4dda195521398e1e0b623a792a2acd42220acb477441c5a9b1f744d8c39441",
+    "stages/fold_2024_2025/precompose.parquet": "41fb978d00e3ff7ac1c2fa4fc35b859b1753e90602a62babaeab970611d57572"
+  },
+  "board_2026_sha256": null,
+  "gate": {
+    "passed": false,
+    "improves_folds": 0,
+    "relative_mae_ok": false,
+    "spearman_ok": true,
+    "all_eligible_ok": true,
+    "coverage_unchanged": true,
+    "team_identity_unchanged": true,
+    "verdict": "hold_v1_structural_role",
+    "unused": false
+  },
+  "attribution_status": "ok",
+  "production_weights_unchanged": true,
+  "promotion_authorized": false,
+  "note": "Production RB/WR weights remain frozen until untouched 2026 outcomes run through the unchanged accuracy-first selector.",
+  "verdict": "hold_v1_structural_role",
+  "artifact_hash": "3971a3a0828183fdbc915d4bbe471deea4c9e203822922c6ef1f5f8226068edf"
+}
