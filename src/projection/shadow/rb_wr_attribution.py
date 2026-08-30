@@ -27,6 +27,7 @@ from src.projection.shadow.decision_rules import (
     classify_diagnosis,
     flag_repair_candidate,
 )
+from src.projection.shadow.step6_decision import identify_codominant_components
 from src.projection.shadow.error_decomposition import (
     decompose_prediction_error,
     stage_point_deltas,
@@ -641,6 +642,17 @@ def run_shadow_attribution(
                 stages_complete=True,
                 finalization_analysis=finalization_analysis,
             )
+            codominant = identify_codominant_components(dominance)
+            labeling = {
+                "pipeline_location": diagnosis,
+                "codominant_error_components": codominant,
+                "note": (
+                    "pipeline_location is the diagnosed locus; "
+                    "codominant_error_components are magnitude leaders "
+                    "and may include raw_rate_error / availability_effect "
+                    "even when pipeline_location is composition_defect."
+                ),
+            }
 
             players_path = dest / "attribution_players.parquet"
             metrics_path = dest / "attribution_metrics.csv"
@@ -669,6 +681,7 @@ def run_shadow_attribution(
                 "status": "ok",
                 "stages_complete": True,
                 "diagnosis": diagnosis,
+                "labeling": labeling,
                 "component_dominance": dominance,
                 "finalization_analysis": finalization_analysis,
                 "eval_csv_parity": eval_parity_reports,
