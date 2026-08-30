@@ -17,6 +17,7 @@ from src.projection.composition import (
     compose_board_stages,
     run_compose_stages,
 )
+from src.projection.evaluation.accuracy_first import canonical_json_hash
 from src.projection.shadow.consensus_pin import (
     ConsensusPinError,
     expected_consensus_hashes,
@@ -426,33 +427,74 @@ class ShadowAttributionIntegrationTests(unittest.TestCase):
 
     def test_freeze_prohibited_when_attribution_incomplete(self):
         with tempfile.TemporaryDirectory() as tmp:
-            payload = freeze_shadow_candidate(
-                candidate_id="noop",
-                code_identity={"module": "none"},
-                evidence={"note": "synthetic"},
-                source_hashes={},
-                fold_mae_relative_deltas=[-0.05, -0.02, 0.0],
-                pooled_top120_spearman_baseline=0.4,
-                pooled_top120_spearman_candidate=0.5,
-                out_dir=tmp,
-                attribution_status="attribution_incomplete",
-            )
+            policy = Path(tmp) / "repair_track_closed.json"
+            body = {
+                "schema_version": "shadow_v1_rb_wr_repair_track_closed_v1",
+                "further_repair_authorized": True,
+                "repair_track_status": "reopened",
+                "reopen": {
+                    "cutoff_available_defect": "test-only reopen",
+                    "evidence_refs": ["tests/test_shadow_v1_rb_wr_attribution.py"],
+                },
+            }
+            body["artifact_hash"] = canonical_json_hash(body)
+            policy.write_text(json.dumps(body, indent=2), encoding="utf-8")
+            with mock.patch(
+                "src.projection.shadow.repair.snapshot_production_artifacts",
+                return_value={"ensemble_weights": {"sha256": "a"}},
+            ), mock.patch(
+                "src.projection.shadow.repair.assert_production_unchanged",
+                return_value={"production_weights_unchanged": True},
+            ):
+                payload = freeze_shadow_candidate(
+                    candidate_id="noop",
+                    code_identity={"module": "none"},
+                    evidence={"note": "synthetic"},
+                    source_hashes={},
+                    fold_mae_relative_deltas=[-0.05, -0.02, 0.0],
+                    pooled_top120_spearman_baseline=0.4,
+                    pooled_top120_spearman_candidate=0.5,
+                    out_dir=tmp,
+                    attribution_status="attribution_incomplete",
+                    policy_path=policy,
+                )
             self.assertFalse(payload["gate"]["passed"])
             self.assertEqual(payload["verdict"], "hold_v1_structural_role")
+            self.assertEqual(payload["gate"]["reason"], "attribution_incomplete")
 
     def test_freeze_hold_when_gate_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
-            payload = freeze_shadow_candidate(
-                candidate_id="noop",
-                code_identity={"module": "none"},
-                evidence={"note": "synthetic"},
-                source_hashes={},
-                fold_mae_relative_deltas=[0.05, 0.02, 0.01],
-                pooled_top120_spearman_baseline=0.4,
-                pooled_top120_spearman_candidate=0.3,
-                out_dir=tmp,
-                attribution_status="ok",
-            )
+            policy = Path(tmp) / "repair_track_closed.json"
+            body = {
+                "schema_version": "shadow_v1_rb_wr_repair_track_closed_v1",
+                "further_repair_authorized": True,
+                "repair_track_status": "reopened",
+                "reopen": {
+                    "cutoff_available_defect": "test-only reopen",
+                    "evidence_refs": ["tests/test_shadow_v1_rb_wr_attribution.py"],
+                },
+            }
+            body["artifact_hash"] = canonical_json_hash(body)
+            policy.write_text(json.dumps(body, indent=2), encoding="utf-8")
+            with mock.patch(
+                "src.projection.shadow.repair.snapshot_production_artifacts",
+                return_value={"ensemble_weights": {"sha256": "a"}},
+            ), mock.patch(
+                "src.projection.shadow.repair.assert_production_unchanged",
+                return_value={"production_weights_unchanged": True},
+            ):
+                payload = freeze_shadow_candidate(
+                    candidate_id="noop",
+                    code_identity={"module": "none"},
+                    evidence={"note": "synthetic"},
+                    source_hashes={},
+                    fold_mae_relative_deltas=[0.05, 0.02, 0.01],
+                    pooled_top120_spearman_baseline=0.4,
+                    pooled_top120_spearman_candidate=0.3,
+                    out_dir=tmp,
+                    attribution_status="ok",
+                    policy_path=policy,
+                )
             self.assertEqual(payload["gate"]["verdict"], "hold_v1_structural_role")
             self.assertTrue((Path(tmp) / "hold_v1_structural_role.json").is_file())
 
