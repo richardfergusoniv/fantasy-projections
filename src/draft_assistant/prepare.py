@@ -7,15 +7,43 @@ import json
 import math
 import os
 from datetime import datetime, timezone
+from pathlib import Path
 
 import pandas as pd
 
+from src.draft_assistant.draft_value_simulation import (
+    FINISH_CUTOFFS,
+    compute_finish_probabilities,
+)
+from src.draft_assistant.positional_ranks import simulation_rank_metadata
 from src.draft_assistant.tiers import (
     DEFAULT_TIER_GAPS,
     FLEX_TIER_GAP,
     TierConfig,
     add_tier_columns,
 )
+from src.projection.evaluation.release_report import (
+    build_release_report_board,
+    merge_release_reports,
+    write_merged_release_report,
+    write_release_report_board,
+)
+from src.projection.evaluation.finish_probability_gate import (
+    VERDICT_READY as FINISH_PROBABILITY_READY,
+    read_finish_probability_gate,
+    validate_finish_probability_publication,
+)
+from src.projection.evaluation.simulated_vorp_gate import (
+    VERDICT_READY as SIM_VORP_READY,
+    gate_output_dir,
+    read_simulated_vorp_gate,
+    validate_simulated_vorp_publication,
+)
+from src.draft_assistant.replacement_contract import (
+    default_selected_board_path,
+    read_replacement_contract,
+)
+from src.projection.inference.recenter import sha256_file
 from src.draft_assistant.vorp import (
     DEFAULT_TEAM_COUNT,
     load_position_curves,
@@ -36,6 +64,16 @@ DEFAULT_ENSEMBLE_WEIGHTS = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "ensemble_weights.json"
 )
 MODEL_V3_DIR = os.path.join(OUTPUT_DIR, "model_v3")
+
+FINISH_PROBABILITY_COLS = [f"p_finish_top{cutoff}" for cutoff in FINISH_CUTOFFS]
+SIM_VORP_COLS = [
+    "sim_vorp_p10",
+    "sim_vorp_p50",
+    "sim_vorp_p90",
+    "p_vorp_positive",
+    "expected_pos_rank",
+    "median_pos_rank",
+]
 
 EXPORT_COLS = [
     "player_id",
@@ -75,9 +113,17 @@ EXPORT_COLS = [
     "fantasy_pts_p50",
     "fantasy_pts_p75",
     "fantasy_pts_p90",
-    "p_top12",
-    "p_top24",
-    "p_top36",
+    "p_finish_top6",
+    "p_finish_top12",
+    "p_finish_top24",
+    "p_finish_top36",
+    "p_finish_top48",
+    "sim_vorp_p10",
+    "sim_vorp_p50",
+    "sim_vorp_p90",
+    "p_vorp_positive",
+    "expected_pos_rank",
+    "median_pos_rank",
     "volatility_flag",
 ]
 
@@ -282,7 +328,13 @@ def read_promotion_gate() -> dict | None:
         return json.load(fh)
 
 
-def _stale_simulation_reason(season: int, board: pd.DataFrame) -> dict | None:
+def _stale_simulation_reason(
+    season: int,
+    board: pd.DataFrame,
+    *,
+    model_v3_dir: str | None = None,
+    manifest_path: str | None = None,
+) -> dict | None:
     """Reason the simulation summary does not describe ``board``, or None.
 
     Absent provenance is treated as stale. A summary written before the
@@ -295,10 +347,12 @@ def _stale_simulation_reason(season: int, board: pd.DataFrame) -> dict | None:
     board_ids = board["projection_run_id"].dropna().unique()
     if len(board_ids) != 1:
         return None
-    manifest_path = os.path.join(MODEL_V3_DIR, f"simulation_manifest_{season}.json")
-    if not os.path.exists(manifest_path):
+    resolved_manifest = manifest_path or os.path.join(
+        model_v3_dir or MODEL_V3_DIR, f"simulation_manifest_{season}.json"
+    )
+    if not os.path.exists(resolved_manifest):
         return {"reason": "simulation_manifest_missing", "board_run_id": str(board_ids[0])}
-    with open(manifest_path, encoding="utf-8") as fh:
+    with open(resolved_manifest, encoding="utf-8") as fh:
         manifest = json.load(fh)
     sim_run_id = manifest.get("source_projection_run_id")
     if not sim_run_id:
@@ -313,7 +367,12 @@ def _stale_simulation_reason(season: int, board: pd.DataFrame) -> dict | None:
 
 
 def attach_v3_simulation_percentiles(
-    df: pd.DataFrame, season: int, *, require_gate: bool = True
+    df: pd.DataFrame,
+    season: int,
+    *,
+    require_gate: bool = True,
+    model_v3_dir: str | None = None,
+    simulation_summary_path: str | None = None,
 ) -> tuple[pd.DataFrame, dict]:
     """Merge v3 Monte Carlo percentiles when the gate authorises them.
 
@@ -331,7 +390,9 @@ def attach_v3_simulation_percentiles(
                 "reason": "gate_not_simulation_ready",
                 "gate_verdict": verdict,
             }
-    path = os.path.join(MODEL_V3_DIR, f"simulation_summary_{season}.csv")
+    path = simulation_summary_path or os.path.join(
+        model_v3_dir or MODEL_V3_DIR, f"simulation_summary_{season}.csv"
+    )
     if not os.path.exists(path):
         return df, {"applied": False, "reason": "missing_simulation_summary"}
     # Percentiles describe the board they were simulated from. Merging a
@@ -339,7 +400,16 @@ def attach_v3_simulation_percentiles(
     # QB anchor-share republish, the stale 2026 percentiles put p50 6.3 points
     # BELOW the point estimate for QBs while sitting above it for everyone
     # else. Refuse rather than publish a band that describes different numbers.
-    stale = _stale_simulation_reason(season, df)
+    stale = _stale_simulation_reason(
+        season,
+        df,
+        model_v3_dir=model_v3_dir,
+        manifest_path=(
+            os.path.join(model_v3_dir, f"simulation_manifest_{season}.json")
+            if model_v3_dir
+            else None
+        ),
+    )
     if stale:
         return df, {"applied": False, **stale}
     sim = pd.read_csv(path)
@@ -360,34 +430,217 @@ def attach_v3_simulation_percentiles(
         pd.to_numeric(out["fantasy_pts_p90"], errors="coerce")
         - pd.to_numeric(out["fantasy_pts_p10"], errors="coerce")
     ) > 40.0
-    tier_cutoffs = {"QB": 12, "RB": 24, "WR": 36, "TE": 12}
-    draws_path = os.path.join(MODEL_V3_DIR, f"simulations_{season}.parquet")
-    if os.path.exists(draws_path):
-        try:
-            draws = pd.read_parquet(draws_path)
-        except Exception:
-            draws = pd.DataFrame()
-        if not draws.empty and "draw" in draws.columns:
-            for pos, cutoff in tier_cutoffs.items():
-                ranks = (
-                    draws[draws["position"] == pos]
-                    .groupby("draw")["fantasy_pts_season"]
-                    .rank(ascending=False, method="first")
-                )
-                sub = draws[draws["position"] == pos].copy()
-                sub["rank"] = ranks
-                col = f"p_top{cutoff}"
-                probs = (
-                    sub.groupby("player_id")["rank"]
-                    .apply(lambda s: float((s <= cutoff).mean()))
-                    .rename(col)
-                )
-                out = out.merge(probs.reset_index(), on="player_id", how="left")
     return out, {
         "applied": True,
         "source": path.replace("\\", "/"),
         "gate_verdict": (read_promotion_gate() or {}).get("verdict") if require_gate else None,
         "note": "Distributional overlay only; means/VORP/tiers unchanged",
+    }
+
+
+ACCURACY_FIRST_DIR = os.path.join(OUTPUT_DIR, "accuracy_first_2026")
+
+
+def default_accuracy_first_board_path(season: int) -> str:
+    return os.path.join(OUTPUT_DIR, "accuracy_first_2026", f"fantasy_points_{season}.csv")
+
+
+def board_identity_hash(fantasy_path: str | None, season: int) -> str | None:
+    selected_path = default_selected_board_path(season)
+    if selected_path.exists():
+        return sha256_file(selected_path)
+    path = fantasy_path or os.path.join(OUTPUT_DIR, f"fantasy_points_{season}.csv")
+    if not os.path.exists(path):
+        return None
+    return sha256_file(path)
+
+
+def _load_recentered_draws(season: int, manifest: dict) -> pd.DataFrame:
+    from src.projection.inference.simulate import load_partitioned_draws
+
+    partition_dir = manifest.get("partition_dir")
+    if partition_dir and os.path.exists(partition_dir):
+        return load_partitioned_draws(season, "", partition_dir=partition_dir)
+
+    run_id = manifest.get("simulation_run_id") or manifest.get("canonical_projection_run_id") or manifest.get("source_projection_run_id")
+    if run_id:
+        partitioned = load_partitioned_draws(season, str(run_id))
+        if not partitioned.empty:
+            return partitioned
+    recentered_path = manifest.get("recentered_draws_path") or os.path.join(
+        MODEL_V3_DIR, f"simulations_recentered_{season}.parquet"
+    )
+    if os.path.exists(recentered_path):
+        return pd.read_parquet(recentered_path)
+    legacy_path = os.path.join(MODEL_V3_DIR, f"simulations_{season}.parquet")
+    if os.path.exists(legacy_path):
+        return pd.read_parquet(legacy_path)
+    return pd.DataFrame()
+
+
+def _draft_value_gate_ok() -> tuple[bool, dict | None]:
+    gate = read_finish_probability_gate()
+    if not gate:
+        return False, {"reason": "missing_finish_probability_gate"}
+    state = gate.get("state") or gate.get("verdict")
+    if state != FINISH_PROBABILITY_READY:
+        return False, {
+            "reason": "finish_probability_gate_hold",
+            "gate_state": state,
+            "gate_verdict": gate.get("verdict"),
+            "reasons": gate.get("reasons"),
+        }
+    if gate.get("publication_verdict") != "pass":
+        return False, {
+            "reason": "finish_probability_publication_hold",
+            "publication_verdict": gate.get("publication_verdict"),
+            "reasons": gate.get("reasons"),
+        }
+    return True, gate
+
+
+def attach_draft_value_overlay(
+    df: pd.DataFrame,
+    season: int,
+    *,
+    team_count: int = DEFAULT_TEAM_COUNT,
+    fantasy_path: str | None = None,
+    require_gate: bool = True,
+    attach_sim_vorp: bool = False,
+    model_v3_dir: str | None = None,
+    simulation_manifest_path: str | None = None,
+) -> tuple[pd.DataFrame, dict]:
+    """Attach finish probabilities from recentered draws when provenance passes.
+
+    Simulated VORP fields remain opt-in until their replacement contract is
+    validated independently.
+    """
+    if require_gate:
+        ok, gate_meta = _draft_value_gate_ok()
+        if not ok:
+            return df, {"applied": False, **(gate_meta or {})}
+
+    manifest_path = simulation_manifest_path or os.path.join(
+        model_v3_dir or MODEL_V3_DIR, f"simulation_manifest_{season}.json"
+    )
+    if not os.path.exists(manifest_path):
+        return df, {"applied": False, "reason": "missing_simulation_manifest"}
+    with open(manifest_path, encoding="utf-8") as fh:
+        manifest = json.load(fh)
+
+    gate = read_finish_probability_gate() if require_gate else {}
+    if require_gate:
+        provenance_ok, provenance_meta = validate_finish_probability_publication(
+            season=season,
+            board=df,
+            manifest=manifest,
+            gate=gate or {},
+            fantasy_path=fantasy_path,
+        )
+        if not provenance_ok:
+            return df, {
+                "applied": False,
+                "reason": "finish_probability_provenance_failed",
+                **provenance_meta,
+            }
+
+    stale = _stale_simulation_reason(
+        season,
+        df,
+        model_v3_dir=model_v3_dir,
+        manifest_path=manifest_path,
+    )
+    if stale:
+        return df, {"applied": False, **stale}
+
+    draws = _load_recentered_draws(season, manifest)
+    if draws.empty:
+        return df, {"applied": False, "reason": "missing_recentered_draws"}
+
+    finish = compute_finish_probabilities(draws)
+    if finish.empty:
+        return df, {"applied": False, "reason": "empty_finish_probabilities"}
+
+    out = df.copy()
+    out["player_id"] = out["player_id"].astype(str)
+    finish["player_id"] = finish["player_id"].astype(str)
+    out = out.merge(finish, on="player_id", how="left")
+
+    attached_fields = list(FINISH_PROBABILITY_COLS)
+    sim_vorp_attached = False
+    sim_vorp_meta: dict = {}
+    if attach_sim_vorp:
+        board_hash = manifest.get("selected_board_hash") or board_identity_hash(
+            fantasy_path, season
+        )
+        if not board_hash:
+            return out, {
+                "applied": True,
+                "reason": "missing_selected_board_hash",
+                "sim_vorp_attached": False,
+                "finish_attached": True,
+            }
+        gate_dir = gate_output_dir(season, str(board_hash))
+        vorp_gate = read_simulated_vorp_gate(gate_dir / "simulated_vorp_gate.json")
+        if not vorp_gate or vorp_gate.get("state") != SIM_VORP_READY:
+            return out, {
+                "applied": True,
+                "reason": "simulated_vorp_gate_hold",
+                "sim_vorp_attached": False,
+                "finish_attached": True,
+            }
+        contract = read_replacement_contract(gate_dir / "replacement_contract.json")
+        ok, validation = validate_simulated_vorp_publication(
+            manifest=manifest,
+            finish_gate=gate,
+            replacement_contract=contract,
+            vorp_gate=vorp_gate,
+        )
+        if not ok:
+            return out, {
+                "applied": True,
+                "reason": "simulated_vorp_provenance_failed",
+                "sim_vorp_attached": False,
+                "finish_attached": True,
+                **validation,
+            }
+        summary_path = gate_dir / "simulated_vorp_summary.parquet"
+        if not summary_path.exists():
+            return out, {
+                "applied": True,
+                "reason": "missing_simulated_vorp_summary",
+                "sim_vorp_attached": False,
+                "finish_attached": True,
+            }
+        vorp = pd.read_parquet(summary_path)
+        vorp["player_id"] = vorp["player_id"].astype(str)
+        out = out.merge(vorp, on="player_id", how="left")
+        attached_fields.extend(SIM_VORP_COLS)
+        sim_vorp_attached = True
+        sim_vorp_meta = {
+            "sim_vorp_gate_state": vorp_gate.get("state"),
+            "replacement_contract_hash": contract.get("contract_hash"),
+        }
+
+    return out, {
+        "applied": True,
+        "source": manifest_path.replace("\\", "/"),
+        "transform_version": manifest.get("transform_version"),
+        "selected_board_hash": manifest.get("selected_board_hash"),
+        "selected_board_model_id": manifest.get("selected_board_model_id"),
+        "finish_gate_state": (gate or {}).get("state") or (gate or {}).get("verdict"),
+        "publication_verdict": (gate or {}).get("publication_verdict"),
+        "finish_cutoffs": list(FINISH_CUTOFFS),
+        "attached_fields": attached_fields,
+        "sim_vorp_attached": sim_vorp_attached,
+        **sim_vorp_meta,
+        "rank_tie_policies": simulation_rank_metadata(),
+        "note": (
+            "Additive finish-probability and simulated-VORP overlays; "
+            "deterministic VORP/tiers unchanged. "
+            "p_finish_* and simulated rank moments use different tie policies "
+            "(see rank_tie_policies)."
+        ),
     }
 
 
@@ -468,6 +721,11 @@ def export_draft_data(
     require_v3_means_gate: bool = True,
     fantasy_path: str | None = None,
     out_path: str | None = None,
+    attach_sim_vorp: bool = False,
+    model_v3_dir: str | None = None,
+    simulation_manifest_path: str | None = None,
+    skip_public_release_reports: bool = False,
+    require_gate: bool = True,
 ) -> str:
     df = load_projections(season, fantasy_path)
     accuracy_meta = accuracy_ensemble_metadata(df)
@@ -489,7 +747,27 @@ def export_draft_data(
                 "weights": weights,
                 "note": "Draft post-process blend only; compose_board unchanged",
             }
-    df, v3_sim_meta = attach_v3_simulation_percentiles(df, season)
+    df, v3_sim_meta = attach_v3_simulation_percentiles(
+        df,
+        season,
+        require_gate=require_gate,
+        model_v3_dir=model_v3_dir,
+        simulation_summary_path=(
+            os.path.join(model_v3_dir, f"simulation_summary_{season}.csv")
+            if model_v3_dir
+            else None
+        ),
+    )
+    df, draft_value_meta = attach_draft_value_overlay(
+        df,
+        season,
+        team_count=team_count,
+        fantasy_path=fantasy_path,
+        attach_sim_vorp=attach_sim_vorp,
+        model_v3_dir=model_v3_dir,
+        simulation_manifest_path=simulation_manifest_path,
+        require_gate=require_gate,
+    )
     df, v3_means_meta = apply_v3_means(
         df,
         season,
@@ -570,6 +848,7 @@ def export_draft_data(
             "ensemble": ensemble_meta,
             "accuracy_ensemble": accuracy_meta,
             "v3_simulation": v3_sim_meta,
+            "draft_value_simulation": draft_value_meta,
             "v3_means": v3_means_meta,
         },
         "tier_gaps": {
@@ -586,6 +865,30 @@ def export_draft_data(
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     with open(out_path, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=2, allow_nan=False)
+
+    board_report = build_release_report_board(
+        season=season,
+        draft_value_meta=draft_value_meta,
+        v3_sim_meta=v3_sim_meta,
+        exported_board_path=Path(out_path),
+        players_df=df,
+    )
+    if skip_public_release_reports:
+        report_dir = Path(model_v3_dir) if model_v3_dir else Path(MODEL_V3_DIR)
+        write_release_report_board(board_report, season=season, out_dir=report_dir)
+        sim_report_path = report_dir / f"release_report_simulation_{season}.json"
+        if sim_report_path.exists():
+            sim_report = json.loads(sim_report_path.read_text(encoding="utf-8"))
+            merged = merge_release_reports(sim_report, board_report)
+            write_merged_release_report(merged, season=season, out_dir=report_dir)
+    else:
+        write_release_report_board(board_report, season=season)
+        sim_report_path = Path(MODEL_V3_DIR) / f"release_report_simulation_{season}.json"
+        if sim_report_path.exists():
+            sim_report = json.loads(sim_report_path.read_text(encoding="utf-8"))
+            merged = merge_release_reports(sim_report, board_report)
+            write_merged_release_report(merged, season=season)
+
     return out_path
 
 
@@ -624,6 +927,11 @@ def main() -> None:
         action="store_true",
         help="Use v3 p50 means even if promotion gate has not cleared promote_v3_means",
     )
+    parser.add_argument(
+        "--attach-sim-vorp",
+        action="store_true",
+        help="Attach simulated VORP overlay when simulated_vorp_gate publication_verdict is pass",
+    )
     args = parser.parse_args()
     path = export_draft_data(
         args.season,
@@ -632,6 +940,7 @@ def main() -> None:
         use_ensemble=not args.no_ensemble,
         use_v3_means=bool(args.v3_means or args.force_v3_means),
         require_v3_means_gate=not args.force_v3_means,
+        attach_sim_vorp=bool(args.attach_sim_vorp),
     )
     print(f"Wrote {path}")
 

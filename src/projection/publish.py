@@ -24,14 +24,20 @@ from src.projection.contracts import (
     REPO_ROOT,
 )
 from src.projection.data_prep import get_conn
+from src.projection.evaluation.release_report import (
+    build_release_report_simulation,
+    write_release_report_simulation,
+)
 from src.projection.fantasy_points import compute_fantasy_points
 from src.projection.inference.simulate import write_simulation_outputs
+from src.projection.inference.simulation_config import load_simulation_config, profile_draws
 from src.projection.predict import project_season, with_display_names
 from src.sentiment.snapshot import attach_sentiment
 from src.team_stats.prepare import export_team_stats
 
 
-SIMULATION_DRAWS = 1000
+SIMULATION_DRAWS = 10000
+ACCURACY_FIRST_BOARD = Path(OUTPUT_DIR) / "accuracy_first_2026"
 MANIFEST_SCHEMA_VERSION = 1
 
 
@@ -179,10 +185,23 @@ def publish(
 
     simulation_manifest = None
     if simulate:
-        # Runs against the board just built, so the percentiles carry this
-        # run's id and the overlay's provenance guard accepts them.
+        selected_board = None
+        selected_board_hash = None
+        selected_board_model_id = None
+        accuracy_board_path = ACCURACY_FIRST_BOARD / f"fantasy_points_{season}.csv"
+        if accuracy_board_path.exists():
+            selected_board = pd.read_csv(accuracy_board_path)
+            selected_board_hash = sha256_file(accuracy_board_path)
+            selected_board_model_id = "accuracy_first_ensemble"
         simulation_manifest = write_simulation_outputs(
-            projections, season, n_draws=simulation_draws)
+            projections,
+            season,
+            n_draws=simulation_draws,
+            selected_board=selected_board,
+            selected_board_hash=selected_board_hash,
+            selected_board_model_id=selected_board_model_id,
+            simulation_profile="dev",
+        )
 
     final_paths = {
         "projections": Path(OUTPUT_DIR) / f"projections_{season}.csv",
@@ -247,6 +266,12 @@ def publish(
         # rather than treated as a coherent publish.
         for key in ("projections", "fantasy_points", "team_stats", "draft_data", "manifest"):
             os.replace(staged[key], final_paths[key])
+    sim_report = build_release_report_simulation(
+        season=season,
+        projection_run=manifest,
+        simulation_manifest=simulation_manifest,
+    )
+    write_release_report_simulation(sim_report, season=season)
     return manifest
 
 
@@ -264,7 +289,68 @@ def main() -> int:
     )
     parser.add_argument(
         "--simulation-draws", type=int, default=SIMULATION_DRAWS)
+    parser.add_argument(
+        "--simulation-profile",
+        default="dev",
+        help="Simulation profile from config/simulation.json (dev, publish, release_candidate).",
+    )
+    parser.add_argument(
+        "--artifact-namespace",
+        default=None,
+        help="Required for publish and release_candidate profiles; namespaced output root.",
+    )
+    parser.add_argument(
+        "--rollout-label",
+        default=None,
+        help="Human-readable rollout label stored on RC manifests and validation.",
+    )
     args = parser.parse_args()
+
+    sim_config = load_simulation_config()
+    profile = args.simulation_profile
+    if profile != "dev" and not args.artifact_namespace:
+        raise SystemExit(
+            f"--artifact-namespace is required for non-default simulation profile {profile!r}"
+        )
+    if profile == "release_candidate":
+        from src.projection.release_candidate import publish_release_candidate
+
+        if not args.artifact_namespace:
+            raise SystemExit("--artifact-namespace is required for release_candidate publish")
+        if not args.rollout_label:
+            raise SystemExit("--rollout-label is required for release_candidate publish")
+        profile_draws_value = profile_draws(sim_config, profile)
+        draws = args.simulation_draws
+        if profile_draws_value is not None:
+            draws = int(profile_draws_value)
+        result = publish_release_candidate(
+            args.season,
+            artifact_namespace=args.artifact_namespace,
+            simulation_draws=draws,
+            simulation_profile=profile,
+            rollout_label=args.rollout_label,
+            as_of=args.as_of,
+        )
+        print(json.dumps(result, indent=2, default=str))
+        return 0
+
+    if profile == "publish":
+        from src.projection.release_bundle_publish import publish_release_bundle
+
+        profile_draws_value = profile_draws(sim_config, profile)
+        draws = args.simulation_draws
+        if profile_draws_value is not None:
+            draws = int(profile_draws_value)
+        result = publish_release_bundle(
+            args.season,
+            artifact_namespace=args.artifact_namespace,
+            simulation_draws=draws,
+            simulation_profile=profile,
+            as_of=args.as_of,
+        )
+        print(json.dumps(result, indent=2, default=str))
+        return 0
+
     manifest = publish(
         args.season,
         as_of=args.as_of,
