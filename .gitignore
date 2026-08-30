@@ -33,3 +33,27 @@ publish-*/
 # scripts/run_v3_simulation.py; the committed summary CSV is what the draft
 # board reads. Keeping the draws out of git avoids a large binary per run.
 output/model_v3/simulations_*.parquet
+
+# Sealed release bundles and RC namespaces (~180 MB and ~85 MB today, growing
+# one namespace per publish). These are the full artifact set INCLUDING the
+# partitioned draws; they are regenerable from a publish run, and the sealed
+# manifest already carries a sha256 per artifact. What the browser actually
+# serves is the small public copy under draft_assistant/data/releases/, which
+# IS tracked -- the site cannot resolve a pointer without it.
+output/model_v3/release_bundles/
+output/model_v3/release_candidates/
+
+# Partitioned Monte Carlo draws (~43 MB/run). Same rationale as the flat
+# simulations_*.parquet above: regenerable, and the summary CSV is what the
+# board reads.
+output/model_v3/simulations/
+output/model_v3/holdout_draws_*.parquet
+output/model_v3/training_draws_*.parquet
+
+# Draw-stability sweep working set (~340 MB). The evidence that outlives it is
+# the frozen bundle under output/model_v3/frozen/ plus the decision JSONs,
+# both of which stay tracked.
+output/model_v3/draw_stability/
+
+# Long-running publish/evaluation console logs.
+output/*.log
