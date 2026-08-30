@@ -32,6 +32,7 @@ from sklearn.linear_model import RidgeCV
 
 from src.projection.data_prep import get_conn
 from src.projection.features import build_player_season_features, TARGET_STATS
+from src.projection.qb_context import QB_CONTEXT_FEATURES
 from src.projection.transitions import (
     build_transition_pairs, build_team_transition_pairs, build_availability_pairs,
     build_role_transition_pairs, role_rate_label, role_label_for,
@@ -110,7 +111,9 @@ def fit_team_total(feat, pairs=ALL_PAIRS, label_col=TEAM_TOTAL_LABEL):
     efficient leave-one-out CV rather than this being another stated-but-
     untuned constant."""
     data = build_team_transition_pairs(feat, pairs, label_col=label_col)
-    X = data[TEAM_MODEL_FEATURES]
+    context_cols = [c for c in QB_CONTEXT_FEATURES if c in data.columns]
+    feature_cols = TEAM_MODEL_FEATURES + context_cols
+    X = data[feature_cols]
     y = data[label_col]
     model = RidgeCV(alphas=np.logspace(-2, 3, 20))
     model.fit(X, y)

@@ -26,6 +26,7 @@ from src.projection.depth_history import (
     attach_depth_tier,
 )
 from src.projection.features import FEATURE_COLS, TARGET_STATS, OC_METRICS
+from src.projection.qb_context import QB_CONTEXT_FEATURES
 
 EXTRA_FEATURES = ["games_played"]
 ALL_FEATURES = FEATURE_COLS + EXTRA_FEATURES
@@ -452,8 +453,9 @@ def _build_role_transition_pairs(feat, position, stat, season_pairs, conn, label
     for season_from, season_to in season_pairs:
         role_from = role_rate_label(stat)
         carry_cols = [rate_col, role_from] + ([y_col] if y_col not in (rate_col, role_from) else [])
+        context_cols = [c for c in QB_CONTEXT_FEATURES if c in pos_df.columns]
         a = pos_df[pos_df["season"] == season_from][
-            ["player_id", "team"] + ALL_FEATURES + carry_cols].copy()
+            ["player_id", "team"] + ALL_FEATURES + context_cols + carry_cols].copy()
         # naive_pred must carry forward the SAME quantity being predicted.
         # Using {stat}_pg here - a per-APPEARANCE rate - against a per-ELIGIBLE
         # label silently rigs the comparison: a backup's appearance rate is
@@ -638,13 +640,14 @@ def build_team_transition_pairs(feat, season_pairs, label_col=TEAM_TOTAL_LABEL):
     # played 0 games and has no resolved season team) carry team=NaN, which
     # drop_duplicates would otherwise keep as its own spurious "33rd team"
     # group per season.
+    context_cols = [c for c in QB_CONTEXT_FEATURES if c in feat.columns]
     team_df = feat.dropna(subset=["team"]).drop_duplicates(subset=["season", "team"])[
-        ["season", "team", label_col] + TEAM_FEATURES
+        ["season", "team", label_col] + TEAM_FEATURES + context_cols
     ]
 
     rows = []
     for season_from, season_to in season_pairs:
-        a = team_df[team_df["season"] == season_from][["team"] + TEAM_FEATURES + [label_col]]
+        a = team_df[team_df["season"] == season_from][["team"] + TEAM_FEATURES + context_cols + [label_col]]
         a = a.rename(columns={label_col: "naive_pred"})
         # Same value under a team-grain-only name. `naive_pred` is kept
         # because every pair-builder in this module uses that name for its

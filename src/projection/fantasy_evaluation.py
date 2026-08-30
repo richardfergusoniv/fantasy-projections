@@ -56,6 +56,14 @@ from src.projection.rookies import (
     team_vacated_opportunity,
 )
 from src.projection.train import fit_availability, fit_one, fit_team_total
+from src.projection.qb_context import (
+    QB_CONTEXT_FEATURES,
+    augment_history_with_qb_context,
+    attach_qb_context,
+    build_team_qb_context,
+    features_for_model,
+    model_artifact_manifest,
+)
 from src.projection.transitions import (
     ALL_FEATURES,
     ROLE_FEATURES,
@@ -317,7 +325,13 @@ def _actual_player_totals(feature_table: pd.DataFrame, season: int) -> pd.DataFr
 
 
 def _team_anchor_predictions(
-    history: pd.DataFrame, source_season: int, pairs: list[tuple[int, int]]
+    history: pd.DataFrame,
+    source_season: int,
+    pairs: list[tuple[int, int]],
+    *,
+    target_season: int,
+    use_qb_context: bool = False,
+    conn=None,
 ) -> pd.DataFrame:
     labels = {label: pred_col for label, _key, pred_col in TEAM_ANCHOR_SPECS}
     source = (
@@ -327,11 +341,20 @@ def _team_anchor_predictions(
         .copy()
     )
     out = source[["team"]].copy()
+    team_history = augment_history_with_qb_context(conn, history, pairs) if use_qb_context and conn is not None else history
     for label, output_col in labels.items():
-        model, _ = fit_team_total(history, pairs=pairs, label_col=label)
+        model, _ = fit_team_total(team_history, pairs=pairs, label_col=label)
         inputs = source[TEAM_FEATURES].copy()
         inputs["team_naive_pred"] = source[label]
-        out[output_col] = np.clip(model.predict(inputs[TEAM_MODEL_FEATURES]), 0, None)
+        if use_qb_context and conn is not None:
+            ctx = build_team_qb_context(
+                conn, history, source_season=source_season, target_season=target_season
+            )
+            inputs = attach_qb_context(inputs, ctx)
+            team_features = TEAM_MODEL_FEATURES + list(QB_CONTEXT_FEATURES)
+        else:
+            team_features = TEAM_MODEL_FEATURES
+        out[output_col] = np.clip(model.predict(inputs[team_features]), 0, None)
     # Provenance columns carry the same meaning as canonical_team_anchor_frame's
     # in the shipped path, so propagate_team_anchors validates this frame with
     # the same invariants. The value differs only in how the model was fitted -
@@ -372,6 +395,7 @@ def _veteran_forecasts(
     target_season: int,
     pairs: list[tuple[int, int]],
     qb_partial_prior_shrink: bool = False,
+    use_qb_context: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     rookies = set(population.loc[population["is_rookie"], "player_id"])
     eligible = population[~population["player_id"].isin(rookies)].copy()
@@ -382,6 +406,12 @@ def _veteran_forecasts(
         return pd.DataFrame(), pd.DataFrame()
     base["team"] = base["preseason_team"]
     base["position"] = base["preseason_position"]
+    train_history = augment_history_with_qb_context(conn, history, pairs) if use_qb_context else history
+    if use_qb_context:
+        scoring_ctx = build_team_qb_context(
+            conn, history, source_season=source_season, target_season=target_season
+        )
+        base = attach_qb_context(base, scoring_ctx)
 
     # Team context is re-pointed to the target team using source-season data;
     # no 2025 realized team tendency enters a moved player's row.
@@ -399,7 +429,7 @@ def _veteran_forecasts(
         idx = base["position"].eq(position)
         if not idx.any():
             continue
-        model, _ = fit_availability(history, position, pairs=pairs)
+        model, _ = fit_availability(train_history, position, pairs=pairs)
         predicted_games = np.clip(
             model.predict(base.loc[idx, AVAILABILITY_FEATURES]), 0, SEASON_GAMES
         )
@@ -408,7 +438,7 @@ def _veteran_forecasts(
             "projected_games": predicted_games,
         }))
         for stat in stats:
-            rate_model, _ = fit_one(history, position, stat, pairs=pairs, conn=conn)
+            rate_model, _ = fit_one(train_history, position, stat, pairs=pairs, conn=conn)
             # The prior in the label's own units, same column the pair builder
             # supplies at fit time, so training and scoring agree.
             scoring = base.loc[idx].copy()
@@ -429,7 +459,12 @@ def _veteran_forecasts(
                     enabled=True,
                 )
             scoring[ROLE_PRIOR_FEATURE] = prior
-            features = role_features_for(position, stat)
+            features = features_for_model(
+                position,
+                stat,
+                qb_context=use_qb_context,
+                base_features=role_features_for(position, stat),
+            )
             if ROLE_PRIOR_3Y_FEATURE in features:
                 scoring[ROLE_PRIOR_3Y_FEATURE] = trailing_role_rate(
                     history, scoring["player_id"], position, stat, source_season
@@ -572,6 +607,7 @@ def _forecast_from_history(
     reconcile_alpha: float | None = None,
     return_long: bool = False,
     feature_table: pd.DataFrame | None = None,
+    use_qb_context: bool = False,
 ) -> pd.DataFrame:
     """Internal forecast stage; `history` must contain no target outcomes."""
     if history["season"].max() > source_season:
@@ -579,10 +615,14 @@ def _forecast_from_history(
     pairs = safe_training_pairs(source_season)
     if not pairs:
         raise ValueError("no safe production-era training transitions")
-    anchors = _team_anchor_predictions(history, source_season, pairs)
+    anchors = _team_anchor_predictions(
+        history, source_season, pairs, target_season=target_season,
+        use_qb_context=use_qb_context, conn=conn,
+    )
     veteran_long, veteran_games = _veteran_forecasts(
         conn, history, population, source_season, target_season, pairs,
         qb_partial_prior_shrink=qb_partial_prior_shrink,
+        use_qb_context=use_qb_context,
     )
     rookie_long, rookie_games = _rookie_forecasts(
         rookie_cohort, source_season, target_season
@@ -637,6 +677,11 @@ def _forecast_from_history(
     # Coverage must never be readable as performance.
     scored.attrs["stage_coverage"] = context.describe_coverage()
     scored.attrs["artifact_provenance"] = context.artifact_provenance
+    if use_qb_context:
+        scored.attrs["artifact_provenance"] = {
+            **(scored.attrs.get("artifact_provenance") or {}),
+            **model_artifact_manifest(consumes_qb_context=True),
+        }
     return scored
 
 
@@ -645,6 +690,8 @@ def build_leakage_safe_long_board(
     feature_table: pd.DataFrame,
     source_season: int,
     target_season: int,
+    *,
+    use_qb_context: bool = False,
 ) -> pd.DataFrame:
     """Return the held-out long board after the shipped composition stages.
 
@@ -668,6 +715,7 @@ def build_leakage_safe_long_board(
         exposure_blend_alpha=0.0,
         return_long=True,
         feature_table=feature_table,
+        use_qb_context=use_qb_context,
     )
 
 
@@ -683,6 +731,7 @@ def build_leakage_safe_forecasts(
     team_volume_shares: dict | None = None,
     team_volume_siblings: dict | None = None,
     reconcile_alpha: float | None = None,
+    use_qb_context: bool = False,
 ) -> tuple[pd.DataFrame, dict]:
     """Freeze population and forecast without exposing any 2025 outcomes."""
     history = feature_table[feature_table["season"].le(source_season)].copy()
@@ -705,6 +754,7 @@ def build_leakage_safe_forecasts(
         team_volume_siblings=team_volume_siblings,
         reconcile_alpha=reconcile_alpha,
         feature_table=feature_table,
+        use_qb_context=use_qb_context,
     )
     out = population.merge(forecasts, on="player_id", how="left")
     out["forecast_covered"] = out["forecast_covered"].fillna(False)
@@ -955,6 +1005,7 @@ def run_evaluation(
     qb_partial_prior_shrink: bool = False,
     qb_rush_td_clip_hi: float | None = None,
     qb_pass_td_t1_lite: bool = False,
+    use_qb_context: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     conn = get_conn()
     try:
@@ -968,6 +1019,7 @@ def run_evaluation(
             qb_partial_prior_shrink=qb_partial_prior_shrink,
             qb_rush_td_clip_hi=qb_rush_td_clip_hi,
             qb_pass_td_t1_lite=qb_pass_td_t1_lite,
+            use_qb_context=use_qb_context,
         )
     finally:
         conn.close()
@@ -979,6 +1031,7 @@ def run_evaluation(
     metadata["qb_partial_prior_shrink"] = bool(qb_partial_prior_shrink)
     metadata["qb_rush_td_clip_hi"] = qb_rush_td_clip_hi
     metadata["qb_pass_td_t1_lite"] = bool(qb_pass_td_t1_lite)
+    metadata["use_qb_context"] = bool(use_qb_context)
     metadata["tier_ranks"] = tier_ranks or DEFAULT_TIER_RANKS
     metadata["replacement_ranks"] = replacement_ranks or DEFAULT_REPLACEMENT_RANKS
     metadata["qb_starter_metrics"] = qb_starter_metrics(summary)
