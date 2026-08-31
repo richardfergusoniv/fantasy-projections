@@ -1,5 +1,21 @@
 # State of the build — 2026-08-15
 
+> **Update (2026-08-30 — live board / availability / RB·WR / 10k):** The browser
+> serves sealed `v2_baseline_20260830` (previous `v2_candidate_20260830`). Mean
+> board exposure uses **17 games** except explicit status overrides; Gate A
+> modeled availability survives in `projected_games_raw` and in simulation
+> uncertainty, with blend **α=0** deliberately retained after the rejected
+> shadow availability blend. RB/WR is **closed, not solved**: selected weights
+> RB 0.10/0.30/0.60 and WR 0/0.55/0.45 (v1/v2/ADP), current ADP alignment
+> ~0.93/0.85; the only authorized revisit is post-2026 accuracy-first selector
+> results (`docs/decisions/V1_PRODUCTION_ROLE_2026-08-29.md`). Production draw
+> count is **10,000** as a human-approved operational compromise
+> (`decision_stable_compromise_10000`) — decision-stable at 10k, but the strict
+> numerical gate vs 20k did **not** pass. Active sealed release report still
+> lacks that risk field; do not reseal in place. Restore provenance + tracked
+> promotion receipts: `docs/decisions/PROMOTION_PROVENANCE_2026-08-30.md`.
+> Suite size is on the order of ~470 pytest cases (run `pytest --collect-only`).
+
 > **Update (2026-08-27 — accuracy-first 2026 board):** A leakage-safe
 > top-120 ADP bake-off promotes a separate accuracy-first point board: 2025
 > holdout MAE 58.72 → 53.14 and Spearman .504 → .602. The gain comes from
@@ -297,15 +313,13 @@ specific import claim was overtaken by `composition.py`, which
 `REPO_HYGIENE_AUDIT.md` §5.4 notes "appeared *during* this audit" **[doc]**. The
 audit is another agent's live deliverable and is not edited here.
 
-### 3.5 Nothing in the allocation layer is committed
+### 3.5 Allocation layer is committed (supersedes earlier hygiene note)
 
-**[git]** `git ls-files src/projection/` returns 13 files. `composition.py`,
-`contracts.py`, `team_reconcile.py`, `team_pass_mix.py`, `team_rush_mix.py`,
-`roster_moves.py`, `replacement.py`, `depth_gating.py`, `depth_rates.py`,
-`veterans.py`, `artifacts.py`, `src/coordinator/inheritance.py`, and four test
-files are all untracked. Five of the eight decision records and both audits are
-untracked too. The build currently exists only in one working tree.
-Staging commands are in `REPO_HYGIENE_AUDIT.md` §7.
+**[git]** The projection package, decision records, sealed public browser
+copies, and active pointer are tracked. Full release bundles under
+`output/model_v3/release_bundles/` remain local/ignored by design. Earlier
+claims that the allocation layer existed only as untracked working-tree files
+are obsolete.
 
 ---
 

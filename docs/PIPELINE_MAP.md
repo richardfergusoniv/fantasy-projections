@@ -468,7 +468,7 @@ python scripts/validate_release_bundle.py --season 2026 --artifact-namespace <ns
 python -m src.projection.publish --season 2026   --simulation-profile release_candidate   --artifact-namespace <ns> --rollout-label <label>
 ```
 
-A non-`dev` profile requires `--artifact-namespace`. `publish` writes an immutable `release_bundle_manifest_v2` (promotion-eligible) under `output/model_v3/release_bundles/` and copies browser artifacts to `draft_assistant/data/releases/<ns>/` without rewriting `active_release_<season>.json`. Older `release_bundle_manifest_v1` bundles remain readable but cannot be promoted (`promotion_eligible=false`). `promote_release` runs six fail-closed promotion invariants, copies browser artifacts through a temp public namespace with rehashing, requires a clean git tree matching the bundle's `source_commit`, and atomically replaces only the pointer. `release_candidate` additionally requires `--rollout-label` and routes through `src/projection/release_candidate.py`.
+A non-`dev` profile requires `--artifact-namespace`. `publish` writes an immutable `release_bundle_manifest_v2` (promotion-eligible) under `output/model_v3/release_bundles/` and copies browser artifacts to `draft_assistant/data/releases/<ns>/` without rewriting `active_release_<season>.json`. Older `release_bundle_manifest_v1` bundles remain readable but cannot be promoted (`promotion_eligible=false`). `promote_release` runs six fail-closed promotion invariants, copies browser artifacts through a temp public namespace with rehashing, requires a clean git tree with either initial equality or restore ancestry against the bundle's `source_commit`, atomically replaces the pointer, and writes a tracked promotion receipt. `release_candidate` additionally requires `--rollout-label` and routes through `src/projection/release_candidate.py`.
 
 Artifacts are staged in a temp directory and atomically swapped, with the run manifest moved last as the commit marker; an interrupted run is rejected rather than half-published.
 
@@ -479,17 +479,19 @@ Publishing used to mean overwriting `draft_assistant/data/players_2026.json` in 
 ```
 publish --artifact-namespace <ns>
   |
-  |-- output/model_v3/release_bundles/season=<s>/namespace=<ns>/
+  |-- output/model_v3/release_bundles/season=<s>/namespace=<ns>/   (local full bundle; gitignored)
   |     release_bundle_manifest.json   <- release_bundle_manifest_v2 (new), v1 legacy
+  |     release_bundle_validation.json <- mutable attestation sidecar; never restore authority
   |     ...56 artifacts, each sha256 + byte_size
   |
-  '-- draft_assistant/data/releases/<ns>/      (public browser copies)
+  '-- draft_assistant/data/releases/<ns>/      (public browser copies; tracked)
         players / team_stats / comparison / deep_band_accuracy / manifest
 
 validate_release_bundle.py       attestation checks + promotion_invariants (6 named checks)
 promote_release --artifact-namespace <ns>
   |
-  '-- draft_assistant/data/active_release_<s>.json   <- ONLY this file changes
+  |-- draft_assistant/data/active_release_<s>.json          <- pointer swap
+  '-- draft_assistant/data/promotion_receipts/<s>/<ns>.json <- tracked activation receipt
 ```
 
 **Promotion invariants** (`evaluation/promotion_invariants.py`) — all six must pass before pointer movement; no force flag:
@@ -499,13 +501,15 @@ promote_release --artifact-namespace <ns>
 3. `simulation_profile_identity` — `profile_key`, `profile_label`, `draw_count`, `chunk_size`, `configuration_hash`, `policy_hash` agree with sealed rollout decision and `config/simulation.json`
 4. `ensemble_source_provenance` — sealed `v2_points`, `adp_source`, `ensemble_weights`, and contract hashes agree
 5. `browser_artifact_completeness` — every `browser_consumed` artifact appears exactly once in the public namespace with matching bytes
-6. `git_provenance` — clean tree, `HEAD == bundle.git.source_commit`, `source_dirty=false`
+6. `git_provenance` — clean tree, `source_dirty=false`, and either **initial** (`HEAD == source_commit`) or **restore** (`source_commit` is an ancestor of `HEAD`)
+
+**Provenance modes.** A namespace that has never been promoted stays on strict equality. Restore mode is derived only when the exact namespace, release ID, and manifest hash match the active pointer's current or previous release, or a git-tracked `release_promotion_receipt_v1`. The mutable `release_bundle_validation.json` sidecar never authorizes restore. See [`PROMOTION_PROVENANCE_2026-08-30.md`](decisions/PROMOTION_PROVENANCE_2026-08-30.md).
 
 **The manifest carries identity, never status** (`release_bundle.py`). `release_bundle_manifest_v2` records the namespace, `release_id`, model id, the `runs` pair (`projection_run_id`, `simulation_run_id`), canonical `selected_board_sha256` (plus `selected_points_vector_hash` separately), `overlay_coverage`, `ensemble` provenance, `git` provenance, the simulation block (profile identity, draw count, configuration hash, policy hash, joint-donor hash, calibration hashes) and the overlay population hash — plus per-artifact `sha256`/`byte_size`/`media_type`/`required`/`browser_consumed`. Keys named `status`, `active` or `inactive` are **forbidden on the document by construction** (`FORBIDDEN_MUTABLE_KEYS`), so "which release is live" can never be a field someone rewrites inside a sealed bundle. **The v2 board is sealed with everything else.** `v2_pred` comes from a separate repository (`../fantasy-projections-2`, synced in by `from_v2.py`) and carries 0.55 of the published WR mean and 0.30 of RB. It used to be read as a "frozen source" without being hashed into the application contract or copied into the bundle, so that one input could be swapped and every other hash in the chain would still validate. It is now pinned as `source_hashes.v2_points_<season>` and sealed as the `v2_points` artifact, and `validate_release_bundle` checks the sealed copy against the pin. Bundles sealed before the pin have neither and skip the check rather than failing it.
 
 Every file in the namespace must be enumerated — an unlisted file fails the seal outright, which is exactly how the rehearsal caught `simulations_2026.parquet` being written but not declared.
 
-**Mutable status lives on the pointer** (`active_release.py`, `promote_release.py`). `active_release_<season>.json` is `active_release_pointer_v1`: namespace, release id, manifest path and its `manifest_sha256`, `activated_at`, the `public_urls` map, and a `previous` block naming the namespace it replaced — the rollback target, recorded at promotion time rather than reconstructed later. `promote_release` revalidates the sealed bundle and verifies the public copies still hash-match before it atomically replaces that one file.
+**Mutable status lives on the pointer** (`active_release.py`, `promote_release.py`). `active_release_<season>.json` is `active_release_pointer_v1`: namespace, release id, manifest path and its `manifest_sha256`, `activated_at`, the `public_urls` map, and a `previous` block naming the namespace/release it replaced (optional `previous.manifest_sha256`). `promote_release` revalidates the sealed bundle and verifies the public copies still hash-match before it atomically replaces that one file, then writes a tracked promotion receipt.
 
 **The browser fails visibly, not quietly** (`draft_assistant/js/release_loader.js`, loaded by all five pages). Its contract, in order:
 
@@ -524,57 +528,59 @@ The Phase 2 simulation overlays (finish probabilities, simulated VORP) are built
 
 - **Draw-count stability** — nested-prefix evaluation at 1k/2k/5k/10k via `scripts/evaluate_draw_stability.py`; decision recorded in `output/model_v3/draw_count_decision.json`.
 - **Intermediate draw sweep** — 7.5k/10k/15k vs validated 20k reference via `scripts/evaluate_draw_stability.py --gate-mode production_v20k --skip-generate-reference --sweep-phase intermediate_v20k`; artifact `draw_stability_intermediate_v20k_<season>.json`. Frozen copy + `freeze_manifest.json` under `output/model_v3/frozen/draw_stability_intermediate_v20k_<season>/` via `scripts/freeze_draw_stability_evidence.py`.
-- **Draw-count rollout (RC)** — namespaced non-public 10k publish via `python -m src.projection.publish --simulation-profile release_candidate --artifact-namespace <ns> --rollout-label <label>`; artifacts under `output/model_v3/release_candidates/season=<season>/namespace=<ns>/`. Rollout policy in `output/model_v3/draw_count_rollout_decision.json` (`draw_count_rollout_decision_v2`, Phase 2 closed; revisited 2026-08-29). Human records: [`DRAW_COUNT_ROLLOUT_HUMAN_DECISION_2026-08-28.md`](decisions/DRAW_COUNT_ROLLOUT_HUMAN_DECISION_2026-08-28.md), [`DRAW_COUNT_ROLLOUT_HUMAN_DECISION_2026-08-29.md`](decisions/DRAW_COUNT_ROLLOUT_HUMAN_DECISION_2026-08-29.md). Production profile: `decision_stable_compromise_10000` (10k draws; not strict-numerical vs 20k). Closure via `scripts/write_draw_count_rollout_closure.py`.
+- **Draw-count rollout (RC)** — namespaced non-public 10k publish via `python -m src.projection.publish --simulation-profile release_candidate --artifact-namespace <ns> --rollout-label <label>`; artifacts under `output/model_v3/release_candidates/season=<season>/namespace=<ns>/`. Rollout policy in `output/model_v3/draw_count_rollout_decision.json` (`draw_count_rollout_decision_v2`, Phase 2 closed; revisited 2026-08-29). Human records: [`DRAW_COUNT_ROLLOUT_HUMAN_DECISION_2026-08-28.md`](decisions/DRAW_COUNT_ROLLOUT_HUMAN_DECISION_2026-08-28.md), [`DRAW_COUNT_ROLLOUT_HUMAN_DECISION_2026-08-29.md`](decisions/DRAW_COUNT_ROLLOUT_HUMAN_DECISION_2026-08-29.md). Production profile: `decision_stable_compromise_10000` (10k draws; human-approved operational compromise — decision-stable at 10k, but the strict numerical gate against 20k did **not** pass). Closure via `scripts/write_draw_count_rollout_closure.py`.
 - **Decision-change diagnostics** — per-event threshold analysis with 20k reference validation via `scripts/evaluate_draw_decision_diagnostics.py`; artifacts `output/model_v3/decision_change_events_<season>.parquet`, `player_stability_diagnostics_<season>.parquet`, and `decision_change_diagnostics_<season>.json`. The 20k reference extends the existing 10k checkpoint (full-board generation, top-120 evaluation). Provenance failure yields `verdict: hold`.
 - **Decision quality (E1)** — top-N precision/recall grids, tier calibration, one-dimensional segments and roster-independent ADP-choice regret over rolling-origin folds, reusing the leakage-safe populations from `fantasy_evaluation`, the market join from `market_metrics` and the authoritative VORP/tier contracts from `draft_assistant` (`evaluation/decision_quality.py`; `scripts/evaluate_decision_quality.py`). The gate (`decision_quality_gate.py`) derives its thresholds **from frozen baseline evidence rather than hard-coded constants**, and returns `hold` on any missing fold, contract hash, market snapshot or baseline reference.
 - **QB context retrain (E2)** — `evaluation/qb_context_evaluation.py` + `qb_context_gate.py` against `FROZEN_BASELINE_ID` over folds 2023–2025; best verdict is `qb_context_review_ready`, worst is `hold_qb_context` (§3). `scripts/evaluate_qb_context.py`.
 - **Segment calibration** — one-dimensional coverage/pinball segments on the recentered distribution, gated only at n ≥ 50 (`evaluation/calibration_segments.py` → `output/evaluation/season=<s>/calibration_segments.parquet` + `calibration_segment_summary.json`). Its `segment_report_hash` is one of the four calibration hashes pinned on the simulation manifest and the release bundle.
 - **Evidence freezing** — `evaluation/evidence_freeze.py` copies draw-stability evidence into an immutable hashed bundle under `output/model_v3/frozen/`, so a threshold can be re-derived later from the evidence it was actually derived from.
-- **Release monitoring** — two-stage artifacts `release_report_simulation_<season>.json` (publish) and `release_report_board_<season>.json` (prepare), merged into `release_report_<season>.json`.
+- **Release monitoring** — two-stage artifacts `release_report_simulation_<season>.json` (publish) and `release_report_board_<season>.json` (prepare), merged into `release_report_<season>.json`. Newly built reports propagate an explicit 10k risk flag whenever `strict_gate_promotion=false`. The currently sealed active release report predates that propagation; correcting it requires a future or separately authorized replacement namespace.
 - **Opportunity-first / compositional mean modeling** — Shadow 0A/0B research branch under `output/shadow_opportunity_mean/`; remains `hold` until it beats the accuracy-first incumbent on leakage-safe top-120 evaluation (do not wire into compose/publish until then).
 - **Weekly hierarchical models** — weekly feature as-of audit is green (`targets_share_roll3` / `carries_share_roll3` shifted); hierarchical weekly ROS modeling may begin. Gate: `scripts/audit_weekly_features.py` → `output/weekly_audit/audit_report.json`.
 
-## 10. Live state — 2026, as of 2026-08-29
+## 10. Live state — 2026, as of 2026-08-30
 
-Two boards exist on disk. Which one you are looking at depends entirely on whether you follow the pointer.
+Machine-readable control-plane snapshot (guarded by `tests/test_pipeline_map_live_state.py`):
 
-### What the browser serves — sealed bundle `phase1_rehearsal_20260829`
+<!-- LIVE_STATE_TABLE_BEGIN -->
+| key | value |
+|---|---|
+| namespace | v2_baseline_20260830 |
+| previous_namespace | v2_candidate_20260830 |
+| release_id | e92edd22-40d9-4219-87f6-47a651489d15 |
+| manifest_sha256 | a951ca5093a12e8c2d8637de8515ff12c0b82a3b7a5883ccf95ae155dbaf3a37 |
+| model_id | accuracy_first_ensemble |
+| draw_count | 10000 |
+| overlay_population | 778 |
+| strict_gate_promotion | false |
+<!-- LIVE_STATE_TABLE_END -->
 
-Read from `draft_assistant/data/active_release_2026.json` → `data/releases/phase1_rehearsal_20260829/`.
+### What the browser serves — sealed bundle `v2_baseline_20260830`
+
+Read from `draft_assistant/data/active_release_2026.json` → `data/releases/v2_baseline_20260830/`.
 
 | Surface | State |
 |---|---|
-| Pointer | `active_release_pointer_v1`, status `active`, activated 2026-08-30T02:56Z |
-| Release ID | `c17b8f4c-d8bc-4a3f-8077-974eb533a03b`; manifest `a8986544…` |
-| Rollback target | `previous.namespace = phase1_rehearsal_prior` |
-| Published mean | **`accuracy_first_ensemble`** — accuracy ensemble applied to 93 players, all under the `market_no_v3` arm (ADP ≤ 120) |
-| Simulation | 10000 draws, profile `publish`, `joint_bootstrap`, 40 draw partitions, 56 sealed artifacts |
-| Board hash | `476b2342…` agrees across sealed manifest, recomputed `fantasy_points_2026.csv`, `simulation_manifest_2026.json` and the release report |
-| Percentiles + `volatility_flag` | attached |
-| `p_finish_top6…48`, `sim_vorp_*`, `p_vorp_positive`, `expected_pos_rank`, `median_pos_rank` | **populated on all 778 players**, 0 monotonicity violations, both treatments (685 incumbent / 93 selected) fully covered |
-| `v3_means` | `null` — the point-engine cutover is still unshipped |
+| Pointer | `active_release_pointer_v1`, status `active`, activated 2026-08-30T09:42:41Z |
+| Release ID | `e92edd22-40d9-4219-87f6-47a651489d15`; manifest `a951ca5093…` |
+| Rollback target | `previous.namespace = v2_candidate_20260830` (`4348bf20-…`) |
+| Published mean | **`accuracy_first_ensemble`** — RB weights 0.10/0.30/0.60 (v1/v2/ADP), WR weights 0/0.55/0.45; ADP alignment ~0.93/0.85; RB/WR repair track closed, not solved |
+| Simulation | 10000 draws, profile `publish` / `decision_stable_compromise_10000`, human-approved operational compromise (not a passed strict 20k gate) |
+| Overlay population | 778 players with finish / VORP overlays populated |
+| Sealed release report risk field | **Missing** on the active sealed report (predates automatic 10k risk propagation). Do not rewrite sealed bytes; next namespace picks it up |
+| Full local bundle | Required under `output/model_v3/release_bundles/...` for validate / promote / rollback; public copies alone are enough to serve and smoke-test |
 
-Accuracy-first deltas versus the legacy board: RB (n=40) mean +0.10 pts/g, WR (n=53) mean +0.89 pts/g, largest moves inside the intended transformed population. 763/778 tiers and 464 overall ranks moved, which is expected — the legacy board simply had no 10k overlay to rank against.
+### Previous release — `v2_candidate_20260830`
+
+Promoted briefly, then rolled back. Tracked promotion receipt retained so restore provenance can re-authorize it from ancestry + receipt/pointer identity. Same 10k operational draw-count policy.
+
+### Permanently non-promotable — schema-v1 phase1 bundles
+
+`phase1_rehearsal_20260829` and `phase1_rehearsal_prior` remain on disk as historical schema-v1 namespaces. They are readable for archaeology but **`promotion_eligible=false`** — no receipts were created for them, and they cannot be restored through the v2 promotion path.
 
 ### The loose legacy files — bootstrap path only
 
-Read from `draft_assistant/data/players_2026.json` · `meta` and `output/model_v3/simulation_manifest_2026.json`.
-
-| Surface | State |
-|---|---|
-| Published mean | `v1_v2_ensemble` — `accuracy_ensemble: null` |
-| Simulation anchor | `selected_board_model_id = accuracy_first_ensemble`, 10000 draws, `joint_bootstrap`, profile `dev` |
-| Percentiles + `volatility_flag` | attached (`v3_simulation.gate_verdict = simulation_ready`) |
-| Draw-derived overlay | columns present, **null in all 778 rows** |
-| Reason | `finish_probability_provenance_failed` → `selected_board_hash_mismatch` (`5839e1e2…` exported vs `67f2c4b8…` simulated) |
-| Finish-probability gate itself | `finish_probability_ready`, publication verdict `pass` |
-| Sentiment | scored on 408 / 778 players; model inactive at every position |
-
-That mismatch is the guard working exactly as designed, and it is worth keeping visible rather than deleting: the gate *passed* and the **provenance check refused**, because the board that was simulated (accuracy-first) was not the board that was exported (v1/v2). An overlay describing different numbers is withheld rather than published. The sealed bundle above is what closing it looks like — one run producing both the board and the simulation, so every hash agrees.
-
-These files are only reachable through `release_loader.js` step 2, when the pointer is absent altogether. A *malformed* pointer does not fall back to them (§8a).
-
-Unshipped by choice: the `v3_means` cutover and every §9 research track.
+Read from `draft_assistant/data/players_2026.json` · `meta` when the pointer is absent. A *malformed* pointer does not fall back to them (§8a). Unshipped by choice: the `v3_means` cutover and every §9 research track.
 
 ---
 
@@ -585,4 +591,7 @@ Unshipped by choice: the `v3_means` cutover and every §9 research track.
 - [`V3_PROBABILISTIC_PIPELINE.md`](decisions/V3_PROBABILISTIC_PIPELINE.md) — v3 scaffolding, the means backtest, and why the point engine is still v1
 - [`PHASE1_PRODUCTION_REHEARSAL_2026-08-29.md`](decisions/PHASE1_PRODUCTION_REHEARSAL_2026-08-29.md) — the full build → validate → promote → rollback acceptance test, including the unlisted-artifact seal defect
 - [`PHASE1_RELEASE_SIGN_OFF_2026-08-29.md`](decisions/PHASE1_RELEASE_SIGN_OFF_2026-08-29.md) — hash alignment table and the player-facing approval for `phase1_rehearsal_20260829`
+- [`PROMOTION_PROVENANCE_2026-08-30.md`](decisions/PROMOTION_PROVENANCE_2026-08-30.md) — initial vs restore provenance, receipts, and local-bundle dependency
 - [`DRAW_COUNT_ROLLOUT_2026-08-28.md`](decisions/DRAW_COUNT_ROLLOUT_2026-08-28.md) and the two dated human-decision records — how 10k became the production draw count
+- [`V1_PRODUCTION_ROLE_2026-08-29.md`](decisions/V1_PRODUCTION_ROLE_2026-08-29.md) — v1 structural role and closed RB/WR shadow repair track
+- [`ACCURACY_FIRST_ENSEMBLE_2026-08-27.md`](decisions/ACCURACY_FIRST_ENSEMBLE_2026-08-27.md) — selected RB/WR weights and holdout evidence
