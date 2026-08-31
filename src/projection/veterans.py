@@ -9,10 +9,12 @@ import sys
 import numpy as np
 import pandas as pd
 
-from src.projection.artifacts import load_availability_models
+from src.projection.artifacts import load_availability_models, load_interval_model_manifest
+from src.projection.evaluation.interval_models import predict_interval_residuals
 from src.projection.depth_gating import (
     apply_curated_availability_override,
     apply_full_season_games_baseline,
+    apply_curated_depth_tier,
     apply_depth_chart_gating,
     apply_status_overrides,
     enforce_availability_chart_review,
@@ -22,6 +24,7 @@ from src.projection.depth_gating import (
 from src.projection.depth_history import (
     attach_availability_depth_rank,
     attach_depth_rank,
+    attach_depth_tier,
 )
 from src.projection.features import TARGET_STATS
 from src.projection.roster_moves import (
@@ -31,6 +34,10 @@ from src.projection.roster_moves import (
 from src.projection.team_reconcile import _attach_team_total_pred
 from src.projection.transitions import (
     ALL_FEATURES,
+    ROLE_PRIOR_FEATURE,
+    ROLE_PRIOR_3Y_FEATURE,
+    role_label_for,
+    trailing_role_rate,
     REFRAMED_SHARE_STATS,
     SEASON_GAMES,
     age_shrunk_predict,
@@ -62,6 +69,37 @@ def _attach_veteran_intervals(combined, resid):
     target = ~is_reframed
     if not target.any():
         return out
+    manifest = load_interval_model_manifest()
+    # The conditional models are fit on depth tier and exposure as well as the
+    # prediction, so a frame without those columns cannot be scored by them.
+    # Falling back is the honest response - borrowing a flat band would be the
+    # same silent substitution the low_n_flag contract exists to prevent.
+    conditional_features = {"depth_tier", "projected_games"}
+    if manifest is not None and conditional_features.issubset(out.columns):
+        pred_frame = out.loc[target, ["position", "stat", "pred_pg", "depth_tier"]].rename(
+            columns={"pred_pg": "pred"}
+        )
+        pred_frame["games_played"] = pd.to_numeric(
+            out.loc[target, "projected_games"], errors="coerce"
+        ).fillna(17.0)
+        # predict_interval_residuals returns ONE ROW PER INPUT ROW, carrying
+        # pred_frame's index - the band is conditioned on this player's own
+        # prediction, depth tier and exposure, so it cannot be keyed by
+        # (position, stat) the way the flat empirical table is. Joining on
+        # those columns is a many-to-many blowup (96 QB attempts rows x 96
+        # predictions = 9,216) whose row labels then run past the end of
+        # `out`. Align on the index instead; there is nothing to merge.
+        conditional = predict_interval_residuals(pred_frame)
+        if not conditional.empty and conditional["resid_low"].notna().any():
+            has = conditional["resid_low"].notna()
+            idx = conditional.index[has]
+            out.loc[idx, "pred_pg_low"] = (
+                out.loc[idx, "pred_pg"] + conditional.loc[has, "resid_low"]).clip(lower=0)
+            out.loc[idx, "pred_pg_high"] = (
+                out.loc[idx, "pred_pg"] + conditional.loc[has, "resid_high"])
+            out.loc[conditional.index, "interval_low_n_flag"] = (
+                conditional["low_n_flag"].fillna(True).astype(bool))
+            return out
     r = resid[["position", "stat", "resid_low", "resid_high", "low_n_flag"]]
     keys = out.loc[target, ["position", "stat"]].merge(r, on=["position", "stat"], how="left")
     keys.index = out.index[target]
@@ -73,6 +111,24 @@ def _attach_veteran_intervals(combined, resid):
     out.loc[keys.index, "interval_low_n_flag"] = (
         keys["low_n_flag"].fillna(True).astype(bool))
     return out
+
+
+def _prior_in_label_units(pos_df, position, stat):
+    """Season N's own value of the label season N+1 is predicted on.
+
+    ALL_FEATURES already carries `prior_{stat}_pg`, but that is a rate per
+    APPEARANCE week - a different unit from the role-rate label. Handing the
+    model the prior in the label's own units is what the prototype validated,
+    and it is the same column build_role_transition_pairs supplies at fit
+    time, so training and serving agree by construction.
+    """
+    label = role_label_for(position, stat)
+    if label not in pos_df.columns:
+        raise ValueError(
+            f"{position} {stat}: source-season frame is missing {label!r}. "
+            f"build_player_season_features supplies it; a frame built by an "
+            f"older version of that function cannot score a role-rate model.")
+    return pd.to_numeric(pos_df[label], errors="coerce").to_numpy()
 
 
 def project_veterans(conn, feat, source_season, models, resid, target_season, as_of=None):
@@ -159,6 +215,8 @@ def project_veterans(conn, feat, source_season, models, resid, target_season, as
     # it rides along into `combined` and is available to gating and to the
     # share renormalization without a second lookup.
     base = attach_depth_rank(base, target_season, conn=conn, as_of=as_of)
+    base = attach_depth_tier(base, target_season, conn=conn, as_of=as_of)
+    base = apply_curated_depth_tier(base, depth_chart)
     base = apply_curated_availability_override(base, depth_chart)
     status_overrides = load_status_overrides(target_season, as_of=as_of)
     enforce_availability_chart_review(
@@ -183,13 +241,24 @@ def project_veterans(conn, feat, source_season, models, resid, target_season, as
         pos_df = base[base["position"] == position]
         if pos_df.empty:
             continue
-        X = pos_df[ALL_FEATURES]
         for stat in stats:
             m = models[(position, stat)]
-            preds = age_shrunk_predict(m["model"], X, position, features=ALL_FEATURES)
+            # m["features"], not ALL_FEATURES: the role-rate models carry
+            # ROLE_FEATURES (depth tier + the prior in the label's own units),
+            # and reading the schema off the joblib is what stops a model fit
+            # on one basis from being scored as if it were the other.
+            features = m.get("features", ALL_FEATURES)
+            X = pos_df.copy()
+            X[ROLE_PRIOR_FEATURE] = _prior_in_label_units(pos_df, position, stat)
+            if ROLE_PRIOR_3Y_FEATURE in features:
+                X[ROLE_PRIOR_3Y_FEATURE] = trailing_role_rate(
+                    feat, X["player_id"], position, stat, source_season
+                ).to_numpy()
+                X[ROLE_PRIOR_3Y_FEATURE] = X[ROLE_PRIOR_3Y_FEATURE].fillna(X[ROLE_PRIOR_FEATURE])
+            preds = age_shrunk_predict(m["model"], X, position, features=features)
             out = pos_df[["player_id", "team", "position", "team_changed",
                           "roster_status", "projected_games", "projected_games_raw",
-                          "nfl_depth_rank"]].copy()
+                          "nfl_depth_rank", "depth_tier", "depth_tier_source"]].copy()
             if "status_override_applied" in pos_df.columns:
                 out["status_override_applied"] = pos_df["status_override_applied"].to_numpy()
             out["stat"] = stat

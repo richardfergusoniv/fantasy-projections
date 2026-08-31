@@ -64,3 +64,34 @@ class ModelLeakageAndRollingTests(unittest.TestCase):
         for train_pairs, test_pair in calls:
             self.assertTrue(all(pair[1] <= test_pair[0] for pair in train_pairs))
             self.assertNotIn(test_pair, train_pairs)
+
+    def test_rookie_backtest_scores_role_rate_on_strictly_earlier_seasons(self):
+        import src.projection.backtest as backtest
+
+        rookie_rows = pd.DataFrame([
+            dict(player_id="rook", season=2020, position="QB",
+                 attempts_pg=999.0, attempts_per_elig=4.0),
+            dict(player_id="rook", season=2021, position="QB",
+                 attempts_pg=999.0, attempts_per_elig=10.0),
+        ])
+        fit_calls = []
+
+        def fake_fit(_rdf, train_seasons):
+            fit_calls.append(tuple(train_seasons))
+            return pd.DataFrame()
+
+        def fake_predict(_rdf, _baselines, test_seasons):
+            self.assertEqual(test_seasons, [2021])
+            return pd.DataFrame([
+                dict(player_id="rook", season=2021, position="QB", attempts_pg=8.0)
+            ])
+
+        with patch.object(backtest, "build_rookie_dataset", return_value=rookie_rows), patch.object(
+            backtest, "fit_rookie_baselines", fake_fit
+        ), patch.object(backtest, "predict_rookies", fake_predict):
+            result = backtest.run_rookie_backtest(None, pd.DataFrame(), test_seasons=[2021])
+
+        self.assertEqual(fit_calls, [(2020,)])
+        self.assertEqual(result.loc[0, "test_season"], 2021)
+        self.assertEqual(result.loc[0, "model_mae"], 2.0)
+        self.assertEqual(result.loc[0, "model_bias"], -2.0)

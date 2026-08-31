@@ -21,12 +21,16 @@ EXPECTED_STAGE_ORDER = [
     "apply_full_season_games_baseline",
     "apply_status_overrides",
     "propagate_team_anchors",
+    "reconcile_team_volume",
+    "reconcile_td_rate_constraints",
     "reconcile_stat_constraints",
     "add_projected_season_totals",
+    "reconcile_team_season_identities",
 ]
 
 NON_NUMERIC_TAIL_STAGES = (
     "add_projected_season_totals",
+    "reconcile_team_season_identities",
 )
 
 
@@ -123,6 +127,7 @@ class CompositionUnificationTest(unittest.TestCase):
             "apply_status_overrides",
             "propagate_team_anchors",
             "add_projected_season_totals",
+            "reconcile_team_season_identities",
         ):
             patcher = mock.patch.object(composition, name, passthrough)
             patcher.start()

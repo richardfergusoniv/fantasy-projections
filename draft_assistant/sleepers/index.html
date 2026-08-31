@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sleepers 2026</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-brand">
+        <div class="brand-block">
+          <p class="brand-label">Fantasy Tools</p>
+          <h1>Sleepers</h1>
+        </div>
+        <span class="season-badge" id="seasonBadge">2026</span>
+        <nav class="app-nav" aria-label="App">
+          <a href="/">Draft</a>
+          <a href="/sleepers/" class="active" aria-current="page">Sleepers</a>
+          <a href="/teams/">Team Projections</a>
+          <a href="/totals/">Total Projections</a>
+          <a href="/compare/">Compare</a>
+        </nav>
+      </div>
+      <div class="header-controls">
+        <label class="control">
+          Position
+          <select id="posFilter">
+            <option value="ALL">All</option>
+            <option value="RB">RB</option>
+            <option value="WR">WR</option>
+            <option value="TE">TE</option>
+          </select>
+        </label>
+        <label class="control">
+          Band
+          <select id="bandFilter">
+            <option value="ALL">All admitted</option>
+            <option value="deep_core">61-120 only</option>
+            <option value="deep_primary">121-200 only</option>
+            <option value="deep_speculative">201-300 only</option>
+          </select>
+        </label>
+        <input id="searchInput" type="search" placeholder="Search players..." />
+      </div>
+    </header>
+
+    <section class="accuracy-note" id="accuracyNote">
+      <p class="accuracy-headline">Loading band measurement…</p>
+    </section>
+
+    <p class="sleepers-meta" id="metaLine">Loading…</p>
+
+    <main class="main">
+      <section class="panel rankings-panel">
+        <div class="table-wrap">
+          <table class="rankings-table sleepers-table" id="sleepersTable">
+            <thead>
+              <tr>
+                <th data-sort="points_rank" class="sortable num" data-default-dir="asc" title="Rank by projected season points across the whole board. This is NOT the board's VORP-based overall rank.">Pts #</th>
+                <th data-sort="display_name" class="sortable col-player" data-default-dir="asc">Player</th>
+                <th data-sort="position" class="sortable" data-default-dir="asc">Pos</th>
+                <th data-sort="team" class="sortable" data-default-dir="asc">Team</th>
+                <th data-sort="fantasy_pts_season" class="sortable num" data-default-dir="desc" title="Blended board projection — the same number the Draft board shows, and the quantity the band measurement was cut on.">Proj<span class="src-tag">board</span></th>
+                <th data-sort="fantasy_pts_p50" class="sortable num" data-default-dir="desc" title="Median of the simulated season distribution. Not recentered on the blended projection — see the note above the table.">Median<span class="src-tag">sim</span></th>
+                <th data-sort="fantasy_pts_p90" class="sortable num sorted-desc" data-default-dir="desc" title="90th percentile of the simulated season distribution — the upside case. Same basis as Median, so the two are comparable to each other.">Upside<span class="src-tag">sim</span></th>
+                <th data-sort="upside_gap" class="sortable num" data-default-dir="desc" title="Upside minus median, in raw points. Both come from the same simulation, so this gap is unaffected by the centering mismatch against the board projection. Deliberately not a ratio: the ratio explodes when the median sits near zero.">Gap<span class="src-tag">sim</span></th>
+                <th data-sort="ecr" class="sortable num" data-default-dir="asc" title="Expert consensus rank — the cost axis. Covers far more of this population than ADP does.">ECR</th>
+                <th data-sort="market_gap" class="sortable num" data-default-dir="asc" title="Our points rank minus ECR. Negative means we like the player more than the field does.">Mkt gap</th>
+                <th data-sort="vorp" class="sortable num" data-default-dir="desc">VORP</th>
+                <th data-sort="finish_odds" class="sortable num" data-default-dir="desc" title="Simulated probability of a useful positional finish">Finish</th>
+                <th data-sort="band" class="sortable" data-default-dir="asc">Band</th>
+                <th data-sort="sentiment_score" class="sortable col-sentiment" data-default-dir="desc" title="Secondary signal only — unvalidated. See the note above the table.">Buzz</th>
+                <th data-sort="role" class="sortable" data-default-dir="asc">Role</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="sleepers-foot" id="attribution"></footer>
+  </div>
+
+  <div id="playerHoverCard" class="player-card player-card-hover" hidden role="tooltip"></div>
+
+  <div id="playerModal" class="player-modal" hidden>
+    <div class="player-modal-backdrop" data-close-modal></div>
+    <div class="player-modal-panel" role="dialog" aria-modal="true" aria-labelledby="playerModalTitle">
+      <button type="button" class="player-modal-close" data-close-modal aria-label="Close">Close</button>
+      <div id="playerModalBody" class="player-card player-card-full"></div>
+    </div>
+  </div>
+
+  <script src="../js/release_loader.js?v=release-bundle-1"></script>
+  <script src="../js/history_table.js?v=sleepers-2"></script>
+  <script src="../js/sortable.js"></script>
+  <script src="js/app.js?v=sleepers-2"></script>
+</body>
+</html>

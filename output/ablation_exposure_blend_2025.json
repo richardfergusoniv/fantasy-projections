@@ -1,0 +1,137 @@
+[
+  {
+    "exposure_blend_alpha": 0.0,
+    "QB": {
+      "spearman": 0.7727,
+      "rate_spearman": 0.7614,
+      "points_mae": 40.72,
+      "tier_hits": "6/12"
+    },
+    "RB": {
+      "spearman": 0.6911,
+      "rate_spearman": 0.6973,
+      "points_mae": 35.54,
+      "tier_hits": "17/24"
+    },
+    "WR": {
+      "spearman": 0.7769,
+      "rate_spearman": 0.7658,
+      "points_mae": 24.9,
+      "tier_hits": "21/36"
+    },
+    "TE": {
+      "spearman": 0.8289,
+      "rate_spearman": 0.8031,
+      "points_mae": 17.15,
+      "tier_hits": "6/12"
+    }
+  },
+  {
+    "exposure_blend_alpha": 0.25,
+    "QB": {
+      "spearman": 0.7723,
+      "rate_spearman": 0.7588,
+      "points_mae": 41.21,
+      "tier_hits": "6/12"
+    },
+    "RB": {
+      "spearman": 0.6936,
+      "rate_spearman": 0.6969,
+      "points_mae": 34.8,
+      "tier_hits": "17/24"
+    },
+    "WR": {
+      "spearman": 0.7818,
+      "rate_spearman": 0.7658,
+      "points_mae": 24.45,
+      "tier_hits": "21/36"
+    },
+    "TE": {
+      "spearman": 0.8331,
+      "rate_spearman": 0.8031,
+      "points_mae": 16.92,
+      "tier_hits": "6/12"
+    }
+  },
+  {
+    "exposure_blend_alpha": 0.5,
+    "QB": {
+      "spearman": 0.7717,
+      "rate_spearman": 0.7547,
+      "points_mae": 42.11,
+      "tier_hits": "6/12"
+    },
+    "RB": {
+      "spearman": 0.693,
+      "rate_spearman": 0.698,
+      "points_mae": 34.13,
+      "tier_hits": "16/24"
+    },
+    "WR": {
+      "spearman": 0.7821,
+      "rate_spearman": 0.7658,
+      "points_mae": 24.25,
+      "tier_hits": "21/36"
+    },
+    "TE": {
+      "spearman": 0.8342,
+      "rate_spearman": 0.8031,
+      "points_mae": 16.92,
+      "tier_hits": "5/12"
+    }
+  },
+  {
+    "exposure_blend_alpha": 0.75,
+    "QB": {
+      "spearman": 0.771,
+      "rate_spearman": 0.7555,
+      "points_mae": 42.4,
+      "tier_hits": "6/12"
+    },
+    "RB": {
+      "spearman": 0.6946,
+      "rate_spearman": 0.6977,
+      "points_mae": 33.75,
+      "tier_hits": "16/24"
+    },
+    "WR": {
+      "spearman": 0.782,
+      "rate_spearman": 0.7658,
+      "points_mae": 24.29,
+      "tier_hits": "21/36"
+    },
+    "TE": {
+      "spearman": 0.8344,
+      "rate_spearman": 0.8031,
+      "points_mae": 17.1,
+      "tier_hits": "5/12"
+    }
+  },
+  {
+    "exposure_blend_alpha": 1.0,
+    "QB": {
+      "spearman": 0.768,
+      "rate_spearman": 0.7558,
+      "points_mae": 42.55,
+      "tier_hits": "6/12"
+    },
+    "RB": {
+      "spearman": 0.6934,
+      "rate_spearman": 0.6974,
+      "points_mae": 33.82,
+      "tier_hits": "16/24"
+    },
+    "WR": {
+      "spearman": 0.7827,
+      "rate_spearman": 0.7658,
+      "points_mae": 24.47,
+      "tier_hits": "21/36"
+    },
+    "TE": {
+      "spearman": 0.8326,
+      "rate_spearman": 0.8031,
+      "points_mae": 17.41,
+      "tier_hits": "5/12"
+    }
+  }
+]

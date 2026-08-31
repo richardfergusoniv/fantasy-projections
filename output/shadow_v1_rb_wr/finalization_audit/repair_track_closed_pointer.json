@@ -1,0 +1,8 @@
+{
+  "schema_version": "shadow_v1_rb_wr_repair_track_closed_pointer_v1",
+  "closeout_path": "C:/Users/rdfer/Projects/fantasy-projections/output/shadow_v1_rb_wr/repair_track_closed.json",
+  "closeout_sha256": "068ad59e9e06c32cf85153440f761d1728de259e056b4bef36c80ac53ff9c40b",
+  "closeout_artifact_hash": "4882e7f109e54805353810ebbf87e1869c9c653129c426d1db48570759bdc153",
+  "further_repair_authorized": false,
+  "artifact_hash": "2491b51da75a600d088b680b3c3e0b1d94aa379ed26573a859e8f6d5b1bb1205"
+}

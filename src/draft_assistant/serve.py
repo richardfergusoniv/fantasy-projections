@@ -19,12 +19,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=DRAFT_DIR, **kwargs)
 
     def end_headers(self) -> None:
-        # Local draft tooling: always revalidate static assets so prepare/UI
-        # edits show up without a hard browser cache fight.
-        if self.path.split("?", 1)[0].endswith(
-            (".js", ".css", ".json", ".html")
-        ):
-            self.send_header("Cache-Control", "no-store")
+        # Local draft tooling: always revalidate so prepare/UI edits show up
+        # without a hard browser cache fight (covers /compare/ dir indexes too).
+        self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
     def do_GET(self) -> None:
@@ -35,7 +32,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Serve draft assistant")
-    parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8766,
+        help="Port (default 8766; fantasy-projections-2 uses 8765)",
+    )
     parser.add_argument("--open", action="store_true", help="Open browser")
     args = parser.parse_args()
 
@@ -48,7 +50,10 @@ def main() -> None:
         url = f"http://127.0.0.1:{args.port}/"
         print(f"Serving Fantasy Tools at {url}")
         print(f"  Draft:             {url}")
+        print(f"  Sleepers:          {url}sleepers/")
         print(f"  Team Projections:  {url}teams/")
+        print(f"  Total Projections: {url}totals/")
+        print(f"  Compare:           {url}compare/")
         if args.open:
             webbrowser.open(url)
         try:

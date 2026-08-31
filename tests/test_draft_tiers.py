@@ -120,7 +120,12 @@ def test_export_draft_data_writes_strict_json(tmp_path, monkeypatch):
     payload = json.loads(raw)
     assert "vorp" in payload["players"][0]
     assert payload["meta"]["roster"] == "1QB, 2RB, 3WR, 1TE, 1FLEX"
-    assert payload["meta"]["vorp_replacement_ranks"]["QB"] == 13
+    # Nominal roster math is 12 starters + 0 flex -> QB13. The rank actually
+    # used is deepened for availability (these fixtures project 15 games), and
+    # both are published so the board says which baseline it priced against.
+    assert payload["meta"]["vorp_replacement_ranks_nominal"]["QB"] == 13
+    assert payload["meta"]["vorp_replacement_ranks"]["QB"] == 14
+    assert payload["meta"]["vorp_availability_factors"]["QB"] > 1.0
 
 
 def test_export_overall_rank_uses_vorp_not_raw_ppg(tmp_path, monkeypatch):
@@ -174,6 +179,6 @@ def test_export_overall_rank_uses_vorp_not_raw_ppg(tmp_path, monkeypatch):
     assert by_id["rb0"]["vorp"] >= by_id["qb0"]["vorp"]
     assert by_id["rb0"]["fantasy_pts"] < by_id["qb0"]["fantasy_pts"]
     assert by_id["rb0"]["overall_rank"] == 1
-    # PPG-scale VORP should be well below old season-scale values
-    assert by_id["rb0"]["vorp"] < 50
+    # VORP is a season-point surplus, so it lives on the season scale.
+    assert by_id["rb0"]["vorp"] > 50
 

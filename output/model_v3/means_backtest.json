@@ -1,0 +1,435 @@
+{
+  "generated_at": "2026-08-26T01:24:30.656925+00:00",
+  "folds": [
+    {
+      "target_season": 2023,
+      "source_season": 2022,
+      "n_draws": 200,
+      "blend_available": true,
+      "blend_degenerate": false,
+      "blend_usable": true,
+      "metrics": {
+        "v1": {
+          "n": 756,
+          "points_mae": 29.601874030498795,
+          "spearman": 0.7563620211816255,
+          "by_position": {
+            "QB": {
+              "n": 100,
+              "points_mae": 55.78386431747319,
+              "spearman": 0.6689116054692342
+            },
+            "RB": {
+              "n": 180,
+              "points_mae": 33.89178091045846,
+              "spearman": 0.7831739979248697
+            },
+            "TE": {
+              "n": 169,
+              "points_mae": 18.483069977252967,
+              "spearman": 0.7646857837787906
+            },
+            "WR": {
+              "n": 307,
+              "points_mae": 24.679058453653077,
+              "spearman": 0.7811908154051074
+            }
+          }
+        },
+        "v3_interim": {
+          "n": 756,
+          "points_mae": 30.60990042628716,
+          "spearman": 0.7283348324724241,
+          "by_position": {
+            "QB": {
+              "n": 100,
+              "points_mae": 52.77380825057228,
+              "spearman": 0.6462036577424648
+            },
+            "RB": {
+              "n": 180,
+              "points_mae": 35.62417835400694,
+              "spearman": 0.7688110431349185
+            },
+            "TE": {
+              "n": 169,
+              "points_mae": 19.516145257550125,
+              "spearman": 0.7399010910458645
+            },
+            "WR": {
+              "n": 307,
+              "points_mae": 26.557404706738264,
+              "spearman": 0.7497185913064777
+            }
+          }
+        },
+        "v3_generative": {
+          "n": 756,
+          "points_mae": 29.79824745453867,
+          "spearman": 0.7591166769480981,
+          "by_position": {
+            "QB": {
+              "n": 100,
+              "points_mae": 49.98506681482995,
+              "spearman": 0.6846222664829651
+            },
+            "RB": {
+              "n": 180,
+              "points_mae": 37.59195320746918,
+              "spearman": 0.78507517356939
+            },
+            "TE": {
+              "n": 169,
+              "points_mae": 18.649950951835567,
+              "spearman": 0.764079384321974
+            },
+            "WR": {
+              "n": 307,
+              "points_mae": 24.790146924897638,
+              "spearman": 0.7805524469430088
+            }
+          }
+        },
+        "blend": {
+          "n": 756,
+          "points_mae": 28.720712620795798,
+          "spearman": 0.7729944940906875,
+          "by_position": {
+            "QB": {
+              "n": 100,
+              "points_mae": 49.43428225592341,
+              "spearman": 0.7521780017067986
+            },
+            "RB": {
+              "n": 180,
+              "points_mae": 33.89178091045846,
+              "spearman": 0.7831739979248697
+            },
+            "TE": {
+              "n": 169,
+              "points_mae": 18.29845566020868,
+              "spearman": 0.7819101409187504
+            },
+            "WR": {
+              "n": 307,
+              "points_mae": 24.679058453653077,
+              "spearman": 0.7811908154051074
+            }
+          }
+        }
+      },
+      "gates": {
+        "interim_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "interim_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "generative_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": true,
+          "pass": false
+        },
+        "generative_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        }
+      }
+    },
+    {
+      "target_season": 2024,
+      "source_season": 2023,
+      "n_draws": 200,
+      "blend_available": true,
+      "blend_degenerate": false,
+      "blend_usable": true,
+      "metrics": {
+        "v1": {
+          "n": 756,
+          "points_mae": 28.02915980822424,
+          "spearman": 0.7820714715760291,
+          "by_position": {
+            "QB": {
+              "n": 105,
+              "points_mae": 44.455496071010415,
+              "spearman": 0.7144392022181166
+            },
+            "RB": {
+              "n": 183,
+              "points_mae": 31.15942653301797,
+              "spearman": 0.8104147291426944
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 17.921751138411672,
+              "spearman": 0.8014044082550207
+            },
+            "WR": {
+              "n": 303,
+              "points_mae": 25.95034235703372,
+              "spearman": 0.7959911303154577
+            }
+          }
+        },
+        "v3_interim": {
+          "n": 756,
+          "points_mae": 29.466236187740915,
+          "spearman": 0.7593425467674945,
+          "by_position": {
+            "QB": {
+              "n": 105,
+              "points_mae": 43.248165103151464,
+              "spearman": 0.7091020591628927
+            },
+            "RB": {
+              "n": 183,
+              "points_mae": 33.69272843774445,
+              "spearman": 0.782926204959073
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 18.72177997114976,
+              "spearman": 0.7640429792375525
+            },
+            "WR": {
+              "n": 303,
+              "points_mae": 27.98862779786892,
+              "spearman": 0.7848369612329938
+            }
+          }
+        },
+        "v3_generative": {
+          "n": 756,
+          "points_mae": 28.021483936687535,
+          "spearman": 0.7875549824049114,
+          "by_position": {
+            "QB": {
+              "n": 105,
+              "points_mae": 42.20139334696456,
+              "spearman": 0.7419082665588235
+            },
+            "RB": {
+              "n": 183,
+              "points_mae": 32.8835929904232,
+              "spearman": 0.8023750399811095
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 18.08262339601369,
+              "spearman": 0.8074293505029886
+            },
+            "WR": {
+              "n": 303,
+              "points_mae": 25.5833834228211,
+              "spearman": 0.7974383340663426
+            }
+          }
+        },
+        "blend": {
+          "n": 756,
+          "points_mae": 28.092917639389885,
+          "spearman": 0.7779948857947824,
+          "by_position": {
+            "QB": {
+              "n": 105,
+              "points_mae": 44.80332887344602,
+              "spearman": 0.7145055893237685
+            },
+            "RB": {
+              "n": 183,
+              "points_mae": 31.15942653301797,
+              "spearman": 0.8104147291426944
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 17.99252978147526,
+              "spearman": 0.8027580119388115
+            },
+            "WR": {
+              "n": 303,
+              "points_mae": 25.95034235703372,
+              "spearman": 0.7959911303154577
+            }
+          }
+        }
+      },
+      "gates": {
+        "interim_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "interim_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "generative_beats_v1": {
+          "mae_ok": true,
+          "spearman_ok": true,
+          "pass": true
+        },
+        "generative_beats_blend": {
+          "mae_ok": true,
+          "spearman_ok": true,
+          "pass": true
+        }
+      }
+    },
+    {
+      "target_season": 2025,
+      "source_season": 2024,
+      "n_draws": 200,
+      "blend_available": true,
+      "blend_degenerate": false,
+      "blend_usable": true,
+      "metrics": {
+        "v1": {
+          "n": 755,
+          "points_mae": 27.714018153332695,
+          "spearman": 0.7583060301223868,
+          "by_position": {
+            "QB": {
+              "n": 107,
+              "points_mae": 39.207009654989434,
+              "spearman": 0.7800133303515431
+            },
+            "RB": {
+              "n": 185,
+              "points_mae": 35.251734828923844,
+              "spearman": 0.6905517032266024
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 17.284958624187354,
+              "spearman": 0.834814720362291
+            },
+            "WR": {
+              "n": 298,
+              "points_mae": 24.68236428302177,
+              "spearman": 0.7800631433374701
+            }
+          }
+        },
+        "v3_interim": {
+          "n": 755,
+          "points_mae": 29.678169749402535,
+          "spearman": 0.700686412515383,
+          "by_position": {
+            "QB": {
+              "n": 107,
+              "points_mae": 43.52342984065378,
+              "spearman": 0.6936187914009373
+            },
+            "RB": {
+              "n": 185,
+              "points_mae": 37.12708871459133,
+              "spearman": 0.6423902368154449
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 18.747900176504498,
+              "spearman": 0.7735967831544882
+            },
+            "WR": {
+              "n": 298,
+              "points_mae": 26.134551095725904,
+              "spearman": 0.7329537149038139
+            }
+          }
+        },
+        "v3_generative": {
+          "n": 755,
+          "points_mae": 28.939110293525456,
+          "spearman": 0.7542932743121648,
+          "by_position": {
+            "QB": {
+              "n": 107,
+              "points_mae": 40.29576470123116,
+              "spearman": 0.7696360702993701
+            },
+            "RB": {
+              "n": 185,
+              "points_mae": 38.63534361265387,
+              "spearman": 0.6921013505671396
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 17.216805728571345,
+              "spearman": 0.8328306474212128
+            },
+            "WR": {
+              "n": 298,
+              "points_mae": 25.332449446391756,
+              "spearman": 0.7830096737700256
+            }
+          }
+        },
+        "blend": {
+          "n": 755,
+          "points_mae": 26.024804332250863,
+          "spearman": 0.772678110083588,
+          "by_position": {
+            "QB": {
+              "n": 107,
+              "points_mae": 27.627626637547245,
+              "spearman": 0.8253114582258277
+            },
+            "RB": {
+              "n": 185,
+              "points_mae": 35.251734828923844,
+              "spearman": 0.6905517032266024
+            },
+            "TE": {
+              "n": 165,
+              "points_mae": 17.06458012691181,
+              "spearman": 0.8552470924933069
+            },
+            "WR": {
+              "n": 298,
+              "points_mae": 24.68236428302177,
+              "spearman": 0.7800631433374701
+            }
+          }
+        }
+      },
+      "gates": {
+        "interim_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "interim_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "generative_beats_v1": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        },
+        "generative_beats_blend": {
+          "mae_ok": false,
+          "spearman_ok": false,
+          "pass": false
+        }
+      }
+    }
+  ],
+  "summary": {
+    "blend_usable_all_folds": true,
+    "blend_unusable_folds": [],
+    "interim_beats_v1_all_folds": false,
+    "interim_beats_blend_all_folds": false,
+    "generative_beats_v1_all_folds": false,
+    "generative_beats_blend_all_folds": false,
+    "n_folds": 3,
+    "promote_v3_means": false
+  }
+}

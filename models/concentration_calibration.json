@@ -1,0 +1,352 @@
+{
+  "version": "concentration_v1_full_board",
+  "created_at": "2026-08-25T18:44:34.899832+00:00",
+  "candidate_exponents": [
+    1.0,
+    1.05,
+    1.1,
+    1.15,
+    1.2,
+    1.25,
+    1.3,
+    1.35,
+    1.4,
+    1.45,
+    1.5
+  ],
+  "fit_method": "nested_rolling_origin_full_board_player_season_power_share",
+  "cells": {
+    "WR:receiving": {
+      "exponent": 1.0,
+      "fitted_exponent": 1.05,
+      "promoted": false,
+      "fit_seasons": [
+        2023,
+        2024,
+        2025
+      ],
+      "sample_count": 2403,
+      "metrics": {
+        "pooled_before": {
+          "n": 1602,
+          "mae": 59.4092653149921,
+          "signed_bias": 1.3188775463746225,
+          "spearman": 0.7590358866610271
+        },
+        "pooled_after": {
+          "n": 1602,
+          "mae": 60.026538355225576,
+          "signed_bias": 1.3188775463746236,
+          "spearman": 0.7723132234920592
+        },
+        "per_stat": {
+          "receiving_yards": {
+            "mae_before": 148.66136697283318,
+            "mae_after": 150.13342712050036,
+            "ratio": 1.0099021028639954,
+            "spearman_before": 0.8043238375392103,
+            "spearman_after": 0.803427539710971,
+            "spearman_decline": 0.0008962978282393008
+          },
+          "receptions": {
+            "mae_before": 11.877814493926055,
+            "mae_after": 12.028313961833764,
+            "ratio": 1.0126706363350488,
+            "spearman_before": 0.7976374123325347,
+            "spearman_after": 0.7968762821612214,
+            "spearman_decline": 0.0007611301713132956
+          },
+          "targets": {
+            "mae_before": 17.688614478217065,
+            "mae_after": 17.9178739833426,
+            "ratio": 1.0129608514792303,
+            "spearman_before": 0.8141960635368636,
+            "spearman_after": 0.8127650644719836,
+            "spearman_decline": 0.0014309990648799786
+          }
+        },
+        "top_role_improvement_folds": 2,
+        "required_top_role_folds": 2,
+        "spearman_decline": -0.01327733683103216,
+        "stable_producer_before": {
+          "n": 161,
+          "mae": 256.3755313587701,
+          "signed_bias": 24.220487689854227,
+          "spearman": 0.6605784504483658
+        },
+        "stable_producer_after": {
+          "n": 161,
+          "mae": 259.1290423875377,
+          "signed_bias": 39.76667021780015,
+          "spearman": 0.6627093022942717
+        },
+        "stable_producer_bias_improved": false,
+        "folds": [
+          {
+            "season": 2024,
+            "selected_exponent": 1.15,
+            "top_role_mae_before": 123.97593188447695,
+            "top_role_mae_after": 129.10277207205306,
+            "top_role_bias_before": -60.79455278153507,
+            "top_role_bias_after": -34.38682726157281
+          },
+          {
+            "season": 2025,
+            "selected_exponent": 1.1,
+            "top_role_mae_before": 126.72551026519416,
+            "top_role_mae_after": 124.69530448044873,
+            "top_role_bias_before": -78.61658975534583,
+            "top_role_bias_after": -62.59604828787288
+          }
+        ]
+      }
+    },
+    "TE:receiving": {
+      "exponent": 1.0,
+      "fitted_exponent": 1.05,
+      "promoted": false,
+      "fit_seasons": [
+        2023,
+        2024,
+        2025
+      ],
+      "sample_count": 1272,
+      "metrics": {
+        "pooled_before": {
+          "n": 858,
+          "mae": 42.455777440493605,
+          "signed_bias": -2.371374922457576,
+          "spearman": 0.7958023600146229
+        },
+        "pooled_after": {
+          "n": 858,
+          "mae": 42.87743745934102,
+          "signed_bias": -2.371374922457576,
+          "spearman": 0.8113354663224185
+        },
+        "per_stat": {
+          "receiving_yards": {
+            "mae_before": 104.65303309858729,
+            "mae_after": 105.3346005314839,
+            "ratio": 1.0065126390771164,
+            "spearman_before": 0.8247619148872397,
+            "spearman_after": 0.8230960920226819,
+            "spearman_decline": 0.0016658228645578532
+          },
+          "receptions": {
+            "mae_before": 9.887936001276717,
+            "mae_after": 10.06708457905727,
+            "ratio": 1.0181178941446851,
+            "spearman_before": 0.8226571096719657,
+            "spearman_after": 0.8210527127398665,
+            "spearman_decline": 0.001604396932099239
+          },
+          "targets": {
+            "mae_before": 12.82636322161681,
+            "mae_after": 13.230627267481868,
+            "ratio": 1.0315182128308773,
+            "spearman_before": 0.8333015863336011,
+            "spearman_after": 0.8313062084907483,
+            "spearman_decline": 0.0019953778428527524
+          }
+        },
+        "top_role_improvement_folds": 2,
+        "required_top_role_folds": 2,
+        "spearman_decline": -0.015533106307795586,
+        "stable_producer_before": {
+          "n": 150,
+          "mae": 150.4124384635836,
+          "signed_bias": 7.419842888780183,
+          "spearman": 0.7606002152447053
+        },
+        "stable_producer_after": {
+          "n": 150,
+          "mae": 150.90168014840984,
+          "signed_bias": 11.842284583247253,
+          "spearman": 0.7617167291613031
+        },
+        "stable_producer_bias_improved": false,
+        "folds": [
+          {
+            "season": 2024,
+            "selected_exponent": 1.3,
+            "top_role_mae_before": 89.46688231790095,
+            "top_role_mae_after": 93.4608660240503,
+            "top_role_bias_before": -43.394114755594366,
+            "top_role_bias_after": -23.612783898798202
+          },
+          {
+            "season": 2025,
+            "selected_exponent": 1.1,
+            "top_role_mae_before": 86.39529239807528,
+            "top_role_mae_after": 86.7598983021884,
+            "top_role_bias_before": -53.98781136154805,
+            "top_role_bias_after": -46.55679075293535
+          }
+        ]
+      }
+    },
+    "RB:receiving": {
+      "exponent": 1.0,
+      "fitted_exponent": 1.3,
+      "promoted": false,
+      "fit_seasons": [
+        2023,
+        2024,
+        2025
+      ],
+      "sample_count": 1365,
+      "metrics": {
+        "pooled_before": {
+          "n": 903,
+          "mae": 30.348395575740103,
+          "signed_bias": 6.691722349402653,
+          "spearman": 0.6827357197756132
+        },
+        "pooled_after": {
+          "n": 903,
+          "mae": 29.553755319623043,
+          "signed_bias": 6.691722349402653,
+          "spearman": 0.7198423340193525
+        },
+        "per_stat": {
+          "receiving_yards": {
+            "mae_before": 71.60972398614355,
+            "mae_after": 69.52568676870055,
+            "ratio": 0.9708972873873071,
+            "spearman_before": 0.7417238576194243,
+            "spearman_after": 0.7400991524378849,
+            "spearman_decline": 0.0016247051815393432
+          },
+          "receptions": {
+            "mae_before": 8.515647338545072,
+            "mae_after": 8.441605615567788,
+            "ratio": 0.9913052149726606,
+            "spearman_before": 0.7425572477494281,
+            "spearman_after": 0.7406293934689735,
+            "spearman_decline": 0.0019278542804546106
+          },
+          "targets": {
+            "mae_before": 10.91981540253168,
+            "mae_after": 10.693973574600784,
+            "ratio": 0.9793181643090288,
+            "spearman_before": 0.7440755308115766,
+            "spearman_after": 0.7448477937161722,
+            "spearman_decline": -0.0007722629045955332
+          }
+        },
+        "top_role_improvement_folds": 2,
+        "required_top_role_folds": 2,
+        "spearman_decline": -0.03710661424373929,
+        "stable_producer_before": {
+          "n": 136,
+          "mae": 95.76389963529854,
+          "signed_bias": 12.186804889244035,
+          "spearman": 0.6218814100061695
+        },
+        "stable_producer_after": {
+          "n": 136,
+          "mae": 99.70710148454646,
+          "signed_bias": 29.9233647670405,
+          "spearman": 0.6239167432886076
+        },
+        "stable_producer_bias_improved": false,
+        "folds": [
+          {
+            "season": 2024,
+            "selected_exponent": 1.35,
+            "top_role_mae_before": 44.06251703668064,
+            "top_role_mae_after": 46.53528162228611,
+            "top_role_bias_before": -24.252758394524154,
+            "top_role_bias_after": -10.52747178166462
+          },
+          {
+            "season": 2025,
+            "selected_exponent": 1.3,
+            "top_role_mae_before": 53.408530951973866,
+            "top_role_mae_after": 52.866722196730315,
+            "top_role_bias_before": -35.64929848153768,
+            "top_role_bias_after": -23.656151669727773
+          }
+        ]
+      }
+    },
+    "RB:rushing": {
+      "exponent": 1.0,
+      "fitted_exponent": 1.25,
+      "promoted": false,
+      "fit_seasons": [
+        2023,
+        2024,
+        2025
+      ],
+      "sample_count": 910,
+      "metrics": {
+        "pooled_before": {
+          "n": 602,
+          "mae": 117.39547618454257,
+          "signed_bias": 5.438375125108958,
+          "spearman": 0.7337305395653565
+        },
+        "pooled_after": {
+          "n": 602,
+          "mae": 114.56565575837931,
+          "signed_bias": 5.438375125108957,
+          "spearman": 0.7392340747569792
+        },
+        "per_stat": {
+          "carries": {
+            "mae_before": 40.664325692076766,
+            "mae_after": 39.82107305990457,
+            "ratio": 0.9792630858173433,
+            "spearman_before": 0.7490963516811666,
+            "spearman_after": 0.7432203888240917,
+            "spearman_decline": 0.005875962857074923
+          },
+          "rushing_yards": {
+            "mae_before": 194.1266266770084,
+            "mae_after": 189.31023845685402,
+            "ratio": 0.9751894508105373,
+            "spearman_before": 0.7412021539182573,
+            "spearman_after": 0.7410017194743304,
+            "spearman_decline": 0.00020043444392692233
+          }
+        },
+        "top_role_improvement_folds": 2,
+        "required_top_role_folds": 2,
+        "spearman_decline": -0.0055035351916227215,
+        "stable_producer_before": {
+          "n": 146,
+          "mae": 303.6995535995032,
+          "signed_bias": 75.28553836327094,
+          "spearman": 0.6186064784963444
+        },
+        "stable_producer_after": {
+          "n": 146,
+          "mae": 305.39306876470005,
+          "signed_bias": 120.26516290142096,
+          "spearman": 0.6190268243962895
+        },
+        "stable_producer_bias_improved": false,
+        "folds": [
+          {
+            "season": 2024,
+            "selected_exponent": 1.05,
+            "top_role_mae_before": 247.90681945262492,
+            "top_role_mae_after": 244.23020530579237,
+            "top_role_bias_before": -208.1935024664392,
+            "top_role_bias_after": -201.06758749899612
+          },
+          {
+            "season": 2025,
+            "selected_exponent": 1.2,
+            "top_role_mae_before": 202.68804802077295,
+            "top_role_mae_after": 191.33988704330642,
+            "top_role_bias_before": -145.23914835904435,
+            "top_role_bias_after": -107.087195744219
+          }
+        ]
+      }
+    }
+  }
+}

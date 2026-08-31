@@ -1,7 +1,19 @@
 .venv/
 __pycache__/
 *.pyc
-/data/
+# Ignore everything under /data/ (parquet cache, SQLite DB) EXCEPT the frozen
+# market snapshots and the sentiment snapshots. A directory-level `/data/`
+# exclusion cannot be un-excluded from inside, so this has to list the contents
+# and then negate.
+#
+# /data/sentiment/ has to be tracked or sentiment can never be activated.
+# models/sentiment_manifest.json holds sentiment at "diagnostic" pending three
+# seasons of point-in-time history, and these dated snapshots are that history.
+# While they were ignored, every run overwrote an untracked file and the record
+# the gate is waiting on could not accumulate.
+/data/*
+!/data/consensus/
+!/data/sentiment/
 *.db
 ingest_log*.txt
 phase0_results.json
@@ -11,3 +23,80 @@ phase0_results.json
 # self-generated .pytest_cache/.gitignore; make it explicit here.
 .pytest_cache/
 *.pyo
+
+# publish.py stages artifacts here before the atomic swap. The directory has
+# to live inside the repo so os.replace stays on one filesystem, so ignore it
+# rather than let it register as an untracked change mid-publish.
+publish-*/
+
+# Raw Monte Carlo draws (~13 MB/season). Regenerable from
+# scripts/run_v3_simulation.py; the committed summary CSV is what the draft
+# board reads. Keeping the draws out of git avoids a large binary per run.
+output/model_v3/simulations_*.parquet
+
+# Sealed release bundles and RC namespaces (~180 MB and ~85 MB today, growing
+# one namespace per publish). These are the full artifact set INCLUDING the
+# partitioned draws; they are regenerable from a publish run, and the sealed
+# manifest already carries a sha256 per artifact. What the browser actually
+# serves is the small public copy under draft_assistant/data/releases/, which
+# IS tracked -- the site cannot resolve a pointer without it.
+output/model_v3/release_bundles/
+output/model_v3/release_candidates/
+
+# Partitioned Monte Carlo draws (~43 MB/run). Same rationale as the flat
+# simulations_*.parquet above: regenerable, and the summary CSV is what the
+# board reads.
+output/model_v3/simulations/
+output/model_v3/holdout_draws_*.parquet
+output/model_v3/training_draws_*.parquet
+
+# Draw-stability sweep working set (~340 MB). The evidence that outlives it is
+# the frozen bundle under output/model_v3/frozen/ plus the decision JSONs,
+# both of which stay tracked.
+output/model_v3/draw_stability/
+
+# Long-running publish/evaluation console logs.
+output/*.log
+
+# Regenerable evaluation sweeps, shadow runs, and working reports. Frozen
+# evidence and rollout decisions under output/model_v3/frozen/ and
+# draw_count_rollout_decision.json stay tracked.
+output/evaluation/
+output/shadow_opportunity_mean/
+
+# Shadow v1 RB/WR research working set (local evidence, not deployable).
+# Canonical closeout policy, audit/pointer, and availability hold/seal JSON
+# stay tracked; parquet stages, membership dumps, and working tables remain
+# local outside the release path.
+output/shadow_v1_rb_wr/stages/
+output/shadow_v1_rb_wr/*.parquet
+output/shadow_v1_rb_wr/**/*.parquet
+output/shadow_v1_rb_wr/attribution_metrics.csv
+output/shadow_v1_rb_wr/attribution_summary.json
+output/shadow_v1_rb_wr/stage_attribution.csv
+output/shadow_v1_rb_wr/manifest.json
+output/shadow_v1_rb_wr/step6_*.csv
+output/shadow_v1_rb_wr/step6_decision.json
+output/shadow_v1_rb_wr/top120_membership_*.json
+output/shadow_v1_rb_wr/availability_repair/score_table.csv
+output/shadow_v1_rb_wr/availability_repair/scored_players.parquet
+output/weekly_audit/
+output/model_v3/decision_change_*
+output/model_v3/draw_count_decision.json
+output/model_v3/draw_stability_*.json
+output/model_v3/finish_probability_gate.json
+output/model_v3/holdout_*.json
+output/model_v3/holdout_*.parquet
+output/model_v3/holdout_finish_probs_*.parquet
+output/model_v3/holdout_scored_*.parquet
+output/model_v3/overlay_comparison_*.json
+output/model_v3/player_stability_diagnostics_*.parquet
+output/model_v3/promotion_gate_*.json
+output/model_v3/recentered_holdout_*.json
+output/model_v3/release_archive/
+output/model_v3/release_report_*.json
+output/model_v3/releases/
+output/model_v3/simulated_vorp/
+output/model_v3/training_draws_*.json
+output/model_v3/wr_calibration.json
+output/model_v3/simulation_summary_recentered_*.csv

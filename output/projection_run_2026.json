@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "run_id": "0b8c9cb1-e3ed-4936-88ef-94b51df10e96",
+  "season": 2026,
+  "created_at": "2026-08-26T07:36:09.602643+00:00",
+  "as_of": null,
+  "code_revision": {
+    "commit": "4e269434be5a39d7baa1614d1a09a27924075180",
+    "dirty": false
+  },
+  "artifact_hashes": {
+    "models/corrections.joblib": "e44ee89c5f79cf327f576c96225de53e1227619e2a2c2237da7de436770fcfea",
+    "models/manifest.joblib": "a564b526e67d89b218fd3d1cdb7f6917f1f3a4b1cfcb428310a65831315be3a1",
+    "models/QB_attempts.joblib": "1426b4f8c5322440428c73c0b54999227831c97e1eec4f32d0144e71c37de487",
+    "models/QB_carries.joblib": "3579395d20710845c21b58e424ad0c15d70f11da8051671dbf9c9412bf221da0",
+    "models/QB_completions.joblib": "3cee4ea1fa133c268c8ef5be55ed5f7d93cf786cdceb0df4001661c94abc24d8",
+    "models/QB_games.joblib": "aac6f0e6b6589124265d82a0d1f508c85c627334697f0f845ee8056caa1efb60",
+    "models/QB_interceptions.joblib": "6cf8620967a0100ec6cd0d3756f470250a57d7f0a5906052a9ae26c11f2e2230",
+    "models/QB_passing_tds.joblib": "66813df2ce35b245ca6ad0f1985ac19628a4e967be91d1c7ab66ddb9f24327aa",
+    "models/QB_passing_yards.joblib": "470c225724c18397ee8570cad6768fcdab12302d5df6bdb423c79a55b0efeaf2",
+    "models/QB_rushing_tds.joblib": "adc80c75fc03f71538076eb3fd8537d33c9d1f63513ed7866c57c418a946a310",
+    "models/QB_rushing_yards.joblib": "83570e93cef1ff41ae0ff51ac716d78a2d6e2f7c9003a23a13876185e1396075",
+    "models/RB_carries.joblib": "1a82b0a5b5254221093e91d5d9067aa8f84fe53812f0db221212327e4fa8e214",
+    "models/RB_games.joblib": "1770d762ec2e02fe2e5b013f63d2fae16f15d5c87269869b45c334063d728c57",
+    "models/RB_receiving_tds.joblib": "bcd97c2832a966fc6e092cb408a1386d49f6bfe2f751e94fbdf7bae23a7dc9ff",
+    "models/RB_receiving_yards.joblib": "07409b418a0e29bd7d0fff2fcacf06c3cf575f2bd824b834af0dd357f2dfc1d8",
+    "models/RB_receptions.joblib": "bebdceaec95ff6abd762c29f5500739b170fa666ba3130f15f5de6a1fe4e5ca6",
+    "models/RB_rushing_tds.joblib": "bf1cb272385219504cd1d65e5ce8177c97f8acdf97f353c838e77daed4776da8",
+    "models/RB_rushing_yards.joblib": "64b74b753cbb91d43acb55680739c1faf47bd82877a959715fdbed938801d893",
+    "models/RB_targets.joblib": "e1cdfbe03e72f415e20fc4ecdde445818cd3c27173509bc29b9033e7d61bbace",
+    "models/TE_games.joblib": "1ba7ee6c5f983519f7ce403d6082a8324093fc7c699ca494b38848a92b6e5eeb",
+    "models/TE_receiving_tds.joblib": "744c43af59d6ad1bdab063fd63ccf6721ee0fcc0dc20f0d34e3b54e67b82fa71",
+    "models/TE_receiving_yards.joblib": "1b7fc8932eec5f51fc340f0ce00da9cc1e0fbbac4dc72a0b16ecf4006016bfa0",
+    "models/TE_receptions.joblib": "ae0b7570e8d8c5bda79e998e2129b580cf8d1561a73de351eb0b0a1be52d9ab7",
+    "models/TE_targets.joblib": "680cb13525f35a5116aef033e21c5df7e42f4fc1bb1f544d7f2ce4bb29795f0b",
+    "models/team_carries.joblib": "325cfbfb00cd44d68690a5de3814e4c60ad9abf2a151cb164f153bd576206a91",
+    "models/team_pass_attempts.joblib": "54a2a30ffb41204c6089b0fc22016a10f902838ee45f2f2a2eeb9626a182570a",
+    "models/team_passing_yards.joblib": "6e648eb5b859619a20aed73d1a1df5eadee539e901af3016d3f0caba81531c83",
+    "models/team_rushing_yards.joblib": "2ec88703f2ed8bd0521991fb30a55dd54c8ea20331e12edb5a7d267681381f9d",
+    "models/WR_games.joblib": "a1416a968db6ebb22fe885458030361138d9601815bb59f2d22a57a750109d6c",
+    "models/WR_receiving_tds.joblib": "452ba650b18de107b59275bc241e3a57a513df561127dccd61598c457afc04a5",
+    "models/WR_receiving_yards.joblib": "3f6abb3da0c7f17390b93ef4d3f54871772ad4efd91afeb6608211f7999a4fbe",
+    "models/WR_receptions.joblib": "5ac92a2d44ca1c321f700700fae664235a1dc8cdb089df40035811dc48e72326",
+    "models/WR_targets.joblib": "0e44d2286e41459547ce1f80d0c375fac399c228409fbbda6cb2ccd1a3989e9f",
+    "models/depth_rate_calibration.csv": "0369f5456c44efebabef47c1036108995db3d5b20ec1aaee7483b3a87203855b",
+    "models/interval_forward_coverage.csv": "aae7f9377049156c42782e0071ce0a8f75ca4e003e3544f0a7ab6c05e2972596",
+    "models/interval_residuals.csv": "05e5fb2134d2eb0bc8edeb6d9b609ef18aff0a1514b7ba6a2c921932f3e7258b",
+    "models/concentration_calibration.json": "228e8ec8d72b893d91069a5ca5f7d34bff0ec25a3fa0bb421342ef96cbb767c4"
+  },
+  "data_snapshot": {
+    "path": "D:\\fantasy-projections-data\\projections.db",
+    "size_bytes": 1795842048,
+    "modified_at": "2026-08-17T19:25:03.236417+00:00"
+  },
+  "exposure_policy": "healthy_active_17_games; explicit IR/PUP/suspension overrides only",
+  "composition_version": "healthy17_qbroom_concentration_v1",
+  "simulation": {
+    "season": 2026,
+    "n_draws": 1000,
+    "mode": "full",
+    "distribution_mode": "joint_bootstrap",
+    "uncertainty_gate_verdict": "joint_bootstrap",
+    "uncertainty_applied": true,
+    "uncertainty_version": "v3_projection_uncertainty_v1",
+    "uncertainty_artifact_hash": "4db01b46310219c40b01982659001fbd14b752a12cfee7f8019a153853a84938",
+    "uncertainty_training_cutoff": 2025,
+    "joint_donors_hash": "31189f90bb90c49d63ecdf7c6cb73bfae3d03f8a204320bc9315682e76f0b3fa",
+    "source_projection_run_id": "0b8c9cb1-e3ed-4936-88ef-94b51df10e96",
+    "draws_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulations_2026.parquet",
+    "summary_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulation_summary_2026.csv"
+  },
+  "concentration_version": "concentration_v1_full_board",
+  "files": {
+    "projections": {
+      "path": "output/projections_2026.csv",
+      "sha256": "0f628dcb5f144f69df63e91a9b8f2f8812e3063653856220b3a2f34a6e82d10c"
+    },
+    "fantasy_points": {
+      "path": "output/fantasy_points_2026.csv",
+      "sha256": "1a780d38d31022f89230b60a4e17a92a06935b52b50928b5f5e5c64908419a20"
+    },
+    "team_stats": {
+      "path": "draft_assistant/data/team_stats_2026.json",
+      "sha256": "b698dbfa859211b03cce4bdb1edd7fa803239336d08eae7d2eb33faf5236fddb"
+    },
+    "draft_data": {
+      "path": "draft_assistant/data/players_2026.json",
+      "sha256": "958fb9ee58963a25246df9a8fbff1606417fc6c9c8de057a103d8efeb3e80b1e"
+    }
+  },
+  "sentiment_refreshed_at": "2026-08-28T04:43:24.124962+00:00",
+  "sentiment_as_of": "2026-08-24"
+}

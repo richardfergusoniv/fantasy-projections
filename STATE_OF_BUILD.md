@@ -1,5 +1,71 @@
 # State of the build — 2026-08-15
 
+> **Update (2026-08-30 — live board / availability / RB·WR / 10k):** The browser
+> serves sealed `v2_baseline_20260830` (previous `v2_candidate_20260830`). Mean
+> board exposure uses **17 games** except explicit status overrides; Gate A
+> modeled availability survives in `projected_games_raw` and in simulation
+> uncertainty, with blend **α=0** deliberately retained after the rejected
+> shadow availability blend. RB/WR is **closed, not solved**: selected weights
+> RB 0.10/0.30/0.60 and WR 0/0.55/0.45 (v1/v2/ADP), current ADP alignment
+> ~0.93/0.85; the only authorized revisit is post-2026 accuracy-first selector
+> results (`docs/decisions/V1_PRODUCTION_ROLE_2026-08-29.md`). Production draw
+> count is **10,000** as a human-approved operational compromise
+> (`decision_stable_compromise_10000`) — decision-stable at 10k, but the strict
+> numerical gate vs 20k did **not** pass. Active sealed release report still
+> lacks that risk field; do not reseal in place. Restore provenance + tracked
+> promotion receipts: `docs/decisions/PROMOTION_PROVENANCE_2026-08-30.md`.
+> Suite size is on the order of ~470 pytest cases (run `pytest --collect-only`).
+
+> **Update (2026-08-27 — accuracy-first 2026 board):** A leakage-safe
+> top-120 ADP bake-off promotes a separate accuracy-first point board: 2025
+> holdout MAE 58.72 → 53.14 and Spearman .504 → .602. The gain comes from
+> ADP-assisted RB/WR weights; v3 receives zero selected point weight and stays
+> the calibrated distribution overlay. Native v1 output remains unchanged.
+> See `docs/decisions/ACCURACY_FIRST_ENSEMBLE_2026-08-27.md`.
+
+> **Update (2026-08-25 — v3 point-engine decision):** v3 does **not** replace
+> the LightGBM/`compose_board` point engine yet. Hardened
+> `scripts/v3_promotion_gate.py` splits `simulation_ready` (percentile UI)
+> from `promote_v3_means` (requires `output/model_v3/means_backtest.json`
+> generative win vs v1 and blend). Draft `--v3-means` cutover exists but
+> defaults off. See `docs/decisions/V3_PROBABILISTIC_PIPELINE.md`.
+
+> **Update (2026-08-25 — v3 probabilistic pipeline):** A parallel v3 path adds
+> rolling backtest persistence, learned reconcile weights, conditional interval
+> models, Monte Carlo simulation, compositional share models, and generative
+> conversion layers under `src/projection/{evaluation,models,inference,data}/`.
+> Outputs land in `output/model_v3/` and `output/backtest/`. v1 ship path and
+> v1/v2 draft ensemble remain production defaults until
+> `scripts/v3_promotion_gate.py` passes. See
+> `docs/decisions/V3_PROBABILISTIC_PIPELINE.md`.
+
+> **Update (2026-08-24 — diagnostic player sentiment):** The 32 local
+> `perplexity research/` team summaries and the frozen ECR/ADP snapshot now
+> produce an audited, position-relative player sentiment score for every
+> projected QB/RB/WR/TE. The fields ship in projection/fantasy CSVs and both
+> dashboards; missing evidence stays null. `models/sentiment_manifest.json`
+> keeps every position inactive because only one point-in-time season exists,
+> so sentiment currently changes no projection, rank, tier, or VORP. See
+> `src/sentiment/README.md`.
+
+> **Update (2026-08-24 — two models detangled):** This repo is the **v1
+> rate-forecast** pipeline. The sibling folder `../fantasy-projections-2` is a
+> separate **v2 team-first** model. Canonical `output/fantasy_points_*.csv` and
+> `output/projections_*.csv` here are v1 only. Optional archived v2 syncs land
+> under `output/model_v2/` via `src.draft_assistant.from_v2` and must not
+> overwrite the native board. Head-to-head 2025 holdout numbers:
+> `output/model_accuracy_compare_2025.json` (`scripts/compare_model_accuracy.py`).
+> Draft UI: this repo port **8766** (v1); v2 repo port **8765**.
+> Season pass/catch identities (recv yds = pass yds, etc.) are restored on
+> shipped season totals by `reconcile_team_season_identities` in
+> `compose_board` — rates untouched; no v2 re-merge.
+>
+> **Update (2026-08-24 — draft ensemble shipped):** Test-before-rewrite go/no-go
+> was `do_not_rewrite`. Draft `prepare` defaults to a v1/v2 season-points blend
+> (`src/draft_assistant/ensemble_weights.json` + `output/model_v2/`) when both
+> exist; `--no-ensemble` for pure v1. Does not change `compose_board` or
+> LightGBM. Decision: `docs/decisions/TEST_BEFORE_REWRITE_2026-08-24.md`.
+
 > **Update (volume composition retired):** `compose_board` no longer runs
 > hierarchical pass/rush, usage-share priors, QB volume-game reconcile, or
 > team volume normalizers. Shipped `pred_pg` is forecast rates after Gate A/B
@@ -51,7 +117,7 @@ until one exists.
 nflverse / Sleeper / FTN / PFR
         │  src/ingest/sources.py  →  src/cache.py  (per-season parquet)
         ▼
-data/projections.db                                    src/db/load.py
+data/projections.db (or configured external data dir)  src/db/load.py
         │
         ├── src/ol_model/pooled_pipeline.py   → pooled OL attribution coefficients
         ├── src/coordinator/tendencies.py     → OC tendency profiles
@@ -247,21 +313,24 @@ specific import claim was overtaken by `composition.py`, which
 `REPO_HYGIENE_AUDIT.md` §5.4 notes "appeared *during* this audit" **[doc]**. The
 audit is another agent's live deliverable and is not edited here.
 
-### 3.5 Nothing in the allocation layer is committed
+### 3.5 Allocation layer is committed (supersedes earlier hygiene note)
 
-**[git]** `git ls-files src/projection/` returns 13 files. `composition.py`,
-`contracts.py`, `team_reconcile.py`, `team_pass_mix.py`, `team_rush_mix.py`,
-`roster_moves.py`, `replacement.py`, `depth_gating.py`, `depth_rates.py`,
-`veterans.py`, `artifacts.py`, `src/coordinator/inheritance.py`, and four test
-files are all untracked. Five of the eight decision records and both audits are
-untracked too. The build currently exists only in one working tree.
-Staging commands are in `REPO_HYGIENE_AUDIT.md` §7.
+**[git]** The projection package, decision records, sealed public browser
+copies, and active pointer are tracked. Full release bundles under
+`output/model_v3/release_bundles/` remain local/ignored by design. Earlier
+claims that the allocation layer existed only as untracked working-tree files
+are obsolete.
 
 ---
 
 ## 4. How to run everything
 
 All commands from the repo root, with the project venv active.
+
+The database and raw parquet cache default to `data/`. Set
+`FANTASY_PROJECTIONS_DATA_DIR` to keep both on another drive; this workstation
+uses `D:\fantasy-projections-data`. `FANTASY_PROJECTIONS_DB_PATH` and
+`FANTASY_PROJECTIONS_RAW_DIR` can override the two locations independently.
 
 ```bash
 # 0. Data layer (slow; only when refreshing sources)
@@ -295,7 +364,7 @@ python -m src.projection.fantasy_evaluation
 # 7. Draft assistant
 python -m src.draft_assistant.prepare --season 2026
 python -m src.team_stats.prepare --season 2026
-python -m src.draft_assistant.serve --open      # http://127.0.0.1:8765/
+python -m src.draft_assistant.serve --open      # http://127.0.0.1:8766/
 
 # Tests
 python -m pytest
@@ -330,23 +399,54 @@ whether or not the gate passes **[doc]** (`PROVENANCE_AUDIT.md` §2).
 
 ## 5. Known open defects and decisions
 
+Re-audited 2026-08-30. Rows marked **Historical** are no longer current facts;
+they remain so the older audits stay interpretable.
+
 | # | Item | Status | Where |
 |---|---|---|---|
-| 1 | Evaluation artifacts and freeze predate the harness rewrite | **Open, blocking any new claim** | §3.3 |
-| 2 | Whole allocation layer uncommitted | **Open** | `REPO_HYGIENE_AUDIT.md` §1, §7 |
-| 3 | 17 of 30 tuning knobs unmeasured; several bind on the board | **Open** | `PROVENANCE_AUDIT.md` §1, §3 |
-| 4 | Sleeper is the deciding evidence in ~half the allocation decisions | **Open — retirement plan pending** | `PROVENANCE_AUDIT.md` §4 |
-| 5 | L2 mix gates are advisory; `mix_source == 'scheme_model'` on 100% of rows | **Open** | `PROVENANCE_AUDIT.md` §2 |
-| 6 | No pass-mix LOSO result recorded anywhere; the doc gives a command and a condition, no number | **Open** | `HIERARCHICAL_PASS_MIX_2026-08-14.md` |
-| 7 | `WR_FORMATION_ROLE_PRIORS` re-enters the live path at weight 0.5 after the same fitted priors were disabled at `USAGE_SHARE_BLEND_W = 0.0` for losing the fantasy evaluation | **Open — highest-priority finding after §3.4** | `PROVENANCE_AUDIT.md` §2 |
-| 8 | Elite shrinkage sits at season-consistency 2.1 against its own gate of 2.0 | **Watch** | `PHASE7_REMEDIATION_REPORT.md` |
-| 9 | TE replacement-level calibration: raised in the freeze at 92.99 vs actual 133.00 **[doc]**; currently 98.71 vs 133.00 on disk **[code]** — still a ~34-point undershoot | **Watch** | `FREEZE_2026-08-13.md` |
+| 1 | Evaluation artifacts and freeze predate the harness rewrite | **Historical / superseded** — accuracy-first + v2 sealed releases are the live board; treat old freeze numbers as archaeology | §3.3 |
+| 2 | Whole allocation layer uncommitted | **Resolved** — `src/projection/` allocation modules, decision records, public releases, and the active pointer are tracked; full bundles stay local/ignored by design | §3.5 |
+| 3 | 17 of 30 tuning knobs unmeasured; several bind on the board | **Historical context** — many knobs retired with volume-composition shutdown; do not treat the 2026-08-15 count as live | `PROVENANCE_AUDIT.md` §1, §3 |
+| 4 | Sleeper is the deciding evidence in ~half the allocation decisions | **Policy held** — Sleeper remains diagnostic-only for new work; past decisions used it | `PROVENANCE_AUDIT.md` §4 |
+| 5 | L2 mix gates are advisory; `mix_source == 'scheme_model'` on 100% of rows | **Historical** — hierarchical pass/rush mix is retired from `compose_board` | volume-composition retirement banner |
+| 6 | No pass-mix LOSO result recorded anywhere | **Historical** — same retirement | `HIERARCHICAL_PASS_MIX_2026-08-14.md` |
+| 7 | `WR_FORMATION_ROLE_PRIORS` re-enters at weight 0.5 after `USAGE_SHARE_BLEND_W = 0.0` | **Historical** — formation/usage-share blend path retired from the live compose path | `PROVENANCE_AUDIT.md` §2 |
+| 8 | Elite shrinkage sits at season-consistency 2.1 against its own gate of 2.0 | **Watch** — TE-only corrections; not an authorized RB/WR reopen | `PHASE7_REMEDIATION_REPORT.md` |
+| 9 | TE replacement-level calibration undershoot | **Watch** | `FREEZE_2026-08-13.md` |
 | 10 | Three curated QBs (Watson, Bennett, DeVito) have no projection row by design; `MISSING` tripwire fires every run | **Accepted** | `DEPTH_CHART_ALLOCATION_2026-08-14.md` |
-| 11 | Team-total model fit on ~32 rows/season; its error lands on every receiver of a team at once | **Open, named as highest-leverage** | `PHASE7_REMEDIATION_REPORT.md` |
-| 12 | Fantasy intervals are componentwise, not a joint fantasy-score interval | **Open** | `PHASE7_REMEDIATION_REPORT.md` |
-| 13 | `DEPTH_CHART_ALLOCATION_2026-08-14.md` §"Still open" says `INCUMBENT_VACANCY_ALPHA['carry']` remains blocked; `RB_CARRY_VACANCY_2026-08-14.md` ships it at 1.0, and `contracts.py:45` confirms 1.0 **[code]**. Both records are dated 2026-08-14 and both are live | **Contradiction — resolve in the docs** | both records |
-| 14 | `DEPTH_RANK_TO_WR_FORMATION_ROLE` is dead code with zero consumers | **Delete candidate** | `PROVENANCE_AUDIT.md` §1 |
-| 15 | Test count: `FREEZE` claims 57, `AGE_EFFECT_SHRINKAGE` claims 63; a static count of `def test_` across 16 files gives 120 **[code]**. No suite was run for this document | **Stale doc numbers** | §3.3 |
+| 11 | Team-total model fit on ~32 rows/season | **Historical / retired from live compose** | `PHASE7_REMEDIATION_REPORT.md` |
+| 12 | Fantasy intervals are componentwise, not a joint fantasy-score interval | **Open (known limitation)** | `PHASE7_REMEDIATION_REPORT.md` |
+| 13 | Carry-vacancy alpha doc contradiction (blocked vs 1.0) | **Resolved in code at 1.0**; treat conflicting prose as stale | `contracts.py`, both 2026-08-14 records |
+| 14 | `DEPTH_RANK_TO_WR_FORMATION_ROLE` dead code | **Delete candidate / low priority** — not season-blocking | `PROVENANCE_AUDIT.md` §1 |
+| 15 | Stale test-count claims in old freezes | **Superseded** — current suite is ~470 pytest cases (`pytest --collect-only`) | §3.3 |
+
+### Season architecture freeze (through 2026 outcomes)
+
+Do **not** reopen before 2026 outcomes land:
+
+- RB/WR accuracy-first weights (0.10/0.30/0.60 and 0/0.55/0.45)
+- Availability blend α (remains 0; Gate A stays in `projected_games_raw`)
+- `v3_means` point-engine cutover
+- Production draw count (10k operational compromise; not a passed strict 20k gate)
+
+Authorized in-season changes: roster/depth/status/consensus freshness and genuine correctness defects only. Model-policy revisit path: unchanged accuracy-first selector + calibration suite after 2026 outcomes (`V1_PRODUCTION_ROLE_2026-08-29.md`).
+
+### Draft-day release cadence
+
+Before each draft-day release:
+
+1. Refresh inputs (roster/depth/status/consensus as needed)
+2. Publish a new namespace (`publish --artifact-namespace …`)
+3. Validate the sealed bundle
+4. Review player deltas vs the live board
+5. Promote (`promote_release`)
+6. Verify browser surfaces (pointer-driven; optional `--namespace` assertion)
+7. Confirm the promotion receipt and pointer `previous` rollback target
+
+### Scheduled follow-ups (not in-season model work)
+
+1. Harden or narrow the internal post-copy `include_git=False` validation surface in `promote_release`.
+2. After 2026 outcomes: run the unchanged accuracy-first selector and calibration suite before any model-policy change.
 
 **Live board tripwires** **[code]** (`predict._warn_board_level_allocation`) —
 stderr only, never change a number: `CAPPED` (a rate pinned on a support

@@ -1,0 +1,273 @@
+{
+  "metadata": {
+    "seasons": [
+      2023,
+      2024,
+      2025
+    ],
+    "untestable_on_history": [
+      {
+        "lever": "curated_depth_chart",
+        "why": "src/depth_chart/starters_<season>.csv is hand-researched for 2026 only"
+      },
+      {
+        "lever": "status_overrides_ir_pup",
+        "why": "status_overrides_<season>.csv is 2026-only"
+      },
+      {
+        "lever": "elite_residual_correction",
+        "why": "models/corrections.joblib spans the target season on the ship path"
+      },
+      {
+        "lever": "prediction_intervals",
+        "why": "interval_residuals.csv is fit across the target season"
+      },
+      {
+        "lever": "roster_vacancy_boosts",
+        "why": "vacancy alphas live in roster_moves upstream of the leakage-safe harness"
+      }
+    ],
+    "note": "Curated 2026 levers are tagged untestable; do not use them as rewrite justification until snapshot tables exist for prior years."
+  },
+  "folds": [
+    {
+      "target_season": 2023,
+      "source_season": 2022,
+      "skipped_existing": false,
+      "headline": {
+        "by_position": {
+          "QB": {
+            "spearman": 0.6689116054692342,
+            "points_mae": 55.78386431747319,
+            "n": 100
+          },
+          "RB": {
+            "spearman": 0.7831693974938672,
+            "points_mae": 33.89178091045845,
+            "n": 180
+          },
+          "WR": {
+            "spearman": 0.7811981467994319,
+            "points_mae": 24.679058453653077,
+            "n": 307
+          },
+          "TE": {
+            "spearman": 0.7647719897436083,
+            "points_mae": 18.483069977252967,
+            "n": 169
+          }
+        },
+        "overall": {
+          "spearman": 0.7631427902512102,
+          "points_mae": 29.601874030498795,
+          "n": 756
+        }
+      },
+      "coverage_limits": [
+        "Week-1 contracted roster snapshot excludes August camp cuts.",
+        "Veterans without a source-season feature row remain in all_eligible and score as zero model points.",
+        "Composition/allocation is the shipped pipeline itself (composition.compose_board), run over artifacts refit on seasons <= source_season. See composition_stage_coverage for the per-stage active/degraded map.",
+        "STAGES THAT CANNOT BE MEASURED ON A HISTORICAL FOLD, and why: (a) curated depth-chart membership, roles, formation roles and reviewed usage-share priors - src/depth_chart/starters_<season>.csv is hand-researched and exists for 2026 only, so apply_curated_availability_override, apply_depth_chart_gating's curated branch, replacement-level rows for curated players neither model path reaches, and the LWR/RWR/SWR within-WR split all no-op; (b) dated status overrides (IR/PUP) - status_overrides_<season>.csv is likewise 2026-only; (c) elite residual correction - models/corrections.joblib is fit on residuals spanning the target season; (d) prediction intervals - models/interval_residuals.csv is fit by backtest.py across the target season. None of these are faked or silently skipped: each degrades to an explicit pass-through recorded in composition_stage_coverage.",
+        "Roster reassignment (reassign_team_changers) is not run: the target team comes from the frozen Week-1 roster, which is a stricter preseason source than the seasonal_rosters lookup the shipped path uses.",
+        "No Sleeper or other external projection is used."
+      ],
+      "paths": {
+        "rows": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\fantasy_evaluation_2023.csv",
+        "summary": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\fantasy_evaluation_summary_2023.csv",
+        "json": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\fantasy_evaluation_summary_2023.json"
+      }
+    },
+    {
+      "target_season": 2024,
+      "source_season": 2023,
+      "skipped_existing": false,
+      "headline": {
+        "by_position": {
+          "QB": {
+            "spearman": 0.7144392022181167,
+            "points_mae": 44.45549607101041,
+            "n": 105
+          },
+          "RB": {
+            "spearman": 0.8104427180972201,
+            "points_mae": 31.15942653301797,
+            "n": 183
+          },
+          "WR": {
+            "spearman": 0.7959537570342801,
+            "points_mae": 25.95034235703372,
+            "n": 303
+          },
+          "TE": {
+            "spearman": 0.801369841689204,
+            "points_mae": 17.921751138411672,
+            "n": 165
+          }
+        },
+        "overall": {
+          "spearman": 0.7893216215671945,
+          "points_mae": 28.02915980822424,
+          "n": 756
+        }
+      },
+      "coverage_limits": [
+        "Week-1 contracted roster snapshot excludes August camp cuts.",
+        "Veterans without a source-season feature row remain in all_eligible and score as zero model points.",
+        "Composition/allocation is the shipped pipeline itself (composition.compose_board), run over artifacts refit on seasons <= source_season. See composition_stage_coverage for the per-stage active/degraded map.",
+        "STAGES THAT CANNOT BE MEASURED ON A HISTORICAL FOLD, and why: (a) curated depth-chart membership, roles, formation roles and reviewed usage-share priors - src/depth_chart/starters_<season>.csv is hand-researched and exists for 2026 only, so apply_curated_availability_override, apply_depth_chart_gating's curated branch, replacement-level rows for curated players neither model path reaches, and the LWR/RWR/SWR within-WR split all no-op; (b) dated status overrides (IR/PUP) - status_overrides_<season>.csv is likewise 2026-only; (c) elite residual correction - models/corrections.joblib is fit on residuals spanning the target season; (d) prediction intervals - models/interval_residuals.csv is fit by backtest.py across the target season. None of these are faked or silently skipped: each degrades to an explicit pass-through recorded in composition_stage_coverage.",
+        "Roster reassignment (reassign_team_changers) is not run: the target team comes from the frozen Week-1 roster, which is a stricter preseason source than the seasonal_rosters lookup the shipped path uses.",
+        "No Sleeper or other external projection is used."
+      ],
+      "paths": {
+        "rows": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\fantasy_evaluation_2024.csv",
+        "summary": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\fantasy_evaluation_summary_2024.csv",
+        "json": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\fantasy_evaluation_summary_2024.json"
+      }
+    },
+    {
+      "target_season": 2025,
+      "source_season": 2024,
+      "skipped_existing": false,
+      "headline": {
+        "by_position": {
+          "QB": {
+            "spearman": 0.780013330351543,
+            "points_mae": 39.207009654989434,
+            "n": 107
+          },
+          "RB": {
+            "spearman": 0.6906154492455955,
+            "points_mae": 35.251734828923844,
+            "n": 185
+          },
+          "WR": {
+            "spearman": 0.7800517917335428,
+            "points_mae": 24.68236428302177,
+            "n": 298
+          },
+          "TE": {
+            "spearman": 0.8347776285935279,
+            "points_mae": 17.284958624187354,
+            "n": 165
+          }
+        },
+        "overall": {
+          "spearman": 0.7700914266391763,
+          "points_mae": 27.71401815333269,
+          "n": 755
+        }
+      },
+      "coverage_limits": [
+        "Week-1 contracted roster snapshot excludes August camp cuts.",
+        "Veterans without a source-season feature row remain in all_eligible and score as zero model points.",
+        "Composition/allocation is the shipped pipeline itself (composition.compose_board), run over artifacts refit on seasons <= source_season. See composition_stage_coverage for the per-stage active/degraded map.",
+        "STAGES THAT CANNOT BE MEASURED ON A HISTORICAL FOLD, and why: (a) curated depth-chart membership, roles, formation roles and reviewed usage-share priors - src/depth_chart/starters_<season>.csv is hand-researched and exists for 2026 only, so apply_curated_availability_override, apply_depth_chart_gating's curated branch, replacement-level rows for curated players neither model path reaches, and the LWR/RWR/SWR within-WR split all no-op; (b) dated status overrides (IR/PUP) - status_overrides_<season>.csv is likewise 2026-only; (c) elite residual correction - models/corrections.joblib is fit on residuals spanning the target season; (d) prediction intervals - models/interval_residuals.csv is fit by backtest.py across the target season. None of these are faked or silently skipped: each degrades to an explicit pass-through recorded in composition_stage_coverage.",
+        "Roster reassignment (reassign_team_changers) is not run: the target team comes from the frozen Week-1 roster, which is a stricter preseason source than the seasonal_rosters lookup the shipped path uses.",
+        "No Sleeper or other external projection is used."
+      ],
+      "paths": {
+        "rows": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\fantasy_evaluation_2025.csv",
+        "summary": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\fantasy_evaluation_summary_2025.csv",
+        "json": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\fantasy_evaluation_summary_2025.json"
+      }
+    }
+  ],
+  "dispersion": [
+    {
+      "target_season": 2023,
+      "spearman": 0.7631427902512102,
+      "points_mae": 29.601874030498795,
+      "n": 756,
+      "by_position": {
+        "QB": {
+          "spearman": 0.6689116054692342,
+          "points_mae": 55.78386431747319,
+          "n": 100
+        },
+        "RB": {
+          "spearman": 0.7831693974938672,
+          "points_mae": 33.89178091045845,
+          "n": 180
+        },
+        "WR": {
+          "spearman": 0.7811981467994319,
+          "points_mae": 24.679058453653077,
+          "n": 307
+        },
+        "TE": {
+          "spearman": 0.7647719897436083,
+          "points_mae": 18.483069977252967,
+          "n": 169
+        }
+      },
+      "skipped_existing": false
+    },
+    {
+      "target_season": 2024,
+      "spearman": 0.7893216215671945,
+      "points_mae": 28.02915980822424,
+      "n": 756,
+      "by_position": {
+        "QB": {
+          "spearman": 0.7144392022181167,
+          "points_mae": 44.45549607101041,
+          "n": 105
+        },
+        "RB": {
+          "spearman": 0.8104427180972201,
+          "points_mae": 31.15942653301797,
+          "n": 183
+        },
+        "WR": {
+          "spearman": 0.7959537570342801,
+          "points_mae": 25.95034235703372,
+          "n": 303
+        },
+        "TE": {
+          "spearman": 0.801369841689204,
+          "points_mae": 17.921751138411672,
+          "n": 165
+        }
+      },
+      "skipped_existing": false
+    },
+    {
+      "target_season": 2025,
+      "spearman": 0.7700914266391763,
+      "points_mae": 27.71401815333269,
+      "n": 755,
+      "by_position": {
+        "QB": {
+          "spearman": 0.780013330351543,
+          "points_mae": 39.207009654989434,
+          "n": 107
+        },
+        "RB": {
+          "spearman": 0.6906154492455955,
+          "points_mae": 35.251734828923844,
+          "n": 185
+        },
+        "WR": {
+          "spearman": 0.7800517917335428,
+          "points_mae": 24.68236428302177,
+          "n": 298
+        },
+        "TE": {
+          "spearman": 0.8347776285935279,
+          "points_mae": 17.284958624187354,
+          "n": 165
+        }
+      },
+      "skipped_existing": false
+    }
+  ],
+  "dispersion_summary": {
+    "spearman_min": 0.7631427902512102,
+    "spearman_max": 0.7893216215671945,
+    "spearman_range": 0.026178831315984308,
+    "mae_min": 27.71401815333269,
+    "mae_max": 29.601874030498795,
+    "mae_range": 1.8878558771661034,
+    "n_folds": 3
+  }
+}

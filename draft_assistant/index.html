@@ -15,9 +15,13 @@
           <h1>Draft Assistant</h1>
         </div>
         <span class="season-badge" id="seasonBadge">2026</span>
+        <span class="model-badge" id="modelBadge" title="Projection model">v1 rate-forecast</span>
         <nav class="app-nav" aria-label="App">
           <a href="/" class="active" aria-current="page">Draft</a>
+          <a href="/sleepers/">Sleepers</a>
           <a href="/teams/">Team Projections</a>
+          <a href="/totals/">Total Projections</a>
+          <a href="/compare/">Compare</a>
         </nav>
       </div>
       <div class="header-controls">
@@ -75,11 +79,11 @@
             <thead>
               <tr>
                 <th class="col-check"></th>
-                <th class="col-rank">Rank</th>
-                <th class="col-tier">Tier</th>
-                <th class="col-player">Player</th>
-                <th class="col-pos">Pos</th>
-                <th class="col-team">Team</th>
+                <th class="col-rank sortable sorted-asc" data-sort="rank" data-default-dir="asc">Rank</th>
+                <th class="col-tier sortable" data-sort="tier" data-default-dir="asc">Tier</th>
+                <th class="col-player sortable" data-sort="display_name" data-default-dir="asc">Player</th>
+                <th class="col-pos sortable" data-sort="position" data-default-dir="asc">Pos</th>
+                <th class="col-team sortable" data-sort="team" data-default-dir="asc">Team</th>
               </tr>
             </thead>
             <tbody id="rankingsBody"></tbody>
@@ -123,6 +127,10 @@
     </div>
   </div>
 
-  <script src="js/app.js?v=vorp-tiers1" type="module"></script>
+  <script src="js/release_loader.js?v=release-bundle-1"></script>
+  <script src="js/projection_adjustment.js?v=sleepers-1"></script>
+  <script src="js/history_table.js?v=sleepers-1"></script>
+  <script src="js/sortable.js"></script>
+  <script src="js/app.js?v=sleepers-1"></script>
 </body>
 </html>

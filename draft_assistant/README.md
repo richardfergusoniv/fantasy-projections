@@ -1,9 +1,21 @@
 # Fantasy Tools
 
-Local static app with two views powered by your projection pipeline:
+Sentiment lives on the **Sleepers** view only. It is not on the draft board:
+the signal is 91.5% positive / 1.2% negative across the parsed research corpus,
+is missing for 56% of the players outside the top-120 ADP, and has never been
+validated against outcomes, so it is not strong enough to order a board. The
+Compare and Team views still carry it. It stays labeled **diagnostic** while
+`models/sentiment_manifest.json` has no active positions, and it does not change
+VORP, tiers, suggestions, or projected fantasy points. See
+`src/sentiment/README.md` for refresh and gate commands.
 
-- **Draft Assistant** — FantasyPros-style board from `output/fantasy_points_<season>.csv`
-- **Team Projections** — ESPN-style team stats + depth chart from `output/projections_<season>.csv`
+Local static app with views powered by **this repo’s rate-forecast (v1) pipeline**, with an optional **v1/v2 draft ensemble** post-process on the board:
+
+- **Draft Assistant** — FantasyPros-style board from `output/fantasy_points_<season>.csv`, blended with archived v2 season points when `output/model_v2/` is present (see Ensemble below)
+- **Team Projections** — ESPN-style team stats + depth chart from `output/projections_<season>.csv` (native v1; not blended)
+- **Total Projections** — League-wide Passing / Rushing / Receiving leaders by position from the same team_stats JSON
+
+The sibling repo `fantasy-projections-2` is a **different** model (team-first Ridge). Its boards live there (and as read-only copies under `output/model_v2/` when synced). Do not feed v2 CSVs into this app’s canonical `output/` projection paths — the draft blend reads `output/model_v2/` only as a post-process input.
 
 ## Features
 
@@ -15,6 +27,17 @@ Local static app with two views powered by your projection pipeline:
 - **Draft checkboxes** — mark players drafted; state persists in your browser.
 - **Snake draft tracking** — set league size, your draft slot, and current pick to see who is on the clock.
 - **Suggested picks** — blends VORP, positional need, and tier.
+
+### Simulation overlays (uncertainty, not authoritative ranks)
+
+When gates pass, the board may include additive fields from recentered v3 draws:
+
+- **`p_finish_top*`** — probability of finishing top-N within position per draw. Uses **`first_occurrence`** tie policy (pandas `rank(method="first")`).
+- **`sim_vorp_*` / `p_vorp_positive`** — signed points over a fixed replacement level from the displayed board; not a rerank.
+- **`expected_pos_rank` / `median_pos_rank`** — draw-level positional rank moments. Uses **`minimum_competition_rank`** tie policy (pandas `rank(method="min")`).
+
+These rank-derived groups use **different tie conventions on purpose**. See `meta.draft_value_simulation.rank_tie_policies` in `players_<season>.json` and `docs/PIPELINE_MAP.md` §7. Deterministic `vorp`, `rank`, `position_rank`, and `tier` are unchanged.
+
 - **Roster builder** — QB/RB/WR/TE/FLEX/BN slots fill as you draft yourself.
 
 ### Team Projections
@@ -23,20 +46,62 @@ Local static app with two views powered by your projection pipeline:
 - ESPN-style depth chart (Starter / 2nd / 3rd / 4th)
 - Player hover cards and fullscreen detail modal
 
+### Total Projections
+
+- League-wide Passing / Rushing / Receiving leaderboards (Total or Per Game)
+- Position filter (All / QB / RB / WR / TE) plus player/team search
+- Team column links into Team Projections; same player cards as that page
+
 ## Quick start
 
+Projections come from **this repo** (LightGBM rate-forecast + gates).
+
 ```bash
-# 1. Export JSON after projections exist
+# After projecting the season into output/fantasy_points_*.csv + projections_*.csv
+# (and optionally syncing v2 into output/model_v2/):
 python -m src.draft_assistant.prepare --season 2026
 python -m src.team_stats.prepare --season 2026
-
-# 2. Serve the combined app
+python -m src.draft_assistant.compare_prepare --season 2026
 python -m src.draft_assistant.serve --open
 ```
 
-Open http://127.0.0.1:8765/ (Draft) or http://127.0.0.1:8765/teams/ (Team Projections).
+`prepare` **defaults to the v1/v2 draft ensemble** when both
+`src/draft_assistant/ensemble_weights.json` and
+`output/model_v2/fantasy_points_<season>.csv` exist. Pass `--no-ensemble` for a
+native v1-only board. Weights were fit on 2023–2024 OOF with 2025 held out
+([TEST_BEFORE_REWRITE_2026-08-24.md](../docs/decisions/TEST_BEFORE_REWRITE_2026-08-24.md));
+they do **not** change `compose_board` or LightGBM.
 
-`python -m src.team_stats.serve` is an alias for the same combined server.
+Open http://127.0.0.1:8766/ (Draft), `/teams/` (Team Projections), `/totals/` (Total Projections), or `/compare/` (our ranks vs ECR/ADP).
+
+| Port | Repo | Model |
+|------|------|--------|
+| **8766** | `fantasy-projections` | v1 rate-forecast |
+| **8765** | `fantasy-projections-2` | v2 team-first |
+
+### Optional: archive a v2 board here (comparison + draft ensemble input)
+
+```bash
+# Writes ONLY to output/model_v2/ — never overwrites native output/
+python -m src.draft_assistant.from_v2 --season 2026 --no-run-project
+```
+
+Set `FANTASY_PROJECTIONS_V2` if the sibling repo is not at `../fantasy-projections-2`.
+With `output/model_v2/fantasy_points_<season>.csv` present, draft `prepare`
+blends v1 and v2 season points using `src/draft_assistant/ensemble_weights.json`.
+
+### Rankings comparison
+
+`/compare/` is a sortable table of our VORP board vs:
+
+- **ECR** — FantasyPros PPR consensus (via nflverse / DynastyProcess)
+- **ADP** — Fantasy Football Calculator half-PPR (attribution required)
+
+`Δ ECR` / `Δ ADP` = our rank − market (negative means we like the player more).
+
+```bash
+python -m src.draft_assistant.compare_prepare --season 2026 --teams 12
+```
 
 ## Draft workflow
 
@@ -65,17 +130,8 @@ Defaults live in `src/draft_assistant/vorp.py`. The browser recomputes when you 
 
 ## Tier thresholds
 
-| Scope   | Rule                                      |
-|---------|-------------------------------------------|
-| Overall (VORP) | 0.75 PPG-VORP drop or 4% relative |
-| QB (VORP) | 0.85 PPG-VORP or 3%                    |
-| RB (VORP) | 0.75 PPG-VORP or 3%                    |
-| WR (VORP) | 0.55 PPG-VORP or 3%                    |
-| TE (VORP) | 0.50 PPG-VORP or 3%                    |
-| FLEX (VORP) | 0.65 PPG-VORP or 3% (RB/WR/TE)       |
-
-Adjust in `src/draft_assistant/tiers.py` / `vorp.py` and re-run `prepare`.
+Position and FLEX tiers are PPG VORP cliffs; overall tiers use overall VORP gaps. See `src/draft_assistant/tiers.py`.
 
 ## Scoring
 
-Half-PPR, 4-point passing TD — matches the projection pipeline in `src/projection/fantasy_points.py`.
+Half-PPR, 4-point passing TD — from this repo’s `src/projection/fantasy_points.py`.

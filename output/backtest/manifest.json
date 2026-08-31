@@ -1,0 +1,340 @@
+{
+  "generated_at": "2026-08-25T23:15:42.406713+00:00",
+  "folds": [
+    [
+      2022,
+      2023
+    ],
+    [
+      2023,
+      2024
+    ],
+    [
+      2024,
+      2025
+    ]
+  ],
+  "residuals_by_season": {
+    "2023": "residuals_2023.parquet",
+    "2024": "residuals_2024.parquet",
+    "2025": "residuals_2025.parquet"
+  },
+  "calibration_summary": {
+    "n": 7912,
+    "mean_coverage": 0.797744366109395,
+    "mean_coverage_gap": -0.002255633890604912,
+    "mean_crps_gaussian": 3.2218454143605157,
+    "by_group": [
+      {
+        "position": "QB",
+        "stat": "attempts",
+        "n": 219,
+        "resid_low": -10.210165454901036,
+        "resid_high": 9.152153935623735,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 4.377170671019903
+      },
+      {
+        "position": "QB",
+        "stat": "carries",
+        "n": 219,
+        "resid_low": -1.7176008367118507,
+        "resid_high": 1.1836900884472998,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 0.6792453112363412
+      },
+      {
+        "position": "QB",
+        "stat": "completions",
+        "n": 219,
+        "resid_low": -6.588356882025852,
+        "resid_high": 6.009277772202903,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 2.824432803266546
+      },
+      {
+        "position": "QB",
+        "stat": "interceptions",
+        "n": 219,
+        "resid_low": -0.27299708569221115,
+        "resid_high": 0.2934214954966581,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 0.12979658451423182
+      },
+      {
+        "position": "QB",
+        "stat": "passing_tds",
+        "n": 219,
+        "resid_low": -0.4962823658507033,
+        "resid_high": 0.5818656971817824,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 0.24235845862618802
+      },
+      {
+        "position": "QB",
+        "stat": "passing_yards",
+        "n": 219,
+        "resid_low": -78.38386433110198,
+        "resid_high": 62.710165097259726,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 32.32704961635182
+      },
+      {
+        "position": "QB",
+        "stat": "rushing_tds",
+        "n": 219,
+        "resid_low": -0.13365020344631912,
+        "resid_high": 0.07890350836339528,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 0.06572832024002907
+      },
+      {
+        "position": "QB",
+        "stat": "rushing_yards",
+        "n": 219,
+        "resid_low": -7.249912447495268,
+        "resid_high": 6.614452565706618,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 3.738172447641098
+      },
+      {
+        "position": "RB",
+        "stat": "carries",
+        "n": 344,
+        "resid_low": -4.570294763401546,
+        "resid_high": 4.297204656338408,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 1.843687511227985
+      },
+      {
+        "position": "RB",
+        "stat": "receiving_tds",
+        "n": 344,
+        "resid_low": -0.07605589131494367,
+        "resid_high": 0.08494970673803486,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 0.03714710318775726
+      },
+      {
+        "position": "RB",
+        "stat": "receiving_yards",
+        "n": 344,
+        "resid_low": -6.306643243619114,
+        "resid_high": 7.749050661638241,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 3.2153906193476693
+      },
+      {
+        "position": "RB",
+        "stat": "receptions",
+        "n": 344,
+        "resid_low": -0.7158924368403375,
+        "resid_high": 1.0314377058850215,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 0.3988112095967781
+      },
+      {
+        "position": "RB",
+        "stat": "rushing_tds",
+        "n": 344,
+        "resid_low": -0.18789049751141135,
+        "resid_high": 0.19542350255667518,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 0.09722047359900365
+      },
+      {
+        "position": "RB",
+        "stat": "rushing_yards",
+        "n": 344,
+        "resid_low": -20.321292753603093,
+        "resid_high": 20.50223189954096,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 9.170205579058836
+      },
+      {
+        "position": "RB",
+        "stat": "targets",
+        "n": 344,
+        "resid_low": -0.9800433995852975,
+        "resid_high": 1.1498431012871928,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 0.49347245153534064
+      },
+      {
+        "position": "TE",
+        "stat": "receiving_tds",
+        "n": 336,
+        "resid_low": -0.10978967419627858,
+        "resid_high": 0.12269845899163004,
+        "coverage": 0.7976190476190477,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0023809523809523725,
+        "crps_gaussian": 0.056826146592307794
+      },
+      {
+        "position": "TE",
+        "stat": "receiving_yards",
+        "n": 336,
+        "resid_low": -8.406653167948475,
+        "resid_high": 12.026559203074735,
+        "coverage": 0.7976190476190477,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0023809523809523725,
+        "crps_gaussian": 4.97065654434423
+      },
+      {
+        "position": "TE",
+        "stat": "receptions",
+        "n": 336,
+        "resid_low": -0.8519668477677007,
+        "resid_high": 0.9491992694198332,
+        "coverage": 0.7976190476190477,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0023809523809523725,
+        "crps_gaussian": 0.4597115877262153
+      },
+      {
+        "position": "TE",
+        "stat": "targets",
+        "n": 336,
+        "resid_low": -1.2339651002728351,
+        "resid_high": 1.2658203253591456,
+        "coverage": 0.7976190476190477,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0023809523809523725,
+        "crps_gaussian": 0.6193846604693872
+      },
+      {
+        "position": "WR",
+        "stat": "receiving_tds",
+        "n": 602,
+        "resid_low": -0.12688688060599368,
+        "resid_high": 0.19930033543102613,
+        "coverage": 0.7973421926910299,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0026578073089701393,
+        "crps_gaussian": 0.07070591733499285
+      },
+      {
+        "position": "WR",
+        "stat": "receiving_yards",
+        "n": 602,
+        "resid_low": -12.435300351369454,
+        "resid_high": 16.752920340938477,
+        "coverage": 0.7973421926910299,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0026578073089701393,
+        "crps_gaussian": 7.0130541753468005
+      },
+      {
+        "position": "WR",
+        "stat": "receptions",
+        "n": 602,
+        "resid_low": -0.9577299296808452,
+        "resid_high": 1.245351401344789,
+        "coverage": 0.7973421926910299,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0026578073089701393,
+        "crps_gaussian": 0.5255757298252168
+      },
+      {
+        "position": "WR",
+        "stat": "targets",
+        "n": 602,
+        "resid_low": -1.3200324854633836,
+        "resid_high": 1.9164003997125594,
+        "coverage": 0.7973421926910299,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0026578073089701393,
+        "crps_gaussian": 0.7466406082031833
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "path": "availability_rolling.csv",
+      "bytes": 4515,
+      "sha256": "5ced1d1299f35da17ac37a6c3bc5e6454a37ad903f195f0722e4d790c0cf32e3"
+    },
+    {
+      "path": "position_stat_legacy_rolling.csv",
+      "bytes": 5554,
+      "sha256": "fd76c1cb815f9e440b4ca7293faa554dcb2044de0e5877bab7ad029e5e9a2cca"
+    },
+    {
+      "path": "position_stat_rolling.csv",
+      "bytes": 13094,
+      "sha256": "55e294b8fb58c24368b305a3f8d6da25fd6f2dfb3a90e41e8040f54214c64fcb"
+    },
+    {
+      "path": "residuals_2023.parquet",
+      "bytes": 67978,
+      "sha256": "16d537811c0a3a0823ecf77bcd0de6a00e5f59a7c04ecc97e266bdab583dc1ae"
+    },
+    {
+      "path": "residuals_2024.parquet",
+      "bytes": 68282,
+      "sha256": "e6c13f0d2f685d4424b762b9cb8410196e30c0c341a9f12a6ef5670aa18b14b9"
+    },
+    {
+      "path": "residuals_2025.parquet",
+      "bytes": 69288,
+      "sha256": "2f2bd77e35503cb56b37fdcd145ec84f81057e6bea75739e03d4f20bca41fbc6"
+    },
+    {
+      "path": "residuals_rolling.parquet",
+      "bytes": 187030,
+      "sha256": "a78adea073f4b59c7c50bccc07cdb2ab7002fdcf402f007ed0f9465dd5ff5b1d"
+    },
+    {
+      "path": "rookie_rolling.csv",
+      "bytes": 6124,
+      "sha256": "b5ebe4afa4c5a0dfcac9b0abf08df55c09d1d682d0ee547b0932bc2673a9be1e"
+    },
+    {
+      "path": "season_totals_2025.csv",
+      "bytes": 3077,
+      "sha256": "aa6a8a68862223747a14828e2f39d051777913dd50ee58f2b1c04f5e6580649d"
+    },
+    {
+      "path": "team_totals_rolling.csv",
+      "bytes": 517,
+      "sha256": "812b2460d78ec26d09bd145c1dc990826cdd79e0e355282f29f03024f1dcc0a3"
+    },
+    {
+      "path": "veteran_holdout_2025.csv",
+      "bytes": 1716,
+      "sha256": "8f5554f61160eb609ad0dd39872f28ec6794cdb106a51ee5b424230eb39d720a"
+    }
+  ]
+}

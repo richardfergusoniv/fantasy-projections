@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-08-26T07:00:02.548255+00:00",
+  "season": 2026,
+  "verdict": "simulation_ready",
+  "rationale": "v3 simulation overlay is ready for percentiles/volatility UI only. Do not replace the v1 point engine; means backtest has not cleared promote_v3_means gates.",
+  "gates": {
+    "simulation_ready": true,
+    "season_distribution_calibration_passed": true,
+    "selected_distribution_mode": "joint_bootstrap",
+    "p10_p90_coverage": 0.7552213868003341,
+    "season_distribution_basis": "rolling_origin_exact_full_simulator_season_fantasy_points",
+    "season_distribution_n_scored": 1197,
+    "season_distribution_acceptance": {
+      "aggregate_coverage_75_85": true,
+      "fold_coverage_72_88": true,
+      "position_coverage_floor_70": true,
+      "interval_score_improves": true,
+      "p50_mae_no_material_regression": true,
+      "p50_spearman_no_material_regression": true
+    },
+    "uncertainty_manifest_matches_calibration": true,
+    "simulation_mode_full": true,
+    "simulation_distribution_matches": true,
+    "simulation_uncertainty_hash_matches": true,
+    "simulation_joint_donors_hash_matches": true,
+    "v3_simulation_exists": true,
+    "means_backtest_exists": true,
+    "interim_beats_v1_and_blend": false,
+    "generative_beats_v1_and_blend": false,
+    "blend_arm_usable": true,
+    "blend_unusable_folds": [],
+    "promote_v3_means": false,
+    "holdout_2025": {
+      "v1_mae": 27.714018153332695,
+      "blend_mae": 26.024804332250863,
+      "v3_interim_mae": 29.678169749402535,
+      "v3_generative_mae": 28.939110293525456,
+      "v1_spearman": 0.7583060301223868,
+      "blend_spearman": 0.772678110083588,
+      "v3_interim_spearman": 0.700686412515383,
+      "v3_generative_spearman": 0.7542932743121648
+    }
+  },
+  "architecture_rule": "v1 compose_board owns point rates/totals; optional v2 blend owns draft mean points when enabled; v3 owns distributional overlay until promote_v3_means."
+}

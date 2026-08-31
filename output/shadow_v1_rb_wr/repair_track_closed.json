@@ -1,0 +1,19 @@
+{
+  "schema_version": "shadow_v1_rb_wr_repair_track_closed_v1",
+  "generated_at": "2026-08-30T19:21:26.130724+00:00",
+  "producing_commit": "63f80973bdf66dff51fad3cef2a939a575769f56",
+  "verdict": "close_shadow_repair_track",
+  "v1_role": "structural_diagnostic_only",
+  "approved_primary_top120_rb_wr": false,
+  "repair_track_status": "closed",
+  "reason": "Bounded audit of traced stage/finalization mechanics, retired depth-ladder path, and corrections.joblib found no specific cutoff-available defect to repair. Oracle directions (availability_only / raw_rate_only) are not implementable without outcome leakage or rate retunes outside this track's scope. v1 retains roster/depth/availability/team-identity/reconciliation and QB/TE ensemble signal; it is not an approved primary top-120 RB/WR ranking signal.",
+  "audit_sha256": "29576e78665bb87b626afa76fefad4447f804675479789a02253a03022dc5d74",
+  "prior_holds": {
+    "availability_gate_a_blend": "hold_v1_structural_role",
+    "step6_oracle_directions": "not_eligible_for_freeze"
+  },
+  "production_weights_unchanged": true,
+  "promotion_authorized": false,
+  "further_repair_authorized": false,
+  "artifact_hash": "4882e7f109e54805353810ebbf87e1869c9c653129c426d1db48570759bdc153"
+}

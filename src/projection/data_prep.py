@@ -15,8 +15,7 @@ import sqlite3
 
 import pandas as pd
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DB_PATH = os.path.join(REPO_ROOT, "data", "projections.db")
+from src.paths import DB_PATH, REPO_ROOT
 
 POSITIONS = ["QB", "RB", "WR", "TE"]
 SEASONS = list(range(2016, 2026))
@@ -524,6 +523,74 @@ def player_season_receiving_yards_share(conn, seasons=SEASONS):
         / out["team_passing_yards_active"].where(out["team_passing_yards_active"].ne(0))
     )
     return out[["player_id", "season", "receiving_yards_share"]]
+
+
+# Roster statuses that mean "available to play in his role this week".  RES
+# (reserve/IR), CUT and RET mean the opposite and are what separates a role
+# zero from an absence: a third-stringer who dresses all year and never takes
+# a snap is evidence about his ROLE; a starter who tears an ACL in week 3 is
+# not, and belongs to the status-override gate instead.
+ELIGIBLE_ROSTER_STATUSES = ("ACT", "INA", "DEV")
+
+# Local copy of transitions.SEASON_GAMES. Duplicated rather than imported
+# because data_prep is a leaf module (transitions imports features imports
+# data_prep); a test pins the two together.
+SEASON_GAMES_CAP = 17
+
+
+def player_eligible_weeks(conn, seasons=SEASONS):
+    """Regular-season weeks each player was rostered and NOT on reserve.
+
+    This is the denominator the per-game rate labels are divided by. It is
+    deliberately not `games_played` (weeks with an offensive snap), which is
+    survivorship-selected: a QB3 only registers a snap in the weeks he was
+    pressed into service, so his appearance-conditional rate reads like a
+    starter's. Dividing by eligibility instead answers "what would he do in
+    this role over a full season", which is what the board projects; games
+    genuinely missed to injury are handled by the status-override gate, not
+    baked into the rate.
+
+    Capped at SEASON_GAMES: `weekly_rosters` carries an 18th REG week (the
+    bye-week schedule), and a rate defined over 18 weeks would not compose
+    with a 17-game season.
+    """
+    placeholders = ",".join(map(str, seasons))
+    statuses = ",".join(f"'{s}'" for s in ELIGIBLE_ROSTER_STATUSES)
+    q = f"""
+        select season, player_id, count(distinct week) as eligible_weeks
+        from weekly_rosters
+        where season in ({placeholders}) and game_type = 'REG'
+          and status in ({statuses}) and player_id is not null
+        group by season, player_id
+    """
+    out = pd.read_sql(q, conn)
+    out["eligible_weeks"] = out["eligible_weeks"].clip(upper=SEASON_GAMES_CAP)
+    return out
+
+
+def player_dominant_roster_status(conn, seasons=SEASONS):
+    """The roster status a player spent the most REG weeks in, per season.
+
+    Used to split a zero-production season by CAUSE, which is what decides
+    whether it is evidence about role. ACT/INA/DEV means rostered and
+    available - a real role zero. RES means reserve/IR and belongs to the
+    status-override gate. CUT/RET means out of the league and out of the
+    population entirely. Ties break toward the status held in the latest
+    week, so a player who was cut mid-season reads as CUT.
+    """
+    placeholders = ",".join(map(str, seasons))
+    q = f"""
+        select season, player_id, status, count(distinct week) as wks,
+               max(week) as last_week
+        from weekly_rosters
+        where season in ({placeholders}) and game_type = 'REG'
+          and player_id is not null and status is not null
+        group by season, player_id, status
+    """
+    out = pd.read_sql(q, conn)
+    out = out.sort_values(["season", "player_id", "wks", "last_week"])
+    return out.drop_duplicates(["season", "player_id"], keep="last")[
+        ["season", "player_id", "status"]].reset_index(drop=True)
 
 
 def player_rz_usage(conn, seasons=SEASONS):

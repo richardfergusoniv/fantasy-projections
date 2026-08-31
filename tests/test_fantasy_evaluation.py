@@ -68,7 +68,7 @@ class FantasyEvaluationTest(unittest.TestCase):
         self._patch("build_preseason_rookie_cohort", lambda *a, **k: rookie.copy())
         self._patch("build_preseason_population", lambda *a, **k: population.copy())
 
-        def fake_forecast(conn, history, population_arg, rookie_arg, source, target):
+        def fake_forecast(conn, history, population_arg, rookie_arg, source, target, **kwargs):
             seen["history_max"] = history.season.max()
             seen["rookie_target"] = rookie_arg[rookie_arg.season.eq(target)].copy()
             return pd.DataFrame({

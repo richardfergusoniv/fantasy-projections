@@ -14,6 +14,8 @@ Written as unittest.TestCase to match the rest of tests/, so both `pytest` and
 """
 import inspect
 import unittest
+import unittest.mock
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -23,6 +25,7 @@ from src.projection import corrections
 from src.projection import fantasy_evaluation as fe
 from src.projection import veterans
 from src.projection.contracts import (
+    INTERVAL_MODELS_DIR,
     DEPTH_RATE_DEEP,
     DEPTH_RATE_LADDER,
     DEPTH_RATE_OFF_CHART,
@@ -91,16 +94,26 @@ class DepthRateLadderRule(unittest.TestCase):
 class LadderIsNotGatedOnTheCuratedChart(unittest.TestCase):
     """The regression itself: an empty curated chart must not disable Gate B."""
 
-    def test_empty_curated_chart_still_applies_the_ladder(self):
+    def test_gating_no_longer_scales_anything(self):
+        """SUPERSEDED CONTRACT, kept as a guard rather than deleted.
+
+        This class used to assert that an empty curated chart still applied
+        the Gate B ladder - the regression the unification fixed. The ladder
+        itself is now retired: depth reaches a projection as a model INPUT
+        (the depth tier in ROLE_FEATURES), not as a multiplier on the model's
+        output, because a post-hoc factor keyed on rank cannot condition on
+        the player's own usage history and its rungs were calibrated
+        rate-to-rate while being applied to a season total.
+
+        What must stay true is that NOTHING here scales a prediction. A future
+        edit that reintroduces a multiplier on this path fails here.
+        """
         out = apply_depth_chart_gating(_rows(), EMPTY_CHART)
-        expected = depth_rate_factors(_rows()["position"], _rows()["nfl_depth_rank"])
-        np.testing.assert_allclose(out["role_discount_factor"], expected)
-        np.testing.assert_allclose(out["pred_pg"], 10.0 * expected)
-        np.testing.assert_allclose(out["pred_pg_low"], 8.0 * expected)
-        np.testing.assert_allclose(out["pred_pg_high"], 12.0 * expected)
-        # ... and at least one row really is discounted, so the assertions
-        # above cannot pass vacuously on an all-1.0 ladder.
-        self.assertTrue((out["role_discount_factor"] < 1.0).any())
+        np.testing.assert_allclose(out["pred_pg"], 10.0)
+        np.testing.assert_allclose(out["pred_pg_low"], 8.0)
+        np.testing.assert_allclose(out["pred_pg_high"], 12.0)
+        np.testing.assert_allclose(out["role_discount_factor"], 1.0)
+        self.assertFalse(out["role_discount_applied"].any())
 
     def test_empty_curated_chart_still_reports_no_curated_knowledge(self):
         """Only the CURATED half no-ops. Those fields must stay honest."""
@@ -109,17 +122,20 @@ class LadderIsNotGatedOnTheCuratedChart(unittest.TestCase):
         self.assertTrue(out["role"].isna().all())
         self.assertTrue((out["depth_chart_status"] == "not_curated_no_table").all())
 
-    def test_discount_flags_agree_with_the_factor_on_the_empty_branch(self):
+    def test_discount_flags_are_inert_on_the_empty_branch(self):
         out = apply_depth_chart_gating(_rows(), EMPTY_CHART)
-        pd.testing.assert_series_equal(
-            out["role_discount_applied"],
-            out["role_discount_factor"] < 1.0,
-            check_names=False)
-        self.assertTrue(out.loc[out["role_discount_applied"], "low_confidence"].all())
+        self.assertTrue((out["role_discount_factor"] == 1.0).all())
+        self.assertFalse(out["role_discount_applied"].any())
 
     def test_curated_and_uncurated_seasons_agree_on_the_factor(self):
-        """Same player, same rank: the curated file must not change his rate
-        multiplier. It governs membership and role, never the ladder."""
+        """Same player: this stage must not scale him either way.
+
+        NOTE the deliberate reversal elsewhere. The curated chart DOES now
+        change a player's projection - it supplies the model's depth tier via
+        depth_gating.apply_curated_depth_tier, which is the whole point of a
+        hand-verified chart. What it must not do is select a post-hoc
+        multiplier here, which is what this asserts.
+        """
         chart = pd.DataFrame({
             "team": ["AAA"] * 4,
             "position": ["QB", "QB", "WR", "TE"],
@@ -139,41 +155,75 @@ class EveryPathGoesThroughTheSharedHelper(unittest.TestCase):
     on one path is exactly how the three-way disagreement happened; these fail
     when a path stops importing the shared rule."""
 
-    def test_depth_gating_uses_the_shared_application(self):
+    def test_depth_gating_applies_no_multiplier_on_either_branch(self):
+        """The shared-helper guard, inverted for the retired ladder.
+
+        Its purpose is unchanged: stop a future edit from re-implementing a
+        depth multiplier inline on one path, which is how the original
+        three-way disagreement happened. There is now no multiplier to share,
+        so the guard is that neither branch calls one.
+        """
         src = inspect.getsource(apply_depth_chart_gating)
-        self.assertIn("apply_depth_rate_ladder(df)", src)
-        # Both branches, not just the curated one.
-        self.assertEqual(src.count("apply_depth_rate_ladder(df)"), 2)
+        self.assertNotIn("apply_depth_rate_ladder", src)
+        self.assertNotIn("depth_rate_factors", src)
 
-    def test_fantasy_evaluation_uses_the_shared_lookup(self):
+    def test_fantasy_evaluation_applies_no_multiplier(self):
+        """This harness used to be the ONLY one applying the ladder
+        unconditionally - which is what made it the reference the other two
+        were unified onto. Now none of the three apply one, and this fold
+        must score the model that actually ships."""
         src = inspect.getsource(fe._veteran_forecasts)
-        self.assertIn("depth_rate_factors(", src)
+        self.assertNotIn("depth_rate_factors", src)
+        self.assertIn("ROLE_FEATURES", src)
 
-    def test_backtest_applies_the_ladder_on_every_prediction_path(self):
+    def test_backtest_applies_no_multiplier_on_any_prediction_path(self):
+        """Inverted, same purpose: the harness must measure what ships.
+
+        These four paths used to be REQUIRED to apply the ladder, because
+        interval_residuals.csv and the elite-shrinkage beta were being fit
+        against undiscounted predictions and consumed by a discounted one.
+        The ladder is gone, so the mismatch now runs the other way - a path
+        that still multiplied would be scoring a pipeline production no
+        longer has.
+        """
         for fn in (backtest.backtest_position_stat,
                    backtest._predict_all_reframed_receiving,
                    backtest.rolling_residual_rows,
                    backtest.backtest_season_totals):
             with self.subTest(fn=fn.__name__):
-                self.assertIn("depth_ladder_factors", inspect.getsource(fn))
+                src = inspect.getsource(fn)
+                self.assertNotIn("depth_ladder_factors", src)
+                self.assertNotIn("depth_rate_factors", src)
 
-    def test_backtest_ladder_helper_uses_the_shared_lookup(self):
-        self.assertIn(
-            "depth_rate_factors",
-            inspect.getsource(backtest.depth_ladder_factors))
+    def test_backtest_fits_on_the_role_basis(self):
+        """The harness has to build its folds the way training does, or the
+        held-out numbers describe a different model than the shipped one."""
+        for fn in (backtest.backtest_position_stat,
+                   backtest.rolling_residual_rows,
+                   backtest._predict_all_reframed_receiving):
+            with self.subTest(fn=fn.__name__):
+                src = inspect.getsource(fn)
+                self.assertIn("build_role_transition_pairs", src)
+                self.assertIn("role_features_for", src)
 
-    def test_corrections_fit_on_discounted_residuals(self):
-        """beta is an ADDITIVE term that team_reconcile scales by this same
-        factor; fitting it on undiscounted residuals fits a bonus for one
-        prediction and adds it to another."""
+    def test_ladder_calibration_artifact_is_gone(self):
+        """depth_rate_calibration fit the ladder's own rungs. With no ladder
+        there is nothing to calibrate, and leaving it would keep writing an
+        authoritative-looking models/ artifact for a retired mechanism."""
+        self.assertFalse(hasattr(backtest, "depth_rate_calibration"))
+        self.assertFalse(hasattr(backtest, "depth_ladder_factors"))
+
+    def test_corrections_fit_on_the_shipped_basis(self):
+        """beta is an ADDITIVE yards/game term. It used to need the ladder
+        applied here so the basis it was FIT on matched the basis it was ADDED
+        to. With no multiplier on either side the two agree by construction -
+        but the label and feature set still have to match production."""
         src = inspect.getsource(corrections.compute_loo_receiving_residuals)
-        self.assertIn("depth_rate_factors", src)
+        self.assertNotIn("depth_rate_factors", src)
+        self.assertIn("RECEIVING_SHARE_ELIG_LABEL", src)
+        self.assertIn("role_features_for", src)
 
-    def test_depth_rate_calibration_stays_undiscounted(self):
-        """The ladder's OWN calibration table must not be fed the ladder -
-        that would be circular. Explicitly pinned so nobody 'unifies' it."""
-        src = inspect.getsource(backtest.depth_rate_calibration)
-        self.assertNotIn("depth_ladder_factors", src)
+
 
 
 class IntervalsAreBuiltOnTheDiscountedPrediction(unittest.TestCase):
@@ -230,6 +280,113 @@ class IntervalsAreBuiltOnTheDiscountedPrediction(unittest.TestCase):
         self.assertLess(
             src.index("apply_depth_chart_gating(combined"),
             src.index("_attach_veteran_intervals(combined"))
+
+    def test_conditional_endpoints_are_per_row_not_joined_by_cell(self):
+        """The conditional band is per player, so it must align by index.
+
+        ``predict_interval_residuals`` returns one row per input row carrying
+        the caller's index - two players in the same (position, stat) cell get
+        DIFFERENT bands, because the band is conditioned on each one's own
+        prediction, depth tier and exposure. Joining it back on
+        ``["position", "stat"]`` is therefore a many-to-many blowup whose row
+        labels run past the end of the frame. The two QBs below share a cell
+        and carry different residuals precisely so a cell join cannot pass.
+        """
+        combined = pd.DataFrame({
+            "player_id": ["wr1", "qb1", "qb2"],
+            "position": ["WR", "QB", "QB"],
+            # WR/receiving_yards is reframed, so it is excluded from `target`
+            # and the two QB rows carry non-contiguous labels 1 and 2.
+            "stat": ["receiving_yards", "attempts", "attempts"],
+            "pred_pg": [50.0, 30.0, 20.0],
+            "pred_pg_low": [np.nan] * 3,
+            "pred_pg_high": [np.nan] * 3,
+            "interval_low_n_flag": [False] * 3,
+            "depth_tier": [1, 1, 2],
+            "projected_games": [17.0, 17.0, 17.0],
+        })
+        # Same cell, different per-row bands, indexed like out.loc[target].
+        conditional = pd.DataFrame(
+            {
+                "position": ["QB", "QB"],
+                "stat": ["attempts", "attempts"],
+                "resid_low": [-5.0, -2.0],
+                "resid_high": [4.0, 1.0],
+                "low_n_flag": [False, False],
+            },
+            index=[1, 2],
+        )
+        with unittest.mock.patch.object(
+            veterans, "load_interval_model_manifest", return_value={"stub": True}
+        ), unittest.mock.patch.object(
+            veterans, "predict_interval_residuals", return_value=conditional
+        ):
+            out = veterans._attach_veteran_intervals(combined, pd.DataFrame())
+
+        self.assertEqual(len(out), len(combined))
+        # The reframed row keeps NaN endpoints; each QB gets his own band.
+        self.assertTrue(np.isnan(out.loc[0, "pred_pg_low"]))
+        self.assertTrue(np.isnan(out.loc[0, "pred_pg_high"]))
+        np.testing.assert_allclose(out.loc[[1, 2], "pred_pg_low"], [25.0, 18.0])
+        np.testing.assert_allclose(out.loc[[1, 2], "pred_pg_high"], [34.0, 21.0])
+
+    def test_conditional_path_runs_against_the_real_fitted_models(self):
+        """Exercise the real models, not a stub of them.
+
+        A hand-built stub can silently assume the wrong return grain, which is
+        exactly how the (position, stat) join survived review. This one calls
+        the shipped predictor, so the frame it actually returns has to work.
+        """
+        models_dir = Path(INTERVAL_MODELS_DIR)
+        if not (models_dir / "manifest.json").exists():
+            self.skipTest("interval models not fitted in this checkout")
+        n = 40
+        combined = pd.DataFrame({
+            "player_id": [f"qb{i}" for i in range(n)],
+            "position": ["QB"] * n,
+            "stat": ["attempts"] * n,
+            "pred_pg": np.linspace(5.0, 38.0, n),
+            "pred_pg_low": [np.nan] * n,
+            "pred_pg_high": [np.nan] * n,
+            "interval_low_n_flag": [False] * n,
+            "depth_tier": [1] * n,
+            "projected_games": [17.0] * n,
+        })
+        out = veterans._attach_veteran_intervals(combined, pd.DataFrame(
+            columns=["position", "stat", "resid_low", "resid_high", "low_n_flag"]))
+
+        self.assertEqual(len(out), n, "row count must not change")
+        banded = out.dropna(subset=["pred_pg_low", "pred_pg_high"])
+        self.assertGreater(len(banded), 0, "real models should band these rows")
+        # Every band brackets its own prediction, and low <= high.
+        self.assertTrue((banded["pred_pg_low"] <= banded["pred_pg_high"]).all())
+        self.assertTrue((banded["pred_pg"] >= banded["pred_pg_low"]).all())
+        self.assertTrue((banded["pred_pg"] <= banded["pred_pg_high"]).all())
+        # Conditional means varying by prediction; a constant band would mean
+        # the flat empirical table answered instead.
+        self.assertGreater((banded["pred_pg_high"] - banded["pred_pg_low"]).nunique(), 1)
+
+    def test_conditional_path_falls_back_without_its_features(self):
+        """No depth_tier/projected_games means the fitted models cannot score.
+
+        Falling back to the empirical band is correct; raising KeyError (the
+        prior behaviour) took down any caller holding a leaner frame.
+        """
+        combined = pd.DataFrame({
+            "player_id": ["qb1"], "position": ["QB"], "stat": ["attempts"],
+            "pred_pg": [30.0], "pred_pg_low": [np.nan], "pred_pg_high": [np.nan],
+            "interval_low_n_flag": [False],
+        })
+        resid = pd.DataFrame([{
+            "position": "QB", "stat": "attempts",
+            "resid_low": -5.0, "resid_high": 4.0, "low_n_flag": False,
+        }])
+        with unittest.mock.patch.object(
+            veterans, "load_interval_model_manifest", return_value={"stub": True}
+        ):
+            out = veterans._attach_veteran_intervals(combined, resid)
+        np.testing.assert_allclose(out["pred_pg_low"], [25.0])
+        np.testing.assert_allclose(out["pred_pg_high"], [34.0])
 
 
 if __name__ == "__main__":

@@ -208,6 +208,49 @@ def attach_depth_rank(df, season, conn=None, as_of=None):
     return out
 
 
+# The volume models' depth feature. Five levels, and the split at the bottom
+# is the load-bearing part:
+#   1/2/3  the listed top three
+#   4      listed on the chart but deeper than third
+#   5      not on the preseason chart at all
+#
+# Why 4 and 5 are separate. Measured on held-out 2022-2025 folds with them
+# merged into one bucket, WR and TE land on opposite sides of calibrated -
+# listed-deep players came out ~1.3-1.5x UNDER-projected while off-chart
+# players were ~1.5x OVER-projected, because a model handed one value has to
+# split the difference. Splitting them moves WR's listed-deep bucket from
+# 1.30 to 1.12 and TE's from 1.14 to 0.94. The two populations also differ
+# structurally: off-chart player-seasons contain no role zeros at ANY
+# position, because a player off the chart only reaches the data by being
+# signed and playing.
+#
+# Why it is a coarse tier and not the raw ordinal: `depth_rank` is a tie-
+# bearing TIER capped at 3 for 2016-2024 and a true ordinal running to 15
+# for 2025+ (see this module's docstring). "Beyond the listed top three"
+# means the same thing in both eras; "rank 5" does not.
+DEPTH_TIER_COLUMN = "depth_tier"
+DEEP_TIER = 4.0
+OFF_CHART_TIER = 5.0
+
+
+def depth_tiers(ranks):
+    """Vectorised rank -> tier. NaN (off the chart) becomes OFF_CHART_TIER."""
+    r = pd.to_numeric(pd.Series(list(ranks)), errors="coerce")
+    return r.clip(upper=DEEP_TIER).fillna(OFF_CHART_TIER).to_numpy(dtype=float)
+
+
+def attach_depth_tier(df, season, conn=None, as_of=None):
+    """Add `depth_tier` to `df` (needs `player_id` and `position`).
+
+    Same underlying chart as attach_depth_rank, coarsened per DEPTH_TIER_COLUMN
+    above. This is the feature the volume models consume; the raw ordinal is
+    not, because its meaning changes across the 2024/2025 feed boundary.
+    """
+    out = attach_depth_rank(df, season, conn=conn, as_of=as_of)
+    out[DEPTH_TIER_COLUMN] = depth_tiers(out["nfl_depth_rank"])
+    return out
+
+
 def attach_availability_depth_rank(df, season, conn=None, as_of=None):
     """Add `target_depth_rank` to `df` (needs `player_id` and `position`):
     the player's rank on the chart entering `season`, truncated per

@@ -14,15 +14,13 @@ Allowed inputs only:
   rookie's or anyone's season-N production - so it doesn't leak forward
   information a real preseason projection wouldn't have.
 
-Model: rule-based, not LightGBM. Rookie sample sizes per position x
-draft-round-bucket are too small (see PHASE4_REPORT.md) for a tree model
-to learn anything but noise, and a rookie's feature vector is structurally
-incompatible with the veteran model's inputs anyway - this is exactly the
-"distinct path" the spec calls for, not a shrunken version of the same
-pipeline. Historical per-game rates for rookies in the same
-position/draft-round bucket are averaged, then scaled by the ratio of this
-player's team's vacated opportunity to the bucket's historical average
-vacated opportunity (clipped to avoid small-sample blowups).
+Model: rule-based, not LightGBM. Rookie sample sizes are too small (see
+PHASE4_REPORT.md) for a tree model to learn anything but noise, and a rookie's
+feature vector is structurally incompatible with the veteran model's inputs.
+Historical role rates use a per-position linear prior on log(draft pick),
+then scale by the ratio of this player's team vacancy to the coarse cell's
+historical average (clipped to avoid small-sample blowups). Coarse round cells
+remain for availability and empirical intervals, where pooling is necessary.
 """
 import warnings
 import re
@@ -30,13 +28,53 @@ import re
 import numpy as np
 import pandas as pd
 
-from src.projection.data_prep import SEASONS, load_weekly_usage, season_aggregate
+from src.projection.data_prep import (
+    ELIGIBLE_ROSTER_STATUSES,
+    SEASONS,
+    load_weekly_usage,
+    player_dominant_roster_status,
+    player_eligible_weeks,
+    season_aggregate,
+)
 from src.projection.depth_history import attach_availability_depth_rank, attach_depth_rank
 from src.projection.contracts import VACATED_CLIP
 from src.projection.features import TARGET_STATS
 
-ROUND_BUCKETS = {1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7", 5: "round_4_7",
-                  6: "round_4_7", 7: "round_4_7"}
+# Minimum eligible weeks for a rookie season to be evidence about a role.
+# Mirrors transitions.MIN_ELIGIBLE_WEEKS; duplicated rather than imported
+# because transitions imports features which would close a cycle, and pinned
+# to it by a test.
+ROOKIE_MIN_ELIGIBLE_WEEKS = 4
+ROOKIE_ROLE_ELIGIBLE = "role_rate_eligible"
+
+
+def rookie_role_label(stat):
+    """Per-eligible-week rookie label, matching transitions.role_rate_label."""
+    return f"{stat}_per_elig"
+
+# Coarse cells remain for availability and empirical interval calibration;
+# they no longer set the point estimate.  On the 2016-2025 eligible drafted
+# cohort, primary-stat R² for log(pick) vs these cells was QB .597/.506,
+# RB .437/.348, WR .482/.414, TE .496/.382 (n=104/189/289/121).  One
+# continuous parameter also matched or beat six round dummies at RB/WR/TE.
+INTERVAL_ROUND_BUCKETS = {
+    1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7",
+    5: "round_4_7", 6: "round_4_7", 7: "round_4_7",
+}
+UDFA_EFFECTIVE_PICK = 270.0
+
+# Rolling-origin 2022-2025 against the shipped bucket prior: log(pick)
+# improved mean MAE for 19/23 position/stat pairs (primary stats QB -3.6%,
+# RB -4.8%, WR -3.8%, TE -8.7%). It lost on all three QB rushing outputs
+# (+5.3% carries, +6.7% yards, +3.9% TDs) and was neutral-to-worse on TE
+# receiving TDs (+0.5%), so those retain the shipped bucket mean. This is a
+# point-estimate choice only; every stat keeps bucket-conditioned intervals.
+LOG_PICK_EXCLUDED_STATS = frozenset({
+    ("QB", "carries"),
+    ("QB", "rushing_yards"),
+    ("QB", "rushing_tds"),
+    ("TE", "receiving_tds"),
+})
 # A curated listing alone does not make a rookie the player who absorbs an
 # opening. Match the veteran vacancy rule: backups can be scaled down by a
 # poor landing spot, but only confirmed starters/committee players may be
@@ -44,20 +82,11 @@ ROUND_BUCKETS = {1: "round_1", 2: "round_2_3", 3: "round_2_3", 4: "round_4_7", 5
 ROOKIE_BOOST_ELIGIBLE_ROLES = frozenset({"starter", "committee"})
 ROOKIE_AVAILABILITY_MIN_CELL = 5
 
-# Modest multiplicative scale applied to a rookie's whole projected line
-# based on a discrete combine-athleticism tier (Addendum 4, Part 3) - see
-# load_combine_athletic_tier's docstring for the full reasoning. Deliberately
-# small (+/-8%/6%, not a big swing) and applied as a THIRD discrete tier
-# rather than a continuous score, per the spec's own guidance to prefer
-# flags/tiers over precise continuous scaling on a sample this thin (11-132
-# historical rookies per bucket, ~85% combine pfr_id join coverage on top of
-# that) - fitting a continuous relationship between combine testing and NFL
-# per-game production on these sample sizes would be noise-fitting, not
-# signal. Chosen as a SCALE on the existing bucket-mean projection (not a
-# new bucketing dimension for fit_rookie_baselines) specifically so it does
-# NOT further fragment the already-thin (position, round_bucket) training
-# samples the way adding a third grouping key would.
-ATHLETIC_SCALE = {"above_median": 1.08, "below_median": 0.94, "no_data": 1.0}
+# Combine tiers remain output metadata for future efficiency work, but do not
+# alter rookie volume. Incremental R² over log(pick) was QB .0002, RB .0039,
+# WR .0000, TE .0127, with coefficient signs changing by target. In corrected
+# 2022-2025 rolling folds, deleting the +/-8%/6% multiplier changes mean MAE
+# by -0.07% across 23 outputs (13 improve, 10 worsen; primary stats split 2/2).
 ROOKIE_INTERVAL_QUANTILES = (0.10, 0.90)  # same width as the veteran empirical interval, for comparability
 ROOKIE_INTERVAL_MIN_N = 20  # bucket sample sizes below this get interval_low_n_flag=True
 
@@ -74,13 +103,27 @@ ROOKIE_INTERVAL_MIN_N = 20  # bucket sample sizes below this get interval_low_n_
 TEAM_ABBR_FIX = {
     "GNB": "GB", "KAN": "KC", "LAR": "LA", "LVR": "LV",
     "NOR": "NO", "NWE": "NE", "SFO": "SF", "TAM": "TB",
+    # nflverse's 2026 preseason roster refresh changed Arizona from the
+    # historical ARI used by pbp/schedules/features to AZ.
+    "AZ": "ARI",
 }
 
 
 def _round_bucket(rnd):
     if pd.isna(rnd):
         return "undrafted"
-    return ROUND_BUCKETS.get(int(rnd), "round_4_7")
+    return INTERVAL_ROUND_BUCKETS.get(int(rnd), "round_4_7")
+
+
+def _effective_pick(pick):
+    """Positive draft slot for the continuous rate prior; UDFAs follow day 3."""
+    if pd.isna(pick):
+        return UDFA_EFFECTIVE_PICK
+    return max(float(pick), 1.0)
+
+
+def _log_pick_columns(role_col):
+    return f"{role_col}__log_intercept", f"{role_col}__log_slope"
 
 
 def _normalized_name(value):
@@ -166,6 +209,7 @@ def load_draft_capital(conn):
         "select player_id, season, team, position, draft_number, player_name as name, pfr_id "
         "from seasonal_rosters", conn,
     ).rename(columns={"season": "draft_season"})
+    roster["team"] = roster["team"].replace(TEAM_ABBR_FIX)
     players = pd.read_sql(
         "select gsis_id as canonical_player_id, pfr_id from players", conn,
     )
@@ -212,6 +256,7 @@ def identify_udfa_rookie_seasons(conn, seasons=SEASONS):
         f"and years_exp = 0 and draft_number is null", conn,
     )
     udfa = udfa[udfa["position"].isin(["QB", "RB", "WR", "TE"])].copy()
+    udfa["team"] = udfa["team"].replace(TEAM_ABBR_FIX)
     udfa = udfa.drop_duplicates(subset=["player_id", "season", "position"])
     udfa["round"] = np.nan
     udfa["pick"] = np.nan
@@ -228,16 +273,12 @@ def load_combine_athletic_tier(conn):
     -scoped and known to drop many players - see Phase 1 findings, restated
     in PHASE4_REPORT.md's ingestion notes).
 
-    Not fed into the veteran LightGBM path as a continuous regressor and not
-    used to fit a new (position, round_bucket, tier) baseline - see
-    ATHLETIC_SCALE's comment for why: the per-(position, round_bucket)
-    rookie sample is already thin (11-132 rows, PHASE4_REPORT.md), and
-    combine_data's ~85% pfr_id join coverage would shrink any tier-specific
-    subgroup further. Instead this produces a simple discrete tier
-    (`athletic_tier` in {'above_median','below_median','no_data'}) that
-    predict_rookies applies as a modest multiplicative scale on the
-    existing bucket-mean x vacated-opportunity projection - refining the
-    point estimate without needing its own fitted sample.
+    Not fed into either volume model. The per-cell rookie sample is already
+    thin and combine_data has incomplete pfr_id coverage; more importantly,
+    corrected rolling evaluation found no stable incremental volume value.
+    This function retains a discrete metadata tier (`athletic_tier` in
+    {'above_median','below_median','no_data'}) so future efficiency work need
+    not reconstruct the historical join.
 
     athletic_score = mean of two units-normalized percentile ranks, WITHIN
     POSITION (raw 40 times and vertical jumps aren't comparable across
@@ -377,6 +418,7 @@ def team_vacated_opportunity(conn, seasons=SEASONS):
             f"({','.join(map(str, missing))})", conn,
         ).drop_duplicates(subset=["player_id", "season"])
         roster_team = pd.concat([roster_team, fallback], ignore_index=True, sort=False)
+    roster_team["team"] = roster_team["team"].replace(TEAM_ABBR_FIX)
 
     rows = []
     for season in seasons:
@@ -454,13 +496,10 @@ def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
     round_bucket='undrafted' essentially never occur - that requires a
     draft_picks row with a null round, which doesn't happen in practice).
 
-    Also merges the combine-athleticism tier (Addendum 4, Part 3,
-    load_combine_athletic_tier) onto every rookie row - both for
-    predict_rookies' target-season scaling AND so backtest.py's historical
-    rookie evaluation exercises the exact same combine-scaled code path
-    the real 2026 prediction uses, not a separate untested branch. Players
-    with no combine match get athletic_tier='no_data' (the real, explicit
-    fallback - not a dropped row) rather than NaN."""
+    Also merges the combine-athleticism tier onto every rookie row as
+    transparent metadata for future efficiency work. It is deliberately not
+    a volume input. Players with no combine match get athletic_tier='no_data'
+    rather than NaN."""
     rookies = identify_rookie_seasons(conn, seasons)
     udfa = identify_udfa_rookie_seasons(conn, seasons)
     rookies = pd.concat([rookies, udfa], ignore_index=True, sort=False)
@@ -475,7 +514,12 @@ def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
 
     stat_cols = sorted({s for stats in TARGET_STATS.values() for s in stats})
     pg_cols = [f"{s}_pg" for s in stat_cols]
-    actual_cols = ["player_id", "season", "team", "games_played"] + pg_cols
+    # Raw season totals come along now: the role-rate label is built here from
+    # totals over eligible weeks, because a rookie who never took a snap has
+    # no feature row at all and so no rate to average - which is exactly the
+    # row the old conditional rate silently dropped.
+    actual_cols = (["player_id", "season", "team", "games_played"]
+                   + pg_cols + [c for c in stat_cols if c in feature_table.columns])
     if "opportunity_games" in feature_table.columns:
         actual_cols.append("opportunity_games")
     actuals = feature_table[actual_cols].rename(columns={"team": "actual_team"})
@@ -492,6 +536,41 @@ def build_rookie_dataset(conn, feature_table, seasons=SEASONS):
         df["opportunity_games"] = df["games_played"]
     else:
         df["opportunity_games"] = df["opportunity_games"].fillna(0.0)
+    # --- Role rates: season total over ELIGIBLE weeks, zeros included.
+    #
+    # The `{stat}_pg` columns above divide by games_played (weeks with an
+    # offensive snap) and are NaN for a rookie who never played. Averaging
+    # them - which pandas does by skipping NaN - estimates "what a rookie who
+    # played did", not "what a rookie in this bucket does". Measured on
+    # 2016-2025 drafted skill players, that inflates the rookie QB rate from
+    # 10.28 to 27.04 attempts per week, a factor of 2.63, and it is why the
+    # board projected 3,177 rookie QB attempts against an 18,361 team anchor.
+    # 30% of eligible rookie QBs never take a snap (47% on day 3); at RB/WR/TE
+    # it is 9%/8%/5%.
+    #
+    # Dividing season totals by eligible weeks makes the zero a real 0.0
+    # instead of a NaN, so `rate * SEASON_GAMES` is a full-season projection
+    # for the role - the same basis the veteran path now uses.
+    seasons_present = sorted(df["season"].dropna().astype(int).unique())
+    elig = player_eligible_weeks(conn, seasons_present)
+    status = player_dominant_roster_status(conn, seasons_present)
+    df = df.merge(elig, on=["season", "player_id"], how="left")
+    df = df.merge(status, on=["season", "player_id"], how="left")
+    for stat in stat_cols:
+        if stat in df.columns:
+            df[stat] = pd.to_numeric(df[stat], errors="coerce").fillna(0.0)
+            df[rookie_role_label(stat)] = df[stat] / df["eligible_weeks"].where(
+                df["eligible_weeks"] > 0)
+    # A rookie season is evidence about a ROLE only when he was rostered and
+    # available. Reserve/IR belongs to the status-override gate and a cut
+    # player is out of the population - the same split the veteran pair
+    # builder makes. Rows failing this keep their columns but are excluded
+    # from the fit.
+    df[ROOKIE_ROLE_ELIGIBLE] = (
+        df["status"].isin(ELIGIBLE_ROSTER_STATUSES)
+        & (df["eligible_weeks"] >= ROOKIE_MIN_ELIGIBLE_WEEKS)
+    )
+
     df = df.merge(vacated, on=["season", "team"], how="left")
     df = df.merge(athletic, on="player_id", how="left")
     df["athletic_tier"] = df["athletic_tier"].fillna("no_data")
@@ -554,6 +633,7 @@ def identify_target_season_rookie_class(conn, target_season):
         f"select player_id, team, position, years_exp, draft_number, player_name as name, pfr_id "
         f"from seasonal_rosters where season = {target_season}", conn,
     ).drop_duplicates(subset=["player_id"])
+    roster["team"] = roster["team"].replace(TEAM_ABBR_FIX)
 
     players = pd.read_sql(
         "select gsis_id as canonical_player_id, pfr_id from players "
@@ -601,20 +681,53 @@ def identify_target_season_rookie_class(conn, target_season):
 
 
 def fit_rookie_baselines(rookie_df, train_seasons):
-    """Historical (position, round_bucket) -> mean per-game rate + mean
-    vacated_carry/target_share, fit ONLY on train_seasons (so the backtest
-    holdout season's own rookies never inform their own baseline)."""
+    """Strictly historical rookie rate, availability, and interval priors.
+
+    Point rates use ``intercept + slope * log(effective_pick)`` per position.
+    The returned frame stays indexed by coarse round cell because vacancy,
+    availability, and empirical interval calibration remain cell-conditioned.
+    """
     train = rookie_df[rookie_df["season"].isin(train_seasons)].copy()
-    pg_cols = [c for c in rookie_df.columns if c.endswith("_pg")]
+    role_cols = [c for c in rookie_df.columns if c.endswith("_per_elig")]
     vacated_cols = ["vacated_carry_share", "vacated_target_share", "vacated_attempts_share"]
-    # Pandas means skip NaN, so per-game rates remain conditional on recording
-    # an opportunity while games_played is averaged over the full cohort,
-    # including never-played rookies. This separates rate from availability
-    # instead of shrinking rate with an external consensus probability.
-    baselines = train.groupby(["position", "round_bucket"])[pg_cols + vacated_cols + ["games_played"]].mean()
+    # Fit the RATE on rookies who were rostered and available, zeros included.
+    # Averaging the conditional `{stat}_pg` columns instead - which is what
+    # this did - skipped every never-played rookie via NaN and estimated the
+    # wrong quantity by 2.63x at QB. See build_rookie_dataset.
+    #
+    # Availability (`mean_games_played` and the depth-band variants below)
+    # still averages over the FULL cohort, because it answers a different
+    # question and feeds projected_games_raw rather than the rate.
+    rate_pop = train[train[ROOKIE_ROLE_ELIGIBLE]] if ROOKIE_ROLE_ELIGIBLE in train.columns else train
+    rates = rate_pop.groupby(["position", "round_bucket"])[role_cols].mean()
+    other = train.groupby(["position", "round_bucket"])[vacated_cols + ["games_played"]].mean()
+    baselines = rates.join(other, how="outer")
     baselines = baselines.rename(columns={"games_played": "mean_games_played"})
+
+    # Fit each stat independently so a sparse/undefined secondary stat cannot
+    # drop an otherwise usable rookie from the position's primary-rate fit.
+    # Coefficients are repeated across that position's round cells to keep the
+    # established DataFrame contract and its non-rate priors intact.
+    if "pick" in rate_pop.columns:
+        effective_pick = rate_pop["pick"].apply(_effective_pick)
+        for position in baselines.index.get_level_values("position").unique():
+            pos_mask = rate_pop["position"].eq(position)
+            for role_col in role_cols:
+                stat = role_col[: -len("_per_elig")]
+                if (position, stat) in LOG_PICK_EXCLUDED_STATS:
+                    continue
+                valid = pos_mask & rate_pop[role_col].notna() & effective_pick.notna()
+                if valid.sum() < 2 or effective_pick[valid].nunique() < 2:
+                    continue
+                x = np.log(effective_pick[valid].to_numpy(dtype=float))
+                y = rate_pop.loc[valid, role_col].to_numpy(dtype=float)
+                design = np.column_stack([np.ones(len(x)), x])
+                intercept, slope = np.linalg.lstsq(design, y, rcond=None)[0]
+                intercept_col, slope_col = _log_pick_columns(role_col)
+                baselines.loc[position, intercept_col] = float(intercept)
+                baselines.loc[position, slope_col] = float(slope)
     counts = train.groupby(["position", "round_bucket"]).size().rename("n_train_rookies")
-    rate_counts = train[train["opportunity_games"] > 0].groupby(
+    rate_counts = rate_pop.groupby(
         ["position", "round_bucket"]).size().rename("n_rate_rookies")
 
     if "target_depth_rank" in train.columns:
@@ -633,7 +746,7 @@ def fit_rookie_baselines(rookie_df, train_seasons):
 
 
 def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
-    """Rule-based projection: bucket mean per-game rate, scaled by this
+    """Rule-based projection: continuous log-pick rate, scaled by this
     player's team's vacated opportunity vs. the bucket's historical average
     vacated opportunity (RB: vacated carry share; WR/TE: vacated target
     share; QB: vacated ATTEMPTS share - see team_vacated_opportunity's
@@ -689,7 +802,11 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
     UPWARD half of the scale: a below-average opening is a real fact about
     this rookie's situation and no other player's claim makes it less true.
     """
-    pg_cols = [c for c in baselines.columns if c.endswith("_pg")]
+    # The baselines carry `{stat}_per_elig` role rates. The board's column
+    # convention is `{stat}_pg`, and on the veteran path pred_pg is now a role
+    # rate too, so the two agree in meaning - the rename happens once, here.
+    role_cols = [c for c in baselines.columns if c.endswith("_per_elig")]
+    pg_cols = [c.replace("_per_elig", "_pg") for c in role_cols]
     target = rookie_df[rookie_df["season"].isin(target_seasons)].copy()
     boost_eligible_players = set()
     if depth_chart is not None and not depth_chart.empty:
@@ -697,6 +814,18 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
             depth_chart["role"].isin(ROOKIE_BOOST_ELIGIBLE_ROLES)]
         boost_eligible_players = set(zip(
             eligible_chart["gsis_id"], eligible_chart["position"]))
+
+    def base_rate(row, baseline, role_col):
+        intercept_col, slope_col = _log_pick_columns(role_col)
+        if (
+            intercept_col in baseline.index and slope_col in baseline.index
+            and pd.notna(baseline[intercept_col]) and pd.notna(baseline[slope_col])
+        ):
+            value = baseline[intercept_col] + baseline[slope_col] * np.log(
+                _effective_pick(row.get("pick")))
+            return max(float(value), 0.0)
+        # Compatibility for manually-constructed/legacy baseline frames.
+        return max(float(baseline[role_col]), 0.0)
 
     # Share of the residual each boost-eligible rookie may claim, when more
     # than one of them is competing for the same team's same opening.
@@ -708,16 +837,17 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
     target["_vac_kind"] = np.where(
         target["position"] == "RB", "carry",
         np.where(target["position"] == "QB", "attempts", "target"))
-    claim_weight = {}
-    for (position, bucket), _ in baselines.iterrows():
-        primary = {"RB": "carries_pg", "QB": "attempts_pg"}.get(position, "targets_pg")
-        if primary in baselines.columns:
-            claim_weight[(position, bucket)] = max(
-                float(baselines.loc[(position, bucket), primary]), 0.0)
-    target["_claim_weight"] = [
-        claim_weight.get((p, b), 0.0)
-        for p, b in zip(target["position"], target["round_bucket"])
-    ]
+    def claim_weight(row):
+        key = (row["position"], row["round_bucket"])
+        if key not in baselines.index:
+            return 0.0
+        primary = {"RB": "carries_per_elig", "QB": "attempts_per_elig"}.get(
+            row["position"], "targets_per_elig")
+        if primary not in baselines.columns:
+            return 0.0
+        return base_rate(row, baselines.loc[key], primary)
+
+    target["_claim_weight"] = target.apply(claim_weight, axis=1)
     eligible_mask = [
         (pid, pos) in boost_eligible_players
         for pid, pos in zip(target["player_id"], target["position"])
@@ -760,23 +890,17 @@ def predict_rookies(rookie_df, baselines, target_seasons, depth_chart=None):
                 if pd.isna(claim):
                     claim = 1.0
                 scale = 1.0 + (scale - 1.0) * float(residual) * float(claim)
-        preds = {c: b[c] * scale for c in pg_cols}
+        preds = {
+            out: base_rate(row, b, src) * scale
+            for out, src in zip(pg_cols, role_cols)
+        }
         preds["rookie_vacancy_scale"] = scale
 
-        # Combine-athleticism scale (Addendum 4, Part 3) - a modest,
-        # discrete-tier multiplier on top of the vacated-opportunity scale
-        # above, same reasoning as ATHLETIC_SCALE's module-level comment.
-        # row.get(...) rather than row["athletic_tier"] so this stays a
-        # no-op (scale=1.0, tier reported as 'no_data') for any caller that
-        # hasn't merged load_combine_athletic_tier onto its rookie frame -
-        # defensive, but every real caller (build_rookie_dataset,
-        # project_season's target-class path) does merge it.
+        # Athletic testing remains visible for auditing and possible future
+        # efficiency work, but measured no stable incremental volume signal.
         athletic_tier = row.get("athletic_tier", "no_data")
         if pd.isna(athletic_tier):
             athletic_tier = "no_data"
-        athletic_scale = ATHLETIC_SCALE.get(athletic_tier, 1.0)
-        for c in pg_cols:
-            preds[c] = preds[c] * athletic_scale
 
         # Availability comes entirely from the internal full rookie cohort.
         # Draft bucket supplies the prior and preseason depth rank refines it.
@@ -842,9 +966,22 @@ def rookie_interval_ratios(rookie_df, baselines, train_seasons, quantiles=ROOKIE
     so buckets below ROOKIE_INTERVAL_MIN_N are flagged via
     interval_low_n_flag rather than silently presented at equal
     confidence to a well-sampled bucket."""
-    train = rookie_df[rookie_df["season"].isin(train_seasons) & (rookie_df["games_played"] > 0)]
-    pg_cols = [c for c in rookie_df.columns if c.endswith("_pg")]
-    stat_names = [c[:-3] for c in pg_cols]
+    # Ratios are taken on the ROLE-RATE population the point estimate is fit
+    # on - rostered, available, zeros included - not on `games_played > 0`.
+    # The old filter made every published rookie interval conditional on the
+    # player having played, which is wrong exactly where uncertainty is
+    # largest: 56% of round 4-7 rookie QBs score zero, so their true p10 is 0
+    # and no ratio band computed off the played-only subset can produce it.
+    #
+    # NOTE this leaves the band still multiplicative and still unable to
+    # represent a point mass at zero. Dropping the filter fixes the
+    # population; representing the zero mass properly needs the hurdle that
+    # measured worthless for the POINT estimate and is deferred.
+    train = rookie_df[rookie_df["season"].isin(train_seasons)]
+    if ROOKIE_ROLE_ELIGIBLE in train.columns:
+        train = train[train[ROOKIE_ROLE_ELIGIBLE]]
+    role_cols = [c for c in rookie_df.columns if c.endswith("_per_elig")]
+    stat_names = [c[: -len("_per_elig")] for c in role_cols]
 
     rows = []
     for (position, bucket), grp in train.groupby(["position", "round_bucket"]):
@@ -852,7 +989,7 @@ def rookie_interval_ratios(rookie_df, baselines, train_seasons, quantiles=ROOKIE
         if (position, bucket) not in baselines.index:
             continue
         b = baselines.loc[(position, bucket)]
-        for stat, pg_col in zip(stat_names, pg_cols):
+        for stat, pg_col in zip(stat_names, role_cols):
             mean = b[pg_col]
             vals = grp[pg_col].dropna()
             if pd.isna(mean) or mean == 0 or len(vals) < 3:

@@ -1,0 +1,15 @@
+{
+  "season": 2026,
+  "n_draws": 1000,
+  "mode": "full",
+  "distribution_mode": "joint_bootstrap",
+  "uncertainty_gate_verdict": "joint_bootstrap",
+  "uncertainty_applied": true,
+  "uncertainty_version": "v3_projection_uncertainty_v1",
+  "uncertainty_artifact_hash": "4db01b46310219c40b01982659001fbd14b752a12cfee7f8019a153853a84938",
+  "uncertainty_training_cutoff": 2025,
+  "joint_donors_hash": "31189f90bb90c49d63ecdf7c6cb73bfae3d03f8a204320bc9315682e76f0b3fa",
+  "source_projection_run_id": "0b8c9cb1-e3ed-4936-88ef-94b51df10e96",
+  "draws_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulations_2026.parquet",
+  "summary_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\simulation_summary_2026.csv"
+}

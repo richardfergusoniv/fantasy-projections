@@ -1,8 +1,11 @@
 """Team-anchor attach, elite receiving correction, and output hygiene.
 
-Attaches Ridge team-total anchors as metadata, applies the elite
-receiving-yards correction, enforces counting-stat identities, and adds
-season totals. Does not invent or redistribute team volume onto players.
+Attaches Ridge team-total anchors, applies the elite receiving-yards
+correction, pulls each team's summed volume partway toward its own anchor
+(reconcile_team_volume), enforces counting-stat identities, and adds season
+totals. It does not redistribute volume BETWEEN players - every scale is a
+single factor applied to a whole team-position group, so within-team ordering
+is untouched.
 
 Does not import predict.
 """
@@ -11,7 +14,18 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from src.projection.contracts import TEAM_ANCHOR_OUTPUT_COLS
+from src.projection.artifacts import load_reconcile_calibration, reconcile_alpha_for
+from src.projection.contracts import (
+    TEAM_ANCHOR_OUTPUT_COLS,
+    QB_PASS_TD_RATE_CLIP,
+    QB_RUSH_TD_PER_CARRY_CLIP,
+    TEAM_RECONCILE_ALPHA,
+    TEAM_RECONCILE_BENCH_FLOOR,
+    TEAM_RECONCILE_CLIP,
+    TEAM_RECONCILE_PROTECT_STARTER,
+    TEAM_VOLUME_SHARES,
+    TEAM_VOLUME_SIBLINGS,
+)
 from src.projection.corrections import elite_shrinkage_adjustment
 from src.projection.transitions import (
     REFRAMED_SHARE_STATS,
@@ -276,17 +290,18 @@ def _compose_reframed_receiving_predictions(combined, resid, rookie_receiving=No
         other = _propagate_elite_correction(other, reframed, before, adj)
     reframed = reframed.drop(columns=_HELPER_COLS, errors="ignore")
 
-    r = resid[(resid["stat"] == "receiving_yards") & (resid["position"].isin(["WR", "TE", "RB"]))]
-    reframed = reframed.merge(
-        r[["position", "stat", "resid_low", "resid_high", "low_n_flag"]], on=["position", "stat"], how="left",
-    )
-    has_resid = reframed["resid_low"].notna()
-    reframed.loc[has_resid, "pred_pg_low"] = (
-        reframed.loc[has_resid, "pred_pg"] + reframed.loc[has_resid, "resid_low"]
-    ).clip(lower=0)
-    reframed.loc[has_resid, "pred_pg_high"] = reframed.loc[has_resid, "pred_pg"] + reframed.loc[has_resid, "resid_high"]
-    reframed["interval_low_n_flag"] = reframed["low_n_flag"].fillna(True)
-    reframed = reframed.drop(columns=["resid_low", "resid_high", "low_n_flag"])
+    if resid is not None and not resid.empty and "stat" in resid.columns:
+        r = resid[(resid["stat"] == "receiving_yards") & (resid["position"].isin(["WR", "TE", "RB"]))]
+        reframed = reframed.merge(
+            r[["position", "stat", "resid_low", "resid_high", "low_n_flag"]], on=["position", "stat"], how="left",
+        )
+        has_resid = reframed["resid_low"].notna()
+        reframed.loc[has_resid, "pred_pg_low"] = (
+            reframed.loc[has_resid, "pred_pg"] + reframed.loc[has_resid, "resid_low"]
+        ).clip(lower=0)
+        reframed.loc[has_resid, "pred_pg_high"] = reframed.loc[has_resid, "pred_pg"] + reframed.loc[has_resid, "resid_high"]
+        reframed["interval_low_n_flag"] = reframed["low_n_flag"].fillna(True)
+        reframed = reframed.drop(columns=["resid_low", "resid_high", "low_n_flag"], errors="ignore")
 
     return pd.concat([other, reframed], ignore_index=True, sort=False)
 
@@ -331,6 +346,230 @@ def reconcile_stat_constraints(df):
                 out.loc[changed_index, col] = parent_values[changed]
                 out.loc[changed_index, "stat_constraint_applied"] = True
     return out
+
+
+def reconcile_td_rate_constraints(df, rush_td_hi=None, pass_td_clip=None):
+    """Clip QB TD rates to plausible efficiency bands (T2/T3).
+
+    ``passing_tds`` and ``rushing_tds`` are fit as independent counting models
+    then scaled with attempts/carries siblings. When the implied TD rate exits
+    historical starter bands, cap the child stat and expose the adjustment.
+
+    ``rush_td_hi`` overrides the upper bound of ``QB_RUSH_TD_PER_CARRY_CLIP``
+    for ablations (T3b). ``pass_td_clip`` overrides ``QB_PASS_TD_RATE_CLIP``.
+    """
+    out = df.copy()
+    out["td_rate_clip_applied"] = (
+        out["td_rate_clip_applied"].fillna(False).astype(bool)
+        if "td_rate_clip_applied" in out.columns else False
+    )
+    keys = [c for c in ["player_id", "position", "season"] if c in out.columns]
+    if len(keys) < 1 or out.empty:
+        return out
+    value_cols = [c for c in ["pred_pg", "pred_pg_low", "pred_pg_high"] if c in out.columns]
+    pass_lo, pass_hi = pass_td_clip or QB_PASS_TD_RATE_CLIP
+    rush_lo, rush_hi = QB_RUSH_TD_PER_CARRY_CLIP
+    if rush_td_hi is not None:
+        rush_hi = float(rush_td_hi)
+
+    qb = out[out["position"].eq("QB")].copy()
+    if qb.empty:
+        return out
+
+    def _apply_clip(group, parent_stat, child_stat, rate_lo, rate_hi):
+        parent = group[group["stat"].eq(parent_stat)]
+        child = group[group["stat"].eq(child_stat)]
+        if parent.empty or child.empty:
+            return
+        parent_idx = parent.index[0]
+        child_idx = child.index[0]
+        for col in value_cols:
+            parent_val = pd.to_numeric(out.loc[parent_idx, col], errors="coerce")
+            child_val = pd.to_numeric(out.loc[child_idx, col], errors="coerce")
+            if not np.isfinite(parent_val) or parent_val <= 0 or not np.isfinite(child_val):
+                continue
+            rate = child_val / parent_val
+            if rate < rate_lo or rate > rate_hi:
+                out.loc[child_idx, col] = parent_val * np.clip(rate, rate_lo, rate_hi)
+                out.loc[child_idx, "td_rate_clip_applied"] = True
+
+    for _, group in qb.groupby(keys, dropna=False):
+        _apply_clip(group, "attempts", "passing_tds", pass_lo, pass_hi)
+        _apply_clip(group, "carries", "rushing_tds", rush_lo, rush_hi)
+    return out
+
+
+def reconcile_pass_td_t1_lite(df, pass_td_clip=None):
+    """T1-lite: re-derive passing_tds from attempts x clipped pass-TD rate.
+
+    Post-compose hygiene only - does not retrain models. Keeps rush-TD handling
+    separate so T3b ablations can stack with this pass-TD pass.
+    """
+    out = df.copy()
+    pass_lo, pass_hi = pass_td_clip or QB_PASS_TD_RATE_CLIP
+    keys = [c for c in ["player_id", "position", "season"] if c in out.columns]
+    value_cols = [c for c in ["pred_pg", "pred_pg_low", "pred_pg_high"] if c in out.columns]
+    qb = out[out["position"].eq("QB")]
+    if qb.empty:
+        return out
+    for _, group in qb.groupby(keys, dropna=False):
+        parent = group[group["stat"].eq("attempts")]
+        child = group[group["stat"].eq("passing_tds")]
+        if parent.empty or child.empty:
+            continue
+        parent_idx = parent.index[0]
+        child_idx = child.index[0]
+        for col in value_cols:
+            parent_val = pd.to_numeric(out.loc[parent_idx, col], errors="coerce")
+            child_val = pd.to_numeric(out.loc[child_idx, col], errors="coerce")
+            if not np.isfinite(parent_val) or parent_val <= 0:
+                continue
+            rate = child_val / parent_val if np.isfinite(child_val) else np.nan
+            if not np.isfinite(rate):
+                continue
+            clipped = parent_val * np.clip(rate, pass_lo, pass_hi)
+            if not np.isclose(clipped, child_val):
+                out.loc[child_idx, col] = clipped
+                out.loc[child_idx, "td_rate_clip_applied"] = True
+    return out
+
+
+def reconcile_team_volume(
+    df, alpha=None, calibration=None, volume_shares=None, volume_siblings=None
+):
+    """Pull each team's summed volume toward its own team anchor.
+
+    ``volume_shares`` / ``volume_siblings`` default to the shipped contracts
+    and exist so an ablation can vary ONE of them per run (see
+    scripts/ablate_qb_volume_share.py). They are not ship knobs.
+
+    The player models are fit independently, so nothing ties a team's summed
+    output to what that team will run. Nothing downstream did either -
+    compose_board was explicitly hygiene-only - and the result was 22 of 32
+    teams projecting more QB pass attempts than any NFL team recorded in
+    2021-2024.
+
+    Partial by design, and the reason is measured rather than cautious:
+    forcing the sum to the anchor is the best setting when the projected
+    population covers the whole team and the WORST when it does not (+2.93%
+    MAE on backtest folds averaging 85% coverage, -7.31% on folds above 90%),
+    so the shipped value is the strongest setting that improves in both
+    regimes.
+
+    That value is now FITTED, not the constant. With ``alpha=None`` the
+    per-cell alpha comes from models/reconcile_calibration.json (currently a
+    0.75 default, chosen by rolling origin on player-level season-total MAE);
+    `TEAM_RECONCILE_ALPHA` = 0.5 is only the fallback when that artifact is
+    missing. Passing ``alpha`` explicitly overrides both and is for
+    ablations. See contracts.TEAM_RECONCILE_ALPHA and
+    scripts/fit_reconcile_alpha.py.
+
+    This is deliberately NOT the "rescale receivers to match the QB's
+    predicted volume" idea that backtested worse (8.94 -> 9.47 MAE) earlier in
+    this project. That propagated one player model's error across a whole
+    team; this scales a position group toward a separately fitted TEAM-grain
+    forecast, and it is scored on player-level error, never on the team sum
+    that alpha=1 would fix by construction.
+
+    Runs on rates, before season totals are materialized, so pred_season
+    follows automatically. Interval endpoints take the same scale as the
+    point estimate.
+    """
+    calibration = calibration or load_reconcile_calibration()
+    use_per_cell = alpha is None
+    default_alpha = float(calibration.get("default_alpha", TEAM_RECONCILE_ALPHA))
+    shares = TEAM_VOLUME_SHARES if volume_shares is None else volume_shares
+    siblings = TEAM_VOLUME_SIBLINGS if volume_siblings is None else volume_siblings
+    out = df.copy()
+    out["team_volume_scale"] = 1.0
+    if out.empty:
+        return out
+    if not use_per_cell and not alpha:
+        return out
+
+    exposure = _row_exposure(out)
+    lo, hi = TEAM_RECONCILE_CLIP
+    for (position, stat), (anchor_col, share) in shares.items():
+        cell_alpha = (
+            reconcile_alpha_for(position, stat, calibration)
+            if use_per_cell
+            else float(alpha)
+        )
+        if not cell_alpha:
+            continue
+        if anchor_col not in out.columns:
+            continue
+        group = [stat] + list(siblings.get((position, stat), ()))
+        anchored = out["position"].eq(position) & out["stat"].eq(stat)
+        if not anchored.any():
+            continue
+        rows = out[anchored]
+        season = pd.to_numeric(rows["pred_pg"], errors="coerce") * exposure[anchored]
+        summed = season.groupby(rows["team"]).sum()
+        target = (
+            pd.to_numeric(rows.drop_duplicates("team").set_index("team")[anchor_col],
+                          errors="coerce")
+            * SEASON_GAMES * share
+        )
+        touched = out["position"].eq(position) & out["stat"].isin(group)
+
+        if TEAM_RECONCILE_PROTECT_STARTER.get(position, False) and "depth_tier" in rows.columns:
+            # Bench absorbs the deficit first; the tier-1 starter is touched
+            # only if flooring the bench still can't reach the target. See
+            # contracts.TEAM_RECONCILE_PROTECT_STARTER for why this is a QB-
+            # only shape: a QB room has one dominant starter whose own rate
+            # is usually well calibrated, while an RB "starter" is often a
+            # real committee member and correcting him alongside the room is
+            # the right call, not a workaround for a miscalibrated bench.
+            is_starter = rows["depth_tier"].eq(1.0)
+            starter_pred = season[is_starter].groupby(rows.loc[is_starter, "team"]).sum().reindex(
+                summed.index).fillna(0.0)
+            bench_pred = season[~is_starter].groupby(rows.loc[~is_starter, "team"]).sum().reindex(
+                summed.index).fillna(0.0)
+            tgt = target.reindex(summed.index)
+            needs_downward_reconcile = tgt < summed
+            ordinary_scale = (
+                (tgt / summed.replace(0, np.nan)).clip(lo, hi) ** cell_alpha
+            ).fillna(1.0)
+            bench_floor_amt = bench_pred * TEAM_RECONCILE_BENCH_FLOOR
+            bench_alone_suffices = (starter_pred + bench_floor_amt) <= tgt
+            bench_scale = pd.Series(np.where(
+                bench_alone_suffices,
+                ((tgt - starter_pred) / bench_pred.replace(0, np.nan)).clip(lo, hi),
+                TEAM_RECONCILE_BENCH_FLOOR), index=summed.index).fillna(1.0)
+            starter_scale = pd.Series(np.where(
+                bench_alone_suffices, 1.0,
+                ((tgt - bench_floor_amt) / starter_pred.replace(0, np.nan)).clip(lo, hi)),
+                index=summed.index).fillna(1.0)
+
+            starter_ids = set(rows.loc[is_starter, "player_id"])
+            touched_team = out.loc[touched, "team"]
+            touched_is_starter = out.loc[touched, "player_id"].isin(starter_ids)
+            touched_needs_downward = touched_team.map(needs_downward_reconcile).fillna(False)
+            protected_factor = np.where(
+                touched_is_starter,
+                touched_team.map(starter_scale).astype(float),
+                touched_team.map(bench_scale).astype(float),
+            )
+            factor = pd.Series(
+                np.where(
+                    touched_needs_downward,
+                    protected_factor,
+                    touched_team.map(ordinary_scale).astype(float),
+                ),
+                index=out.loc[touched].index).fillna(1.0)
+        else:
+            ratio = (target.reindex(summed.index) / summed.replace(0, np.nan)).clip(lo, hi)
+            scale = (ratio ** cell_alpha).reindex(summed.index)
+            factor = out.loc[touched, "team"].map(scale).astype(float).fillna(1.0)
+        for col in ("pred_pg", "pred_pg_low", "pred_pg_high"):
+            if col in out.columns:
+                out.loc[touched, col] = (
+                    pd.to_numeric(out.loc[touched, col], errors="coerce") * factor)
+        out.loc[touched, "team_volume_scale"] = factor
+    return out
+
+
 def _row_exposure(rows):
     volume = pd.to_numeric(
         rows["projected_volume_games"] if "projected_volume_games" in rows else
@@ -358,6 +597,96 @@ def add_projected_season_totals(df):
         ("pred_pg_high", "pred_season_high"),
     ):
         out[season_col] = pd.to_numeric(out[rate_col], errors="coerce") * exposure
+    return out
+
+
+# Hard pass/catch identities for season totals. targets/attempts is not a 1.0
+# identity (throwaways exist). 0.952 is the attempt-weighted 2021-2024 ratio
+# after excluding 2025, whose target feed fails the source-coverage check
+# (0.882 versus 0.951-0.959 in validated seasons).
+TARGETS_PER_ATTEMPT = 0.952
+TEAM_IDENTITY_PAIRS: list[tuple[str, str, float | None]] = [
+    ("receiving_yards", "passing_yards", 1.0),
+    ("receptions", "completions", 1.0),
+    ("receiving_tds", "passing_tds", 1.0),
+    ("targets", "attempts", TARGETS_PER_ATTEMPT),
+]
+RECEIVING_POSITIONS = ("RB", "WR", "TE")
+
+
+def reconcile_team_season_identities(
+    long: pd.DataFrame,
+    *,
+    pairs: list[tuple[str, str, float | None]] | None = None,
+) -> pd.DataFrame:
+    """Make each team's season totals satisfy the pass/catch identities.
+
+    A team's season receiving yards are its season passing yards. Season totals
+    are formed as each player's rate times *his own* ``projected_games``, and
+    nothing upstream makes those games add up the same way across two position
+    groups, so the identity has to be restored here.
+
+    Three properties are deliberate:
+
+    * **The target is the identity**, not whatever the rates currently imply.
+    * **``targets`` / ``attempts``** reconciles to ``TARGETS_PER_ATTEMPT`` rather
+      than 1.0 (throwaways are attempts with no target).
+    * **The split is symmetric** (geometric): receivers and passers each move
+      half the log-gap. Forcing receivers onto the QB volume backtested worse.
+
+    Per-game rates (``pred_pg``) are deliberately untouched; only season columns
+    move. Downstream season fantasy points must score from ``pred_season``.
+    """
+    if long.empty or "pred_season" not in long.columns:
+        return long
+    pairs = pairs or TEAM_IDENTITY_PAIRS
+    out = long.copy()
+    is_recv = out["position"].isin(RECEIVING_POSITIONS)
+    is_qb = out["position"] == "QB"
+    season_cols = [
+        c for c in ("pred_season", "pred_season_low", "pred_season_high")
+        if c in out.columns
+    ]
+
+    for recv_stat, pass_stat, target in pairs:
+        recv_rows = is_recv & out["stat"].eq(recv_stat)
+        pass_rows = is_qb & out["stat"].eq(pass_stat)
+
+        def totals(rows: pd.Series) -> pd.Series:
+            return out.loc[rows].groupby("team")["pred_season"].sum()
+
+        recv_season = totals(recv_rows)
+        pass_season = totals(pass_rows)
+
+        teams = recv_season.index.union(pass_season.index)
+        recv_season = recv_season.reindex(teams).fillna(0.0)
+        pass_season = pass_season.reindex(teams).fillna(0.0)
+
+        usable = (recv_season > 0) & (pass_season > 0)
+        if not usable.any():
+            continue
+
+        if target is None:
+            league = float(recv_season[usable].sum() / pass_season[usable].sum())
+            wanted = pd.Series(league, index=recv_season[usable].index)
+        else:
+            wanted = pd.Series(float(target), index=recv_season[usable].index)
+
+        have = recv_season[usable] / pass_season[usable]
+        gap = (have / wanted).astype(float)
+        adj = gap ** 0.5
+        recv_scale = (1.0 / adj).to_dict()
+        pass_scale = adj.to_dict()
+
+        for col in season_cols:
+            out.loc[recv_rows, col] = (
+                pd.to_numeric(out.loc[recv_rows, col], errors="coerce")
+                * out.loc[recv_rows, "team"].map(recv_scale).fillna(1.0)
+            )
+            out.loc[pass_rows, col] = (
+                pd.to_numeric(out.loc[pass_rows, col], errors="coerce")
+                * out.loc[pass_rows, "team"].map(pass_scale).fillna(1.0)
+            )
     return out
 
 

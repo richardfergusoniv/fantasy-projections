@@ -20,47 +20,73 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.projection.composition import compose_board, leakage_safe_context
+from src.projection.composition import (
+    COMPOSE_CHECKPOINT_NAMES,
+    compose_board,
+    leakage_safe_context,
+    run_compose_stages,
+)
 from src.projection.data_prep import get_conn
 from src.projection.depth_history import (
     attach_availability_depth_rank,
     attach_depth_rank,
+    attach_depth_tier,
+    DEPTH_TIER_COLUMN,
 )
-from src.projection.depth_rates import depth_rate_factors
 from src.projection.fantasy_points import SCORING
 from src.projection.features import TARGET_STATS, build_player_season_features
 from src.projection.team_reconcile import (
     TEAM_ANCHOR_SPECS,
     _compose_reframed_receiving_predictions,
 )
+from src.projection.data_prep import (
+    ELIGIBLE_ROSTER_STATUSES,
+    player_dominant_roster_status,
+    player_eligible_weeks,
+)
+from src.projection.data_prep import (
+    ELIGIBLE_ROSTER_STATUSES,
+    player_dominant_roster_status,
+    player_eligible_weeks,
+)
 from src.projection.rookies import (
+    ROOKIE_MIN_ELIGIBLE_WEEKS,
+    ROOKIE_ROLE_ELIGIBLE,
     TEAM_ABBR_FIX,
     _round_bucket,
     fit_rookie_baselines,
     load_combine_athletic_tier,
     predict_rookies,
+    rookie_role_label,
     team_vacated_opportunity,
 )
 from src.projection.train import fit_availability, fit_one, fit_team_total
+from src.projection.qb_context import (
+    QB_CONTEXT_FEATURES,
+    augment_history_with_qb_context,
+    attach_qb_context,
+    build_team_qb_context,
+    features_for_model,
+    model_artifact_manifest,
+)
 from src.projection.transitions import (
     ALL_FEATURES,
+    ROLE_FEATURES,
+    ROLE_PRIOR_FEATURE,
+    ROLE_PRIOR_3Y_FEATURE,
+    role_features_for,
+    trailing_role_rate,
+    role_label_for,
     AVAILABILITY_FEATURES,
     REFRAMED_SHARE_STATS,
     SEASON_GAMES,
     age_shrunk_predict,
+    shrink_qb_prior_role_rate,
     TEAM_FEATURES,
     TEAM_MODEL_FEATURES,
 )
 
-# Interval residuals ship in models/interval_residuals.csv, fit by backtest.py
-# on every season including this fold's target. Reusing them here would leak, so
-# the shared receiving composition is handed an EMPTY residual table: composed
-# point predictions are identical, and the prediction interval is simply absent
-# on this path rather than borrowed from a leaky artifact. Nothing scored by
-# this harness reads pred_pg_low/high.
-_NO_LEAKAGE_SAFE_RESIDUALS = pd.DataFrame(
-    columns=["position", "stat", "resid_low", "resid_high", "low_n_flag"]
-)
+from src.projection.backtest import leakage_safe_residual_quantiles
 
 
 POSITIONS = tuple(TARGET_STATS)
@@ -69,6 +95,10 @@ DEFAULT_TIER_RANKS = {"QB": 12, "RB": 24, "WR": 36, "TE": 12}
 DEFAULT_REPLACEMENT_RANKS = {"QB": 13, "RB": 25, "WR": 37, "TE": 13}
 OUTCOME_RATE_COLUMNS = sorted(
     {f"{stat}_pg" for stats in TARGET_STATS.values() for stat in stats}
+    # The role-rate labels carry the same held-out outcome as {stat}_pg and
+    # must be erased with them. Listing only the _pg columns left the target
+    # season's own role rates sitting in the sanitized frame.
+    | {rookie_role_label(stat) for stats in TARGET_STATS.values() for stat in stats}
 )
 OUTCOME_TOTAL_COLUMNS = sorted(
     {stat for stats in TARGET_STATS.values() for stat in stats}
@@ -169,9 +199,17 @@ def build_preseason_rookie_cohort(
     if rookies.empty:
         return rookies
 
+    # This harness builds its own cohort and never calls build_rookie_dataset,
+    # so every column fit_rookie_baselines needs has to be assembled here too.
+    # Missing the role-rate columns silently produced baselines with no rate
+    # at all, and therefore zero rookie forecasts - the second-call-site class
+    # of bug this project has hit before.
+    raw_stat_cols = [c for c in OUTCOME_TOTAL_COLUMNS if c in feature_table.columns]
     actual_cols = [
         "player_id", "season", "games_played", "opportunity_games",
         *[c for c in OUTCOME_RATE_COLUMNS if c in feature_table.columns],
+        *raw_stat_cols,
+        *(["eligible_weeks"] if "eligible_weeks" in feature_table.columns else []),
     ]
     actual = (
         feature_table[actual_cols]
@@ -182,6 +220,25 @@ def build_preseason_rookie_cohort(
     rookies[["games_played", "opportunity_games"]] = rookies[
         ["games_played", "opportunity_games"]
     ].fillna(0.0)
+    # Role rates on the same basis as build_rookie_dataset: season total over
+    # ELIGIBLE weeks, with a rookie who never played entering as a real 0.0
+    # rather than a NaN that averaging would skip.
+    elig = player_eligible_weeks(conn, list(seasons))
+    status = player_dominant_roster_status(conn, list(seasons)).rename(
+        columns={"status": "season_roster_status"})
+    if "eligible_weeks" in rookies.columns:
+        rookies = rookies.drop(columns=["eligible_weeks"])
+    rookies = rookies.merge(elig, on=["season", "player_id"], how="left")
+    rookies = rookies.merge(status, on=["season", "player_id"], how="left")
+    for stat in OUTCOME_TOTAL_COLUMNS:
+        if stat in rookies.columns:
+            rookies[stat] = pd.to_numeric(rookies[stat], errors="coerce").fillna(0.0)
+            rookies[rookie_role_label(stat)] = rookies[stat] / rookies[
+                "eligible_weeks"].where(rookies["eligible_weeks"] > 0)
+    rookies[ROOKIE_ROLE_ELIGIBLE] = (
+        rookies["season_roster_status"].isin(ELIGIBLE_ROSTER_STATUSES)
+        & (rookies["eligible_weeks"] >= ROOKIE_MIN_ELIGIBLE_WEEKS)
+    )
     rookies = rookies.merge(
         team_vacated_opportunity(conn, list(seasons)),
         on=["season", "team"],
@@ -273,7 +330,13 @@ def _actual_player_totals(feature_table: pd.DataFrame, season: int) -> pd.DataFr
 
 
 def _team_anchor_predictions(
-    history: pd.DataFrame, source_season: int, pairs: list[tuple[int, int]]
+    history: pd.DataFrame,
+    source_season: int,
+    pairs: list[tuple[int, int]],
+    *,
+    target_season: int,
+    use_qb_context: bool = False,
+    conn=None,
 ) -> pd.DataFrame:
     labels = {label: pred_col for label, _key, pred_col in TEAM_ANCHOR_SPECS}
     source = (
@@ -283,11 +346,20 @@ def _team_anchor_predictions(
         .copy()
     )
     out = source[["team"]].copy()
+    team_history = augment_history_with_qb_context(conn, history, pairs) if use_qb_context and conn is not None else history
     for label, output_col in labels.items():
-        model, _ = fit_team_total(history, pairs=pairs, label_col=label)
+        model, _ = fit_team_total(team_history, pairs=pairs, label_col=label)
         inputs = source[TEAM_FEATURES].copy()
         inputs["team_naive_pred"] = source[label]
-        out[output_col] = np.clip(model.predict(inputs[TEAM_MODEL_FEATURES]), 0, None)
+        if use_qb_context and conn is not None:
+            ctx = build_team_qb_context(
+                conn, history, source_season=source_season, target_season=target_season
+            )
+            inputs = attach_qb_context(inputs, ctx)
+            team_features = TEAM_MODEL_FEATURES + list(QB_CONTEXT_FEATURES)
+        else:
+            team_features = TEAM_MODEL_FEATURES
+        out[output_col] = np.clip(model.predict(inputs[team_features]), 0, None)
     # Provenance columns carry the same meaning as canonical_team_anchor_frame's
     # in the shipped path, so propagate_team_anchors validates this frame with
     # the same invariants. The value differs only in how the model was fitted -
@@ -299,6 +371,27 @@ def _team_anchor_predictions(
     return out
 
 
+def _prior_anchor_rates(
+    history: pd.DataFrame,
+    player_ids: pd.Series,
+    position: str,
+    stat: str,
+    source_season: int,
+) -> pd.Series:
+    """Two-season mean of the role label preceding ``source_season``."""
+    label = role_label_for(position, stat)
+    seasons = [source_season - 1, source_season - 2]
+    subset = history[
+        history["position"].eq(position)
+        & history["season"].isin(seasons)
+        & history["player_id"].isin(set(player_ids))
+    ]
+    if subset.empty or label not in subset.columns:
+        return pd.Series(index=player_ids.index, dtype=float)
+    means = subset.groupby("player_id")[label].mean()
+    return player_ids.map(means)
+
+
 def _veteran_forecasts(
     conn,
     history: pd.DataFrame,
@@ -306,6 +399,8 @@ def _veteran_forecasts(
     source_season: int,
     target_season: int,
     pairs: list[tuple[int, int]],
+    qb_partial_prior_shrink: bool = False,
+    use_qb_context: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     rookies = set(population.loc[population["is_rookie"], "player_id"])
     eligible = population[~population["player_id"].isin(rookies)].copy()
@@ -316,6 +411,12 @@ def _veteran_forecasts(
         return pd.DataFrame(), pd.DataFrame()
     base["team"] = base["preseason_team"]
     base["position"] = base["preseason_position"]
+    train_history = augment_history_with_qb_context(conn, history, pairs) if use_qb_context else history
+    if use_qb_context:
+        scoring_ctx = build_team_qb_context(
+            conn, history, source_season=source_season, target_season=target_season
+        )
+        base = attach_qb_context(base, scoring_ctx)
 
     # Team context is re-pointed to the target team using source-season data;
     # no 2025 realized team tendency enters a moved player's row.
@@ -324,6 +425,8 @@ def _veteran_forecasts(
         base[col] = base["team"].map(team_context[col]).fillna(base[col])
     base = attach_availability_depth_rank(base, target_season, conn=conn)
     base = attach_depth_rank(base, target_season, conn=conn)
+    # The volume models consume the coarse tier, not the raw ordinal.
+    base = attach_depth_tier(base, target_season, conn=conn)
 
     games = []
     rates = []
@@ -331,7 +434,7 @@ def _veteran_forecasts(
         idx = base["position"].eq(position)
         if not idx.any():
             continue
-        model, _ = fit_availability(history, position, pairs=pairs)
+        model, _ = fit_availability(train_history, position, pairs=pairs)
         predicted_games = np.clip(
             model.predict(base.loc[idx, AVAILABILITY_FEATURES]), 0, SEASON_GAMES
         )
@@ -340,20 +443,46 @@ def _veteran_forecasts(
             "projected_games": predicted_games,
         }))
         for stat in stats:
-            rate_model, _ = fit_one(history, position, stat, pairs=pairs)
-            pred = np.clip(age_shrunk_predict(rate_model, base.loc[idx], position), 0, None)
-            # Production applies the veteran-only depth ladder before share
-            # composition.  The held-out chart is available preseason; the
-            # factor is deterministic and contains no target outcome.
-            #
-            # Same shared rule the shipped path and backtest.py now use -
-            # depth_rates.depth_rate_factors, keyed on nfl_depth_rank alone
-            # and never on the curated chart.  This harness was already the
-            # only one applying it unconditionally; unifying moved the other
-            # two onto what was being measured here, not the reverse.
-            factors = depth_rate_factors(
-                base.loc[idx, "position"], base.loc[idx, "nfl_depth_rank"])
-            pred = pred * factors
+            rate_model, _ = fit_one(train_history, position, stat, pairs=pairs, conn=conn)
+            # The prior in the label's own units, same column the pair builder
+            # supplies at fit time, so training and scoring agree.
+            scoring = base.loc[idx].copy()
+            prior = pd.to_numeric(
+                scoring.get(role_label_for(position, stat)), errors="coerce")
+            if position == "QB" and qb_partial_prior_shrink:
+                anchor = _prior_anchor_rates(
+                    history,
+                    scoring["player_id"],
+                    position,
+                    stat,
+                    source_season,
+                )
+                prior = shrink_qb_prior_role_rate(
+                    prior,
+                    scoring["games_played"],
+                    anchor,
+                    enabled=True,
+                )
+            scoring[ROLE_PRIOR_FEATURE] = prior
+            features = features_for_model(
+                position,
+                stat,
+                qb_context=use_qb_context,
+                base_features=role_features_for(position, stat),
+            )
+            if ROLE_PRIOR_3Y_FEATURE in features:
+                scoring[ROLE_PRIOR_3Y_FEATURE] = trailing_role_rate(
+                    history, scoring["player_id"], position, stat, source_season
+                ).to_numpy()
+                scoring[ROLE_PRIOR_3Y_FEATURE] = scoring[ROLE_PRIOR_3Y_FEATURE].fillna(
+                    scoring[ROLE_PRIOR_FEATURE])
+            # No multiplier. Depth is an input to rate_model via ROLE_FEATURES,
+            # which is what the shipped path does since the Gate B ladder was
+            # retired. This harness used to be the ONLY one applying the ladder
+            # unconditionally; now none of the three do.
+            pred = np.clip(
+                age_shrunk_predict(rate_model, scoring, position, features=features),
+                0, None)
             rates.append(pd.DataFrame({
                 "player_id": base.loc[idx, "player_id"].to_numpy(),
                 "position": position,
@@ -361,7 +490,7 @@ def _veteran_forecasts(
                 "season": int(target_season),
                 "stat": stat,
                 "pred_pg": pred,
-                "depth_rate_factor": factors,
+                "depth_tier": base.loc[idx, DEPTH_TIER_COLUMN].to_numpy(),
                 "is_receiving_share": (position, stat) in REFRAMED_SHARE_STATS,
             }))
     game_df = pd.concat(games, ignore_index=True).drop_duplicates("player_id")
@@ -397,7 +526,9 @@ def _rookie_forecasts(
                 "stat": stat,
                 "pred_pg": part[col].to_numpy(),
                 "is_receiving_share": False,
-                "depth_rate_factor": 1.0,
+                # Rookies carry no depth tier - their path is the rule-based
+                # one, keyed on draft bucket, not the tier feature.
+                "depth_tier": np.nan,
                 "projected_games": part["projected_games"].to_numpy(),
                 "target_depth_rank": part.get("target_depth_rank", pd.Series(np.nan, index=part.index)).to_numpy(),
                 "nfl_depth_rank": part.get("nfl_depth_rank", pd.Series(np.nan, index=part.index)).to_numpy(),
@@ -406,20 +537,18 @@ def _rookie_forecasts(
     return long, wide[["player_id", "projected_games"]].drop_duplicates("player_id")
 
 
-def _compose_and_reconcile(
+def assemble_precompose_board(
     veteran_long: pd.DataFrame,
     rookie_long: pd.DataFrame,
     anchors: pd.DataFrame,
-    context,
+    *,
+    feature_table: pd.DataFrame | None = None,
+    source_season: int | None = None,
 ) -> pd.DataFrame:
-    """Run the SHIPPED composition pipeline over leakage-safe artifacts.
+    """Build the long board immediately before ``compose_board``.
 
-    This function no longer contains any allocation logic of its own. It
-    attaches the refit team anchors, hands the veteran share rows and the
-    rookies' implied shares to the same ``_compose_reframed_receiving_
-    predictions`` the shipped path uses, and then calls ``compose_board`` —
-    which is literally the stage list ``project_season`` runs. Anything this
-    harness scores is therefore something the shipped board also does.
+    Shared by the ordinary compose path and by stage-checkpoint attribution so
+    traced finals cannot drift from shipped composition inputs.
     """
     veteran = veteran_long.merge(anchors, on="team", how="left")
     rookie = (
@@ -435,9 +564,15 @@ def _compose_and_reconcile(
                    ["team", "pred_pg", "projected_games"]]
         if not rookie.empty else None
     )
+    if feature_table is not None and source_season is not None:
+        safe_residuals = leakage_safe_residual_quantiles(feature_table, source_season)
+    else:
+        safe_residuals = pd.DataFrame(
+            columns=["position", "stat", "resid_low", "resid_high", "low_n_flag"]
+        )
     veteran = _compose_reframed_receiving_predictions(
         veteran,
-        _NO_LEAKAGE_SAFE_RESIDUALS,
+        safe_residuals,
         rookie_receiving=rookie_receiving,
         # Elite shrinkage ships in models/corrections.joblib, fit on residuals
         # spanning the target season. There is no leakage-safe refit of it on
@@ -447,12 +582,40 @@ def _compose_and_reconcile(
 
     out = pd.concat([veteran, rookie], ignore_index=True, sort=False)
     out["pred_pg"] = pd.to_numeric(out["pred_pg"], errors="coerce").clip(lower=0)
-    # No leakage-safe interval residuals exist for this fold, so the endpoints
-    # collapse onto the point prediction rather than being borrowed. Nothing in
-    # the scoring path reads them; they exist so the reconcilers, which scale
-    # all three together, have a defined value to scale.
+    # Interval endpoints use leakage-safe residuals when feature_table is supplied.
     for col in ("pred_pg_low", "pred_pg_high"):
-        out[col] = pd.to_numeric(out.get(col), errors="coerce").fillna(out["pred_pg"])
+        if col not in out.columns:
+            out[col] = out["pred_pg"]
+        else:
+            out[col] = pd.to_numeric(out[col], errors="coerce").fillna(out["pred_pg"])
+    return out
+
+
+def _compose_and_reconcile(
+    veteran_long: pd.DataFrame,
+    rookie_long: pd.DataFrame,
+    anchors: pd.DataFrame,
+    context,
+    *,
+    feature_table: pd.DataFrame | None = None,
+    source_season: int | None = None,
+) -> pd.DataFrame:
+    """Run the SHIPPED composition pipeline over leakage-safe artifacts.
+
+    This function no longer contains any allocation logic of its own. It
+    attaches the refit team anchors, hands the veteran share rows and the
+    rookies' implied shares to the same ``_compose_reframed_receiving_
+    predictions`` the shipped path uses, and then calls ``compose_board`` —
+    which is literally the stage list ``project_season`` runs. Anything this
+    harness scores is therefore something the shipped board also does.
+    """
+    out = assemble_precompose_board(
+        veteran_long,
+        rookie_long,
+        anchors,
+        feature_table=feature_table,
+        source_season=source_season,
+    )
     return compose_board(out, context)
 
 
@@ -463,6 +626,16 @@ def _forecast_from_history(
     rookie_cohort: pd.DataFrame,
     source_season: int,
     target_season: int,
+    exposure_blend_alpha: float = 0.0,
+    qb_partial_prior_shrink: bool = False,
+    qb_rush_td_clip_hi: float | None = None,
+    qb_pass_td_t1_lite: bool = False,
+    team_volume_shares: dict | None = None,
+    team_volume_siblings: dict | None = None,
+    reconcile_alpha: float | None = None,
+    return_long: bool = False,
+    feature_table: pd.DataFrame | None = None,
+    use_qb_context: bool = False,
 ) -> pd.DataFrame:
     """Internal forecast stage; `history` must contain no target outcomes."""
     if history["season"].max() > source_season:
@@ -470,22 +643,45 @@ def _forecast_from_history(
     pairs = safe_training_pairs(source_season)
     if not pairs:
         raise ValueError("no safe production-era training transitions")
-    anchors = _team_anchor_predictions(history, source_season, pairs)
+    anchors = _team_anchor_predictions(
+        history, source_season, pairs, target_season=target_season,
+        use_qb_context=use_qb_context, conn=conn,
+    )
     veteran_long, veteran_games = _veteran_forecasts(
-        conn, history, population, source_season, target_season, pairs
+        conn, history, population, source_season, target_season, pairs,
+        qb_partial_prior_shrink=qb_partial_prior_shrink,
+        use_qb_context=use_qb_context,
     )
     rookie_long, rookie_games = _rookie_forecasts(
         rookie_cohort, source_season, target_season
     )
     context = leakage_safe_context(conn, target_season, source_season)
-    long = _compose_and_reconcile(veteran_long, rookie_long, anchors, context)
+    context.exposure_blend_alpha = float(exposure_blend_alpha)
+    context.qb_rush_td_clip_hi = qb_rush_td_clip_hi
+    context.qb_pass_td_t1_lite = bool(qb_pass_td_t1_lite)
+    context.team_volume_shares = team_volume_shares
+    context.team_volume_siblings = team_volume_siblings
+    context.reconcile_alpha = reconcile_alpha
+    long = _compose_and_reconcile(
+        veteran_long, rookie_long, anchors, context,
+        feature_table=feature_table, source_season=source_season,
+    )
+    if return_long:
+        long.attrs["stage_coverage"] = context.describe_coverage()
+        long.attrs["artifact_provenance"] = context.artifact_provenance
+        return long
     scored_stats = long.pivot_table(
         index="player_id", columns="stat", values="pred_season", aggfunc="first"
     )
     scored = _score_totals(scored_stats).rename("model_forecast_points").reset_index()
+    rate_stats = long.pivot_table(
+        index="player_id", columns="stat", values="pred_pg", aggfunc="first"
+    )
+    rate_scored = _score_totals(rate_stats).rename("model_rate_points").reset_index()
+    scored = scored.merge(rate_scored, on="player_id", how="left")
     games = pd.concat([veteran_games, rookie_games], ignore_index=True).drop_duplicates("player_id")
     exposure = long[["player_id", "projected_volume_games"]].drop_duplicates("player_id")
-    factors = long[["player_id", "depth_rate_factor"]].drop_duplicates("player_id")
+    factors = long[["player_id", "depth_tier"]].drop_duplicates("player_id")
     scored = (
         scored.merge(games, on="player_id", how="left")
         .merge(exposure, on="player_id", how="left")
@@ -509,7 +705,239 @@ def _forecast_from_history(
     # Coverage must never be readable as performance.
     scored.attrs["stage_coverage"] = context.describe_coverage()
     scored.attrs["artifact_provenance"] = context.artifact_provenance
+    if use_qb_context:
+        scored.attrs["artifact_provenance"] = {
+            **(scored.attrs.get("artifact_provenance") or {}),
+            **model_artifact_manifest(consumes_qb_context=True),
+        }
     return scored
+
+
+def build_leakage_safe_long_board(
+    conn,
+    feature_table: pd.DataFrame,
+    source_season: int,
+    target_season: int,
+    *,
+    use_qb_context: bool = False,
+) -> pd.DataFrame:
+    """Return the held-out long board after the shipped composition stages.
+
+    This is the calibration interface for post-compose allocation cells.  It
+    freezes the target preseason population, fits only through source season,
+    includes rookies and attrition, and exposes player-season stat totals
+    before held-out outcomes are attached.
+    """
+    history = feature_table[feature_table["season"].le(source_season)].copy()
+    rookie_cohort = build_preseason_rookie_cohort(
+        conn, feature_table, list(range(2016, target_season + 1))
+    )
+    population = build_preseason_population(conn, target_season, rookie_cohort)
+    return _forecast_from_history(
+        conn,
+        history,
+        population,
+        sanitize_target_rookie_outcomes(rookie_cohort, target_season),
+        source_season,
+        target_season,
+        exposure_blend_alpha=0.0,
+        return_long=True,
+        feature_table=feature_table,
+        use_qb_context=use_qb_context,
+    )
+
+
+def _score_long_board_points(long: pd.DataFrame, *, value_col: str) -> pd.Series:
+    """Score fantasy points from a long board column (pred_pg or pred_season)."""
+    if long.empty or value_col not in long.columns:
+        return pd.Series(dtype=float)
+    wide = long.pivot_table(
+        index="player_id", columns="stat", values=value_col, aggfunc="first"
+    )
+    return _score_totals(wide)
+
+
+def assert_compose_parity(
+    traced_final: pd.DataFrame,
+    ordinary: pd.DataFrame,
+    *,
+    atol: float = 1e-9,
+) -> dict:
+    """Require traced final board to equal ordinary ``compose_board`` output."""
+    left = traced_final.sort_values(["player_id", "stat"]).reset_index(drop=True)
+    right = ordinary.sort_values(["player_id", "stat"]).reset_index(drop=True)
+    if list(left.columns) != list(right.columns):
+        missing = sorted(set(left.columns) ^ set(right.columns))
+        raise AssertionError(f"compose parity column mismatch: {missing}")
+    if len(left) != len(right):
+        raise AssertionError(
+            f"compose parity row count mismatch: traced={len(left)} ordinary={len(right)}"
+        )
+    for col in left.columns:
+        if pd.api.types.is_numeric_dtype(left[col]) or pd.api.types.is_numeric_dtype(right[col]):
+            a = pd.to_numeric(left[col], errors="coerce")
+            b = pd.to_numeric(right[col], errors="coerce")
+            if not np.allclose(a.fillna(0), b.fillna(0), atol=atol, equal_nan=True):
+                worst = float(np.nanmax(np.abs(a.fillna(0) - b.fillna(0))))
+                raise AssertionError(
+                    f"compose parity failed on {col}: max |delta|={worst}"
+                )
+        else:
+            if not left[col].astype(str).equals(right[col].astype(str)):
+                raise AssertionError(f"compose parity failed on non-numeric column {col}")
+    return {"ok": True, "n_rows": int(len(left)), "atol": atol}
+
+
+def build_leakage_safe_compose_checkpoints(
+    conn,
+    feature_table: pd.DataFrame,
+    source_season: int,
+    target_season: int,
+    *,
+    exposure_blend_alpha: float = 0.0,
+    qb_partial_prior_shrink: bool = False,
+    qb_rush_td_clip_hi: float | None = None,
+    qb_pass_td_t1_lite: bool = False,
+    team_volume_shares: dict | None = None,
+    team_volume_siblings: dict | None = None,
+    reconcile_alpha: float | None = None,
+    use_qb_context: bool = False,
+) -> dict:
+    """Generate pre-compose and stage boards for one leakage-safe fold.
+
+    Parity: the traced final board equals ``compose_board`` on the same
+    pre-compose input. Player-level rates/points are scored from the boards.
+    """
+    history = feature_table[feature_table["season"].le(source_season)].copy()
+    if history["season"].max() > source_season:
+        raise ValueError("forecast history extends beyond source_season")
+    pairs = safe_training_pairs(source_season)
+    if not pairs:
+        raise ValueError("no safe production-era training transitions")
+    rookie_cohort = build_preseason_rookie_cohort(
+        conn, feature_table, list(range(2016, target_season + 1))
+    )
+    population = build_preseason_population(conn, target_season, rookie_cohort)
+    rookie_safe = sanitize_target_rookie_outcomes(rookie_cohort, target_season)
+    anchors = _team_anchor_predictions(
+        history, source_season, pairs, target_season=target_season,
+        use_qb_context=use_qb_context, conn=conn,
+    )
+    veteran_long, _veteran_games = _veteran_forecasts(
+        conn, history, population, source_season, target_season, pairs,
+        qb_partial_prior_shrink=qb_partial_prior_shrink,
+        use_qb_context=use_qb_context,
+    )
+    rookie_long, _rookie_games = _rookie_forecasts(
+        rookie_safe, source_season, target_season
+    )
+    context = leakage_safe_context(conn, target_season, source_season)
+    context.exposure_blend_alpha = float(exposure_blend_alpha)
+    context.qb_rush_td_clip_hi = qb_rush_td_clip_hi
+    context.qb_pass_td_t1_lite = bool(qb_pass_td_t1_lite)
+    context.team_volume_shares = team_volume_shares
+    context.team_volume_siblings = team_volume_siblings
+    context.reconcile_alpha = reconcile_alpha
+
+    precompose = assemble_precompose_board(
+        veteran_long,
+        rookie_long,
+        anchors,
+        feature_table=feature_table,
+        source_season=source_season,
+    )
+    ordinary = compose_board(precompose.copy(deep=True), context)
+    traced_final, boards = run_compose_stages(
+        precompose.copy(deep=True), context, capture_checkpoints=True
+    )
+    parity = assert_compose_parity(traced_final, ordinary)
+
+    missing_stages = [name for name in COMPOSE_CHECKPOINT_NAMES if name not in boards]
+    if missing_stages:
+        raise RuntimeError(f"Incomplete compose checkpoints: {missing_stages}")
+
+    from src.projection.composition import _score_checkpoint_fantasy
+
+    stage_scores = {
+        name: _score_checkpoint_fantasy(boards[name])
+        for name in COMPOSE_CHECKPOINT_NAMES
+    }
+
+    raw_ppg = _score_long_board_points(boards["raw_forecast"], value_col="pred_pg")
+    # Last rate stage before season-total materialization.
+    composed_ppg = _score_long_board_points(
+        boards["counting_stat_constraints"], value_col="pred_pg"
+    )
+    final_ppg = _score_long_board_points(
+        boards["season_total_finalization"], value_col="pred_pg"
+    )
+    traced_season = _score_long_board_points(
+        boards["season_total_finalization"], value_col="pred_season"
+    )
+    games = (
+        boards["season_total_finalization"][["player_id", "projected_games"]]
+        .drop_duplicates("player_id")
+        .copy()
+    )
+    games["player_id"] = games["player_id"].astype(str)
+    games["projected_games"] = pd.to_numeric(games["projected_games"], errors="coerce")
+
+    player_rates = pd.DataFrame({
+        "player_id": raw_ppg.index.astype(str),
+        "raw_rate_ppg": raw_ppg.to_numpy(dtype=float),
+    })
+    player_rates = player_rates.merge(
+        composed_ppg.rename("composed_rate_ppg").rename_axis("player_id").reset_index().assign(
+            player_id=lambda d: d["player_id"].astype(str)
+        ),
+        on="player_id",
+        how="outer",
+    )
+    player_rates = player_rates.merge(
+        final_ppg.rename("final_rate_ppg").rename_axis("player_id").reset_index().assign(
+            player_id=lambda d: d["player_id"].astype(str)
+        ),
+        on="player_id",
+        how="outer",
+    )
+    player_rates = player_rates.merge(
+        traced_season.rename("traced_v1_pred").rename_axis("player_id").reset_index().assign(
+            player_id=lambda d: d["player_id"].astype(str)
+        ),
+        on="player_id",
+        how="outer",
+    )
+    player_rates = player_rates.merge(games, on="player_id", how="left")
+    player_rates["composition_stages_applied"] = True
+    player_rates["source_season"] = int(source_season)
+    player_rates["target_season"] = int(target_season)
+
+    # Rates must be unchanged by season-total finalization.
+    rate_delta = (
+        pd.to_numeric(player_rates["final_rate_ppg"], errors="coerce").fillna(0.0)
+        - pd.to_numeric(player_rates["composed_rate_ppg"], errors="coerce").fillna(0.0)
+    )
+    if not np.allclose(rate_delta.to_numpy(dtype=float), 0.0, atol=1e-9):
+        raise AssertionError(
+            "season_total_finalization moved pred_pg rates; "
+            f"max |delta|={float(np.nanmax(np.abs(rate_delta)))}"
+        )
+
+    return {
+        "source_season": int(source_season),
+        "target_season": int(target_season),
+        "precompose": precompose,
+        "boards": boards,
+        "stage_scores": stage_scores,
+        "final": traced_final,
+        "ordinary": ordinary,
+        "parity": parity,
+        "player_rates": player_rates,
+        "stage_coverage": context.describe_coverage(),
+        "artifact_provenance": context.artifact_provenance,
+        "complete": True,
+        "checkpoint_names": list(COMPOSE_CHECKPOINT_NAMES),
+    }
 
 
 def build_leakage_safe_forecasts(
@@ -517,6 +945,14 @@ def build_leakage_safe_forecasts(
     feature_table: pd.DataFrame,
     source_season: int = 2024,
     target_season: int = 2025,
+    exposure_blend_alpha: float = 0.0,
+    qb_partial_prior_shrink: bool = False,
+    qb_rush_td_clip_hi: float | None = None,
+    qb_pass_td_t1_lite: bool = False,
+    team_volume_shares: dict | None = None,
+    team_volume_siblings: dict | None = None,
+    reconcile_alpha: float | None = None,
+    use_qb_context: bool = False,
 ) -> tuple[pd.DataFrame, dict]:
     """Freeze population and forecast without exposing any 2025 outcomes."""
     history = feature_table[feature_table["season"].le(source_season)].copy()
@@ -531,10 +967,23 @@ def build_leakage_safe_forecasts(
         sanitize_target_rookie_outcomes(rookie_cohort, target_season),
         source_season,
         target_season,
+        exposure_blend_alpha=exposure_blend_alpha,
+        qb_partial_prior_shrink=qb_partial_prior_shrink,
+        qb_rush_td_clip_hi=qb_rush_td_clip_hi,
+        qb_pass_td_t1_lite=qb_pass_td_t1_lite,
+        team_volume_shares=team_volume_shares,
+        team_volume_siblings=team_volume_siblings,
+        reconcile_alpha=reconcile_alpha,
+        feature_table=feature_table,
+        use_qb_context=use_qb_context,
     )
     out = population.merge(forecasts, on="player_id", how="left")
     out["forecast_covered"] = out["forecast_covered"].fillna(False)
     out["model_points_end_to_end"] = out["model_forecast_points"].fillna(0.0)
+    if "model_rate_points" in out.columns:
+        out["model_rate_points"] = out["model_rate_points"].fillna(0.0)
+    else:
+        out["model_rate_points"] = 0.0
 
     prior = _actual_player_totals(history, source_season).rename(
         columns={"actual_points": "carry_forward_points"}
@@ -570,6 +1019,7 @@ def build_leakage_safe_forecasts(
         ),
         "composition_artifact_provenance": forecasts.attrs.get("artifact_provenance"),
         "composition_stage_coverage": forecasts.attrs.get("stage_coverage", {}),
+        "exposure_blend_alpha": float(exposure_blend_alpha),
     }
     return out, metadata
 
@@ -592,6 +1042,9 @@ def attach_actual_outcomes(
     out["actual_games_played"] = out["actual_games_played"].fillna(0.0)
     out["actual_zero_game_outcome"] = out["actual_games_played"].le(0)
     out["actual_zero_point_outcome"] = out["actual_points"].eq(0.0)
+    out["actual_rate_points"] = (
+        out["actual_points"] / out["actual_games_played"].replace(0, np.nan)
+    ).fillna(0.0)
     return out
 
 
@@ -631,10 +1084,26 @@ def _metric_rows(
     rows = []
     for position in POSITIONS:
         position_rows = frame[frame["preseason_position"].eq(position)]
-        for scope, scoped in (
+        has_depth = "depth_tier" in position_rows.columns
+        has_games = "actual_games_played" in position_rows.columns
+        starter_rows = (
+            position_rows[position_rows["depth_tier"].eq(1.0)] if has_depth
+            else position_rows.iloc[0:0]
+        )
+        starter_8plus = (
+            starter_rows[starter_rows["actual_games_played"].ge(8)] if has_games
+            else starter_rows.iloc[0:0]
+        )
+        scopes = [
             ("all_eligible", position_rows),
             ("forecast_covered", position_rows[position_rows["forecast_covered"]]),
-        ):
+        ]
+        if has_depth:
+            scopes.extend([
+                ("starter_depth_tier_1", starter_rows),
+                ("starter_8plus_games", starter_8plus),
+            ])
+        for scope, scoped in scopes:
             if scoped.empty:
                 continue
             actual_cut = _kth_score(scoped["actual_points"], tier_ranks[position])
@@ -651,6 +1120,27 @@ def _metric_rows(
                     scoped[value_col], replacement_ranks[position]
                 )
                 pred_vorp = scoped[value_col] - pred_replacement
+                rate_spearman = float("nan")
+                rate_mae = float("nan")
+                mean_bias = float("nan")
+                if (
+                    method == "model"
+                    and "model_rate_points" in scoped.columns
+                    and "actual_rate_points" in scoped.columns
+                ):
+                    rate_spearman = float(
+                        scoped["model_rate_points"].corr(
+                            scoped["actual_rate_points"], method="spearman"
+                        )
+                    )
+                    rate_mae = float(
+                        (scoped["model_rate_points"] - scoped["actual_rate_points"])
+                        .abs()
+                        .mean()
+                    )
+                    mean_bias = float(
+                        (scoped["model_rate_points"] - scoped["actual_rate_points"]).mean()
+                    )
                 rows.append({
                     "position": position,
                     "scope": scope,
@@ -660,7 +1150,11 @@ def _metric_rows(
                     "forecast_covered_n": int(position_rows["forecast_covered"].sum()),
                     "zero_outcome_n": int(scoped["actual_zero_game_outcome"].sum()),
                     "spearman": float(scoped[value_col].corr(scoped["actual_points"], method="spearman")),
+                    "rate_spearman": rate_spearman,
+                    "rate_mae": rate_mae,
+                    "mean_bias": mean_bias,
                     "points_mae": float((scoped[value_col] - scoped["actual_points"]).abs().mean()),
+                    "season_mean_bias": float((scoped[value_col] - scoped["actual_points"]).mean()),
                     "tier_rank": int(tier_ranks[position]),
                     "predicted_top_n": int(pred_top.sum()),
                     "actual_top_n": int(actual_top.sum()),
@@ -675,6 +1169,28 @@ def _metric_rows(
                     "vorp_spearman": float(pred_vorp.corr(actual_vorp, method="spearman")),
                 })
     return pd.DataFrame(rows)
+
+
+def qb_starter_metrics(summary: pd.DataFrame) -> dict:
+    """Extract QB starter-only dashboard metrics from an evaluation summary."""
+    model = summary[
+        (summary["method"] == "model") & (summary["position"] == "QB")
+    ]
+    out = {}
+    for scope in ("starter_depth_tier_1", "starter_8plus_games", "all_eligible"):
+        row = model[model["scope"] == scope]
+        if row.empty:
+            continue
+        r = row.iloc[0]
+        out[scope] = {
+            "n": int(r["n"]),
+            "rate_spearman": round(float(r["rate_spearman"]), 4),
+            "rate_mae": round(float(r["rate_mae"]), 3),
+            "mean_bias": round(float(r["mean_bias"]), 3),
+            "points_mae": round(float(r["points_mae"]), 2),
+            "tier_hits": f"{int(r['tier_hits'])}/{int(r['tier_rank'])}",
+        }
+    return out
 
 
 def evaluate_forecasts(
@@ -706,12 +1222,25 @@ def run_evaluation(
     target_season: int = 2025,
     tier_ranks: dict[str, int] | None = None,
     replacement_ranks: dict[str, int] | None = None,
+    exposure_blend_alpha: float = 0.0,
+    qb_partial_prior_shrink: bool = False,
+    qb_rush_td_clip_hi: float | None = None,
+    qb_pass_td_t1_lite: bool = False,
+    use_qb_context: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     conn = get_conn()
     try:
         feat = build_player_season_features(conn)
         forecasts, metadata = build_leakage_safe_forecasts(
-            conn, feat, source_season, target_season
+            conn,
+            feat,
+            source_season,
+            target_season,
+            exposure_blend_alpha=exposure_blend_alpha,
+            qb_partial_prior_shrink=qb_partial_prior_shrink,
+            qb_rush_td_clip_hi=qb_rush_td_clip_hi,
+            qb_pass_td_t1_lite=qb_pass_td_t1_lite,
+            use_qb_context=use_qb_context,
         )
     finally:
         conn.close()
@@ -719,8 +1248,14 @@ def run_evaluation(
     ranked, summary = evaluate_forecasts(
         with_actual, tier_ranks=tier_ranks, replacement_ranks=replacement_ranks
     )
+    metadata["exposure_blend_alpha"] = float(exposure_blend_alpha)
+    metadata["qb_partial_prior_shrink"] = bool(qb_partial_prior_shrink)
+    metadata["qb_rush_td_clip_hi"] = qb_rush_td_clip_hi
+    metadata["qb_pass_td_t1_lite"] = bool(qb_pass_td_t1_lite)
+    metadata["use_qb_context"] = bool(use_qb_context)
     metadata["tier_ranks"] = tier_ranks or DEFAULT_TIER_RANKS
     metadata["replacement_ranks"] = replacement_ranks or DEFAULT_REPLACEMENT_RANKS
+    metadata["qb_starter_metrics"] = qb_starter_metrics(summary)
     metadata["coverage_limits"] = [
         "Week-1 contracted roster snapshot excludes August camp cuts.",
         "Veterans without a source-season feature row remain in all_eligible and score as zero model points.",
@@ -735,8 +1270,9 @@ def run_evaluation(
         "players neither model path reaches, and the LWR/RWR/SWR within-WR split all "
         "no-op; (b) dated status overrides (IR/PUP) - status_overrides_<season>.csv is "
         "likewise 2026-only; (c) elite residual correction - models/corrections.joblib "
-        "is fit on residuals spanning the target season; (d) prediction intervals - "
-        "models/interval_residuals.csv is fit by backtest.py across the target season. "
+        "(d) prediction intervals on eval path now use leakage_safe_residual_quantiles "
+        "through source_season; production models/interval_residuals.csv still spans "
+        "target season on ship path. "
         "None of these are faked or silently skipped: each degrades to an explicit "
         "pass-through recorded in composition_stage_coverage.",
         "Roster reassignment (reassign_team_changers) is not run: the target team comes "
@@ -753,12 +1289,22 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--target-season", type=int, default=2025)
     parser.add_argument("--tier-ranks", default="QB=12,RB=24,WR=36,TE=12")
     parser.add_argument("--replacement-ranks", default="QB=13,RB=25,WR=37,TE=13")
+    parser.add_argument(
+        "--exposure-blend-alpha",
+        type=float,
+        default=0.0,
+        help="Blend draft exposure toward Gate A raw games (0=17-game default, 1=raw only)",
+    )
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR))
     args = parser.parse_args(argv)
     tier = _parse_rank_map(args.tier_ranks, DEFAULT_TIER_RANKS)
     replacement = _parse_rank_map(args.replacement_ranks, DEFAULT_REPLACEMENT_RANKS)
     rows, summary, metadata = run_evaluation(
-        args.source_season, args.target_season, tier, replacement
+        args.source_season,
+        args.target_season,
+        tier,
+        replacement,
+        exposure_blend_alpha=args.exposure_blend_alpha,
     )
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=True)
@@ -771,8 +1317,13 @@ def main(argv: list[str] | None = None) -> None:
         json.dumps({"metadata": metadata, "metrics": summary.to_dict("records")}, indent=2),
         encoding="utf-8",
     )
+    starter_path = output / f"qb_starter_eval_{args.target_season}.json"
+    starter_path.write_text(
+        json.dumps({"metadata": metadata, "qb_starter_metrics": metadata["qb_starter_metrics"]}, indent=2),
+        encoding="utf-8",
+    )
     print(summary.to_string(index=False))
-    print(f"\nWrote {rows_path}, {summary_path}, and {json_path}")
+    print(f"\nWrote {rows_path}, {summary_path}, {json_path}, and {starter_path}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,581 @@
+"""Tests for hardened v3 promotion gate and means cutover."""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+
+import pandas as pd
+import pytest
+
+from src.draft_assistant.prepare import apply_v3_means
+from src.projection.evaluation.v3_means_score import beats_incumbent, score_predictions
+from scripts.v3_promotion_gate import evaluate_promotion_gate
+
+
+def test_beats_incumbent_requires_mae_and_spearman():
+    cand = {"points_mae": 30.0, "spearman": 0.80}
+    incumb = {"points_mae": 31.0, "spearman": 0.75}
+    assert beats_incumbent(cand, incumb)["pass"] is True
+    assert beats_incumbent({"points_mae": 32.0, "spearman": 0.90}, incumb)["pass"] is False
+
+
+def test_score_predictions_overall():
+    frame = pd.DataFrame({
+        "actual_points": [10.0, 20.0, 30.0],
+        "pred": [11.0, 19.0, 28.0],
+        "preseason_position": ["WR", "WR", "RB"],
+    })
+    out = score_predictions(frame, "pred")
+    assert out["n"] == 3
+    assert out["points_mae"] >= 0
+
+
+def test_apply_v3_means_falls_back_without_gate(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path)
+    )
+    df = pd.DataFrame({
+        "player_id": ["a"],
+        "fantasy_pts_season": [100.0],
+        "fantasy_pts": [10.0],
+        "projected_games": [10.0],
+    })
+    out, meta = apply_v3_means(df, 2026, enabled=True, require_gate=True)
+    assert meta["applied"] is False
+    assert out["fantasy_pts_season"].iloc[0] == 100.0
+
+
+def test_apply_v3_means_with_force(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path)
+    )
+    summary = pd.DataFrame({"player_id": ["a"], "p50": [120.0]})
+    summary.to_csv(tmp_path / "simulation_summary_2026.csv", index=False)
+    df = pd.DataFrame({
+        "player_id": ["a"],
+        "fantasy_pts_season": [100.0],
+        "fantasy_pts": [10.0],
+        "projected_games": [10.0],
+    })
+    out, meta = apply_v3_means(df, 2026, enabled=True, require_gate=False)
+    assert meta["applied"] is True
+    assert out["fantasy_pts_season"].iloc[0] == 120.0
+
+
+def test_gate_verdicts_distinguish_simulation_vs_means(tmp_path, monkeypatch):
+    # Point evaluate_promotion_gate at empty dirs → hold_v1_default
+    monkeypatch.setattr("scripts.v3_promotion_gate.REPO_ROOT", tmp_path)
+    monkeypatch.setattr("scripts.v3_promotion_gate.OUT_DIR", tmp_path / "model_v3")
+    (tmp_path / "model_v3").mkdir(parents=True)
+    (tmp_path / "output" / "backtest").mkdir(parents=True)
+    report = evaluate_promotion_gate(2026)
+    assert report["verdict"] == "hold_v1_default"
+
+
+def _fold(*, blend_mae, v1_mae=27.7, blend_available=True):
+    """One scored fold. blend_mae equal to v1_mae is the degenerate case."""
+    usable = blend_available and blend_mae != v1_mae
+    return {
+        "target_season": 2025,
+        "blend_available": blend_available,
+        "blend_degenerate": blend_available and blend_mae == v1_mae,
+        "blend_usable": usable,
+        "metrics": {
+            "v1": {"points_mae": v1_mae, "spearman": 0.758},
+            **({"blend": {"points_mae": blend_mae, "spearman": 0.758}} if blend_available else {}),
+            "v3_interim": {"points_mae": 29.8, "spearman": 0.698},
+            "v3_generative": {"points_mae": 47.2, "spearman": 0.611},
+        },
+    }
+
+
+def test_blend_arm_that_duplicates_v1_is_not_an_independent_check():
+    """A blend equal to v1 must not read as a second passing incumbent.
+
+    The shipped backtest hit exactly this: output/model_v2 held only 2026
+    points, so every historical fold silently scored the blend arm as a copy
+    of v1 and reported "beats blend" as though it had been tested.
+    """
+    from scripts.backtest_v3_means import _blend_from_compare  # noqa: F401
+
+    fold = _fold(blend_mae=27.7)  # identical to v1
+    assert fold["blend_degenerate"] is True
+    assert fold["blend_usable"] is False
+
+
+def test_gate_reports_blend_arm_usability(tmp_path, monkeypatch):
+    """The verdict has to say when 'beats blend' was never really tested."""
+    monkeypatch.setattr("scripts.v3_promotion_gate.REPO_ROOT", tmp_path)
+    monkeypatch.setattr("scripts.v3_promotion_gate.OUT_DIR", tmp_path / "model_v3")
+    out_dir = tmp_path / "model_v3"
+    out_dir.mkdir(parents=True)
+    (tmp_path / "output" / "backtest").mkdir(parents=True)
+
+    # simulation_ready preconditions
+    pd.DataFrame({"player_id": ["a"], "p50": [1.0]}).to_csv(
+        out_dir / "simulation_summary_2026.csv", index=False)
+    _write_exact_calibration(tmp_path)
+    (out_dir / "means_backtest.json").write_text(json.dumps({
+        "folds": [_fold(blend_mae=27.7)],
+        "summary": {
+            "blend_usable_all_folds": False,
+            "blend_unusable_folds": [{"target_season": 2025, "blend_available": True}],
+            "promote_v3_means": False,
+        },
+    }), encoding="utf-8")
+
+    report = evaluate_promotion_gate(2026)
+    assert report["verdict"] == "simulation_ready"
+    assert report["gates"]["blend_arm_usable"] is False
+    assert report["gates"]["blend_unusable_folds"]
+    assert "beats blend" in report["rationale"]
+
+
+def test_gate_does_not_assume_an_older_backtest_had_a_blend_arm(tmp_path, monkeypatch):
+    """A summary predating the flag must read as unusable, not usable."""
+    monkeypatch.setattr("scripts.v3_promotion_gate.REPO_ROOT", tmp_path)
+    monkeypatch.setattr("scripts.v3_promotion_gate.OUT_DIR", tmp_path / "model_v3")
+    out_dir = tmp_path / "model_v3"
+    out_dir.mkdir(parents=True)
+    (tmp_path / "output" / "backtest").mkdir(parents=True)
+    (out_dir / "means_backtest.json").write_text(json.dumps({
+        "folds": [], "summary": {"promote_v3_means": False},  # no blend_usable key
+    }), encoding="utf-8")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["blend_arm_usable"] is False
+
+
+def _sim_summary(tmp_path, season=2026):
+    pd.DataFrame({
+        "player_id": ["a", "b"],
+        "p10": [80.0, 40.0], "p25": [90.0, 45.0], "p50": [100.0, 50.0],
+        "p75": [110.0, 55.0], "p90": [130.0, 60.0],
+    }).to_csv(tmp_path / f"simulation_summary_{season}.csv", index=False)
+
+
+def _board():
+    return pd.DataFrame({
+        "player_id": ["a", "b"],
+        "position": ["QB", "WR"],
+        "fantasy_pts_season": [100.0, 50.0],
+        "fantasy_pts": [10.0, 5.0],
+        "projected_games": [17.0, 17.0],
+    })
+
+
+def _write_gate(tmp_path, verdict):
+    (tmp_path / "promotion_gate.json").write_text(
+        json.dumps({"verdict": verdict}), encoding="utf-8")
+
+
+def test_percentile_overlay_requires_a_simulation_ready_gate(tmp_path, monkeypatch):
+    """v3 percentiles reach the published board, so they are gated too.
+
+    They used to attach on file presence alone: a simulation_summary CSV on
+    disk put fantasy_pts_p10/p90 and p_top12 onto the board with no check
+    that the run was ever calibrated.
+    """
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    _write_gate(tmp_path, "hold_v1_default")
+
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    out, meta = attach_v3_simulation_percentiles(_board(), 2026)
+    assert meta["applied"] is False
+    assert meta["reason"] == "gate_not_simulation_ready"
+    assert "fantasy_pts_p10" not in out.columns
+
+
+def test_percentile_overlay_attaches_when_gate_allows(tmp_path, monkeypatch):
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    _write_gate(tmp_path, "simulation_ready")
+
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    out, meta = attach_v3_simulation_percentiles(_board(), 2026)
+    assert meta["applied"] is True
+    assert out["fantasy_pts_p10"].notna().all()
+    # Overlay only -- it must not move the means the board ranks on.
+    pd.testing.assert_series_equal(out["fantasy_pts_season"], _board()["fantasy_pts_season"])
+
+
+def test_percentile_overlay_skips_when_gate_never_ran(tmp_path, monkeypatch):
+    """No gate file is not permission; it means the check has not happened."""
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    _, meta = attach_v3_simulation_percentiles(_board(), 2026)
+    assert meta["applied"] is False
+    assert meta["gate_verdict"] is None
+
+
+def _gate_dirs(tmp_path, monkeypatch):
+    monkeypatch.setattr("scripts.v3_promotion_gate.REPO_ROOT", tmp_path)
+    monkeypatch.setattr("scripts.v3_promotion_gate.OUT_DIR", tmp_path / "model_v3")
+    out_dir = tmp_path / "model_v3"
+    out_dir.mkdir(parents=True)
+    (tmp_path / "output" / "backtest").mkdir(parents=True)
+    pd.DataFrame({"player_id": ["a"], "p50": [1.0]}).to_csv(
+        out_dir / "simulation_summary_2026.csv", index=False)
+    _write_exact_calibration(tmp_path)
+    return out_dir
+
+
+def _write_exact_calibration(
+    tmp_path,
+    *,
+    selected_mode="generative_projection_uncertainty",
+    passed=True,
+    coverage=0.80,
+    simulation_mode="full",
+    simulation_hash="deadbeef",
+):
+    calibration_path = (
+        tmp_path / "output" / "backtest" / "v3_fantasy_interval_calibration.json")
+    calibration_path.parent.mkdir(parents=True, exist_ok=True)
+    report = {
+        "basis": "rolling_origin_exact_full_simulator_season_fantasy_points",
+        "simulation_mode": simulation_mode,
+        "selected_distribution_mode": selected_mode,
+        "aggregate": {
+            "option_a": {"overall": {"n": 500, "coverage": coverage}},
+            "joint_bootstrap": {"overall": {"n": 500, "coverage": coverage}},
+        },
+        "option_a_acceptance": {"pass": passed, "gates": {"all": passed}},
+        "fallback_acceptance": {"pass": passed, "gates": {"all": passed}},
+    }
+    calibration_path.write_text(json.dumps(report), encoding="utf-8")
+
+    uncertainty_path = tmp_path / "models" / "v3" / "uncertainty" / "manifest.json"
+    uncertainty_path.parent.mkdir(parents=True, exist_ok=True)
+    uncertainty_path.write_text(json.dumps({
+        "artifact_hash": "deadbeef",
+        "selected_distribution_mode": selected_mode,
+        "calibration_artifact": str(calibration_path),
+    }), encoding="utf-8")
+
+    out_dir = tmp_path / "model_v3"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "simulation_manifest_2026.json").write_text(json.dumps({
+        "mode": "full",
+        "distribution_mode": selected_mode,
+        "uncertainty_artifact_hash": simulation_hash,
+    }), encoding="utf-8")
+
+
+def test_gate_reads_exact_season_calibration_not_old_rate_report(tmp_path, monkeypatch):
+    """The unrelated per-stat rate report must never authorize season bands."""
+    _gate_dirs(tmp_path, monkeypatch)
+    _write_exact_calibration(tmp_path, passed=False, coverage=0.42)
+    (tmp_path / "output" / "backtest" / "calibration_report.json").write_text(
+        json.dumps({"forward_summary": {"mean_coverage": 0.801}}), encoding="utf-8")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["season_distribution_calibration_passed"] is False
+    assert report["gates"]["p10_p90_coverage"] == 0.42
+    assert report["verdict"] == "hold_v1_default"
+
+
+def test_gate_fails_closed_on_missing_exact_season_report(tmp_path, monkeypatch):
+    _gate_dirs(tmp_path, monkeypatch)
+    (tmp_path / "output" / "backtest" / "v3_fantasy_interval_calibration.json").unlink()
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["season_distribution_calibration_passed"] is False
+    assert report["gates"]["season_distribution_basis"] == "missing"
+    assert report["verdict"] == "hold_v1_default"
+
+
+def test_gate_opens_on_accepted_exact_season_calibration(tmp_path, monkeypatch):
+    _gate_dirs(tmp_path, monkeypatch)
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["season_distribution_calibration_passed"] is True
+    assert report["verdict"] == "simulation_ready"
+
+
+def test_gate_fails_closed_on_stale_simulation_hash(tmp_path, monkeypatch):
+    _gate_dirs(tmp_path, monkeypatch)
+    _write_exact_calibration(tmp_path, simulation_hash="old-hash")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["simulation_uncertainty_hash_matches"] is False
+    assert report["verdict"] == "hold_v1_default"
+
+
+def test_gate_fails_closed_on_non_full_simulation(tmp_path, monkeypatch):
+    _gate_dirs(tmp_path, monkeypatch)
+    manifest_path = tmp_path / "model_v3" / "simulation_manifest_2026.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["mode"] = "interim"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["simulation_mode_full"] is False
+    assert report["verdict"] == "hold_v1_default"
+
+
+def test_gate_fails_closed_on_joint_bootstrap_without_matching_donors(tmp_path, monkeypatch):
+    _gate_dirs(tmp_path, monkeypatch)
+    _write_exact_calibration(tmp_path, selected_mode="joint_bootstrap")
+    report = evaluate_promotion_gate(2026)
+    assert report["gates"]["simulation_joint_donors_hash_matches"] is False
+    assert report["verdict"] == "hold_v1_default"
+
+
+def test_blend_arm_uses_historical_v2_predictions_when_available(monkeypatch, tmp_path):
+    """The arm must resolve v2 from a source that covers backtest seasons.
+
+    output/model_v2/ holds only the current season, so keying the blend on
+    it made the arm vanish on every fold. The v2 out-of-fold predictions
+    cover the backtest range and are what the shipped weights were fit on.
+    """
+    import scripts.backtest_v3_means as bt
+
+    v2 = pd.DataFrame({"player_id": ["a", "b"], "v2_pred": [200.0, 40.0]})
+    monkeypatch.setattr(bt, "load_v2", lambda season, root: v2)
+
+    pop = pd.DataFrame({
+        "player_id": ["a", "b"],
+        "preseason_position": ["QB", "RB"],
+        "v1_pred": [100.0, 60.0],
+        "actual_points": [150.0, 50.0],
+    })
+    blend = bt._blend_from_compare(2024, pop)
+    assert blend is not None
+    # Shipped weights: QB is 0.4 v1 / 0.6 v2; RB is 1.0 v1 / 0.0 v2.
+    assert blend.iloc[0] == pytest.approx(0.4 * 100.0 + 0.6 * 200.0)
+    assert blend.iloc[1] == pytest.approx(60.0)
+
+
+def test_blend_keeps_v1_for_players_v2_never_predicted(monkeypatch):
+    """A missing v2 must not be blended as a zero.
+
+    apply_ensemble_points falls back to the v1 value, so scoring a missing
+    v2 as zero would invent a penalty the draft board never applies.
+    """
+    import scripts.backtest_v3_means as bt
+
+    monkeypatch.setattr(
+        bt, "load_v2",
+        lambda season, root: pd.DataFrame({"player_id": ["a"], "v2_pred": [200.0]}))
+    pop = pd.DataFrame({
+        "player_id": ["a", "missing"],
+        "preseason_position": ["QB", "QB"],
+        "v1_pred": [100.0, 80.0],
+        "actual_points": [150.0, 90.0],
+    })
+    blend = bt._blend_from_compare(2024, pop)
+    assert blend.iloc[1] == pytest.approx(80.0)
+
+
+def test_blend_arm_preserves_the_population_index(monkeypatch):
+    """merge() resets the index; the arm is assigned back onto pop."""
+    import scripts.backtest_v3_means as bt
+
+    monkeypatch.setattr(
+        bt, "load_v2",
+        lambda season, root: pd.DataFrame({"player_id": ["a", "b"], "v2_pred": [1.0, 2.0]}))
+    pop = pd.DataFrame({
+        "player_id": ["a", "b"],
+        "preseason_position": ["QB", "QB"],
+        "v1_pred": [10.0, 20.0],
+        "actual_points": [11.0, 21.0],
+    }, index=[7, 9])
+    blend = bt._blend_from_compare(2024, pop)
+    assert list(blend.index) == [7, 9]
+
+
+def _board_with_run(run_id="run-A"):
+    b = _board()
+    b["projection_run_id"] = run_id
+    return b
+
+
+def test_percentiles_are_refused_when_they_describe_another_run(tmp_path, monkeypatch):
+    """A summary built on an earlier board must not merge into a later one.
+
+    The 2026 percentiles outlived the QB anchor-share republish, leaving p50
+    6.3 points BELOW its own point estimate for QBs and above it for every
+    other position -- two different boards side by side on one row.
+    """
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    _write_gate(tmp_path, "simulation_ready")
+    (tmp_path / "simulation_manifest_2026.json").write_text(
+        json.dumps({"season": 2026, "source_projection_run_id": "run-OLD"}),
+        encoding="utf-8")
+
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    out, meta = attach_v3_simulation_percentiles(_board_with_run("run-A"), 2026)
+    assert meta["applied"] is False
+    assert meta["reason"] == "stale_simulation"
+    assert meta["simulation_run_id"] == "run-OLD"
+    assert "fantasy_pts_p10" not in out.columns
+
+
+def test_percentiles_attach_when_provenance_matches(tmp_path, monkeypatch):
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    _write_gate(tmp_path, "simulation_ready")
+    (tmp_path / "simulation_manifest_2026.json").write_text(
+        json.dumps({"season": 2026, "source_projection_run_id": "run-A"}),
+        encoding="utf-8")
+
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    out, meta = attach_v3_simulation_percentiles(_board_with_run("run-A"), 2026)
+    assert meta["applied"] is True
+    assert out["fantasy_pts_p10"].notna().all()
+
+
+def test_unknown_simulation_provenance_is_treated_as_stale(tmp_path, monkeypatch):
+    """Cannot-show-it-matches carries the same risk as does-not-match."""
+    monkeypatch.setattr("src.draft_assistant.prepare.MODEL_V3_DIR", str(tmp_path))
+    _sim_summary(tmp_path)
+    _write_gate(tmp_path, "simulation_ready")
+    (tmp_path / "simulation_manifest_2026.json").write_text(
+        json.dumps({"season": 2026, "n_draws": 1000}), encoding="utf-8")
+
+    from src.draft_assistant.prepare import attach_v3_simulation_percentiles
+    _, meta = attach_v3_simulation_percentiles(_board_with_run("run-A"), 2026)
+    assert meta["applied"] is False
+    assert meta["reason"] == "simulation_provenance_unknown"
+
+
+def test_simulation_manifest_records_the_board_it_simulated(tmp_path, monkeypatch):
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    # Generative allocation keys off the volume stat, so the board needs one.
+    projections = pd.DataFrame({
+        "player_id": ["a"] * 3, "position": ["WR"] * 3, "team": ["KC"] * 3,
+        "stat": ["targets", "receptions", "receiving_yards"],
+        "pred_pg": [9.0, 6.0, 60.0], "projected_games": [17.0] * 3,
+        "pred_season": [153.0, 102.0, 1020.0],
+        "projection_run_id": ["run-XYZ"] * 3,
+    })
+    manifest = sim_mod.write_simulation_outputs(projections, 2026, n_draws=5)
+    assert manifest["source_projection_run_id"] == "run-XYZ"
+    assert manifest["mode"] == "full"
+
+
+def test_publish_runs_the_simulation_before_exporting_the_draft_board():
+    """Otherwise the provenance guard blocks the overlay forever.
+
+    Each publish mints a fresh projection_run_id, so a simulation generated
+    beforehand is stale against the board by construction. Running it inside
+    publish, after the projections are final and before export_draft_data, is
+    what makes the guard satisfiable rather than permanently closed.
+    """
+    import inspect
+    from src.projection import publish as publish_mod
+
+    src = inspect.getsource(publish_mod.publish)
+    assert "write_simulation_outputs(" in src
+    assert src.index("write_simulation_outputs(") < src.index("export_draft_data("), (
+        "the simulation must run before the draft board is exported")
+    assert src.index('projections["projection_run_id"] = run_id') < src.index(
+        "write_simulation_outputs("), (
+        "the simulation must see the run_id it will be checked against")
+
+
+def _uncertainty_manifest(selected_mode=None, **extra):
+    m = {
+        "version": "test-v1",
+        "artifact_hash": "deadbeef",
+        "training_cutoff": 2024,
+        "team_environment": {"residual_covariance": [[100.0, 0.0], [0.0, 100.0]]},
+        "opportunity_shares": {"pools": {}},
+        "availability": {"cells": {}},
+        "conversion_sigmas": {"cells": {}, "defaults": {}},
+    }
+    if selected_mode is not None:
+        m["selected_distribution_mode"] = selected_mode
+    m.update(extra)
+    return m
+
+
+def _uncertainty_board():
+    return pd.DataFrame({
+        "player_id": ["qb1"] * 3,
+        "position": ["QB"] * 3,
+        "team": ["KC"] * 3,
+        "stat": ["attempts", "completions", "passing_yards"],
+        "pred_pg": [35.0, 23.0, 250.0],
+        "pred_season": [595.0, 391.0, 4250.0],
+        "projected_games": [17.0] * 3,
+        "projection_run_id": ["run-A"] * 3,
+    })
+
+
+def test_hold_verdict_does_not_apply_the_rejected_uncertainty(tmp_path, monkeypatch):
+    """A gate-rejected manifest must not ship anyway.
+
+    calibrate_v3_distribution.py can verdict "hold" -- option_a measured
+    0.733 aggregate coverage and failed every acceptance gate on its own
+    numbers. Before this fix, write_simulation_outputs applied the manifest
+    whenever it was merely non-empty, regardless of the verdict, so "hold"
+    changed nothing about what actually shipped.
+    """
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    manifest = _uncertainty_manifest(selected_mode="hold")
+    out = sim_mod.write_simulation_outputs(
+        _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
+    assert out["distribution_mode"] == "full"
+    assert out["uncertainty_gate_verdict"] == "hold"
+    assert out["uncertainty_applied"] is False
+
+
+def test_missing_verdict_is_treated_like_hold(tmp_path, monkeypatch):
+    """A manifest with no verdict at all (predates the gate) must not ship."""
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    manifest = _uncertainty_manifest(selected_mode=None)
+    out = sim_mod.write_simulation_outputs(
+        _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
+    assert out["uncertainty_applied"] is False
+    assert out["distribution_mode"] == "full"
+
+
+def test_accepted_verdict_does_apply_the_manifest(tmp_path, monkeypatch):
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    manifest = _uncertainty_manifest(selected_mode="generative_projection_uncertainty")
+    out = sim_mod.write_simulation_outputs(
+        _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
+    assert out["uncertainty_applied"] is True
+    assert out["distribution_mode"] == "generative_projection_uncertainty"
+
+
+def test_joint_bootstrap_fails_closed_without_its_hashed_donors(tmp_path, monkeypatch):
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    manifest = _uncertainty_manifest(selected_mode="joint_bootstrap")
+    out = sim_mod.write_simulation_outputs(
+        _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
+    assert out["uncertainty_applied"] is False
+    assert out["distribution_mode"] == "full"
+
+
+def test_joint_bootstrap_applies_option_a_then_the_hashed_donor_draws(tmp_path, monkeypatch):
+    """The corrected band and probabilities must use the same donor draw set."""
+    from src.projection.inference import simulate as sim_mod
+
+    monkeypatch.setattr(sim_mod, "MODEL_V3_DIR", str(tmp_path))
+    donor_path = tmp_path / "donors.parquet"
+    pd.DataFrame({
+        "position": ["QB"] * 12,
+        "role_bucket": ["depth"] * 12,
+        "fantasy_resid": list(range(-60, 60, 10)),
+    }).to_parquet(donor_path, index=False)
+    donor_hash = hashlib.sha256(donor_path.read_bytes()).hexdigest()
+    manifest = _uncertainty_manifest(
+        selected_mode="joint_bootstrap",
+        joint_donors={"path": str(donor_path), "sha256": donor_hash},
+    )
+    out = sim_mod.write_simulation_outputs(
+        _uncertainty_board(), 2026, n_draws=5, uncertainty_manifest=manifest)
+    assert out["uncertainty_applied"] is True
+    assert out["distribution_mode"] == "joint_bootstrap"
+    assert out["joint_donors_hash"] == donor_hash

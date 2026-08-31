@@ -6,16 +6,146 @@ import pandas as pd
 
 from src.projection.data_prep import STAT_COLS, season_aggregate
 from src.projection.rookies import (
+    _effective_pick,
     combine_athletic_scores_by_pfr_id,
     fit_rookie_baselines,
     identify_target_season_rookie_class,
     load_combine_athletic_tier,
     predict_rookies,
+    rookie_interval_ratios,
 )
-from src.projection.predict import _apply_rookie_depth_rate_gating
+from src.projection.predict import (
+    _apply_rookie_depth_rate_gating,
+    _attach_rookie_depth_tier,
+    _attach_rookie_intervals,
+)
+from src.projection.roster_moves import load_target_roster_map
 
 
 class RookieDataIntegrityTests(unittest.TestCase):
+    def test_refreshed_arizona_roster_code_normalizes_to_feature_code(self):
+        conn = sqlite3.connect(":memory:")
+        self.addCleanup(conn.close)
+        pd.DataFrame([
+            dict(player_id="cardinal", season=2026, team="AZ", status="ACT")
+        ]).to_sql("seasonal_rosters", conn, index=False)
+
+        roster = load_target_roster_map(conn, 2026)
+
+        self.assertEqual(roster.loc["cardinal", "team"], "ARI")
+
+    def test_curated_rookie_qb1_materializes_reconcile_starter_tier(self):
+        rows = pd.DataFrame([
+            dict(player_id="rookie", position="QB", nfl_depth_rank=6.0),
+            dict(player_id="other", position="QB", nfl_depth_rank=5.0),
+        ])
+        chart = pd.DataFrame([
+            dict(gsis_id="rookie", position="QB", depth_rank=1.0, role="starter")
+        ])
+
+        out = _attach_rookie_depth_tier(rows, chart).set_index("player_id")
+
+        self.assertEqual(out.loc["rookie", "depth_tier"], 1.0)
+        self.assertEqual(out.loc["rookie", "depth_tier_source"], "curated")
+        self.assertEqual(out.loc["other", "depth_tier"], 4.0)
+        self.assertEqual(out.loc["other", "depth_tier_source"], "nflverse")
+
+    def test_rookie_interval_zero_mass_and_missing_cell_both_have_zero_floor(self):
+        cohort = pd.DataFrame([
+            dict(season=2024, position="QB", round_bucket="round_4_7",
+                 attempts_per_elig=value, role_rate_eligible=True)
+            for value in (0.0, 0.0, 0.0, 10.0)
+        ])
+        idx = pd.MultiIndex.from_tuples(
+            [("QB", "round_4_7")], names=["position", "round_bucket"])
+        baselines = pd.DataFrame([dict(attempts_per_elig=2.5)], index=idx)
+
+        ratios = rookie_interval_ratios(cohort, baselines, [2024])
+        self.assertEqual(ratios.loc[0, "ratio_low"], 0.0)
+
+        rows = pd.DataFrame([dict(
+            player_id="rook", position="QB", round_bucket="missing",
+            stat="attempts", pred_pg=10.0,
+        )])
+        attached = _attach_rookie_intervals(rows, ratios)
+        self.assertEqual(attached.loc[0, "pred_pg_low"], 0.0)
+        self.assertEqual(attached.loc[0, "pred_pg_high"], 30.0)
+        self.assertTrue(attached.loc[0, "interval_low_n_flag"])
+
+    def test_rookie_interval_always_contains_point_prediction(self):
+        rows = pd.DataFrame([dict(
+            player_id="rook", position="WR", round_bucket="round_4_7",
+            stat="receiving_tds", pred_pg=0.01,
+        )])
+        ratios = pd.DataFrame([dict(
+            position="WR", round_bucket="round_4_7", stat="receiving_tds",
+            n=40, ratio_low=0.0, ratio_high=0.0,
+            interval_low_n_flag=False,
+        )])
+
+        attached = _attach_rookie_intervals(rows, ratios)
+
+        self.assertEqual(attached.loc[0, "pred_pg_low"], 0.0)
+        self.assertEqual(attached.loc[0, "pred_pg_high"], 0.01)
+
+    def test_log_pick_rate_separates_players_inside_the_same_round_cell(self):
+        cohort = pd.DataFrame([
+            dict(player_id="early", season=2024, team="A", position="WR",
+                 round_bucket="round_2_3", pick=33, games_played=10,
+                 targets_per_elig=8.0, role_rate_eligible=True,
+                 vacated_carry_share=0.2, vacated_target_share=0.2,
+                 vacated_attempts_share=0.2),
+            dict(player_id="late", season=2024, team="B", position="WR",
+                 round_bucket="round_2_3", pick=96, games_played=10,
+                 targets_per_elig=2.0, role_rate_eligible=True,
+                 vacated_carry_share=0.2, vacated_target_share=0.2,
+                 vacated_attempts_share=0.2),
+        ])
+        baselines = fit_rookie_baselines(cohort, [2024])
+        target = pd.DataFrame([
+            dict(player_id="p40", season=2025, team="A", position="WR",
+                 round_bucket="round_2_3", pick=40, rookie_tier="drafted",
+                 vacated_carry_share=0.2, vacated_target_share=0.2,
+                 vacated_attempts_share=0.2, target_depth_rank=np.nan),
+            dict(player_id="p90", season=2025, team="B", position="WR",
+                 round_bucket="round_2_3", pick=90, rookie_tier="drafted",
+                 vacated_carry_share=0.2, vacated_target_share=0.2,
+                 vacated_attempts_share=0.2, target_depth_rank=np.nan),
+        ])
+
+        pred = predict_rookies(target, baselines, [2025]).set_index("player_id")
+
+        self.assertGreater(pred.loc["p40", "targets_pg"], pred.loc["p90", "targets_pg"])
+        self.assertEqual(_effective_pick(np.nan), 270.0)
+
+    def test_athletic_tier_is_metadata_not_a_volume_multiplier(self):
+        idx = pd.MultiIndex.from_tuples(
+            [("WR", "round_1")], names=["position", "round_bucket"])
+        baselines = pd.DataFrame([dict(
+            targets_per_elig=6.0,
+            vacated_carry_share=0.2,
+            vacated_target_share=0.2,
+            vacated_attempts_share=0.2,
+            mean_games_played=10.0,
+            n_train_rookies=20,
+        )], index=idx)
+        common = dict(
+            season=2026, team="A", position="WR", round_bucket="round_1",
+            pick=10, rookie_tier="drafted", vacated_carry_share=0.2,
+            vacated_target_share=0.2, vacated_attempts_share=0.2,
+            target_depth_rank=np.nan,
+        )
+        target = pd.DataFrame([
+            dict(common, player_id="fast", athletic_tier="above_median"),
+            dict(common, player_id="slow", athletic_tier="below_median"),
+        ])
+
+        pred = predict_rookies(target, baselines, [2026]).set_index("player_id")
+
+        self.assertEqual(pred.loc["fast", "targets_pg"], pred.loc["slow", "targets_pg"])
+        self.assertEqual(pred.loc["fast", "athletic_tier"], "above_median")
+        self.assertEqual(pred.loc["slow", "athletic_tier"], "below_median")
+
     def test_season_aggregate_separates_appearance_and_opportunity_games(self):
         rows = []
         for week, targets in [(1, 1), (2, 0)]:
@@ -34,11 +164,15 @@ class RookieDataIntegrityTests(unittest.TestCase):
         cohort = pd.DataFrame(
             [
                 dict(player_id="a", season=2024, team="A", position="QB", round_bucket="round_4_7",
-                     games_played=8, opportunity_games=4, attempts_pg=10.0, vacated_carry_share=0.2,
+                     games_played=8, opportunity_games=4, attempts_pg=10.0,
+                     attempts_per_elig=10.0, eligible_weeks=17, status='ACT',
+                     role_rate_eligible=True, vacated_carry_share=0.2,
                      vacated_target_share=0.2, vacated_attempts_share=0.5,
                      target_depth_rank=1, nfl_depth_rank=8),
                 dict(player_id="b", season=2024, team="B", position="QB", round_bucket="round_4_7",
-                     games_played=0, opportunity_games=0, attempts_pg=np.nan, vacated_carry_share=0.2,
+                     games_played=0, opportunity_games=0, attempts_pg=np.nan,
+                     attempts_per_elig=0.0, eligible_weeks=17, status='ACT',
+                     role_rate_eligible=True, vacated_carry_share=0.2,
                      vacated_target_share=0.2, vacated_attempts_share=0.5,
                      target_depth_rank=np.nan, nfl_depth_rank=2),
             ]
@@ -46,9 +180,17 @@ class RookieDataIntegrityTests(unittest.TestCase):
         baselines = fit_rookie_baselines(cohort, [2024])
         b = baselines.loc[("QB", "round_4_7")]
         self.assertEqual(b["mean_games_played"], 4)
-        self.assertEqual(b["attempts_pg"], 10)
+        # 10.0 for the rookie who played, 0.0 for the one who did not: the
+        # role rate is the mean over both, because "he was available and did
+        # nothing" is evidence about the bucket. Averaging the conditional
+        # rate would return 10 and over-project the bucket 2x.
+        self.assertEqual(b["attempts_per_elig"], 5.0)
         self.assertEqual(b["n_train_rookies"], 2)
-        self.assertEqual(b["n_rate_rookies"], 1)
+        # Both rookies now count toward the RATE, not just the one who
+        # recorded an opportunity: n_rate_rookies tracks the role-eligible
+        # cohort (rostered, available, zeros included), which is the
+        # population the rate is fit on.
+        self.assertEqual(b["n_rate_rookies"], 2)
 
         target = pd.DataFrame([dict(
             player_id="rook", season=2025, team="A", position="QB", round_bucket="round_4_7",
@@ -57,7 +199,7 @@ class RookieDataIntegrityTests(unittest.TestCase):
             target_depth_rank=1, nfl_depth_rank=8,
         )])
         pred = predict_rookies(target, baselines, [2025])
-        self.assertEqual(pred.loc[0, "attempts_pg"], 10)
+        self.assertEqual(pred.loc[0, "attempts_pg"], 5.0)
         # Rank-1 cell has n=1, so availability falls back to the full
         # draft-bucket mean instead of shipping the tiny cell's 8 games.
         self.assertEqual(pred.loc[0, "projected_games"], 4)
@@ -71,7 +213,7 @@ class RookieDataIntegrityTests(unittest.TestCase):
         idx = pd.MultiIndex.from_tuples(
             [("QB", "round_1")], names=["position", "round_bucket"])
         baselines = pd.DataFrame([dict(
-            attempts_pg=10.0,
+            attempts_per_elig=10.0,
             vacated_carry_share=0.2,
             vacated_target_share=0.2,
             vacated_attempts_share=0.2,
@@ -107,7 +249,7 @@ class RookieDataIntegrityTests(unittest.TestCase):
         idx = pd.MultiIndex.from_tuples(
             [("WR", "round_1")], names=["position", "round_bucket"])
         baselines = pd.DataFrame([dict(
-            targets_pg=6.0,
+            targets_per_elig=6.0,
             vacated_carry_share=0.2,
             vacated_target_share=0.2,
             vacated_attempts_share=0.2,

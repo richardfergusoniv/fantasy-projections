@@ -19,7 +19,7 @@ from src.projection.contracts import (
 from src.projection.data_prep import team_season_opponent_strength
 from src.projection.features import OC_METRICS
 from src.projection.ol_quality import team_season_ol_quality
-from src.projection.rookies import team_vacated_opportunity
+from src.projection.rookies import TEAM_ABBR_FIX, team_vacated_opportunity
 
 
 def load_target_roster_map(conn, target_season):
@@ -37,6 +37,7 @@ def load_target_roster_map(conn, target_season):
     `roster_status` column so a reader can judge for themselves (e.g. a
     RET status probably means don't trust this row at all)."""
     df = pd.read_sql(f"select player_id, team, status from seasonal_rosters where season={target_season}", conn)
+    df["team"] = df["team"].replace(TEAM_ABBR_FIX)
     df["is_act"] = (df["status"] == "ACT").astype(int)
     df = df.sort_values(["player_id", "is_act"], ascending=[True, False])
     df = df.drop_duplicates(subset=["player_id"], keep="first")

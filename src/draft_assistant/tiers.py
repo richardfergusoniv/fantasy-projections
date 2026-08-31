@@ -13,19 +13,22 @@ import pandas as pd
 
 # Absolute point drop that starts a new tier, by position.
 # RB/WR boards are dense; QB has clearer cliffs; TE is sparse.
+# Season-point scale (the board ranks on season VORP, not a per-game rate);
+# these are the long-standing per-game gaps multiplied by a 17-game season, so
+# tier granularity is unchanged by the change of basis.
 DEFAULT_TIER_GAPS: dict[str, float] = {
-    "QB": 0.85,
-    "RB": 0.75,
-    "WR": 0.55,
-    "TE": 0.50,
+    "QB": 14.45,
+    "RB": 12.75,
+    "WR": 9.35,
+    "TE": 8.50,
 }
 
 # When sorting overall (all positions), use a blended threshold.
-OVERALL_TIER_GAP = 1.0
+OVERALL_TIER_GAP = 17.0
 
 # RB/WR/TE combined board for FLEX roster slots.
 FLEX_POSITIONS = frozenset({"RB", "WR", "TE"})
-FLEX_TIER_GAP = 0.65
+FLEX_TIER_GAP = 11.05
 
 
 @dataclass(frozen=True)

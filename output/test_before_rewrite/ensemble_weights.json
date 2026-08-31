@@ -1,0 +1,30 @@
+{
+  "fit_seasons": [
+    2023,
+    2024
+  ],
+  "holdout_season": 2025,
+  "weights": {
+    "QB": {
+      "v1_pred": 0.4,
+      "v2_pred": 0.6
+    },
+    "RB": {
+      "v1_pred": 1.0,
+      "v2_pred": 0.0
+    },
+    "WR": {
+      "v1_pred": 1.0,
+      "v2_pred": 0.0
+    },
+    "TE": {
+      "v1_pred": 0.9,
+      "v2_pred": 0.09999999999999998
+    }
+  },
+  "model_cols": [
+    "v1_pred",
+    "v2_pred"
+  ],
+  "note": "Draft-assistant post-process only; does not alter compose_board"
+}

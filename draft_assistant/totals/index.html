@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Total Projections 2026</title>
+  <link rel="stylesheet" href="../teams/css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-brand">
+        <div class="brand-block">
+          <p class="brand-label">Fantasy Tools</p>
+          <h1>Total Projections</h1>
+        </div>
+        <span class="season-badge" id="seasonBadge">2026</span>
+        <nav class="app-nav" aria-label="App">
+          <a href="/">Draft</a>
+          <a href="/sleepers/">Sleepers</a>
+          <a href="/teams/">Team Projections</a>
+          <a href="/totals/" class="active" aria-current="page">Total Projections</a>
+          <a href="/compare/">Compare</a>
+        </nav>
+      </div>
+      <div class="header-controls">
+        <label class="control">
+          Position
+          <select id="posSelect">
+            <option value="ALL">All</option>
+            <option value="QB">QB</option>
+            <option value="RB">RB</option>
+            <option value="WR">WR</option>
+            <option value="TE">TE</option>
+          </select>
+        </label>
+        <input id="searchInput" type="search" placeholder="Search players..." />
+        <div class="view-toggle" role="group" aria-label="Projection view">
+          <button type="button" class="toggle-btn active" data-view="season" id="viewSeason">
+            Total
+          </button>
+          <button type="button" class="toggle-btn" data-view="pg" id="viewPg">
+            Per Game
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <section class="team-hero" id="totalsHero">
+      <div class="team-hero-text">
+        <p class="team-kicker" id="heroKicker">League leaders</p>
+        <h2 id="heroTitle">Total Projections</h2>
+        <p class="team-sub" id="heroSub">2026 projected offensive stats</p>
+      </div>
+      <div class="team-summary" id="totalsSummary"></div>
+    </section>
+
+    <nav class="stat-tabs" id="statTabs" aria-label="Views">
+      <button type="button" class="stat-tab active" data-section="passing">Passing</button>
+      <button type="button" class="stat-tab" data-section="rushing">Rushing</button>
+      <button type="button" class="stat-tab" data-section="receiving">Receiving</button>
+    </nav>
+
+    <main class="main" id="mainContent">
+      <section class="stat-section" id="section-passing" data-section="passing">
+        <div class="section-header">
+          <h3>Passing</h3>
+          <p class="section-caption" id="passingCaption">Projected season totals</p>
+        </div>
+        <div class="table-wrap">
+          <table class="stats-table">
+            <thead id="passingHead"></thead>
+            <tbody id="passingBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="stat-section" id="section-rushing" data-section="rushing" hidden>
+        <div class="section-header">
+          <h3>Rushing</h3>
+          <p class="section-caption" id="rushingCaption">Projected season totals</p>
+        </div>
+        <div class="table-wrap">
+          <table class="stats-table">
+            <thead id="rushingHead"></thead>
+            <tbody id="rushingBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="stat-section" id="section-receiving" data-section="receiving" hidden>
+        <div class="section-header">
+          <h3>Receiving</h3>
+          <p class="section-caption" id="receivingCaption">Projected season totals</p>
+        </div>
+        <div class="table-wrap">
+          <table class="stats-table">
+            <thead id="receivingHead"></thead>
+            <tbody id="receivingBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <p class="footer-note" id="footerNote"></p>
+  </div>
+
+  <div id="playerHoverCard" class="player-card player-card-hover" hidden role="tooltip"></div>
+
+  <div id="playerModal" class="player-modal" hidden>
+    <div class="player-modal-backdrop" data-close-modal></div>
+    <div class="player-modal-panel" role="dialog" aria-modal="true" aria-labelledby="playerModalTitle">
+      <button type="button" class="player-modal-close" data-close-modal aria-label="Close">Close</button>
+      <div id="playerModalBody" class="player-card player-card-full"></div>
+    </div>
+  </div>
+
+  <script src="../js/release_loader.js?v=release-bundle-1"></script>
+  <script src="../js/projection_adjustment.js?v=blend-stats-2"></script>
+  <script src="../js/history_table.js?v=blend-stats-2"></script>
+  <script src="../js/sortable.js"></script>
+  <script src="js/app.js?v=blend-stats-2"></script>
+</body>
+</html>

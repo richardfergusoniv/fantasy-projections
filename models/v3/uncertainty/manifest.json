@@ -1,0 +1,346 @@
+{
+  "version": "v3_projection_uncertainty_v1",
+  "training_cutoff": 2025,
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "units": {
+    "team_environment": "season_total_counts",
+    "opportunity_shares": "simplex_share",
+    "availability": "games_out_of_17"
+  },
+  "team_environment": {
+    "stats": [
+      "pass_attempts",
+      "carries"
+    ],
+    "residual_mean": [
+      0.0,
+      0.0
+    ],
+    "residual_covariance": [
+      [
+        2613.8760127878622,
+        -1307.8546565473196
+      ],
+      [
+        -1307.8546565473193,
+        2243.2427065259917
+      ]
+    ],
+    "n": 96
+  },
+  "opportunity_shares": {
+    "pools": {
+      "qb_attempts": {
+        "concentration": 1.0,
+        "n": 272,
+        "fallback": false
+      },
+      "rb_carries": {
+        "concentration": 4.688056986226646,
+        "n": 455,
+        "fallback": false
+      },
+      "receiving_targets": {
+        "concentration": 29.69552695987708,
+        "n": 1680,
+        "fallback": false
+      }
+    },
+    "n": 2407
+  },
+  "availability": {
+    "cells": {
+      "QB:all": {
+        "concentration": 2.0707587142626664,
+        "rho": 0.3256524178716251,
+        "n": 272,
+        "fallback": false
+      },
+      "RB:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 455,
+        "fallback": false
+      },
+      "TE:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 424,
+        "fallback": false
+      },
+      "WR:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 801,
+        "fallback": false
+      },
+      "QB:depth:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 89,
+        "fallback": false
+      },
+      "QB:rotation:all": {
+        "concentration": 2.909716597311062,
+        "rho": 0.2557730145166424,
+        "n": 96,
+        "fallback": false
+      },
+      "QB:starter:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 87,
+        "fallback": false
+      },
+      "RB:depth:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 212,
+        "fallback": false
+      },
+      "RB:rotation:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 143,
+        "fallback": false
+      },
+      "RB:starter:all": {
+        "concentration": 2.0550202063151604,
+        "rho": 0.327330077206317,
+        "n": 100,
+        "fallback": false
+      },
+      "TE:depth:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 179,
+        "fallback": false
+      },
+      "TE:rotation:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 139,
+        "fallback": false
+      },
+      "TE:starter:all": {
+        "concentration": 3.7405650990826365,
+        "rho": 0.21094531539995381,
+        "n": 106,
+        "fallback": false
+      },
+      "WR:depth:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 435,
+        "fallback": false
+      },
+      "WR:rotation:all": {
+        "concentration": 2.011492973306987,
+        "rho": 0.33206120979318704,
+        "n": 176,
+        "fallback": false
+      },
+      "WR:starter:all": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 190,
+        "fallback": false
+      },
+      "QB:depth:fragile": {
+        "concentration": 2.0669330374641137,
+        "rho": 0.32605863505479327,
+        "n": 85,
+        "fallback": false
+      },
+      "QB:depth:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 89,
+        "fallback": true
+      },
+      "QB:rotation:fragile": {
+        "concentration": 2.909716597311062,
+        "rho": 0.2557730145166424,
+        "n": 96,
+        "fallback": false
+      },
+      "QB:starter:fragile": {
+        "concentration": 2.6882496225261474,
+        "rho": 0.2711313230786918,
+        "n": 43,
+        "fallback": false
+      },
+      "QB:starter:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 44,
+        "fallback": false
+      },
+      "RB:depth:fragile": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 210,
+        "fallback": false
+      },
+      "RB:depth:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 212,
+        "fallback": true
+      },
+      "RB:rotation:fragile": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 122,
+        "fallback": false
+      },
+      "RB:rotation:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 21,
+        "fallback": false
+      },
+      "RB:starter:fragile": {
+        "concentration": 3.8741133212767194,
+        "rho": 0.20516552121075043,
+        "n": 52,
+        "fallback": false
+      },
+      "RB:starter:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 48,
+        "fallback": false
+      },
+      "TE:depth:fragile": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 168,
+        "fallback": false
+      },
+      "TE:depth:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 179,
+        "fallback": true
+      },
+      "TE:rotation:fragile": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 72,
+        "fallback": false
+      },
+      "TE:rotation:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 67,
+        "fallback": false
+      },
+      "TE:starter:fragile": {
+        "concentration": 5.974874356814239,
+        "rho": 0.14337175823433013,
+        "n": 26,
+        "fallback": false
+      },
+      "TE:starter:standard": {
+        "concentration": 2.9559839150441536,
+        "rho": 0.25278161425204854,
+        "n": 80,
+        "fallback": false
+      },
+      "WR:depth:fragile": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 419,
+        "fallback": false
+      },
+      "WR:depth:standard": {
+        "concentration": 2.683115612800397,
+        "rho": 0.27150926148627363,
+        "n": 16,
+        "fallback": false
+      },
+      "WR:rotation:fragile": {
+        "concentration": 2.1002553883697046,
+        "rho": 0.3225540720778679,
+        "n": 117,
+        "fallback": false
+      },
+      "WR:rotation:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 59,
+        "fallback": false
+      },
+      "WR:starter:fragile": {
+        "concentration": 2.720638806953388,
+        "rho": 0.26877105031832993,
+        "n": 42,
+        "fallback": false
+      },
+      "WR:starter:standard": {
+        "concentration": 1.8571428571428572,
+        "rho": 0.35,
+        "n": 148,
+        "fallback": false
+      }
+    },
+    "n": 1952
+  },
+  "conversion_sigmas": {
+    "cells": {
+      "RB:receiving": {
+        "sigma": 0.4625997931114955,
+        "n": 264
+      },
+      "TE:receiving": {
+        "sigma": 0.6115833367121052,
+        "n": 277
+      },
+      "WR:receiving": {
+        "sigma": 0.36963899417218343,
+        "n": 473
+      },
+      "QB:passing": {
+        "sigma": 0.3109695832842341,
+        "n": 178
+      },
+      "QB:rushing": {
+        "sigma": 0.7944928857206134,
+        "n": 156
+      },
+      "RB:rushing": {
+        "sigma": 0.40033337627399596,
+        "n": 289
+      }
+    },
+    "defaults": {
+      "receiving": {
+        "sigma": 0.47675814315443127,
+        "n": 1014
+      },
+      "passing": {
+        "sigma": 0.3109695832842341,
+        "n": 178
+      },
+      "rushing": {
+        "sigma": 0.5705972997278648,
+        "n": 445
+      }
+    },
+    "basis": "strictly_earlier_rolling_residuals"
+  },
+  "artifact_hash": "4db01b46310219c40b01982659001fbd14b752a12cfee7f8019a153853a84938",
+  "selected_distribution_mode": "joint_bootstrap",
+  "calibration_artifact": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\backtest\\v3_fantasy_interval_calibration.json",
+  "calibration_generated_at": "2026-08-26T06:38:00.791630+00:00",
+  "joint_donors": {
+    "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\models\\v3\\uncertainty\\joint_residual_donors.parquet",
+    "sha256": "31189f90bb90c49d63ecdf7c6cb73bfae3d03f8a204320bc9315682e76f0b3fa",
+    "n": 1952
+  }
+}

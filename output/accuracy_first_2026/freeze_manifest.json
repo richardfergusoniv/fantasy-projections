@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-08-28T02:38:37.403486+00:00",
+  "verdict": "promote_accuracy_ensemble",
+  "recoverable": true,
+  "canonical_v1_unchanged": true,
+  "v3_distribution_unchanged": true,
+  "files": {
+    "report.json": "3ddc5d4ea68429b2d749f30e1de5794a0ebd9a36f800ef6bd23aca57c97b1481",
+    "evaluation_players.parquet": "89cf0f3f2d26b1bf7d4c7a7762be15a78616e4373c6afb584202b2f7656cf7ef",
+    "ensemble_weights.json": "264f669af84637d61c0d1c368d6276aa18f4c8efc52b5c62e5b766adfbb03721",
+    "output/backtest/v3_fantasy_interval_calibration.json": "4324d5609a8c80a9ebc53c11aee7e42e75c4e8e741afa461cb1dae06d658d6d4",
+    "src/draft_assistant/ensemble_weights.json": "e05b46d01a038ae574bdbc8742bc4738ecae8fe9e6423a3718c174ea8b02633a",
+    "fantasy_points_2026.csv": "67f2c4b88ad370b15e2363d4f915e5ec915d1ea6280625df528edfbd75d41700",
+    "source:output/fantasy_points_2026.csv": "861acaecc8e84a780d68e8760d6166675e8c7a843ad63d9befb15004eb42d9a2",
+    "source:output/model_v2/fantasy_points_2026.csv": "7f6a94eb3010c6a39768363d418c7ffe67575cfdf9fb0534a7bb56079dce25a4",
+    "source:output/model_v3/simulation_summary_2026.csv": "3ee2d6d7c292593c8a111707d8a1d1a8dd5a68cf1cd4ff76b01630c97a98e914",
+    "source:data/consensus/consensus_2026.json": "18fbd17a43e47206632969b525d3c14c1779d3b587e7e03959a91a295b905f1e",
+    "source:data/consensus/consensus_2023.json": "6201895b8105fe25f95b1fd41b57f4b8732e208fcae1c3b41b57c0f1005a4dec",
+    "source:data/consensus/consensus_2024.json": "8303855d11508cefc5f0de38943d93ba7a1fde55ff02707388163fbfcc31a1ac",
+    "source:data/consensus/consensus_2025.json": "aad650aac0d8f3609766ecfd5c9d2d3c1480651f493b1775fd467ec4cc225d1b",
+    "v3_exact_p50_2024.json": "dedd437a5406ecb714406b9ce6caa651bc140c5859ff5e9bf55433b9d57acbb8",
+    "v3_exact_p50_2024.parquet": "e68846ea7653769e84f46f801768dc9f9e7d0dc0285d3438edb2f60de61820be",
+    "v3_exact_p50_2025.json": "5f7255d46a836c215ebeb234eedcbf3574ed05251d2116e9b683dfc3a6c757eb",
+    "v3_exact_p50_2025.parquet": "8c33dc430a04d72d77fb09a34218c0e5ab749ad97f192e38e6d3af75007fe417"
+  },
+  "manifest_hash": "2b33c6d841e0a2b63ce18a9a4ef9fb9d5838a43301a152068d3ab082e6ea8592"
+}

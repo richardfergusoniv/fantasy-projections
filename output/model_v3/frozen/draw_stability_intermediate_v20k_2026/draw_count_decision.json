@@ -1,0 +1,30 @@
+{
+  "schema_version": "draw_count_decision_v2",
+  "generated_at": "2026-08-28T20:04:27.860610+00:00",
+  "season": 2026,
+  "selected_draw_count": null,
+  "reference_draws": 20000,
+  "production_recommendation": "schedule_10000_or_20000_reassess",
+  "tolerances": {
+    "p50_abs": 0.25,
+    "p10_p90_abs": 1.0,
+    "sim_vorp_p50_abs": 0.5,
+    "probability_abs": 0.015,
+    "expected_pos_rank_abs": 0.25
+  },
+  "nested_prefix_design": true,
+  "stability_report_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\draw_stability_intermediate_v20k_2026.json",
+  "holdout_calibration": null,
+  "rationale": "Smallest passing nested-prefix draw count among [7500, 10000, 15000, 20000] vs 20000 reference (gate_mode=production_v20k).",
+  "sweep_phase": "intermediate_v20k",
+  "gate_mode": "production_v20k",
+  "candidates_evaluated": [
+    7500,
+    10000,
+    15000,
+    20000
+  ],
+  "provenance_verdict": "ok",
+  "prior_sweep_reference_draws": 10000,
+  "policy_matrix_outcome": "all_candidates_failed"
+}

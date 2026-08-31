@@ -22,9 +22,11 @@ import numpy as np
 import pandas as pd
 
 from src.projection.depth_history import (
-    AVAILABILITY_DEPTH_FEATURE, attach_availability_depth_rank,
+    AVAILABILITY_DEPTH_FEATURE, DEPTH_TIER_COLUMN, attach_availability_depth_rank,
+    attach_depth_tier,
 )
 from src.projection.features import FEATURE_COLS, TARGET_STATS, OC_METRICS
+from src.projection.qb_context import QB_CONTEXT_FEATURES
 
 EXTRA_FEATURES = ["games_played"]
 ALL_FEATURES = FEATURE_COLS + EXTRA_FEATURES
@@ -86,6 +88,10 @@ TEAM_MODEL_FEATURES = TEAM_FEATURES + ["team_naive_pred"]
 # combos are reframed, rather than re-deriving/duplicating this set.
 REFRAMED_SHARE_STATS = {("WR", "receiving_yards"), ("TE", "receiving_yards"), ("RB", "receiving_yards")}
 RECEIVING_SHARE_LABEL = "receiving_yards_share"
+# The role-rate counterpart of RECEIVING_SHARE_LABEL: the same share with the
+# appearance-week denominator replaced by full-season team passing yards
+# scaled to the player's eligibility. See features.py.
+RECEIVING_SHARE_ELIG_LABEL = "receiving_yards_share_elig"
 TEAM_TOTAL_LABEL = "team_passing_yards_pg"
 TEAM_ATTEMPTS_LABEL = "team_pass_attempts_pg"
 TEAM_CARRIES_LABEL = "team_carries_pg"
@@ -196,6 +202,36 @@ def receiving_share_scale(share_df, extra_team_share=None, cap=RECEIVING_SHARE_S
 REFERENCE_AGE = {"QB": 27.0, "RB": 25.0, "WR": 25.0, "TE": 26.0}  # median age, that position's 2021-2025 population
 AGE_EFFECT_SHRINK = {"QB": 1.0, "RB": 0.0, "WR": 1.0, "TE": 1.0}  # 1.0 = unshrunk, 0.0 = fully neutralized
 
+# Track 5: when a QB's source-season sample is partial, shrink the prior role
+# rate fed to volume models toward a longer-run mean. Disabled at ship default.
+QB_PARTIAL_PRIOR_GAMES_THRESHOLD = 12
+
+
+def shrink_qb_prior_role_rate(
+    prior: pd.Series,
+    source_games: pd.Series,
+    anchor: pd.Series,
+    *,
+    threshold: int = QB_PARTIAL_PRIOR_GAMES_THRESHOLD,
+    enabled: bool = False,
+) -> pd.Series:
+    """Blend ``prior`` toward ``anchor`` when ``source_games`` < ``threshold``.
+
+    Weight w = min(1, games / threshold). At ship default (enabled=False) this
+    is a no-op. ``anchor`` is typically a two-season mean of the label in the
+    same units as ``prior_role_rate``.
+    """
+    if not enabled:
+        return prior
+    games = pd.to_numeric(source_games, errors="coerce")
+    w = (games / float(threshold)).clip(0.0, 1.0)
+    p = pd.to_numeric(prior, errors="coerce")
+    a = pd.to_numeric(anchor, errors="coerce")
+    both = p.notna() & a.notna() & games.notna() & games.lt(threshold)
+    out = p.copy()
+    out.loc[both] = w.loc[both] * p.loc[both] + (1.0 - w.loc[both]) * a.loc[both]
+    return out
+
 
 def age_shrunk_predict(model, X, position, features=None):
     """Predict with `model` on `X[features]` (`features` defaults to
@@ -267,6 +303,237 @@ def build_transition_pairs(feat, position, stat, season_pairs, label_col=None):
 SEASON_GAMES = 17
 
 AVAILABILITY_LABEL = "games_played_to"
+
+# A rate over fewer than this many eligible weeks is division by a number too
+# small to mean anything (a player signed for the last two weeks of a season
+# is not evidence about a full-season role). Such rows leave the population
+# rather than being clipped, so nothing silently smuggles a 2-week sample in
+# at full weight.
+MIN_ELIGIBLE_WEEKS = 4
+
+ROLE_ZERO_FLAG = "is_role_zero"
+
+# Season N's own value of whatever label season N+1 is being fit on. The
+# existing LAG_RATE_FEATURES carry the prior rate per APPEARANCE week, which
+# is a different unit from the role-rate label; handing the model the prior in
+# the label's own units is what the prototype validated. Doubles as the
+# carry-forward baseline a role-rate backtest has to beat.
+ROLE_PRIOR_FEATURE = "prior_role_rate"
+
+# A second, deliberately slower-moving prior for opportunity and yardage
+# models.  The one-season prior above remains in every role model so genuine
+# role changes are still visible; this feature gives established producers a
+# leakage-safe counterweight to a noisy or injury-shortened latest season.
+ROLE_PRIOR_3Y_FEATURE = "prior_role_rate_3y"
+
+STABLE_ROLE_STATS = {
+    "attempts", "completions", "targets", "receptions", "carries",
+    "passing_yards", "receiving_yards", "rushing_yards",
+}
+
+# What the volume models consume once they predict a role rate. The depth tier
+# is admitted here and deliberately NOT in ALL_FEATURES: the justification for
+# excluding the chart from the rate models was that they "are trained only on
+# players who actually played, which is the population where the chart has
+# least to say" - true when written, and untrue the moment role zeros enter
+# the population.
+ROLE_FEATURES = ALL_FEATURES + [DEPTH_TIER_COLUMN, ROLE_PRIOR_FEATURE]
+
+
+def role_features_for(position, stat):
+    """Return the stat-specific serving/training schema.
+
+    TD and interception models intentionally retain their previous schema;
+    only opportunity and yardage families receive the multi-season prior.
+    ``position`` is accepted to keep this resolver symmetric with
+    :func:`role_label_for` and future position-specific schemas.
+    """
+    del position
+    if stat in STABLE_ROLE_STATS:
+        return ROLE_FEATURES + [ROLE_PRIOR_3Y_FEATURE]
+    return ROLE_FEATURES
+
+
+def trailing_role_rate(feat, player_ids, position, stat, source_season, lookback=3):
+    """Eligible-week-weighted source-and-prior-season role rate.
+
+    Only seasons at or before ``source_season`` enter the value, so the same
+    construction is safe in rolling-origin evaluation and production.  A
+    player's source-season value is the fallback when older history is absent.
+    """
+    label = role_label_for(position, stat)
+    ids = pd.Index(player_ids)
+    hist = feat[
+        feat["position"].eq(position)
+        & feat["season"].between(source_season - lookback + 1, source_season)
+        & feat["player_id"].isin(ids)
+    ].copy()
+    if label not in hist.columns:
+        raise ValueError(f"missing {label!r} while constructing {ROLE_PRIOR_3Y_FEATURE}")
+    hist["_value"] = pd.to_numeric(hist[label], errors="coerce")
+    if "eligible_weeks" in hist.columns:
+        hist["_weight"] = pd.to_numeric(hist["eligible_weeks"], errors="coerce").fillna(0).clip(lower=0)
+    else:
+        hist["_weight"] = 1.0
+    hist = hist[hist["_value"].notna() & hist["_weight"].gt(0)]
+    if hist.empty:
+        return pd.Series(np.nan, index=ids, dtype=float)
+    hist["_weighted"] = hist["_value"] * hist["_weight"]
+    grouped = hist.groupby("player_id", observed=True)
+    values = grouped["_weighted"].sum() / grouped["_weight"].sum()
+    return pd.Series(ids.map(values), index=ids, dtype=float)
+
+
+def role_rate_label(stat):
+    """The per-eligible-week label name for `stat` - see features.py."""
+    return f"{stat}_per_elig"
+
+
+def role_label_for(position, stat):
+    """The label a volume model is fit on: a role rate, or a role share.
+
+    Lives here rather than in train.py so the predict path can ask the same
+    question without importing the trainer.
+    """
+    if (position, stat) in REFRAMED_SHARE_STATS:
+        return RECEIVING_SHARE_ELIG_LABEL
+    return role_rate_label(stat)
+
+
+def build_role_transition_pairs(feat, position, stat, season_pairs, conn=None,
+                                label_col=None):
+    """Season N features -> season N+1 ROLE RATE, per eligible week.
+
+    Two deliberate differences from build_transition_pairs, and they are the
+    whole point:
+
+    1. The label is `{stat}_per_elig`, not `{stat}_pg`. See features.py for
+       why the appearance-week denominator was survivorship-selected.
+
+    2. The population KEEPS zero-production seasons whose cause is role, and
+       drops the ones whose cause is not. A charted player who was rostered
+       and off reserve all year and never took an offensive snap has a true
+       role rate of zero, and excluding him is exactly what taught the models
+       that a third-stringer produces like a starter. But a player on IR
+       belongs to the status-override gate, and a player who was cut is out
+       of the population, so neither may enter as a zero - including them
+       would bake injury attrition and roster churn back into a rate that is
+       supposed to describe a role. `is_role_zero` marks the rows that were
+       added this way.
+
+    Roster status and the preseason chart come from the DB. `conn=None` opens
+    and closes its own connection rather than degrading to the played-only
+    population - silently dropping the role zeros is the exact bug this
+    function exists to fix, so it must not be reachable by forgetting an
+    argument. Pass `conn=False` to opt out explicitly (unit tests supplying a
+    hand-built frame).
+
+    `label_col` overrides the label the same way build_transition_pairs does,
+    for the reframed receiving-share models.
+    """
+    own_conn = conn is None
+    if own_conn:
+        from src.projection.data_prep import get_conn
+
+        conn = get_conn()
+    try:
+        return _build_role_transition_pairs(
+            feat, position, stat, season_pairs, conn or None, label_col)
+    finally:
+        if own_conn:
+            conn.close()
+
+
+def _build_role_transition_pairs(feat, position, stat, season_pairs, conn, label_col):
+    pos_df = feat[feat["position"] == position]
+    y_col = label_col or role_rate_label(stat)
+    rate_col = f"{stat}_pg"
+
+    rows = []
+    for season_from, season_to in season_pairs:
+        role_from = role_rate_label(stat)
+        carry_cols = [rate_col, role_from] + ([y_col] if y_col not in (rate_col, role_from) else [])
+        context_cols = [c for c in QB_CONTEXT_FEATURES if c in pos_df.columns]
+        a = pos_df[pos_df["season"] == season_from][
+            ["player_id", "team"] + ALL_FEATURES + context_cols + carry_cols].copy()
+        # naive_pred must carry forward the SAME quantity being predicted.
+        # Using {stat}_pg here - a per-APPEARANCE rate - against a per-ELIGIBLE
+        # label silently rigs the comparison: a backup's appearance rate is
+        # multiples of his role rate, so the baseline over-predicts him wildly
+        # and the model "wins" on units rather than on skill. That produced a
+        # bogus 26-of-26 naive sweep on a project whose real record has
+        # standing losses. See feedback_fit_against_the_shipped_baseline.
+        a["appearance_naive_pred"] = a[rate_col]
+        a["naive_pred"] = a[role_from]
+        a[ROLE_PRIOR_FEATURE] = a[y_col]
+        a[ROLE_PRIOR_3Y_FEATURE] = trailing_role_rate(
+            pos_df, a["player_id"], position, stat, season_from
+        ).to_numpy()
+        a[ROLE_PRIOR_3Y_FEATURE] = a[ROLE_PRIOR_3Y_FEATURE].fillna(a[ROLE_PRIOR_FEATURE])
+        a = a.drop(columns=[c for c in carry_cols if c in a.columns])
+        # Carry the stat's own ROLE rate alongside the label, mirroring what
+        # build_transition_pairs does with {stat}_pg: a caller composing
+        # share x team_total needs the real rate to score against, and for the
+        # reframed stats the label is a share, not a rate.
+        role_col = role_rate_label(stat)
+        cols_to = ["player_id", "games_played", "eligible_weeks", role_col]
+        if y_col != role_col:
+            cols_to.append(y_col)
+        b = pos_df[pos_df["season"] == season_to][cols_to].rename(columns={
+            "games_played": "games_played_to", "eligible_weeks": "eligible_weeks_to"})
+        merged = a.merge(b, on="player_id", how="left")
+        merged[ROLE_ZERO_FLAG] = False
+
+        if conn is not None:
+            merged = _admit_role_zeros(merged, position, season_to, conn)
+        merged = merged[merged[y_col].notna()]
+        merged = merged[merged["eligible_weeks_to"] >= MIN_ELIGIBLE_WEEKS]
+
+        # The chart is keyed by (player, position); ALL_FEATURES carries no
+        # position column, so name it before the lookup. Models are strictly
+        # per-position, so this is the model's position by construction.
+        merged["position"] = position
+        merged = attach_depth_tier(merged, season_to, conn=conn)
+        merged["season_from"] = season_from
+        merged["season_to"] = season_to
+        rows.append(merged)
+
+    return pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
+
+
+def _admit_role_zeros(merged, position, season_to, conn):
+    """Fill a genuine role zero, drop every other kind of missing outcome."""
+    from src.projection.data_prep import (
+        ELIGIBLE_ROSTER_STATUSES, player_dominant_roster_status, player_eligible_weeks)
+
+    y_cols = [c for c in merged.columns if c.endswith("_per_elig")
+              or c == RECEIVING_SHARE_ELIG_LABEL]
+    status = player_dominant_roster_status(conn, [season_to]).set_index("player_id")["status"]
+    elig = player_eligible_weeks(conn, [season_to]).set_index("player_id")["eligible_weeks"]
+
+    # A missing outcome row, or a row with no offensive snap, is a candidate.
+    # Roster status is the ONLY membership test. Requiring a depth-chart row
+    # as well - which an earlier pass did - silently excluded the off-chart
+    # zeros, and they are the whole tier: 30-46% of rostered, eligible,
+    # off-chart players never take an offensive snap (QB 46%, WR 36%, TE 32%,
+    # RB 30%, 2020-2025), so dropping them left the off-chart population
+    # containing nothing but players who got signed and played. That is the
+    # survivorship this tier was over-projected by, and it is observable
+    # rather than structural: these players have prior-season production, are
+    # on a roster, and are off reserve. They are simply not playing, which is
+    # exactly what being off the chart predicts.
+    no_output = merged["games_played_to"].isna() | merged["games_played_to"].eq(0)
+    is_zero = (
+        no_output
+        & merged["player_id"].map(status).isin(ELIGIBLE_ROSTER_STATUSES)
+    )
+    merged.loc[is_zero, y_cols] = 0.0
+    merged.loc[is_zero, "games_played_to"] = 0.0
+    merged.loc[is_zero, "eligible_weeks_to"] = merged.loc[is_zero, "player_id"].map(elig)
+    merged.loc[is_zero, ROLE_ZERO_FLAG] = True
+    # Everything else that produced nothing leaves the population: rows still
+    # carrying a NaN label are dropped by the caller.
+    return merged
 
 
 def build_availability_pairs(feat, position, season_pairs):
@@ -373,13 +640,14 @@ def build_team_transition_pairs(feat, season_pairs, label_col=TEAM_TOTAL_LABEL):
     # played 0 games and has no resolved season team) carry team=NaN, which
     # drop_duplicates would otherwise keep as its own spurious "33rd team"
     # group per season.
+    context_cols = [c for c in QB_CONTEXT_FEATURES if c in feat.columns]
     team_df = feat.dropna(subset=["team"]).drop_duplicates(subset=["season", "team"])[
-        ["season", "team", label_col] + TEAM_FEATURES
+        ["season", "team", label_col] + TEAM_FEATURES + context_cols
     ]
 
     rows = []
     for season_from, season_to in season_pairs:
-        a = team_df[team_df["season"] == season_from][["team"] + TEAM_FEATURES + [label_col]]
+        a = team_df[team_df["season"] == season_from][["team"] + TEAM_FEATURES + context_cols + [label_col]]
         a = a.rename(columns={label_col: "naive_pred"})
         # Same value under a team-grain-only name. `naive_pred` is kept
         # because every pair-builder in this module uses that name for its

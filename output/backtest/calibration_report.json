@@ -1,0 +1,2443 @@
+{
+  "generated_at": "2026-08-26T00:46:52.646848+00:00",
+  "summary": {
+    "n": 7912,
+    "basis": "in_sample",
+    "mean_coverage": 0.797744366109395,
+    "mean_coverage_gap": -0.002255633890604912,
+    "mean_crps_gaussian": 3.2218454143605157,
+    "by_group": [
+      {
+        "position": "QB",
+        "stat": "attempts",
+        "n": 219,
+        "resid_low": -10.210165454901036,
+        "resid_high": 9.152153935623735,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 4.377170671019903
+      },
+      {
+        "position": "QB",
+        "stat": "carries",
+        "n": 219,
+        "resid_low": -1.7176008367118507,
+        "resid_high": 1.1836900884472998,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 0.6792453112363412
+      },
+      {
+        "position": "QB",
+        "stat": "completions",
+        "n": 219,
+        "resid_low": -6.588356882025852,
+        "resid_high": 6.009277772202903,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 2.824432803266546
+      },
+      {
+        "position": "QB",
+        "stat": "interceptions",
+        "n": 219,
+        "resid_low": -0.27299708569221115,
+        "resid_high": 0.2934214954966581,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 0.12979658451423182
+      },
+      {
+        "position": "QB",
+        "stat": "passing_tds",
+        "n": 219,
+        "resid_low": -0.4962823658507033,
+        "resid_high": 0.5818656971817824,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 0.24235845862618802
+      },
+      {
+        "position": "QB",
+        "stat": "passing_yards",
+        "n": 219,
+        "resid_low": -78.38386433110198,
+        "resid_high": 62.710165097259726,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 32.32704961635182
+      },
+      {
+        "position": "QB",
+        "stat": "rushing_tds",
+        "n": 219,
+        "resid_low": -0.13365020344631912,
+        "resid_high": 0.07890350836339528,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 0.06572832024002907
+      },
+      {
+        "position": "QB",
+        "stat": "rushing_yards",
+        "n": 219,
+        "resid_low": -7.249912447495268,
+        "resid_high": 6.614452565706618,
+        "coverage": 0.7990867579908676,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0009132420091324533,
+        "crps_gaussian": 3.738172447641098
+      },
+      {
+        "position": "RB",
+        "stat": "carries",
+        "n": 344,
+        "resid_low": -4.570294763401546,
+        "resid_high": 4.297204656338408,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 1.843687511227985
+      },
+      {
+        "position": "RB",
+        "stat": "receiving_tds",
+        "n": 344,
+        "resid_low": -0.07605589131494367,
+        "resid_high": 0.08494970673803486,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 0.03714710318775726
+      },
+      {
+        "position": "RB",
+        "stat": "receiving_yards",
+        "n": 344,
+        "resid_low": -6.306643243619114,
+        "resid_high": 7.749050661638241,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 3.2153906193476693
+      },
+      {
+        "position": "RB",
+        "stat": "receptions",
+        "n": 344,
+        "resid_low": -0.7158924368403375,
+        "resid_high": 1.0314377058850215,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 0.3988112095967781
+      },
+      {
+        "position": "RB",
+        "stat": "rushing_tds",
+        "n": 344,
+        "resid_low": -0.18789049751141135,
+        "resid_high": 0.19542350255667518,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 0.09722047359900365
+      },
+      {
+        "position": "RB",
+        "stat": "rushing_yards",
+        "n": 344,
+        "resid_low": -20.321292753603093,
+        "resid_high": 20.50223189954096,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 9.170205579058836
+      },
+      {
+        "position": "RB",
+        "stat": "targets",
+        "n": 344,
+        "resid_low": -0.9800433995852975,
+        "resid_high": 1.1498431012871928,
+        "coverage": 0.7965116279069767,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0034883720930233286,
+        "crps_gaussian": 0.49347245153534064
+      },
+      {
+        "position": "TE",
+        "stat": "receiving_tds",
+        "n": 336,
+        "resid_low": -0.10978967419627858,
+        "resid_high": 0.12269845899163004,
+        "coverage": 0.7976190476190477,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0023809523809523725,
+        "crps_gaussian": 0.056826146592307794
+      },
+      {
+        "position": "TE",
+        "stat": "receiving_yards",
+        "n": 336,
+        "resid_low": -8.406653167948475,
+        "resid_high": 12.026559203074735,
+        "coverage": 0.7976190476190477,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0023809523809523725,
+        "crps_gaussian": 4.97065654434423
+      },
+      {
+        "position": "TE",
+        "stat": "receptions",
+        "n": 336,
+        "resid_low": -0.8519668477677007,
+        "resid_high": 0.9491992694198332,
+        "coverage": 0.7976190476190477,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0023809523809523725,
+        "crps_gaussian": 0.4597115877262153
+      },
+      {
+        "position": "TE",
+        "stat": "targets",
+        "n": 336,
+        "resid_low": -1.2339651002728351,
+        "resid_high": 1.2658203253591456,
+        "coverage": 0.7976190476190477,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0023809523809523725,
+        "crps_gaussian": 0.6193846604693872
+      },
+      {
+        "position": "WR",
+        "stat": "receiving_tds",
+        "n": 602,
+        "resid_low": -0.12688688060599368,
+        "resid_high": 0.19930033543102613,
+        "coverage": 0.7973421926910299,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0026578073089701393,
+        "crps_gaussian": 0.07070591733499285
+      },
+      {
+        "position": "WR",
+        "stat": "receiving_yards",
+        "n": 602,
+        "resid_low": -12.435300351369454,
+        "resid_high": 16.752920340938477,
+        "coverage": 0.7973421926910299,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0026578073089701393,
+        "crps_gaussian": 7.0130541753468005
+      },
+      {
+        "position": "WR",
+        "stat": "receptions",
+        "n": 602,
+        "resid_low": -0.9577299296808452,
+        "resid_high": 1.245351401344789,
+        "coverage": 0.7973421926910299,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0026578073089701393,
+        "crps_gaussian": 0.5255757298252168
+      },
+      {
+        "position": "WR",
+        "stat": "targets",
+        "n": 602,
+        "resid_low": -1.3200324854633836,
+        "resid_high": 1.9164003997125594,
+        "coverage": 0.7973421926910299,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0026578073089701393,
+        "crps_gaussian": 0.7466406082031833
+      }
+    ]
+  },
+  "forward_summary": {
+    "n": 7912,
+    "n_scored": 5252,
+    "basis": "forward_holdout",
+    "mean_coverage": 0.8013090286445504,
+    "mean_coverage_gap": 0.0013090286445503183,
+    "by_group": [
+      {
+        "position": "QB",
+        "stat": "attempts",
+        "test_season": 2024,
+        "n_calibration": 74,
+        "n_test": 74,
+        "resid_low": -9.54623744334882,
+        "resid_high": 9.922430015757811,
+        "coverage": 0.7702702702702703,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.02972972972972976
+      },
+      {
+        "position": "QB",
+        "stat": "attempts",
+        "test_season": 2025,
+        "n_calibration": 148,
+        "n_test": 71,
+        "resid_low": -10.833163729735793,
+        "resid_high": 8.891871510698463,
+        "coverage": 0.8169014084507042,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.016901408450704203
+      },
+      {
+        "position": "QB",
+        "stat": "carries",
+        "test_season": 2024,
+        "n_calibration": 74,
+        "n_test": 74,
+        "resid_low": -2.3454325443536197,
+        "resid_high": 1.0020808147784017,
+        "coverage": 0.8783783783783784,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.07837837837837835
+      },
+      {
+        "position": "QB",
+        "stat": "carries",
+        "test_season": 2025,
+        "n_calibration": 148,
+        "n_test": 71,
+        "resid_low": -1.8513027258663584,
+        "resid_high": 1.03358131783379,
+        "coverage": 0.8028169014084507,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.0028169014084507005
+      },
+      {
+        "position": "QB",
+        "stat": "completions",
+        "test_season": 2024,
+        "n_calibration": 74,
+        "n_test": 74,
+        "resid_low": -5.486829495320667,
+        "resid_high": 6.576554960377091,
+        "coverage": 0.7162162162162162,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.08378378378378382
+      },
+      {
+        "position": "QB",
+        "stat": "completions",
+        "test_season": 2025,
+        "n_calibration": 148,
+        "n_test": 71,
+        "resid_low": -6.956521029632952,
+        "resid_high": 6.032491667180639,
+        "coverage": 0.8591549295774648,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.05915492957746471
+      },
+      {
+        "position": "QB",
+        "stat": "interceptions",
+        "test_season": 2024,
+        "n_calibration": 74,
+        "n_test": 74,
+        "resid_low": -0.2015514174040715,
+        "resid_high": 0.33536506558562573,
+        "coverage": 0.6891891891891891,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.1108108108108109
+      },
+      {
+        "position": "QB",
+        "stat": "interceptions",
+        "test_season": 2025,
+        "n_calibration": 148,
+        "n_test": 71,
+        "resid_low": -0.301663631654825,
+        "resid_high": 0.2941383027238218,
+        "coverage": 0.8732394366197183,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.07323943661971821
+      },
+      {
+        "position": "QB",
+        "stat": "passing_tds",
+        "test_season": 2024,
+        "n_calibration": 74,
+        "n_test": 74,
+        "resid_low": -0.5239452196880275,
+        "resid_high": 0.582315267258107,
+        "coverage": 0.7972972972972973,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.002702702702702786
+      },
+      {
+        "position": "QB",
+        "stat": "passing_tds",
+        "test_season": 2025,
+        "n_calibration": 148,
+        "n_test": 71,
+        "resid_low": -0.5444060905530826,
+        "resid_high": 0.568023526271055,
+        "coverage": 0.8450704225352113,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.04507042253521121
+      },
+      {
+        "position": "QB",
+        "stat": "passing_yards",
+        "test_season": 2024,
+        "n_calibration": 74,
+        "n_test": 74,
+        "resid_low": -78.11402757442173,
+        "resid_high": 83.62031242792337,
+        "coverage": 0.8378378378378378,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.037837837837837784
+      },
+      {
+        "position": "QB",
+        "stat": "passing_yards",
+        "test_season": 2025,
+        "n_calibration": 148,
+        "n_test": 71,
+        "resid_low": -86.57773272558424,
+        "resid_high": 58.729864180694186,
+        "coverage": 0.8450704225352113,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.04507042253521121
+      },
+      {
+        "position": "QB",
+        "stat": "rushing_tds",
+        "test_season": 2024,
+        "n_calibration": 74,
+        "n_test": 74,
+        "resid_low": -0.15601396549243648,
+        "resid_high": 0.12876572658534477,
+        "coverage": 0.8648648648648649,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.06486486486486487
+      },
+      {
+        "position": "QB",
+        "stat": "rushing_tds",
+        "test_season": 2025,
+        "n_calibration": 148,
+        "n_test": 71,
+        "resid_low": -0.14897628392927093,
+        "resid_high": 0.09196204390453605,
+        "coverage": 0.9014084507042254,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.10140845070422533
+      },
+      {
+        "position": "QB",
+        "stat": "rushing_yards",
+        "test_season": 2024,
+        "n_calibration": 74,
+        "n_test": 74,
+        "resid_low": -13.717059438694207,
+        "resid_high": 3.0624604532384607,
+        "coverage": 0.7567567567567568,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.043243243243243246
+      },
+      {
+        "position": "QB",
+        "stat": "rushing_yards",
+        "test_season": 2025,
+        "n_calibration": 148,
+        "n_test": 71,
+        "resid_low": -7.910303406323666,
+        "resid_high": 5.868709769503542,
+        "coverage": 0.7746478873239436,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.025352112676056415
+      },
+      {
+        "position": "RB",
+        "stat": "carries",
+        "test_season": 2024,
+        "n_calibration": 120,
+        "n_test": 110,
+        "resid_low": -5.576607018575974,
+        "resid_high": 2.918685589462196,
+        "coverage": 0.7818181818181819,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.018181818181818188
+      },
+      {
+        "position": "RB",
+        "stat": "carries",
+        "test_season": 2025,
+        "n_calibration": 230,
+        "n_test": 114,
+        "resid_low": -4.87606599668571,
+        "resid_high": 4.541970396016985,
+        "coverage": 0.8771929824561403,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.07719298245614026
+      },
+      {
+        "position": "RB",
+        "stat": "receiving_tds",
+        "test_season": 2024,
+        "n_calibration": 120,
+        "n_test": 110,
+        "resid_low": -0.0894453702543569,
+        "resid_high": 0.08258320524442186,
+        "coverage": 0.8272727272727273,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.027272727272727226
+      },
+      {
+        "position": "RB",
+        "stat": "receiving_tds",
+        "test_season": 2025,
+        "n_calibration": 230,
+        "n_test": 114,
+        "resid_low": -0.08469172129672597,
+        "resid_high": 0.07695940595464991,
+        "coverage": 0.8421052631578947,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.042105263157894646
+      },
+      {
+        "position": "RB",
+        "stat": "receiving_yards",
+        "test_season": 2024,
+        "n_calibration": 120,
+        "n_test": 110,
+        "resid_low": -5.871262995214115,
+        "resid_high": 8.493534555087878,
+        "coverage": 0.7636363636363637,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.036363636363636376
+      },
+      {
+        "position": "RB",
+        "stat": "receiving_yards",
+        "test_season": 2025,
+        "n_calibration": 230,
+        "n_test": 114,
+        "resid_low": -6.409587029527478,
+        "resid_high": 7.839343022106851,
+        "coverage": 0.8245614035087719,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.024561403508771895
+      },
+      {
+        "position": "RB",
+        "stat": "receptions",
+        "test_season": 2024,
+        "n_calibration": 120,
+        "n_test": 110,
+        "resid_low": -0.705057002150568,
+        "resid_high": 1.1637335911316957,
+        "coverage": 0.8,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.0
+      },
+      {
+        "position": "RB",
+        "stat": "receptions",
+        "test_season": 2025,
+        "n_calibration": 230,
+        "n_test": 114,
+        "resid_low": -0.7287708951140388,
+        "resid_high": 1.1100406706289605,
+        "coverage": 0.8421052631578947,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.042105263157894646
+      },
+      {
+        "position": "RB",
+        "stat": "rushing_tds",
+        "test_season": 2024,
+        "n_calibration": 120,
+        "n_test": 110,
+        "resid_low": -0.26332661131715906,
+        "resid_high": 0.11768263382517316,
+        "coverage": 0.7727272727272727,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.027272727272727337
+      },
+      {
+        "position": "RB",
+        "stat": "rushing_tds",
+        "test_season": 2025,
+        "n_calibration": 230,
+        "n_test": 114,
+        "resid_low": -0.19207080673519705,
+        "resid_high": 0.22578060658197072,
+        "coverage": 0.8596491228070176,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.05964912280701751
+      },
+      {
+        "position": "RB",
+        "stat": "rushing_yards",
+        "test_season": 2024,
+        "n_calibration": 120,
+        "n_test": 110,
+        "resid_low": -25.742904980071728,
+        "resid_high": 12.19494330796308,
+        "coverage": 0.7545454545454545,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.045454545454545525
+      },
+      {
+        "position": "RB",
+        "stat": "rushing_yards",
+        "test_season": 2025,
+        "n_calibration": 230,
+        "n_test": 114,
+        "resid_low": -22.418414121319554,
+        "resid_high": 20.176692271753506,
+        "coverage": 0.8508771929824561,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.050877192982456076
+      },
+      {
+        "position": "RB",
+        "stat": "targets",
+        "test_season": 2024,
+        "n_calibration": 120,
+        "n_test": 110,
+        "resid_low": -0.971715825555778,
+        "resid_high": 1.266035347189325,
+        "coverage": 0.7818181818181819,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.018181818181818188
+      },
+      {
+        "position": "RB",
+        "stat": "targets",
+        "test_season": 2025,
+        "n_calibration": 230,
+        "n_test": 114,
+        "resid_low": -1.048809067930653,
+        "resid_high": 1.075977512552484,
+        "coverage": 0.8421052631578947,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.042105263157894646
+      },
+      {
+        "position": "TE",
+        "stat": "receiving_tds",
+        "test_season": 2024,
+        "n_calibration": 107,
+        "n_test": 113,
+        "resid_low": -0.12970737850910433,
+        "resid_high": 0.05715968091058306,
+        "coverage": 0.7522123893805309,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.04778761061946912
+      },
+      {
+        "position": "TE",
+        "stat": "receiving_tds",
+        "test_season": 2025,
+        "n_calibration": 220,
+        "n_test": 116,
+        "resid_low": -0.1179240951246726,
+        "resid_high": 0.09183096131614188,
+        "coverage": 0.7672413793103449,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.03275862068965518
+      },
+      {
+        "position": "TE",
+        "stat": "receiving_yards",
+        "test_season": 2024,
+        "n_calibration": 107,
+        "n_test": 113,
+        "resid_low": -9.021303895252196,
+        "resid_high": 8.977578683047103,
+        "coverage": 0.7345132743362832,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.06548672566371683
+      },
+      {
+        "position": "TE",
+        "stat": "receiving_yards",
+        "test_season": 2025,
+        "n_calibration": 220,
+        "n_test": 116,
+        "resid_low": -8.928830666676483,
+        "resid_high": 11.77607765087953,
+        "coverage": 0.8103448275862069,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.010344827586206806
+      },
+      {
+        "position": "TE",
+        "stat": "receptions",
+        "test_season": 2024,
+        "n_calibration": 107,
+        "n_test": 113,
+        "resid_low": -0.8085733902927162,
+        "resid_high": 0.780027326138603,
+        "coverage": 0.6902654867256637,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.10973451327433636
+      },
+      {
+        "position": "TE",
+        "stat": "receptions",
+        "test_season": 2025,
+        "n_calibration": 220,
+        "n_test": 116,
+        "resid_low": -0.858364545614917,
+        "resid_high": 0.9431341320176952,
+        "coverage": 0.7931034482758621,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.006896551724137945
+      },
+      {
+        "position": "TE",
+        "stat": "targets",
+        "test_season": 2024,
+        "n_calibration": 107,
+        "n_test": 113,
+        "resid_low": -1.2887012346418785,
+        "resid_high": 1.1234382758958046,
+        "coverage": 0.7610619469026548,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.038938053097345215
+      },
+      {
+        "position": "TE",
+        "stat": "targets",
+        "test_season": 2025,
+        "n_calibration": 220,
+        "n_test": 116,
+        "resid_low": -1.2831459723125944,
+        "resid_high": 1.2267712392990506,
+        "coverage": 0.8103448275862069,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.010344827586206806
+      },
+      {
+        "position": "WR",
+        "stat": "receiving_tds",
+        "test_season": 2024,
+        "n_calibration": 200,
+        "n_test": 204,
+        "resid_low": -0.1360649490603185,
+        "resid_high": 0.15663487914760868,
+        "coverage": 0.7352941176470589,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.06470588235294117
+      },
+      {
+        "position": "WR",
+        "stat": "receiving_tds",
+        "test_season": 2025,
+        "n_calibration": 404,
+        "n_test": 198,
+        "resid_low": -0.1366255596687751,
+        "resid_high": 0.19773482823578875,
+        "coverage": 0.8434343434343434,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.04343434343434338
+      },
+      {
+        "position": "WR",
+        "stat": "receiving_yards",
+        "test_season": 2024,
+        "n_calibration": 200,
+        "n_test": 204,
+        "resid_low": -12.59058496775529,
+        "resid_high": 16.51781742348375,
+        "coverage": 0.7794117647058824,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.020588235294117685
+      },
+      {
+        "position": "WR",
+        "stat": "receiving_yards",
+        "test_season": 2025,
+        "n_calibration": 404,
+        "n_test": 198,
+        "resid_low": -12.52903901717282,
+        "resid_high": 17.587805196087743,
+        "coverage": 0.8232323232323232,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.02323232323232316
+      },
+      {
+        "position": "WR",
+        "stat": "receptions",
+        "test_season": 2024,
+        "n_calibration": 200,
+        "n_test": 204,
+        "resid_low": -1.0299567081770895,
+        "resid_high": 1.0583153024364655,
+        "coverage": 0.7696078431372549,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.0303921568627451
+      },
+      {
+        "position": "WR",
+        "stat": "receptions",
+        "test_season": 2025,
+        "n_calibration": 404,
+        "n_test": 198,
+        "resid_low": -1.0202513579373054,
+        "resid_high": 1.1571655292453864,
+        "coverage": 0.7626262626262627,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.03737373737373739
+      },
+      {
+        "position": "WR",
+        "stat": "targets",
+        "test_season": 2024,
+        "n_calibration": 200,
+        "n_test": 204,
+        "resid_low": -1.3820298250809113,
+        "resid_high": 1.4730663539692528,
+        "coverage": 0.7598039215686274,
+        "target_coverage": 0.8,
+        "coverage_gap": -0.04019607843137263
+      },
+      {
+        "position": "WR",
+        "stat": "targets",
+        "test_season": 2025,
+        "n_calibration": 404,
+        "n_test": 198,
+        "resid_low": -1.3536155730089385,
+        "resid_high": 1.835387095546418,
+        "coverage": 0.8181818181818182,
+        "target_coverage": 0.8,
+        "coverage_gap": 0.018181818181818188
+      }
+    ]
+  },
+  "by_position_stat": [
+    {
+      "position": "QB",
+      "stat": "attempts",
+      "coverage": 0.7990867579908676,
+      "reliability": [
+        {
+          "bin": "(-0.451, 2.215]",
+          "n": 22,
+          "mean_predicted": 1.2686151592147932,
+          "mean_actual": 2.1716195569136745
+        },
+        {
+          "bin": "(10.599, 16.661]",
+          "n": 21,
+          "mean_predicted": 13.733788248031571,
+          "mean_actual": 10.948459383753502
+        },
+        {
+          "bin": "(16.661, 22.027]",
+          "n": 22,
+          "mean_predicted": 19.746291280854752,
+          "mean_actual": 18.15548973085738
+        },
+        {
+          "bin": "(2.215, 3.573]",
+          "n": 22,
+          "mean_predicted": 2.8630091493519916,
+          "mean_actual": 2.6785273549979434
+        },
+        {
+          "bin": "(22.027, 26.974]",
+          "n": 22,
+          "mean_predicted": 24.665301036480198,
+          "mean_actual": 26.639128585318428
+        },
+        {
+          "bin": "(26.974, 30.808]",
+          "n": 22,
+          "mean_predicted": 28.97857121169511,
+          "mean_actual": 28.608420174596645
+        },
+        {
+          "bin": "(3.573, 4.699]",
+          "n": 22,
+          "mean_predicted": 4.189736142171354,
+          "mean_actual": 5.970588235294117
+        },
+        {
+          "bin": "(30.808, 36.816]",
+          "n": 22,
+          "mean_predicted": 34.23618039318337,
+          "mean_actual": 31.372140522875817
+        },
+        {
+          "bin": "(4.699, 6.501]",
+          "n": 22,
+          "mean_predicted": 5.442061253220522,
+          "mean_actual": 3.517454481792717
+        },
+        {
+          "bin": "(6.501, 10.599]",
+          "n": 22,
+          "mean_predicted": 8.381342279731514,
+          "mean_actual": 7.545040743570155
+        }
+      ]
+    },
+    {
+      "position": "QB",
+      "stat": "carries",
+      "coverage": 0.7990867579908676,
+      "reliability": [
+        {
+          "bin": "(-0.207, 0.305]",
+          "n": 22,
+          "mean_predicted": 0.1626984791933672,
+          "mean_actual": 0.4785949344772874
+        },
+        {
+          "bin": "(0.305, 0.442]",
+          "n": 22,
+          "mean_predicted": 0.36916550317024105,
+          "mean_actual": 0.3586866564807742
+        },
+        {
+          "bin": "(0.442, 0.629]",
+          "n": 22,
+          "mean_predicted": 0.5287602752194982,
+          "mean_actual": 0.4467023172905526
+        },
+        {
+          "bin": "(0.629, 0.807]",
+          "n": 22,
+          "mean_predicted": 0.7524122674905321,
+          "mean_actual": 0.8267380903410316
+        },
+        {
+          "bin": "(0.807, 1.393]",
+          "n": 22,
+          "mean_predicted": 1.1011143215011001,
+          "mean_actual": 0.8564171122994652
+        },
+        {
+          "bin": "(1.393, 1.847]",
+          "n": 21,
+          "mean_predicted": 1.6142864252698361,
+          "mean_actual": 1.188375350140056
+        },
+        {
+          "bin": "(1.847, 2.5]",
+          "n": 22,
+          "mean_predicted": 2.1666144217541614,
+          "mean_actual": 1.6047310310010845
+        },
+        {
+          "bin": "(2.5, 2.988]",
+          "n": 22,
+          "mean_predicted": 2.6918368412356433,
+          "mean_actual": 2.7468062982768866
+        },
+        {
+          "bin": "(2.988, 4.971]",
+          "n": 22,
+          "mean_predicted": 3.849864694545656,
+          "mean_actual": 3.5107963115316054
+        },
+        {
+          "bin": "(4.971, 7.659]",
+          "n": 22,
+          "mean_predicted": 6.254963051865716,
+          "mean_actual": 4.7898061497326205
+        }
+      ]
+    },
+    {
+      "position": "QB",
+      "stat": "completions",
+      "coverage": 0.7990867579908676,
+      "reliability": [
+        {
+          "bin": "(-0.431, 1.429]",
+          "n": 22,
+          "mean_predicted": 0.7931722196240195,
+          "mean_actual": 1.2376192435015965
+        },
+        {
+          "bin": "(1.429, 2.286]",
+          "n": 22,
+          "mean_predicted": 1.7272659089912095,
+          "mean_actual": 1.571301247771836
+        },
+        {
+          "bin": "(10.219, 14.675]",
+          "n": 22,
+          "mean_predicted": 12.720922330774135,
+          "mean_actual": 11.509689575130752
+        },
+        {
+          "bin": "(14.675, 17.552]",
+          "n": 22,
+          "mean_predicted": 16.189711126148776,
+          "mean_actual": 15.713932101766325
+        },
+        {
+          "bin": "(17.552, 20.689]",
+          "n": 22,
+          "mean_predicted": 19.003059285784992,
+          "mean_actual": 18.618675442204854
+        },
+        {
+          "bin": "(2.286, 3.047]",
+          "n": 22,
+          "mean_predicted": 2.642428213592505,
+          "mean_actual": 2.98084268672504
+        },
+        {
+          "bin": "(20.689, 24.328]",
+          "n": 22,
+          "mean_predicted": 22.679118071228377,
+          "mean_actual": 21.228809017779607
+        },
+        {
+          "bin": "(3.047, 4.152]",
+          "n": 22,
+          "mean_predicted": 3.6345780409010358,
+          "mean_actual": 3.8140660809778457
+        },
+        {
+          "bin": "(4.152, 7.044]",
+          "n": 22,
+          "mean_predicted": 5.539569397076597,
+          "mean_actual": 3.6692963898846256
+        },
+        {
+          "bin": "(7.044, 10.219]",
+          "n": 21,
+          "mean_predicted": 8.827175445741007,
+          "mean_actual": 7.015534547152195
+        }
+      ]
+    },
+    {
+      "position": "QB",
+      "stat": "interceptions",
+      "coverage": 0.7990867579908676,
+      "reliability": [
+        {
+          "bin": "(-0.0308, 0.0572]",
+          "n": 22,
+          "mean_predicted": 0.02064655427547899,
+          "mean_actual": 0.09730073847720906
+        },
+        {
+          "bin": "(0.0572, 0.0931]",
+          "n": 22,
+          "mean_predicted": 0.07485898997354391,
+          "mean_actual": 0.10178057236880766
+        },
+        {
+          "bin": "(0.0931, 0.126]",
+          "n": 22,
+          "mean_predicted": 0.10996476221454726,
+          "mean_actual": 0.12143065268065269
+        },
+        {
+          "bin": "(0.126, 0.178]",
+          "n": 22,
+          "mean_predicted": 0.15641212079966513,
+          "mean_actual": 0.13394448688566335
+        },
+        {
+          "bin": "(0.178, 0.247]",
+          "n": 22,
+          "mean_predicted": 0.2071041205220311,
+          "mean_actual": 0.16911764705882354
+        },
+        {
+          "bin": "(0.247, 0.37]",
+          "n": 21,
+          "mean_predicted": 0.30030643634096643,
+          "mean_actual": 0.27051042639277934
+        },
+        {
+          "bin": "(0.37, 0.467]",
+          "n": 22,
+          "mean_predicted": 0.4186419442662517,
+          "mean_actual": 0.388986013986014
+        },
+        {
+          "bin": "(0.467, 0.558]",
+          "n": 22,
+          "mean_predicted": 0.517621165957666,
+          "mean_actual": 0.5396798388776998
+        },
+        {
+          "bin": "(0.558, 0.658]",
+          "n": 22,
+          "mean_predicted": 0.6056248373479284,
+          "mean_actual": 0.6438693659281894
+        },
+        {
+          "bin": "(0.658, 0.807]",
+          "n": 22,
+          "mean_predicted": 0.7125900239301384,
+          "mean_actual": 0.5445689930984049
+        }
+      ]
+    },
+    {
+      "position": "QB",
+      "stat": "passing_tds",
+      "coverage": 0.7990867579908676,
+      "reliability": [
+        {
+          "bin": "(-0.0618, 0.0626]",
+          "n": 22,
+          "mean_predicted": 0.025556745169171745,
+          "mean_actual": 0.08894830659536543
+        },
+        {
+          "bin": "(0.0626, 0.121]",
+          "n": 22,
+          "mean_predicted": 0.09013374240726414,
+          "mean_actual": 0.15068901686548747
+        },
+        {
+          "bin": "(0.121, 0.188]",
+          "n": 22,
+          "mean_predicted": 0.15515799043535997,
+          "mean_actual": 0.16515837104072398
+        },
+        {
+          "bin": "(0.188, 0.247]",
+          "n": 22,
+          "mean_predicted": 0.20977175796823105,
+          "mean_actual": 0.09375
+        },
+        {
+          "bin": "(0.247, 0.385]",
+          "n": 22,
+          "mean_predicted": 0.316831636028007,
+          "mean_actual": 0.2996459422930011
+        },
+        {
+          "bin": "(0.385, 0.691]",
+          "n": 21,
+          "mean_predicted": 0.5264636287637181,
+          "mean_actual": 0.3966865378630085
+        },
+        {
+          "bin": "(0.691, 0.983]",
+          "n": 22,
+          "mean_predicted": 0.8459888471035559,
+          "mean_actual": 0.9339572192513369
+        },
+        {
+          "bin": "(0.983, 1.179]",
+          "n": 22,
+          "mean_predicted": 1.0826923159094828,
+          "mean_actual": 1.0382405028126953
+        },
+        {
+          "bin": "(1.179, 1.506]",
+          "n": 22,
+          "mean_predicted": 1.3576196365989361,
+          "mean_actual": 1.3416518122400476
+        },
+        {
+          "bin": "(1.506, 1.885]",
+          "n": 22,
+          "mean_predicted": 1.6253238843221547,
+          "mean_actual": 1.5560171038112216
+        }
+      ]
+    },
+    {
+      "position": "QB",
+      "stat": "passing_yards",
+      "coverage": 0.7990867579908676,
+      "reliability": [
+        {
+          "bin": "(-11.693999999999999, 13.435]",
+          "n": 22,
+          "mean_predicted": 5.782486159301545,
+          "mean_actual": 15.6426896632779
+        },
+        {
+          "bin": "(119.378, 165.301]",
+          "n": 22,
+          "mean_predicted": 142.4117386317388,
+          "mean_actual": 125.77484031491385
+        },
+        {
+          "bin": "(13.435, 23.572]",
+          "n": 22,
+          "mean_predicted": 18.4833969825849,
+          "mean_actual": 16.681818181818183
+        },
+        {
+          "bin": "(165.301, 197.563]",
+          "n": 22,
+          "mean_predicted": 180.76604520746062,
+          "mean_actual": 191.05755347593583
+        },
+        {
+          "bin": "(197.563, 227.42]",
+          "n": 22,
+          "mean_predicted": 213.61855706111336,
+          "mean_actual": 192.61044837515428
+        },
+        {
+          "bin": "(227.42, 264.6]",
+          "n": 22,
+          "mean_predicted": 245.1848849022618,
+          "mean_actual": 233.33663705575472
+        },
+        {
+          "bin": "(23.572, 31.637]",
+          "n": 22,
+          "mean_predicted": 27.211899402467168,
+          "mean_actual": 46.579978844684724
+        },
+        {
+          "bin": "(31.637, 43.799]",
+          "n": 22,
+          "mean_predicted": 37.34120795250067,
+          "mean_actual": 23.34007830404889
+        },
+        {
+          "bin": "(43.799, 70.971]",
+          "n": 22,
+          "mean_predicted": 59.043720961146256,
+          "mean_actual": 38.18477209065445
+        },
+        {
+          "bin": "(70.971, 119.378]",
+          "n": 21,
+          "mean_predicted": 100.83463908781334,
+          "mean_actual": 71.62476657329599
+        }
+      ]
+    },
+    {
+      "position": "QB",
+      "stat": "rushing_tds",
+      "coverage": 0.7990867579908676,
+      "reliability": [
+        {
+          "bin": "(-0.0303, 0.00296]",
+          "n": 22,
+          "mean_predicted": -0.004315232961940734,
+          "mean_actual": 0.013368983957219251
+        },
+        {
+          "bin": "(0.00296, 0.0109]",
+          "n": 22,
+          "mean_predicted": 0.007167719912480248,
+          "mean_actual": 0.013368983957219251
+        },
+        {
+          "bin": "(0.0109, 0.0195]",
+          "n": 22,
+          "mean_predicted": 0.015273591202043173,
+          "mean_actual": 0.0034965034965034965
+        },
+        {
+          "bin": "(0.0195, 0.0292]",
+          "n": 22,
+          "mean_predicted": 0.02377877224487802,
+          "mean_actual": 0.02406417112299465
+        },
+        {
+          "bin": "(0.0292, 0.0534]",
+          "n": 22,
+          "mean_predicted": 0.04048194748524611,
+          "mean_actual": 0.054187234334293156
+        },
+        {
+          "bin": "(0.0534, 0.0803]",
+          "n": 21,
+          "mean_predicted": 0.06602689265746409,
+          "mean_actual": 0.052910052910052914
+        },
+        {
+          "bin": "(0.0803, 0.114]",
+          "n": 22,
+          "mean_predicted": 0.09879512759531894,
+          "mean_actual": 0.07385849444672975
+        },
+        {
+          "bin": "(0.114, 0.152]",
+          "n": 22,
+          "mean_predicted": 0.13263949013266102,
+          "mean_actual": 0.10504936240230359
+        },
+        {
+          "bin": "(0.152, 0.266]",
+          "n": 22,
+          "mean_predicted": 0.2013719881957477,
+          "mean_actual": 0.11376262626262626
+        },
+        {
+          "bin": "(0.266, 0.473]",
+          "n": 22,
+          "mean_predicted": 0.35040543863236706,
+          "mean_actual": 0.3218954248366013
+        }
+      ]
+    },
+    {
+      "position": "QB",
+      "stat": "rushing_yards",
+      "coverage": 0.7990867579908676,
+      "reliability": [
+        {
+          "bin": "(-1.1449999999999998, 0.759]",
+          "n": 22,
+          "mean_predicted": 0.13707739035740582,
+          "mean_actual": 1.7262737262737262
+        },
+        {
+          "bin": "(0.759, 1.398]",
+          "n": 22,
+          "mean_predicted": 1.001510216447311,
+          "mean_actual": 0.4877450980392157
+        },
+        {
+          "bin": "(1.398, 2.029]",
+          "n": 22,
+          "mean_predicted": 1.7429127363655241,
+          "mean_actual": 2.397549019607843
+        },
+        {
+          "bin": "(11.633, 27.521]",
+          "n": 22,
+          "mean_predicted": 18.733159330626076,
+          "mean_actual": 15.541654913713739
+        },
+        {
+          "bin": "(2.029, 2.986]",
+          "n": 22,
+          "mean_predicted": 2.537841931617717,
+          "mean_actual": 1.615686274509804
+        },
+        {
+          "bin": "(2.986, 4.675]",
+          "n": 22,
+          "mean_predicted": 3.797730913872722,
+          "mean_actual": 3.508023961332785
+        },
+        {
+          "bin": "(27.521, 38.558]",
+          "n": 22,
+          "mean_predicted": 34.61428589834078,
+          "mean_actual": 25.131695632798575
+        },
+        {
+          "bin": "(4.675, 6.064]",
+          "n": 21,
+          "mean_predicted": 5.413257085249351,
+          "mean_actual": 5.258821244115362
+        },
+        {
+          "bin": "(6.064, 8.93]",
+          "n": 22,
+          "mean_predicted": 7.5737375219604015,
+          "mean_actual": 4.00033422459893
+        },
+        {
+          "bin": "(8.93, 11.633]",
+          "n": 22,
+          "mean_predicted": 10.05555292347677,
+          "mean_actual": 12.481617647058824
+        }
+      ]
+    },
+    {
+      "position": "RB",
+      "stat": "carries",
+      "coverage": 0.7965116279069767,
+      "reliability": [
+        {
+          "bin": "(0.459, 0.828]",
+          "n": 35,
+          "mean_predicted": 0.6531986136191391,
+          "mean_actual": 0.9135667903525047
+        },
+        {
+          "bin": "(0.828, 1.336]",
+          "n": 34,
+          "mean_predicted": 1.1298111926942394,
+          "mean_actual": 0.668433551262271
+        },
+        {
+          "bin": "(1.336, 1.616]",
+          "n": 34,
+          "mean_predicted": 1.4678676672858533,
+          "mean_actual": 0.9012888903676101
+        },
+        {
+          "bin": "(1.616, 2.917]",
+          "n": 35,
+          "mean_predicted": 2.0390569267783873,
+          "mean_actual": 1.8170833788060679
+        },
+        {
+          "bin": "(10.801, 12.556]",
+          "n": 34,
+          "mean_predicted": 11.827617691914124,
+          "mean_actual": 12.278831736314435
+        },
+        {
+          "bin": "(12.556, 16.796]",
+          "n": 35,
+          "mean_predicted": 14.20196584446028,
+          "mean_actual": 13.345078031212486
+        },
+        {
+          "bin": "(2.917, 4.507]",
+          "n": 34,
+          "mean_predicted": 3.70191133678121,
+          "mean_actual": 4.309260491526928
+        },
+        {
+          "bin": "(4.507, 6.453]",
+          "n": 34,
+          "mean_predicted": 5.458215502326823,
+          "mean_actual": 5.444720437194485
+        },
+        {
+          "bin": "(6.453, 8.891]",
+          "n": 35,
+          "mean_predicted": 7.692908356767506,
+          "mean_actual": 5.957696551814199
+        },
+        {
+          "bin": "(8.891, 10.801]",
+          "n": 34,
+          "mean_predicted": 9.98419699834504,
+          "mean_actual": 9.418401576316802
+        }
+      ]
+    },
+    {
+      "position": "RB",
+      "stat": "receiving_tds",
+      "coverage": 0.7965116279069767,
+      "reliability": [
+        {
+          "bin": "(-0.026000000000000002, 0.00455]",
+          "n": 35,
+          "mean_predicted": -0.0012836619534480139,
+          "mean_actual": 0.0050420168067226885
+        },
+        {
+          "bin": "(0.00455, 0.0109]",
+          "n": 34,
+          "mean_predicted": 0.008002316149320898,
+          "mean_actual": 0.012110726643598616
+        },
+        {
+          "bin": "(0.0109, 0.0154]",
+          "n": 34,
+          "mean_predicted": 0.012630374953667265,
+          "mean_actual": 0.015570934256055364
+        },
+        {
+          "bin": "(0.0154, 0.0214]",
+          "n": 35,
+          "mean_predicted": 0.018114134907423998,
+          "mean_actual": 0.013151260504201682
+        },
+        {
+          "bin": "(0.0214, 0.0281]",
+          "n": 34,
+          "mean_predicted": 0.024813115830608065,
+          "mean_actual": 0.022707612456747406
+        },
+        {
+          "bin": "(0.0281, 0.0404]",
+          "n": 34,
+          "mean_predicted": 0.034649728681965454,
+          "mean_actual": 0.01997483485372759
+        },
+        {
+          "bin": "(0.0404, 0.0587]",
+          "n": 35,
+          "mean_predicted": 0.0480201542707998,
+          "mean_actual": 0.055699382317029374
+        },
+        {
+          "bin": "(0.0587, 0.0807]",
+          "n": 34,
+          "mean_predicted": 0.06881388390831396,
+          "mean_actual": 0.05187816076656907
+        },
+        {
+          "bin": "(0.0807, 0.107]",
+          "n": 34,
+          "mean_predicted": 0.09351472205365423,
+          "mean_actual": 0.09663174196046169
+        },
+        {
+          "bin": "(0.107, 0.213]",
+          "n": 35,
+          "mean_predicted": 0.1349294902113183,
+          "mean_actual": 0.10166066426570627
+        }
+      ]
+    },
+    {
+      "position": "RB",
+      "stat": "receiving_yards",
+      "coverage": 0.7965116279069767,
+      "reliability": [
+        {
+          "bin": "(0.708, 1.864]",
+          "n": 35,
+          "mean_predicted": 1.4431744432612483,
+          "mean_actual": 0.8650060024009604
+        },
+        {
+          "bin": "(1.864, 2.412]",
+          "n": 34,
+          "mean_predicted": 2.1609700653933737,
+          "mean_actual": 1.3863434215726602
+        },
+        {
+          "bin": "(10.654, 14.176]",
+          "n": 34,
+          "mean_predicted": 12.052071175026798,
+          "mean_actual": 14.254648931422288
+        },
+        {
+          "bin": "(14.176, 18.731]",
+          "n": 34,
+          "mean_predicted": 15.965716243609837,
+          "mean_actual": 14.741374275954726
+        },
+        {
+          "bin": "(18.731, 29.927]",
+          "n": 35,
+          "mean_predicted": 22.474745847389695,
+          "mean_actual": 22.622866992951025
+        },
+        {
+          "bin": "(2.412, 3.505]",
+          "n": 34,
+          "mean_predicted": 2.8987436135542213,
+          "mean_actual": 1.7247710670721053
+        },
+        {
+          "bin": "(3.505, 4.827]",
+          "n": 35,
+          "mean_predicted": 4.147325500879639,
+          "mean_actual": 3.0702319902319903
+        },
+        {
+          "bin": "(4.827, 6.614]",
+          "n": 34,
+          "mean_predicted": 5.816375182438221,
+          "mean_actual": 6.271953834324076
+        },
+        {
+          "bin": "(6.614, 8.247]",
+          "n": 34,
+          "mean_predicted": 7.2904634697191,
+          "mean_actual": 5.980839402811721
+        },
+        {
+          "bin": "(8.247, 10.654]",
+          "n": 35,
+          "mean_predicted": 9.383894601859025,
+          "mean_actual": 8.950688070099835
+        }
+      ]
+    },
+    {
+      "position": "RB",
+      "stat": "receptions",
+      "coverage": 0.7965116279069767,
+      "reliability": [
+        {
+          "bin": "(-0.0914, 0.193]",
+          "n": 35,
+          "mean_predicted": 0.11888928800916101,
+          "mean_actual": 0.07487995198079232
+        },
+        {
+          "bin": "(0.193, 0.291]",
+          "n": 34,
+          "mean_predicted": 0.23247906362113552,
+          "mean_actual": 0.15322398190045247
+        },
+        {
+          "bin": "(0.291, 0.437]",
+          "n": 34,
+          "mean_predicted": 0.35029931781537366,
+          "mean_actual": 0.31276339721408924
+        },
+        {
+          "bin": "(0.437, 0.67]",
+          "n": 35,
+          "mean_predicted": 0.5514146208383272,
+          "mean_actual": 0.44482693077230895
+        },
+        {
+          "bin": "(0.67, 0.875]",
+          "n": 34,
+          "mean_predicted": 0.7779211837259146,
+          "mean_actual": 0.9562356088740172
+        },
+        {
+          "bin": "(0.875, 1.133]",
+          "n": 34,
+          "mean_predicted": 0.9884616431887805,
+          "mean_actual": 0.9023558549293843
+        },
+        {
+          "bin": "(1.133, 1.471]",
+          "n": 35,
+          "mean_predicted": 1.3261524208946194,
+          "mean_actual": 1.1539987789987791
+        },
+        {
+          "bin": "(1.471, 1.774]",
+          "n": 34,
+          "mean_predicted": 1.613558117696447,
+          "mean_actual": 1.934565931473371
+        },
+        {
+          "bin": "(1.774, 2.367]",
+          "n": 34,
+          "mean_predicted": 2.0517606852587322,
+          "mean_actual": 2.0170538803756797
+        },
+        {
+          "bin": "(2.367, 4.099]",
+          "n": 35,
+          "mean_predicted": 2.9575480467718225,
+          "mean_actual": 2.946773786437652
+        }
+      ]
+    },
+    {
+      "position": "RB",
+      "stat": "rushing_tds",
+      "coverage": 0.7965116279069767,
+      "reliability": [
+        {
+          "bin": "(-0.0173, 0.0104]",
+          "n": 35,
+          "mean_predicted": 0.0033278540565497648,
+          "mean_actual": 0.012681436210847975
+        },
+        {
+          "bin": "(0.0104, 0.0269]",
+          "n": 34,
+          "mean_predicted": 0.018709034047682316,
+          "mean_actual": 0.017625432525951557
+        },
+        {
+          "bin": "(0.0269, 0.0449]",
+          "n": 34,
+          "mean_predicted": 0.03521194598284149,
+          "mean_actual": 0.022599480968858134
+        },
+        {
+          "bin": "(0.0449, 0.0656]",
+          "n": 35,
+          "mean_predicted": 0.05464115613916616,
+          "mean_actual": 0.04510971055088702
+        },
+        {
+          "bin": "(0.0656, 0.125]",
+          "n": 34,
+          "mean_predicted": 0.1016400854757932,
+          "mean_actual": 0.1331262595535952
+        },
+        {
+          "bin": "(0.125, 0.167]",
+          "n": 34,
+          "mean_predicted": 0.14598375034339298,
+          "mean_actual": 0.12454362966906218
+        },
+        {
+          "bin": "(0.167, 0.246]",
+          "n": 35,
+          "mean_predicted": 0.20572953724489967,
+          "mean_actual": 0.20736501593644452
+        },
+        {
+          "bin": "(0.246, 0.362]",
+          "n": 34,
+          "mean_predicted": 0.3037441084476225,
+          "mean_actual": 0.36209353650962645
+        },
+        {
+          "bin": "(0.362, 0.438]",
+          "n": 34,
+          "mean_predicted": 0.39863014764660726,
+          "mean_actual": 0.38376105344098427
+        },
+        {
+          "bin": "(0.438, 0.708]",
+          "n": 35,
+          "mean_predicted": 0.5141009473976337,
+          "mean_actual": 0.3991590482346785
+        }
+      ]
+    },
+    {
+      "position": "RB",
+      "stat": "rushing_yards",
+      "coverage": 0.7965116279069767,
+      "reliability": [
+        {
+          "bin": "(-0.0862, 3.229]",
+          "n": 35,
+          "mean_predicted": 2.2430984696306986,
+          "mean_actual": 1.7869238604532722
+        },
+        {
+          "bin": "(11.758, 16.792]",
+          "n": 34,
+          "mean_predicted": 15.08773696767594,
+          "mean_actual": 20.070074403681673
+        },
+        {
+          "bin": "(16.792, 26.676]",
+          "n": 34,
+          "mean_predicted": 21.79364800480701,
+          "mean_actual": 18.377871623762626
+        },
+        {
+          "bin": "(26.676, 35.84]",
+          "n": 35,
+          "mean_predicted": 31.168922079570464,
+          "mean_actual": 28.59905645008586
+        },
+        {
+          "bin": "(3.229, 4.58]",
+          "n": 34,
+          "mean_predicted": 3.936189785510854,
+          "mean_actual": 4.434391106298546
+        },
+        {
+          "bin": "(35.84, 47.228]",
+          "n": 34,
+          "mean_predicted": 41.3014229472628,
+          "mean_actual": 44.615821661518034
+        },
+        {
+          "bin": "(4.58, 6.413]",
+          "n": 34,
+          "mean_predicted": 5.5403496983444995,
+          "mean_actual": 4.011750288350634
+        },
+        {
+          "bin": "(47.228, 54.795]",
+          "n": 34,
+          "mean_predicted": 50.80089737698089,
+          "mean_actual": 52.321577869458494
+        },
+        {
+          "bin": "(54.795, 77.305]",
+          "n": 35,
+          "mean_predicted": 63.14314770401908,
+          "mean_actual": 54.80688675470188
+        },
+        {
+          "bin": "(6.413, 11.758]",
+          "n": 35,
+          "mean_predicted": 8.752616633922827,
+          "mean_actual": 6.785681888139871
+        }
+      ]
+    },
+    {
+      "position": "RB",
+      "stat": "targets",
+      "coverage": 0.7965116279069767,
+      "reliability": [
+        {
+          "bin": "(-0.0913, 0.23]",
+          "n": 35,
+          "mean_predicted": 0.14683044290644845,
+          "mean_actual": 0.11019671504965624
+        },
+        {
+          "bin": "(0.23, 0.372]",
+          "n": 34,
+          "mean_predicted": 0.303832535696457,
+          "mean_actual": 0.1796317868982229
+        },
+        {
+          "bin": "(0.372, 0.551]",
+          "n": 34,
+          "mean_predicted": 0.4606598761494891,
+          "mean_actual": 0.4828329710466389
+        },
+        {
+          "bin": "(0.551, 0.897]",
+          "n": 35,
+          "mean_predicted": 0.7439345505088457,
+          "mean_actual": 0.5119941309857275
+        },
+        {
+          "bin": "(0.897, 1.213]",
+          "n": 34,
+          "mean_predicted": 1.036949372315323,
+          "mean_actual": 1.2873111197721925
+        },
+        {
+          "bin": "(1.213, 1.574]",
+          "n": 34,
+          "mean_predicted": 1.3785395800172562,
+          "mean_actual": 1.2372077173115235
+        },
+        {
+          "bin": "(1.574, 1.931]",
+          "n": 35,
+          "mean_predicted": 1.7370237978662173,
+          "mean_actual": 1.4057175177763415
+        },
+        {
+          "bin": "(1.931, 2.289]",
+          "n": 34,
+          "mean_predicted": 2.0774556757394773,
+          "mean_actual": 2.3130471100410546
+        },
+        {
+          "bin": "(2.289, 3.081]",
+          "n": 34,
+          "mean_predicted": 2.659456762831237,
+          "mean_actual": 2.6494948318693994
+        },
+        {
+          "bin": "(3.081, 5.215]",
+          "n": 35,
+          "mean_predicted": 3.7693709599611007,
+          "mean_actual": 3.6766453504478713
+        }
+      ]
+    },
+    {
+      "position": "TE",
+      "stat": "receiving_tds",
+      "coverage": 0.7976190476190477,
+      "reliability": [
+        {
+          "bin": "(-0.001861, 0.012]",
+          "n": 34,
+          "mean_predicted": 0.005526149872275106,
+          "mean_actual": 0.02575932333717801
+        },
+        {
+          "bin": "(0.012, 0.022]",
+          "n": 34,
+          "mean_predicted": 0.017937129657845875,
+          "mean_actual": 0.02498447342738
+        },
+        {
+          "bin": "(0.022, 0.0353]",
+          "n": 33,
+          "mean_predicted": 0.02763436491665767,
+          "mean_actual": 0.03588829471182412
+        },
+        {
+          "bin": "(0.0353, 0.0595]",
+          "n": 34,
+          "mean_predicted": 0.046609643908757895,
+          "mean_actual": 0.0591623414071511
+        },
+        {
+          "bin": "(0.0595, 0.0729]",
+          "n": 33,
+          "mean_predicted": 0.06655406533722975,
+          "mean_actual": 0.07221250971250971
+        },
+        {
+          "bin": "(0.0729, 0.0865]",
+          "n": 34,
+          "mean_predicted": 0.08008050895023786,
+          "mean_actual": 0.05008453916325889
+        },
+        {
+          "bin": "(0.0865, 0.108]",
+          "n": 33,
+          "mean_predicted": 0.09569612998089631,
+          "mean_actual": 0.0816250742721331
+        },
+        {
+          "bin": "(0.108, 0.147]",
+          "n": 34,
+          "mean_predicted": 0.1231462498704565,
+          "mean_actual": 0.10819803034335906
+        },
+        {
+          "bin": "(0.147, 0.227]",
+          "n": 33,
+          "mean_predicted": 0.1805760429555008,
+          "mean_actual": 0.1769162210338681
+        },
+        {
+          "bin": "(0.227, 0.423]",
+          "n": 34,
+          "mean_predicted": 0.309474918432449,
+          "mean_actual": 0.2897674629292276
+        }
+      ]
+    },
+    {
+      "position": "TE",
+      "stat": "receiving_yards",
+      "coverage": 0.7976190476190477,
+      "reliability": [
+        {
+          "bin": "(0.67, 1.881]",
+          "n": 34,
+          "mean_predicted": 1.40187325561685,
+          "mean_actual": 2.285363147041348
+        },
+        {
+          "bin": "(1.881, 2.84]",
+          "n": 34,
+          "mean_predicted": 2.285223231841902,
+          "mean_actual": 2.0087455436720143
+        },
+        {
+          "bin": "(10.994, 16.223]",
+          "n": 33,
+          "mean_predicted": 13.127677753351415,
+          "mean_actual": 12.157685451803099
+        },
+        {
+          "bin": "(16.223, 24.772]",
+          "n": 34,
+          "mean_predicted": 20.095381309334897,
+          "mean_actual": 20.45624178301514
+        },
+        {
+          "bin": "(2.84, 4.167]",
+          "n": 33,
+          "mean_predicted": 3.354695064334652,
+          "mean_actual": 2.468885689473925
+        },
+        {
+          "bin": "(24.772, 34.704]",
+          "n": 33,
+          "mean_predicted": 30.050908519216524,
+          "mean_actual": 30.518947963800905
+        },
+        {
+          "bin": "(34.704, 51.069]",
+          "n": 34,
+          "mean_predicted": 41.809382381237995,
+          "mean_actual": 42.22253449405266
+        },
+        {
+          "bin": "(4.167, 6.367]",
+          "n": 34,
+          "mean_predicted": 5.195920967457052,
+          "mean_actual": 6.111822376009227
+        },
+        {
+          "bin": "(6.367, 8.178]",
+          "n": 33,
+          "mean_predicted": 7.372346812166256,
+          "mean_actual": 4.694330674277198
+        },
+        {
+          "bin": "(8.178, 10.994]",
+          "n": 34,
+          "mean_predicted": 9.545111190440853,
+          "mean_actual": 11.975646412411118
+        }
+      ]
+    },
+    {
+      "position": "TE",
+      "stat": "receptions",
+      "coverage": 0.7976190476190477,
+      "reliability": [
+        {
+          "bin": "(0.0010600000000000002, 0.192]",
+          "n": 34,
+          "mean_predicted": 0.129060523531581,
+          "mean_actual": 0.18727412533640908
+        },
+        {
+          "bin": "(0.192, 0.279]",
+          "n": 34,
+          "mean_predicted": 0.24067495873058384,
+          "mean_actual": 0.21957951218331842
+        },
+        {
+          "bin": "(0.279, 0.438]",
+          "n": 33,
+          "mean_predicted": 0.35482605467519046,
+          "mean_actual": 0.3230517848164907
+        },
+        {
+          "bin": "(0.438, 0.684]",
+          "n": 34,
+          "mean_predicted": 0.5689889131319511,
+          "mean_actual": 0.6548495333962462
+        },
+        {
+          "bin": "(0.684, 0.872]",
+          "n": 33,
+          "mean_predicted": 0.776128425695898,
+          "mean_actual": 0.7852311087605206
+        },
+        {
+          "bin": "(0.872, 1.096]",
+          "n": 34,
+          "mean_predicted": 0.9755643100287882,
+          "mean_actual": 0.9261818415148866
+        },
+        {
+          "bin": "(1.096, 1.542]",
+          "n": 33,
+          "mean_predicted": 1.30444828566365,
+          "mean_actual": 1.274372686137392
+        },
+        {
+          "bin": "(1.542, 2.337]",
+          "n": 34,
+          "mean_predicted": 1.96138440278703,
+          "mean_actual": 1.8931789447576644
+        },
+        {
+          "bin": "(2.337, 3.399]",
+          "n": 33,
+          "mean_predicted": 2.7985269205782393,
+          "mean_actual": 3.058989213400978
+        },
+        {
+          "bin": "(3.399, 4.829]",
+          "n": 34,
+          "mean_predicted": 4.0729885379531545,
+          "mean_actual": 4.046871400418113
+        }
+      ]
+    },
+    {
+      "position": "TE",
+      "stat": "targets",
+      "coverage": 0.7976190476190477,
+      "reliability": [
+        {
+          "bin": "(-0.010690000000000002, 0.263]",
+          "n": 34,
+          "mean_predicted": 0.1851679190200661,
+          "mean_actual": 0.26076749327181853
+        },
+        {
+          "bin": "(0.263, 0.382]",
+          "n": 34,
+          "mean_predicted": 0.32104377190743294,
+          "mean_actual": 0.2977711806647793
+        },
+        {
+          "bin": "(0.382, 0.606]",
+          "n": 33,
+          "mean_predicted": 0.48335748193419237,
+          "mean_actual": 0.5381213409288276
+        },
+        {
+          "bin": "(0.606, 0.913]",
+          "n": 34,
+          "mean_predicted": 0.7620714112624052,
+          "mean_actual": 0.6894028117211508
+        },
+        {
+          "bin": "(0.913, 1.261]",
+          "n": 33,
+          "mean_predicted": 1.126747884070854,
+          "mean_actual": 1.1177885295532353
+        },
+        {
+          "bin": "(1.261, 1.622]",
+          "n": 34,
+          "mean_predicted": 1.4527473827871733,
+          "mean_actual": 1.521140537663029
+        },
+        {
+          "bin": "(1.622, 2.208]",
+          "n": 33,
+          "mean_predicted": 1.9209174121120633,
+          "mean_actual": 1.782862235803412
+        },
+        {
+          "bin": "(2.208, 3.4]",
+          "n": 34,
+          "mean_predicted": 2.721592261765453,
+          "mean_actual": 2.5508401993047323
+        },
+        {
+          "bin": "(3.4, 4.901]",
+          "n": 33,
+          "mean_predicted": 4.075330773645172,
+          "mean_actual": 4.437111759304273
+        },
+        {
+          "bin": "(4.901, 6.988]",
+          "n": 34,
+          "mean_predicted": 5.853571896094452,
+          "mean_actual": 5.422948487978765
+        }
+      ]
+    },
+    {
+      "position": "WR",
+      "stat": "receiving_tds",
+      "coverage": 0.7973421926910299,
+      "reliability": [
+        {
+          "bin": "(-0.013500000000000002, 0.00859]",
+          "n": 61,
+          "mean_predicted": 0.0021717560764399407,
+          "mean_actual": 0.0068707810993249765
+        },
+        {
+          "bin": "(0.00859, 0.0162]",
+          "n": 60,
+          "mean_predicted": 0.012638090450306266,
+          "mean_actual": 0.02028769841269841
+        },
+        {
+          "bin": "(0.0162, 0.0248]",
+          "n": 60,
+          "mean_predicted": 0.020614547721375567,
+          "mean_actual": 0.022638146167557934
+        },
+        {
+          "bin": "(0.0248, 0.0371]",
+          "n": 60,
+          "mean_predicted": 0.03028829327276735,
+          "mean_actual": 0.03300653594771242
+        },
+        {
+          "bin": "(0.0371, 0.0654]",
+          "n": 60,
+          "mean_predicted": 0.049357173579931954,
+          "mean_actual": 0.09268250948398007
+        },
+        {
+          "bin": "(0.0654, 0.0949]",
+          "n": 60,
+          "mean_predicted": 0.08071754314046632,
+          "mean_actual": 0.11775745496333732
+        },
+        {
+          "bin": "(0.0949, 0.138]",
+          "n": 60,
+          "mean_predicted": 0.11657643945923366,
+          "mean_actual": 0.1493854674737028
+        },
+        {
+          "bin": "(0.138, 0.219]",
+          "n": 60,
+          "mean_predicted": 0.17719573366268931,
+          "mean_actual": 0.2053972498090145
+        },
+        {
+          "bin": "(0.219, 0.344]",
+          "n": 60,
+          "mean_predicted": 0.2765480248752335,
+          "mean_actual": 0.27180897261779613
+        },
+        {
+          "bin": "(0.344, 0.606]",
+          "n": 61,
+          "mean_predicted": 0.4244259914421111,
+          "mean_actual": 0.39717569208890324
+        }
+      ]
+    },
+    {
+      "position": "WR",
+      "stat": "receiving_yards",
+      "coverage": 0.7973421926910299,
+      "reliability": [
+        {
+          "bin": "(-0.001, 1.749]",
+          "n": 61,
+          "mean_predicted": 1.0054131587456094,
+          "mean_actual": 1.346461819280045
+        },
+        {
+          "bin": "(1.749, 3.46]",
+          "n": 60,
+          "mean_predicted": 2.668689828945354,
+          "mean_actual": 2.409117919117919
+        },
+        {
+          "bin": "(12.66, 18.077]",
+          "n": 60,
+          "mean_predicted": 15.126461749652945,
+          "mean_actual": 15.851873600255953
+        },
+        {
+          "bin": "(18.077, 24.394]",
+          "n": 60,
+          "mean_predicted": 21.03748437909364,
+          "mean_actual": 23.684188103563102
+        },
+        {
+          "bin": "(24.394, 35.562]",
+          "n": 60,
+          "mean_predicted": 29.616800943096653,
+          "mean_actual": 33.39598615436851
+        },
+        {
+          "bin": "(3.46, 5.31]",
+          "n": 60,
+          "mean_predicted": 4.374127149403514,
+          "mean_actual": 4.092488997930174
+        },
+        {
+          "bin": "(35.562, 55.346]",
+          "n": 60,
+          "mean_predicted": 46.63808441688857,
+          "mean_actual": 51.249350129717776
+        },
+        {
+          "bin": "(5.31, 7.671]",
+          "n": 60,
+          "mean_predicted": 6.338461605799411,
+          "mean_actual": 6.217921275347746
+        },
+        {
+          "bin": "(55.346, 90.318]",
+          "n": 61,
+          "mean_predicted": 66.95982545494093,
+          "mean_actual": 63.6378518620563
+        },
+        {
+          "bin": "(7.671, 12.66]",
+          "n": 60,
+          "mean_predicted": 9.98692763260321,
+          "mean_actual": 13.958912589317002
+        }
+      ]
+    },
+    {
+      "position": "WR",
+      "stat": "receptions",
+      "coverage": 0.7973421926910299,
+      "reliability": [
+        {
+          "bin": "(-0.107, 0.165]",
+          "n": 61,
+          "mean_predicted": 0.07484395178731379,
+          "mean_actual": 0.08670536310362734
+        },
+        {
+          "bin": "(0.165, 0.308]",
+          "n": 60,
+          "mean_predicted": 0.2391549055521542,
+          "mean_actual": 0.2018585893953541
+        },
+        {
+          "bin": "(0.308, 0.471]",
+          "n": 60,
+          "mean_predicted": 0.3826564626200832,
+          "mean_actual": 0.3888761973320797
+        },
+        {
+          "bin": "(0.471, 0.701]",
+          "n": 60,
+          "mean_predicted": 0.5787466525415524,
+          "mean_actual": 0.6130881495955026
+        },
+        {
+          "bin": "(0.701, 1.079]",
+          "n": 60,
+          "mean_predicted": 0.8763882593515075,
+          "mean_actual": 0.9560360812934342
+        },
+        {
+          "bin": "(1.079, 1.525]",
+          "n": 60,
+          "mean_predicted": 1.2766610765527624,
+          "mean_actual": 1.5220073023381846
+        },
+        {
+          "bin": "(1.525, 2.167]",
+          "n": 60,
+          "mean_predicted": 1.810032429177565,
+          "mean_actual": 1.9429856295665118
+        },
+        {
+          "bin": "(2.167, 2.892]",
+          "n": 60,
+          "mean_predicted": 2.5175664679811236,
+          "mean_actual": 2.6634179137855605
+        },
+        {
+          "bin": "(2.892, 4.396]",
+          "n": 60,
+          "mean_predicted": 3.696134314353732,
+          "mean_actual": 3.7757029503720676
+        },
+        {
+          "bin": "(4.396, 7.04]",
+          "n": 61,
+          "mean_predicted": 5.265108276801133,
+          "mean_actual": 4.950710950626573
+        }
+      ]
+    },
+    {
+      "position": "WR",
+      "stat": "targets",
+      "coverage": 0.7973421926910299,
+      "reliability": [
+        {
+          "bin": "(-0.0383, 0.29]",
+          "n": 61,
+          "mean_predicted": 0.1392601978536194,
+          "mean_actual": 0.16022351563576248
+        },
+        {
+          "bin": "(0.29, 0.519]",
+          "n": 60,
+          "mean_predicted": 0.4135080476547716,
+          "mean_actual": 0.2885663097795451
+        },
+        {
+          "bin": "(0.519, 0.785]",
+          "n": 60,
+          "mean_predicted": 0.6551748638842209,
+          "mean_actual": 0.5444560940149176
+        },
+        {
+          "bin": "(0.785, 1.104]",
+          "n": 60,
+          "mean_predicted": 0.9305344576981629,
+          "mean_actual": 1.0623238226914697
+        },
+        {
+          "bin": "(1.104, 1.694]",
+          "n": 60,
+          "mean_predicted": 1.3852031700341407,
+          "mean_actual": 1.6615442346324698
+        },
+        {
+          "bin": "(1.694, 2.433]",
+          "n": 60,
+          "mean_predicted": 2.0310873705068477,
+          "mean_actual": 2.105994128420599
+        },
+        {
+          "bin": "(2.433, 3.473]",
+          "n": 60,
+          "mean_predicted": 2.955180938050817,
+          "mean_actual": 3.3334852728970374
+        },
+        {
+          "bin": "(3.473, 4.553]",
+          "n": 60,
+          "mean_predicted": 3.995078680308086,
+          "mean_actual": 4.399694521165109
+        },
+        {
+          "bin": "(4.553, 6.778]",
+          "n": 60,
+          "mean_predicted": 5.756953530527835,
+          "mean_actual": 6.029178936531878
+        },
+        {
+          "bin": "(6.778, 9.841]",
+          "n": 61,
+          "mean_predicted": 8.09150134304928,
+          "mean_actual": 7.43181588715581
+        }
+      ]
+    }
+  ],
+  "coverage_by_position_season": [
+    {
+      "position": "QB",
+      "n": 592,
+      "coverage": 0.714527027027027,
+      "test_season": 2023
+    },
+    {
+      "position": "RB",
+      "n": 840,
+      "coverage": 0.8047619047619048,
+      "test_season": 2023
+    },
+    {
+      "position": "TE",
+      "n": 428,
+      "coverage": 0.8411214953271028,
+      "test_season": 2023
+    },
+    {
+      "position": "WR",
+      "n": 800,
+      "coverage": 0.83625,
+      "test_season": 2023
+    },
+    {
+      "position": "QB",
+      "n": 592,
+      "coverage": 0.7094594594594594,
+      "test_season": 2024
+    },
+    {
+      "position": "RB",
+      "n": 770,
+      "coverage": 0.8077922077922078,
+      "test_season": 2024
+    },
+    {
+      "position": "TE",
+      "n": 452,
+      "coverage": 0.8650442477876106,
+      "test_season": 2024
+    },
+    {
+      "position": "WR",
+      "n": 816,
+      "coverage": 0.8223039215686274,
+      "test_season": 2024
+    },
+    {
+      "position": "QB",
+      "n": 568,
+      "coverage": 0.7235915492957746,
+      "test_season": 2025
+    },
+    {
+      "position": "RB",
+      "n": 798,
+      "coverage": 0.7882205513784462,
+      "test_season": 2025
+    },
+    {
+      "position": "TE",
+      "n": 464,
+      "coverage": 0.8793103448275862,
+      "test_season": 2025
+    },
+    {
+      "position": "WR",
+      "n": 792,
+      "coverage": 0.8181818181818182,
+      "test_season": 2025
+    }
+  ]
+}

@@ -1,0 +1,362 @@
+{
+  "metadata": {
+    "target_season": 2025,
+    "scoring": "half-PPR season points",
+    "population": "v1 leakage-safe Week-1 roster (ACT/DEV/RES/INA/EXE); position/team frozen preseason",
+    "v1_model": "fantasy-projections rate-forecast (LightGBM + composition gates)",
+    "v2_model": "fantasy-projections-2 team-first (strict preseason OOF season totals)",
+    "v1_source": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\fantasy_evaluation_2025.csv",
+    "v2_source": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\outputs\\preseason_oof.parquet",
+    "population_n": 755,
+    "v2_covered_n": 574,
+    "caveat": "Same population and actuals. v1 points are the harness end-to-end season forecast; v2 points are summed week-level strict-preseason OOF projections. Populations/joins differ from each repo's native published summary tables."
+  },
+  "on_v1_population_missing_v2_as_zero": {
+    "v1_rate_forecast": {
+      "overall": {
+        "n": 755,
+        "spearman": 0.7578211281689957,
+        "points_mae": 28.017330248084708
+      },
+      "by_position": {
+        "QB": {
+          "n": 107,
+          "spearman": 0.7766449251582496,
+          "points_mae": 40.46263782126851,
+          "tier": {
+            "n": 12,
+            "hits": 6,
+            "hit_rate": 0.5
+          }
+        },
+        "RB": {
+          "n": 185,
+          "spearman": 0.6909897291559856,
+          "points_mae": 35.537069135409496,
+          "tier": {
+            "n": 24,
+            "hits": 17,
+            "hit_rate": 0.7083333333333334
+          }
+        },
+        "TE": {
+          "n": 165,
+          "spearman": 0.82890324990166,
+          "points_mae": 17.15148125435823,
+          "tier": {
+            "n": 12,
+            "hits": 6,
+            "hit_rate": 0.5
+          }
+        },
+        "WR": {
+          "n": 298,
+          "spearman": 0.7768681524575246,
+          "points_mae": 24.896744608752876,
+          "tier": {
+            "n": 36,
+            "hits": 21,
+            "hit_rate": 0.5833333333333334
+          }
+        }
+      }
+    },
+    "v2_team_first": {
+      "overall": {
+        "n": 755,
+        "spearman": 0.757349718401386,
+        "points_mae": 26.054663539823675
+      },
+      "by_position": {
+        "QB": {
+          "n": 107,
+          "spearman": 0.7754720458202847,
+          "points_mae": 29.402783440549015,
+          "tier": {
+            "n": 12,
+            "hits": 6,
+            "hit_rate": 0.5
+          }
+        },
+        "RB": {
+          "n": 185,
+          "spearman": 0.6570569205824721,
+          "points_mae": 36.26092010193064,
+          "tier": {
+            "n": 24,
+            "hits": 17,
+            "hit_rate": 0.7083333333333334
+          }
+        },
+        "TE": {
+          "n": 165,
+          "spearman": 0.7570477210981775,
+          "points_mae": 18.510099586614828,
+          "tier": {
+            "n": 12,
+            "hits": 5,
+            "hit_rate": 0.4166666666666667
+          }
+        },
+        "WR": {
+          "n": 298,
+          "spearman": 0.8089514167733597,
+          "points_mae": 22.6937466234212,
+          "tier": {
+            "n": 36,
+            "hits": 23,
+            "hit_rate": 0.6388888888888888
+          }
+        }
+      }
+    },
+    "carry_forward_baseline": {
+      "overall": {
+        "n": 755,
+        "spearman": 0.6395984576428583,
+        "points_mae": 32.24635761589404
+      },
+      "by_position": {
+        "QB": {
+          "n": 107,
+          "spearman": 0.6509655821035341,
+          "points_mae": 50.7007476635514,
+          "tier": {
+            "n": 12,
+            "hits": 7,
+            "hit_rate": 0.5833333333333334
+          }
+        },
+        "RB": {
+          "n": 185,
+          "spearman": 0.5531796003400439,
+          "points_mae": 37.279675675675676,
+          "tier": {
+            "n": 24,
+            "hits": 14,
+            "hit_rate": 0.5833333333333334
+          }
+        },
+        "TE": {
+          "n": 165,
+          "spearman": 0.6927999217421269,
+          "points_mae": 21.990909090909092,
+          "tier": {
+            "n": 12,
+            "hits": 3,
+            "hit_rate": 0.25
+          }
+        },
+        "WR": {
+          "n": 298,
+          "spearman": 0.6815927842310766,
+          "points_mae": 28.173758389261746,
+          "tier": {
+            "n": 36,
+            "hits": 22,
+            "hit_rate": 0.6111111111111112
+          }
+        }
+      }
+    }
+  },
+  "on_intersection_only": {
+    "v1_rate_forecast": {
+      "overall": {
+        "n": 574,
+        "spearman": 0.7428567831216278,
+        "points_mae": 34.27080583236523
+      },
+      "by_position": {
+        "QB": {
+          "n": 85,
+          "spearman": 0.7648448389994872,
+          "points_mae": 49.26433971479486,
+          "tier": {
+            "n": 12,
+            "hits": 6,
+            "hit_rate": 0.5
+          }
+        },
+        "RB": {
+          "n": 148,
+          "spearman": 0.6987214654950271,
+          "points_mae": 40.49737942819197,
+          "tier": {
+            "n": 24,
+            "hits": 17,
+            "hit_rate": 0.7083333333333334
+          }
+        },
+        "TE": {
+          "n": 125,
+          "spearman": 0.8060478714611227,
+          "points_mae": 21.11847357145031,
+          "tier": {
+            "n": 12,
+            "hits": 6,
+            "hit_rate": 0.5
+          }
+        },
+        "WR": {
+          "n": 216,
+          "spearman": 0.7441227948435107,
+          "points_mae": 31.715520001001753,
+          "tier": {
+            "n": 36,
+            "hits": 21,
+            "hit_rate": 0.5833333333333334
+          }
+        }
+      }
+    },
+    "v2_team_first": {
+      "overall": {
+        "n": 574,
+        "spearman": 0.7321912371962188,
+        "points_mae": 32.54179611945449
+      },
+      "by_position": {
+        "QB": {
+          "n": 85,
+          "spearman": 0.7736084693681962,
+          "points_mae": 35.95550386045581,
+          "tier": {
+            "n": 12,
+            "hits": 6,
+            "hit_rate": 0.5
+          }
+        },
+        "RB": {
+          "n": 148,
+          "spearman": 0.6660678024465505,
+          "points_mae": 41.8511501274133,
+          "tier": {
+            "n": 24,
+            "hits": 17,
+            "hit_rate": 0.7083333333333334
+          }
+        },
+        "TE": {
+          "n": 125,
+          "spearman": 0.6978979461245463,
+          "points_mae": 23.538931454331582,
+          "tier": {
+            "n": 12,
+            "hits": 5,
+            "hit_rate": 0.4166666666666667
+          }
+        },
+        "WR": {
+          "n": 216,
+          "spearman": 0.7666671216514007,
+          "points_mae": 30.029798582312583,
+          "tier": {
+            "n": 36,
+            "hits": 23,
+            "hit_rate": 0.6388888888888888
+          }
+        }
+      }
+    },
+    "carry_forward_baseline": {
+      "overall": {
+        "n": 574,
+        "spearman": 0.6020682999484668,
+        "points_mae": 40.28926829268293
+      },
+      "by_position": {
+        "QB": {
+          "n": 85,
+          "spearman": 0.6287687042459794,
+          "points_mae": 62.84070588235293,
+          "tier": {
+            "n": 12,
+            "hits": 7,
+            "hit_rate": 0.5833333333333334
+          }
+        },
+        "RB": {
+          "n": 148,
+          "spearman": 0.5674709339995565,
+          "points_mae": 42.46918918918918,
+          "tier": {
+            "n": 24,
+            "hits": 14,
+            "hit_rate": 0.5833333333333334
+          }
+        },
+        "TE": {
+          "n": 125,
+          "spearman": 0.6099800016424893,
+          "points_mae": 27.676,
+          "tier": {
+            "n": 12,
+            "hits": 3,
+            "hit_rate": 0.25
+          }
+        },
+        "WR": {
+          "n": 216,
+          "spearman": 0.6311254973820976,
+          "points_mae": 37.220555555555556,
+          "tier": {
+            "n": 36,
+            "hits": 22,
+            "hit_rate": 0.6111111111111112
+          }
+        }
+      }
+    }
+  },
+  "winners_intersection": {
+    "QB": {
+      "spearman_winner": "v2_team_first",
+      "mae_winner": "v2_team_first",
+      "v1_spearman": 0.7648448389994872,
+      "v2_spearman": 0.7736084693681962,
+      "v1_mae": 49.26433971479486,
+      "v2_mae": 35.95550386045581,
+      "v1_tier_hit_rate": 0.5,
+      "v2_tier_hit_rate": 0.5
+    },
+    "RB": {
+      "spearman_winner": "v1_rate_forecast",
+      "mae_winner": "v1_rate_forecast",
+      "v1_spearman": 0.6987214654950271,
+      "v2_spearman": 0.6660678024465505,
+      "v1_mae": 40.49737942819197,
+      "v2_mae": 41.8511501274133,
+      "v1_tier_hit_rate": 0.7083333333333334,
+      "v2_tier_hit_rate": 0.7083333333333334
+    },
+    "WR": {
+      "spearman_winner": "v2_team_first",
+      "mae_winner": "v2_team_first",
+      "v1_spearman": 0.7441227948435107,
+      "v2_spearman": 0.7666671216514007,
+      "v1_mae": 31.715520001001753,
+      "v2_mae": 30.029798582312583,
+      "v1_tier_hit_rate": 0.5833333333333334,
+      "v2_tier_hit_rate": 0.6388888888888888
+    },
+    "TE": {
+      "spearman_winner": "v1_rate_forecast",
+      "mae_winner": "v1_rate_forecast",
+      "v1_spearman": 0.8060478714611227,
+      "v2_spearman": 0.6978979461245463,
+      "v1_mae": 21.11847357145031,
+      "v2_mae": 23.538931454331582,
+      "v1_tier_hit_rate": 0.5,
+      "v2_tier_hit_rate": 0.4166666666666667
+    }
+  },
+  "headline": {
+    "preferred_board": "v1_rate_forecast",
+    "metric": "season-points Spearman on intersection",
+    "v1_spearman": 0.7428567831216278,
+    "v2_spearman": 0.7321912371962188,
+    "v1_mae": 34.27080583236523,
+    "v2_mae": 32.54179611945449
+  }
+}

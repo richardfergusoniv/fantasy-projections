@@ -1,0 +1,103 @@
+{
+  "schema_version": "shadow_v1_rb_wr_finalization_audit_v1",
+  "generated_at": "2026-08-30T19:21:26.084689+00:00",
+  "producing_commit": "63f80973bdf66dff51fad3cef2a939a575769f56",
+  "finding": "no_cutoff_available_defect",
+  "defects": [],
+  "depth_ladder": {
+    "retired_per_decision_doc": true,
+    "live_call_sites": {
+      "src/projection/composition.py": {
+        "apply_depth_rate_ladder": false,
+        "depth_rate_factors": false
+      },
+      "src/projection/depth_gating.py": {
+        "apply_depth_rate_ladder": false,
+        "depth_rate_factors": false
+      },
+      "src/projection/fantasy_evaluation.py": {
+        "apply_depth_rate_ladder": false,
+        "depth_rate_factors": false
+      },
+      "src/projection/veterans.py": {
+        "apply_depth_rate_ladder": false,
+        "depth_rate_factors": false
+      },
+      "src/projection/predict.py": {
+        "apply_depth_rate_ladder": false,
+        "depth_rate_factors": false
+      },
+      "src/projection/backtest.py": {
+        "apply_depth_rate_ladder": false,
+        "depth_rate_factors": false
+      }
+    },
+    "live_ladder_application_detected": false,
+    "defect": null,
+    "note": "role_discount_factor is an audit constant (1.0); depth reaches rates via ROLE_FEATURES / depth_tier, not a post-hoc multiplier."
+  },
+  "corrections_joblib": {
+    "path": "C:/Users/rdfer/Projects/fantasy-projections/models/corrections.joblib",
+    "exists": true,
+    "sha256": "e44ee89c5f79cf327f576c96225de53e1227619e2a2c2237da7de436770fcfea",
+    "positions": [
+      "TE"
+    ],
+    "rb_wr_params_present": false,
+    "traced_boards_nonzero_elite_correction": false,
+    "eval_path_omits_corrections": true,
+    "defect": null,
+    "traced_elite_correction_nonzero_rows": 0,
+    "traced_elite_correction_rows_scanned": 10261,
+    "defects": [],
+    "note": "corrections.joblib is TE-only elite shrinkage on the ship path; leakage-safe folds omit it by design (fit spans the target season)."
+  },
+  "finalization": {
+    "folds": [
+      {
+        "fold": "2022->2023",
+        "n_top120": 90,
+        "mean_abs_finalization": 6.4370843496190595,
+        "identity_recon_max_abs_gap": 5.684341886080802e-14,
+        "corr_finalization_vs_identity_delta": 1.0,
+        "role_discount_non_identity": false,
+        "stage_ppg_delta_at_finalization_is_zero": true
+      },
+      {
+        "fold": "2023->2024",
+        "n_top120": 93,
+        "mean_abs_finalization": 6.515092149330241,
+        "identity_recon_max_abs_gap": 5.684341886080802e-14,
+        "corr_finalization_vs_identity_delta": 0.9999999999999998,
+        "role_discount_non_identity": false,
+        "stage_ppg_delta_at_finalization_is_zero": true
+      },
+      {
+        "fold": "2024->2025",
+        "n_top120": 90,
+        "mean_abs_finalization": 6.980492803483159,
+        "identity_recon_max_abs_gap": 8.526512829121202e-14,
+        "corr_finalization_vs_identity_delta": 1.0,
+        "role_discount_non_identity": false,
+        "stage_ppg_delta_at_finalization_is_zero": true
+      }
+    ],
+    "identity_recon_max_abs_gap": 8.526512829121202e-14,
+    "explained_by_reconcile_team_season_identities": true,
+    "rates_untouched_at_finalization": true,
+    "defect": null,
+    "defects": [],
+    "note": "Material finalization_remainder is expected: reconcile_team_season_identities scales pred_season only to restore pass/catch identities. It is not a Gate-A mismatch and is not a cutoff-available ranking defect for RB/WR."
+  },
+  "input_hashes": {
+    "manifest.json": "f3f2032aea907594c95252e07763314b2eeca7ad63c4421feceab315242b78f5",
+    "attribution_players.parquet": "cd0e5985d0904e97ff4e542141b0d5fa070b35b936c69ed312e5ef622e02b1ff",
+    "attribution_summary.json": "df75632604edcf33153faac9803cf97d517743d6ff9c2928b30072e55c51e0eb",
+    "stage_attribution.csv": "9b7a37a3153fb2fdbfa5bfcacc0cb69cabd17a06640fa7bec7f3db2dfdf9b3aa",
+    "step6_decision.json": "31b7e0887bfd37af2235f719ca09fffa0832993881049f31cdca441e67865828",
+    "models/corrections.joblib": "e44ee89c5f79cf327f576c96225de53e1227619e2a2c2237da7de436770fcfea"
+  },
+  "production_weights_unchanged": true,
+  "promotion_authorized": false,
+  "artifact_hash": "b8d872d3a6aee8493e45ca129f62b8b12abc69723dfdc527a8c39953709b5b85"
+}

@@ -1,0 +1,22 @@
+{
+  "freeze_id": "draw_stability_intermediate_v20k_2026",
+  "frozen_at": "2026-08-28T21:27:35.994709+00:00",
+  "season": 2026,
+  "source_paths": {
+    "draw_stability_intermediate_v20k_2026.json": "output/model_v3/draw_stability_intermediate_v20k_2026.json",
+    "draw_count_decision.json": "output/model_v3/draw_count_decision.json",
+    "decision_change_diagnostics_2026.json": "output/model_v3/decision_change_diagnostics_2026.json",
+    "player_stability_diagnostics_2026.parquet": "output/model_v3/player_stability_diagnostics_2026.parquet"
+  },
+  "sha256": {
+    "draw_stability_intermediate_v20k_2026.json": "e3605f6c4af3c6e4eab0b8b212bd3f0a0d303aa1e2125a53014e3e8984da0eef",
+    "draw_count_decision.json": "853ad536810572dd6a2cc416a6cb722e529279590af8195ffbc2c5fea4642beb",
+    "decision_change_diagnostics_2026.json": "85a34b460533dc4ea7dc787f72369e84184a2a394570e5f892a6870f950ce903",
+    "player_stability_diagnostics_2026.parquet": "e2ef64d8508ca472f0c26f92c1cf293ce8d0b6a8a1b409ad89e20f2de4dec8cb",
+    "freeze_manifest.json": "3eb8ab5cb21a1b48ce49a5b3adebbbdc6e1bfcc8a2c738b801e1b5ca25674100"
+  },
+  "selected_board_hash": "67f2c4b88ad370b15e2363d4f915e5ec915d1ea6280625df528edfbd75d41700",
+  "canonical_projection_run_id": "d494c516-f86a-4fc3-afdd-dd8635b72ec5",
+  "reference_draw_count": 20000,
+  "nested_prefix_provenance_verdict": "ok"
+}

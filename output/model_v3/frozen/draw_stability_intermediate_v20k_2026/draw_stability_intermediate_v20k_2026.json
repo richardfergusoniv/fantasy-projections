@@ -1,0 +1,1357 @@
+{
+  "generated_at": "2026-08-28T20:04:27.858889+00:00",
+  "season": 2026,
+  "reference_draws": 20000,
+  "top_adp": 120.0,
+  "tolerances": {
+    "p50_abs": 0.25,
+    "p10_p90_abs": 1.0,
+    "sim_vorp_p50_abs": 0.5,
+    "probability_abs": 0.015,
+    "expected_pos_rank_abs": 0.25
+  },
+  "decision_thresholds": {
+    "p_finish_top12": 0.5,
+    "p_finish_top24": 0.5,
+    "p_vorp_positive": 0.5
+  },
+  "contract_hashes": {
+    "selected_board_hash": "67f2c4b88ad370b15e2363d4f915e5ec915d1ea6280625df528edfbd75d41700",
+    "roster_configuration_hash": "9059cd9471bbb3056950ffd1dfd076f9035f974a9b4db85ce70794c8fbe5b2ed",
+    "replacement_contract_hash": "9077643fd365516383db4feca6e6d51cf38ace2ef6a20c55891ce059d9260d66",
+    "finish_probability_gate_hash": "1c806c8b5a6b0165db57862a0d4e97122a4b568974f09655490e74ab9e6cabcb",
+    "wr_calibration_artifact_hash": "9a1e986d844f06973a82398c1081a0b40f2d06af108448400a7a4a37996e2be8"
+  },
+  "recommended_draw_count": null,
+  "candidates": [
+    {
+      "draw_count": 7500,
+      "passes_gate": false,
+      "passes_numerical": false,
+      "contract_hashes": {
+        "selected_board_hash": "67f2c4b88ad370b15e2363d4f915e5ec915d1ea6280625df528edfbd75d41700",
+        "roster_configuration_hash": "9059cd9471bbb3056950ffd1dfd076f9035f974a9b4db85ce70794c8fbe5b2ed",
+        "replacement_contract_hash": "9077643fd365516383db4feca6e6d51cf38ace2ef6a20c55891ce059d9260d66",
+        "finish_probability_gate_hash": "1c806c8b5a6b0165db57862a0d4e97122a4b568974f09655490e74ab9e6cabcb",
+        "wr_calibration_artifact_hash": "9a1e986d844f06973a82398c1081a0b40f2d06af108448400a7a4a37996e2be8"
+      },
+      "comparison": {
+        "per_metric": {
+          "p10": {
+            "median_abs_diff": 0.420181,
+            "p95_abs_diff": 2.180329,
+            "max_abs_diff": 3.878164,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0032764",
+            "max_player_adp": 9.7,
+            "max_is_core_drafted": true
+          },
+          "p50": {
+            "median_abs_diff": 0.776763,
+            "p95_abs_diff": 2.87552,
+            "max_abs_diff": 4.474944,
+            "tolerance": 0.25,
+            "median_passes": false,
+            "p95_passes": false,
+            "max_player_id": "00-0039040",
+            "max_player_adp": 11.7,
+            "max_is_core_drafted": true
+          },
+          "p90": {
+            "median_abs_diff": 1.896198,
+            "p95_abs_diff": 5.251298,
+            "max_abs_diff": 11.46889,
+            "tolerance": 1.0,
+            "median_passes": false,
+            "p95_passes": false,
+            "max_player_id": "00-0039064",
+            "max_player_adp": 25.7,
+            "max_is_core_drafted": true
+          },
+          "p_finish_top6": {
+            "median_abs_diff": 0.002267,
+            "p95_abs_diff": 0.00662,
+            "max_abs_diff": 0.010783,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0039040",
+            "max_player_adp": 11.7,
+            "max_is_core_drafted": true
+          },
+          "p_finish_top12": {
+            "median_abs_diff": 0.002817,
+            "p95_abs_diff": 0.00763,
+            "max_abs_diff": 0.012017,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0033106",
+            "max_player_adp": 101.0,
+            "max_is_core_drafted": false
+          },
+          "p_finish_top24": {
+            "median_abs_diff": 0.0029,
+            "p95_abs_diff": 0.007467,
+            "max_abs_diff": 0.01215,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0039361",
+            "max_player_adp": 45.8,
+            "max_is_core_drafted": false
+          },
+          "p_finish_top36": {
+            "median_abs_diff": 0.002633,
+            "p95_abs_diff": 0.00637,
+            "max_abs_diff": 0.007917,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0033921",
+            "max_player_adp": 77.0,
+            "max_is_core_drafted": false
+          },
+          "p_finish_top48": {
+            "median_abs_diff": 0.001883,
+            "p95_abs_diff": 0.005833,
+            "max_abs_diff": 0.0068,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0038997",
+            "max_player_adp": 87.7,
+            "max_is_core_drafted": false
+          },
+          "sim_vorp_p10": {
+            "median_abs_diff": 0.420181,
+            "p95_abs_diff": 2.180329,
+            "max_abs_diff": 3.878164,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0032764",
+            "max_player_adp": 9.7,
+            "max_is_core_drafted": true
+          },
+          "sim_vorp_p50": {
+            "median_abs_diff": 0.776763,
+            "p95_abs_diff": 2.87552,
+            "max_abs_diff": 4.474944,
+            "tolerance": 0.5,
+            "median_passes": false,
+            "p95_passes": false,
+            "max_player_id": "00-0039040",
+            "max_player_adp": 11.7,
+            "max_is_core_drafted": true
+          },
+          "sim_vorp_p90": {
+            "median_abs_diff": 1.896198,
+            "p95_abs_diff": 5.251298,
+            "max_abs_diff": 11.46889,
+            "tolerance": 1.0,
+            "median_passes": false,
+            "p95_passes": false,
+            "max_player_id": "00-0039064",
+            "max_player_adp": 25.7,
+            "max_is_core_drafted": true
+          },
+          "p_vorp_positive": {
+            "median_abs_diff": 0.002967,
+            "p95_abs_diff": 0.008053,
+            "max_abs_diff": 0.010233,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0033077",
+            "max_player_adp": 65.7,
+            "max_is_core_drafted": false
+          },
+          "expected_pos_rank": {
+            "median_abs_diff": 0.27,
+            "p95_abs_diff": 1.254,
+            "max_abs_diff": 1.97,
+            "tolerance": 0.25,
+            "median_passes": false,
+            "p95_passes": false,
+            "max_player_id": "00-0038994",
+            "max_player_adp": 88.1,
+            "max_is_core_drafted": false
+          },
+          "median_pos_rank": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 1.0,
+            "max_abs_diff": 1.0,
+            "tolerance": 0.25,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          }
+        },
+        "volatile_players": [
+          {
+            "player_id": "00-0039064",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 11.46889010868739,
+            "candidate": 331.7812546549971,
+            "reference": 343.2501447636845
+          },
+          {
+            "player_id": "00-0039064",
+            "metric": "p90",
+            "abs_diff": 11.46889010868739,
+            "candidate": 445.408977960484,
+            "reference": 456.87786806917137
+          },
+          {
+            "player_id": "00-0036900",
+            "metric": "p90",
+            "abs_diff": 8.188885560493873,
+            "candidate": 591.358016268075,
+            "reference": 599.5469018285688
+          },
+          {
+            "player_id": "00-0036900",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 8.188885560493873,
+            "candidate": 477.73029296258807,
+            "reference": 485.91917852308194
+          },
+          {
+            "player_id": "00-0039040",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 6.685878048106645,
+            "candidate": 276.82240868416045,
+            "reference": 283.5082867322671
+          },
+          {
+            "player_id": "00-0039040",
+            "metric": "p90",
+            "abs_diff": 6.685878048106645,
+            "candidate": 410.75558588560017,
+            "reference": 417.4414639337068
+          },
+          {
+            "player_id": "00-0037238",
+            "metric": "p90",
+            "abs_diff": 5.898136592220226,
+            "candidate": 420.5428891686829,
+            "reference": 426.44102576090313
+          },
+          {
+            "player_id": "00-0037238",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.898136592220226,
+            "candidate": 306.915165863196,
+            "reference": 312.81330245541625
+          },
+          {
+            "player_id": "00-0039919",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.852435267616215,
+            "candidate": 265.20491907158294,
+            "reference": 259.3524838039667
+          },
+          {
+            "player_id": "00-0039919",
+            "metric": "p90",
+            "abs_diff": 5.852435267616215,
+            "candidate": 378.8326423770698,
+            "reference": 372.9802071094536
+          },
+          {
+            "player_id": "00-0040129",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.388383174305318,
+            "candidate": 300.30309138235503,
+            "reference": 294.9147082080497
+          },
+          {
+            "player_id": "00-0040129",
+            "metric": "p90",
+            "abs_diff": 5.388383174305318,
+            "candidate": 413.9308146878419,
+            "reference": 408.5424315135366
+          },
+          {
+            "player_id": "00-0036554",
+            "metric": "p90",
+            "abs_diff": 5.217027188318468,
+            "candidate": 464.7174771137338,
+            "reference": 469.9345043020523
+          },
+          {
+            "player_id": "00-0036554",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.217027188318468,
+            "candidate": 351.08975380824694,
+            "reference": 356.3067809965654
+          },
+          {
+            "player_id": "00-0037239",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.181589144315808,
+            "candidate": 279.2313757257245,
+            "reference": 274.0497865814087
+          },
+          {
+            "player_id": "00-0037239",
+            "metric": "p90",
+            "abs_diff": 5.181589144315808,
+            "candidate": 392.8590990312114,
+            "reference": 387.67750988689556
+          },
+          {
+            "player_id": "00-0036322",
+            "metric": "p90",
+            "abs_diff": 5.05532401704761,
+            "candidate": 469.6106789250983,
+            "reference": 464.5553549080507
+          },
+          {
+            "player_id": "00-0036322",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.05532401704761,
+            "candidate": 355.9829556196114,
+            "reference": 350.9276316025638
+          },
+          {
+            "player_id": "00-0037545",
+            "metric": "p90",
+            "abs_diff": 4.878951699696245,
+            "candidate": 264.4802153047015,
+            "reference": 259.6012636050053
+          },
+          {
+            "player_id": "00-0037545",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 4.878951699696216,
+            "candidate": 150.8524919992146,
+            "reference": 145.9735402995184
+          }
+        ],
+        "n_players": 117
+      },
+      "decision_changes": {
+        "by_metric": {
+          "p_finish_top12": 0,
+          "p_finish_top24": 0,
+          "p_vorp_positive": 1
+        },
+        "total": 1,
+        "thresholds": {
+          "p_finish_top12": 0.5,
+          "p_finish_top24": 0.5,
+          "p_vorp_positive": 0.5
+        }
+      },
+      "material_decision_events": 0,
+      "core_adp_decision_events": 0,
+      "decision_events_by_category": {
+        "boundary_noise": 1
+      }
+    },
+    {
+      "draw_count": 10000,
+      "passes_gate": false,
+      "passes_numerical": false,
+      "contract_hashes": {
+        "selected_board_hash": "67f2c4b88ad370b15e2363d4f915e5ec915d1ea6280625df528edfbd75d41700",
+        "roster_configuration_hash": "9059cd9471bbb3056950ffd1dfd076f9035f974a9b4db85ce70794c8fbe5b2ed",
+        "replacement_contract_hash": "9077643fd365516383db4feca6e6d51cf38ace2ef6a20c55891ce059d9260d66",
+        "finish_probability_gate_hash": "1c806c8b5a6b0165db57862a0d4e97122a4b568974f09655490e74ab9e6cabcb",
+        "wr_calibration_artifact_hash": "9a1e986d844f06973a82398c1081a0b40f2d06af108448400a7a4a37996e2be8"
+      },
+      "comparison": {
+        "per_metric": {
+          "p10": {
+            "median_abs_diff": 0.314115,
+            "p95_abs_diff": 1.851911,
+            "max_abs_diff": 3.966073,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0038543",
+            "max_player_adp": 5.2,
+            "max_is_core_drafted": true
+          },
+          "p50": {
+            "median_abs_diff": 0.708011,
+            "p95_abs_diff": 2.737098,
+            "max_abs_diff": 4.655331,
+            "tolerance": 0.25,
+            "median_passes": false,
+            "p95_passes": false,
+            "max_player_id": "00-0036900",
+            "max_player_adp": 3.9,
+            "max_is_core_drafted": true
+          },
+          "p90": {
+            "median_abs_diff": 1.340218,
+            "p95_abs_diff": 4.31676,
+            "max_abs_diff": 6.463817,
+            "tolerance": 1.0,
+            "median_passes": false,
+            "p95_passes": false,
+            "max_player_id": "00-0039064",
+            "max_player_adp": 25.7,
+            "max_is_core_drafted": true
+          },
+          "p_finish_top6": {
+            "median_abs_diff": 0.0015,
+            "p95_abs_diff": 0.00622,
+            "max_abs_diff": 0.0086,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0032764",
+            "max_player_adp": 9.7,
+            "max_is_core_drafted": true
+          },
+          "p_finish_top12": {
+            "median_abs_diff": 0.0022,
+            "p95_abs_diff": 0.00677,
+            "max_abs_diff": 0.00915,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0038120",
+            "max_player_adp": 35.9,
+            "max_is_core_drafted": true
+          },
+          "p_finish_top24": {
+            "median_abs_diff": 0.00245,
+            "p95_abs_diff": 0.0063,
+            "max_abs_diff": 0.00935,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0038120",
+            "max_player_adp": 35.9,
+            "max_is_core_drafted": true
+          },
+          "p_finish_top36": {
+            "median_abs_diff": 0.0017,
+            "p95_abs_diff": 0.00553,
+            "max_abs_diff": 0.0078,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0036963",
+            "max_player_adp": 7.9,
+            "max_is_core_drafted": true
+          },
+          "p_finish_top48": {
+            "median_abs_diff": 0.0013,
+            "p95_abs_diff": 0.00475,
+            "max_abs_diff": 0.0067,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0037240",
+            "max_player_adp": 40.2,
+            "max_is_core_drafted": false
+          },
+          "sim_vorp_p10": {
+            "median_abs_diff": 0.314115,
+            "p95_abs_diff": 1.851911,
+            "max_abs_diff": 3.966073,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0038543",
+            "max_player_adp": 5.2,
+            "max_is_core_drafted": true
+          },
+          "sim_vorp_p50": {
+            "median_abs_diff": 0.708011,
+            "p95_abs_diff": 2.737098,
+            "max_abs_diff": 4.655331,
+            "tolerance": 0.5,
+            "median_passes": false,
+            "p95_passes": false,
+            "max_player_id": "00-0036900",
+            "max_player_adp": 3.9,
+            "max_is_core_drafted": true
+          },
+          "sim_vorp_p90": {
+            "median_abs_diff": 1.340218,
+            "p95_abs_diff": 4.31676,
+            "max_abs_diff": 6.463817,
+            "tolerance": 1.0,
+            "median_passes": false,
+            "p95_passes": false,
+            "max_player_id": "00-0039064",
+            "max_player_adp": 25.7,
+            "max_is_core_drafted": true
+          },
+          "p_vorp_positive": {
+            "median_abs_diff": 0.0019,
+            "p95_abs_diff": 0.00632,
+            "max_abs_diff": 0.0074,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0039146",
+            "max_player_adp": 91.2,
+            "max_is_core_drafted": false
+          },
+          "expected_pos_rank": {
+            "median_abs_diff": 0.19,
+            "p95_abs_diff": 0.992,
+            "max_abs_diff": 1.79,
+            "tolerance": 0.25,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0039915",
+            "max_player_adp": 40.9,
+            "max_is_core_drafted": false
+          },
+          "median_pos_rank": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 1.0,
+            "max_abs_diff": 1.0,
+            "tolerance": 0.25,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          }
+        },
+        "volatile_players": [
+          {
+            "player_id": "00-0039064",
+            "metric": "p90",
+            "abs_diff": 6.463816998144125,
+            "candidate": 450.41405107102725,
+            "reference": 456.87786806917137
+          },
+          {
+            "player_id": "00-0039064",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 6.463816998144125,
+            "candidate": 336.78632776554036,
+            "reference": 343.2501447636845
+          },
+          {
+            "player_id": "00-0036322",
+            "metric": "p90",
+            "abs_diff": 5.9564416465963745,
+            "candidate": 470.51179655464705,
+            "reference": 464.5553549080507
+          },
+          {
+            "player_id": "00-0036322",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.9564416465963745,
+            "candidate": 356.88407324916017,
+            "reference": 350.9276316025638
+          },
+          {
+            "player_id": "00-0040663",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.681379087923432,
+            "candidate": 240.6329179265913,
+            "reference": 234.95153883866786
+          },
+          {
+            "player_id": "00-0040663",
+            "metric": "p90",
+            "abs_diff": 5.681379087923403,
+            "candidate": 347.60296198198415,
+            "reference": 341.92158289406075
+          },
+          {
+            "player_id": "00-0035676",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.49132240947182,
+            "candidate": 342.9938035846628,
+            "reference": 348.48512599413465
+          },
+          {
+            "player_id": "00-0035676",
+            "metric": "p90",
+            "abs_diff": 5.49132240947182,
+            "candidate": 456.6215268901497,
+            "reference": 462.11284929962153
+          },
+          {
+            "player_id": "00-0039040",
+            "metric": "p90",
+            "abs_diff": 5.16214830663796,
+            "candidate": 412.27931562706885,
+            "reference": 417.4414639337068
+          },
+          {
+            "player_id": "00-0039040",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.16214830663796,
+            "candidate": 278.34613842562914,
+            "reference": 283.5082867322671
+          },
+          {
+            "player_id": "00-0040129",
+            "metric": "p90",
+            "abs_diff": 5.063888703534474,
+            "candidate": 413.6063202170711,
+            "reference": 408.5424315135366
+          },
+          {
+            "player_id": "00-0040129",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.063888703534474,
+            "candidate": 299.9785969115842,
+            "reference": 294.9147082080497
+          },
+          {
+            "player_id": "00-0036900",
+            "metric": "p50",
+            "abs_diff": 4.655331233800894,
+            "candidate": 277.6437258078314,
+            "reference": 272.9883945740305
+          },
+          {
+            "player_id": "00-0036900",
+            "metric": "sim_vorp_p50",
+            "abs_diff": 4.655331233800865,
+            "candidate": 164.0160025023445,
+            "reference": 159.36067126854363
+          },
+          {
+            "player_id": "00-0037239",
+            "metric": "p90",
+            "abs_diff": 4.129978164330282,
+            "candidate": 391.80748805122585,
+            "reference": 387.67750988689556
+          },
+          {
+            "player_id": "00-0037239",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 4.129978164330282,
+            "candidate": 278.17976474573896,
+            "reference": 274.0497865814087
+          },
+          {
+            "player_id": "00-0036613",
+            "metric": "p90",
+            "abs_diff": 4.050560521274122,
+            "candidate": 383.4471550707317,
+            "reference": 379.3965945494576
+          },
+          {
+            "player_id": "00-0036613",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 4.050560521274122,
+            "candidate": 269.8194317652448,
+            "reference": 265.7688712439707
+          },
+          {
+            "player_id": "00-0038543",
+            "metric": "p10",
+            "abs_diff": 3.966072691158942,
+            "candidate": 17.92546951927993,
+            "reference": 13.959396828120987
+          },
+          {
+            "player_id": "00-0038543",
+            "metric": "sim_vorp_p10",
+            "abs_diff": 3.966072691158942,
+            "candidate": -95.70225378620697,
+            "reference": -99.66832647736591
+          }
+        ],
+        "n_players": 117
+      },
+      "decision_changes": {
+        "by_metric": {
+          "p_finish_top12": 1,
+          "p_finish_top24": 0,
+          "p_vorp_positive": 0
+        },
+        "total": 1,
+        "thresholds": {
+          "p_finish_top12": 0.5,
+          "p_finish_top24": 0.5,
+          "p_vorp_positive": 0.5
+        }
+      },
+      "material_decision_events": 0,
+      "core_adp_decision_events": 0,
+      "decision_events_by_category": {
+        "boundary_noise": 1
+      }
+    },
+    {
+      "draw_count": 15000,
+      "passes_gate": false,
+      "passes_numerical": false,
+      "contract_hashes": {
+        "selected_board_hash": "67f2c4b88ad370b15e2363d4f915e5ec915d1ea6280625df528edfbd75d41700",
+        "roster_configuration_hash": "9059cd9471bbb3056950ffd1dfd076f9035f974a9b4db85ce70794c8fbe5b2ed",
+        "replacement_contract_hash": "9077643fd365516383db4feca6e6d51cf38ace2ef6a20c55891ce059d9260d66",
+        "finish_probability_gate_hash": "1c806c8b5a6b0165db57862a0d4e97122a4b568974f09655490e74ab9e6cabcb",
+        "wr_calibration_artifact_hash": "9a1e986d844f06973a82398c1081a0b40f2d06af108448400a7a4a37996e2be8"
+      },
+      "comparison": {
+        "per_metric": {
+          "p10": {
+            "median_abs_diff": 0.159379,
+            "p95_abs_diff": 0.927989,
+            "max_abs_diff": 2.537075,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0038543",
+            "max_player_adp": 5.2,
+            "max_is_core_drafted": true
+          },
+          "p50": {
+            "median_abs_diff": 0.31912,
+            "p95_abs_diff": 1.055266,
+            "max_abs_diff": 2.593244,
+            "tolerance": 0.25,
+            "median_passes": false,
+            "p95_passes": false,
+            "max_player_id": "00-0037240",
+            "max_player_adp": 40.2,
+            "max_is_core_drafted": false
+          },
+          "p90": {
+            "median_abs_diff": 0.684242,
+            "p95_abs_diff": 2.169863,
+            "max_abs_diff": 5.613189,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0039075",
+            "max_player_adp": 3.0,
+            "max_is_core_drafted": true
+          },
+          "p_finish_top6": {
+            "median_abs_diff": 0.000867,
+            "p95_abs_diff": 0.002823,
+            "max_abs_diff": 0.005467,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0039075",
+            "max_player_adp": 3.0,
+            "max_is_core_drafted": true
+          },
+          "p_finish_top12": {
+            "median_abs_diff": 0.0011,
+            "p95_abs_diff": 0.003537,
+            "max_abs_diff": 0.005083,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0033077",
+            "max_player_adp": 65.7,
+            "max_is_core_drafted": false
+          },
+          "p_finish_top24": {
+            "median_abs_diff": 0.001233,
+            "p95_abs_diff": 0.004043,
+            "max_abs_diff": 0.00435,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0040715",
+            "max_player_adp": 35.3,
+            "max_is_core_drafted": true
+          },
+          "p_finish_top36": {
+            "median_abs_diff": 0.00105,
+            "p95_abs_diff": 0.00323,
+            "max_abs_diff": 0.0056,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0037240",
+            "max_player_adp": 40.2,
+            "max_is_core_drafted": false
+          },
+          "p_finish_top48": {
+            "median_abs_diff": 0.0009,
+            "p95_abs_diff": 0.002813,
+            "max_abs_diff": 0.00615,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0034348",
+            "max_player_adp": 59.1,
+            "max_is_core_drafted": false
+          },
+          "sim_vorp_p10": {
+            "median_abs_diff": 0.159379,
+            "p95_abs_diff": 0.927989,
+            "max_abs_diff": 2.537075,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0038543",
+            "max_player_adp": 5.2,
+            "max_is_core_drafted": true
+          },
+          "sim_vorp_p50": {
+            "median_abs_diff": 0.31912,
+            "p95_abs_diff": 1.055266,
+            "max_abs_diff": 2.593244,
+            "tolerance": 0.5,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0037240",
+            "max_player_adp": 40.2,
+            "max_is_core_drafted": false
+          },
+          "sim_vorp_p90": {
+            "median_abs_diff": 0.684242,
+            "p95_abs_diff": 2.169863,
+            "max_abs_diff": 5.613189,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0039075",
+            "max_player_adp": 3.0,
+            "max_is_core_drafted": true
+          },
+          "p_vorp_positive": {
+            "median_abs_diff": 0.00135,
+            "p95_abs_diff": 0.003513,
+            "max_abs_diff": 0.005633,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0034348",
+            "max_player_adp": 59.1,
+            "max_is_core_drafted": false
+          },
+          "expected_pos_rank": {
+            "median_abs_diff": 0.11,
+            "p95_abs_diff": 0.668,
+            "max_abs_diff": 1.04,
+            "tolerance": 0.25,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0037240",
+            "max_player_adp": 40.2,
+            "max_is_core_drafted": false
+          },
+          "median_pos_rank": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 1.0,
+            "max_abs_diff": 1.0,
+            "tolerance": 0.25,
+            "median_passes": true,
+            "p95_passes": false,
+            "max_player_id": "00-0035676",
+            "max_player_adp": 19.6,
+            "max_is_core_drafted": true
+          }
+        },
+        "volatile_players": [
+          {
+            "player_id": "00-0039075",
+            "metric": "p90",
+            "abs_diff": 5.613189248472622,
+            "candidate": 560.2121120405396,
+            "reference": 565.8253012890123
+          },
+          {
+            "player_id": "00-0039075",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 5.613189248472622,
+            "candidate": 446.58438873505276,
+            "reference": 452.1975779835254
+          },
+          {
+            "player_id": "00-0036613",
+            "metric": "p90",
+            "abs_diff": 3.5831737025703774,
+            "candidate": 382.97976825202795,
+            "reference": 379.3965945494576
+          },
+          {
+            "player_id": "00-0036613",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 3.5831737025703774,
+            "candidate": 269.35204494654107,
+            "reference": 265.7688712439707
+          },
+          {
+            "player_id": "00-0037240",
+            "metric": "p90",
+            "abs_diff": 3.423763419352497,
+            "candidate": 385.5238577352723,
+            "reference": 388.9476211546248
+          },
+          {
+            "player_id": "00-0037240",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 3.423763419352497,
+            "candidate": 271.89613442978543,
+            "reference": 275.31989784913793
+          },
+          {
+            "player_id": "00-0039338",
+            "metric": "p90",
+            "abs_diff": 3.2773801527835644,
+            "candidate": 332.4830366207489,
+            "reference": 329.20565646796535
+          },
+          {
+            "player_id": "00-0039338",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 3.277380152783536,
+            "candidate": 225.51299256535606,
+            "reference": 222.23561241257252
+          },
+          {
+            "player_id": "00-0034348",
+            "metric": "p90",
+            "abs_diff": 3.089887446451371,
+            "candidate": 405.9014630348338,
+            "reference": 408.99135048128517
+          },
+          {
+            "player_id": "00-0034348",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 3.089887446451371,
+            "candidate": 292.2737397293469,
+            "reference": 295.3636271757983
+          },
+          {
+            "player_id": "00-0037240",
+            "metric": "p50",
+            "abs_diff": 2.593243694340657,
+            "candidate": 146.2756221981615,
+            "reference": 148.86886589250216
+          },
+          {
+            "player_id": "00-0037240",
+            "metric": "sim_vorp_p50",
+            "abs_diff": 2.593243694340643,
+            "candidate": 32.64789889267462,
+            "reference": 35.24114258701526
+          },
+          {
+            "player_id": "00-0038543",
+            "metric": "p10",
+            "abs_diff": 2.53707523256152,
+            "candidate": 16.496472060682507,
+            "reference": 13.959396828120987
+          },
+          {
+            "player_id": "00-0038543",
+            "metric": "sim_vorp_p10",
+            "abs_diff": 2.53707523256152,
+            "candidate": -97.13125124480439,
+            "reference": -99.66832647736591
+          },
+          {
+            "player_id": "00-0039893",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 2.514903764481744,
+            "candidate": 275.7812937131016,
+            "reference": 273.26638994861986
+          },
+          {
+            "player_id": "00-0039893",
+            "metric": "p90",
+            "abs_diff": 2.514903764481744,
+            "candidate": 389.4090170185885,
+            "reference": 386.89411325410674
+          },
+          {
+            "player_id": "00-0034348",
+            "metric": "p50",
+            "abs_diff": 2.215830097885515,
+            "candidate": 148.14872148315786,
+            "reference": 150.36455158104337
+          },
+          {
+            "player_id": "00-0034348",
+            "metric": "sim_vorp_p50",
+            "abs_diff": 2.215830097885515,
+            "candidate": 34.52099817767096,
+            "reference": 36.736828275556476
+          },
+          {
+            "player_id": "00-0039361",
+            "metric": "p90",
+            "abs_diff": 2.083603033990414,
+            "candidate": 308.98710265458783,
+            "reference": 306.9034996205974
+          },
+          {
+            "player_id": "00-0039361",
+            "metric": "sim_vorp_p90",
+            "abs_diff": 2.083603033990414,
+            "candidate": 175.0539254531481,
+            "reference": 172.9703224191577
+          }
+        ],
+        "n_players": 117
+      },
+      "decision_changes": {
+        "by_metric": {
+          "p_finish_top12": 1,
+          "p_finish_top24": 0,
+          "p_vorp_positive": 3
+        },
+        "total": 4,
+        "thresholds": {
+          "p_finish_top12": 0.5,
+          "p_finish_top24": 0.5,
+          "p_vorp_positive": 0.5
+        }
+      },
+      "material_decision_events": 0,
+      "core_adp_decision_events": 0,
+      "decision_events_by_category": {
+        "boundary_noise": 4
+      }
+    },
+    {
+      "draw_count": 20000,
+      "passes_gate": true,
+      "passes_numerical": true,
+      "contract_hashes": {
+        "selected_board_hash": "67f2c4b88ad370b15e2363d4f915e5ec915d1ea6280625df528edfbd75d41700",
+        "roster_configuration_hash": "9059cd9471bbb3056950ffd1dfd076f9035f974a9b4db85ce70794c8fbe5b2ed",
+        "replacement_contract_hash": "9077643fd365516383db4feca6e6d51cf38ace2ef6a20c55891ce059d9260d66",
+        "finish_probability_gate_hash": "1c806c8b5a6b0165db57862a0d4e97122a4b568974f09655490e74ab9e6cabcb",
+        "wr_calibration_artifact_hash": "9a1e986d844f06973a82398c1081a0b40f2d06af108448400a7a4a37996e2be8"
+      },
+      "comparison": {
+        "per_metric": {
+          "p10": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "p50": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 0.25,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "p90": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "p_finish_top6": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "p_finish_top12": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "p_finish_top24": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "p_finish_top36": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "p_finish_top48": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "sim_vorp_p10": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "sim_vorp_p50": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 0.5,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "sim_vorp_p90": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 1.0,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "p_vorp_positive": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 0.015,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "expected_pos_rank": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 0.25,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          },
+          "median_pos_rank": {
+            "median_abs_diff": 0.0,
+            "p95_abs_diff": 0.0,
+            "max_abs_diff": 0.0,
+            "tolerance": 0.25,
+            "median_passes": true,
+            "p95_passes": true,
+            "max_player_id": "00-0026498",
+            "max_player_adp": 78.3,
+            "max_is_core_drafted": false
+          }
+        },
+        "volatile_players": [
+          {
+            "player_id": "00-0026498",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 212.7626579852909,
+            "reference": 212.7626579852909
+          },
+          {
+            "player_id": "00-0031381",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 0.0,
+            "reference": 0.0
+          },
+          {
+            "player_id": "00-0031408",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 0.0,
+            "reference": 0.0
+          },
+          {
+            "player_id": "00-0032764",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 132.75654031521643,
+            "reference": 132.75654031521643
+          },
+          {
+            "player_id": "00-0033077",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 227.06103707870125,
+            "reference": 227.06103707870125
+          },
+          {
+            "player_id": "00-0033106",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 221.92308136324618,
+            "reference": 221.92308136324618
+          },
+          {
+            "player_id": "00-0033280",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 113.82372496065932,
+            "reference": 113.82372496065932
+          },
+          {
+            "player_id": "00-0033293",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 28.955084383497265,
+            "reference": 28.955084383497265
+          },
+          {
+            "player_id": "00-0033873",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 252.7965441753546,
+            "reference": 252.7965441753546
+          },
+          {
+            "player_id": "00-0033921",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 38.9223323674874,
+            "reference": 38.9223323674874
+          },
+          {
+            "player_id": "00-0034348",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 0.0,
+            "reference": 0.0
+          },
+          {
+            "player_id": "00-0034351",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 44.701787016934304,
+            "reference": 44.701787016934304
+          },
+          {
+            "player_id": "00-0034796",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 194.52353918287682,
+            "reference": 194.52353918287682
+          },
+          {
+            "player_id": "00-0034827",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 11.331419612192592,
+            "reference": 11.331419612192592
+          },
+          {
+            "player_id": "00-0034844",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 97.83362600246862,
+            "reference": 97.83362600246862
+          },
+          {
+            "player_id": "00-0034857",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 266.50127995644215,
+            "reference": 266.50127995644215
+          },
+          {
+            "player_id": "00-0034960",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 0.0,
+            "reference": 0.0
+          },
+          {
+            "player_id": "00-0035261",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 43.429473184266406,
+            "reference": 43.429473184266406
+          },
+          {
+            "player_id": "00-0035640",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 9.431712896453515,
+            "reference": 9.431712896453515
+          },
+          {
+            "player_id": "00-0035659",
+            "metric": "p10",
+            "abs_diff": 0.0,
+            "candidate": 2.842170943040401e-14,
+            "reference": 2.842170943040401e-14
+          }
+        ],
+        "n_players": 117
+      },
+      "decision_changes": {
+        "by_metric": {
+          "p_finish_top12": 0,
+          "p_finish_top24": 0,
+          "p_vorp_positive": 0
+        },
+        "total": 0,
+        "thresholds": {
+          "p_finish_top12": 0.5,
+          "p_finish_top24": 0.5,
+          "p_vorp_positive": 0.5
+        }
+      },
+      "material_decision_events": 0,
+      "core_adp_decision_events": 0,
+      "decision_events_by_category": {}
+    }
+  ],
+  "nested_prefix_design": true,
+  "gate_mode": "production_v20k",
+  "cache_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\draw_stability\\season=2026\\draws=20000\\recentered_draws.parquet",
+  "checkpoint_dir": "output\\model_v3\\draw_stability\\season=2026\\draws=10000",
+  "projections_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\projections_2026.csv",
+  "selected_board_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\accuracy_first_2026\\fantasy_points_2026.csv",
+  "sweep_phase": "intermediate_v20k"
+}

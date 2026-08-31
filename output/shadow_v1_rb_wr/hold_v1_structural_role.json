@@ -1,0 +1,45 @@
+{
+  "schema_version": "shadow_v1_rb_wr_candidate_freeze_v1",
+  "generated_at": "2026-08-30T18:50:40.650193+00:00",
+  "verdict": "hold_v1_structural_role",
+  "recommended_direction": "availability_only",
+  "reason": "Oracle counterfactual 'availability_only' clears diagnostic gates, but freeze requires an implemented shadow-only code/config candidate \u2014 not residual removal.",
+  "labeling": {
+    "pipeline_location": "composition_defect",
+    "codominant_error_components": [
+      "raw_rate_error",
+      "availability_effect"
+    ],
+    "note": "composition_defect names the diagnosed pipeline locus (finalization/composition path). Co-dominant components record which error terms dominate magnitude; a small aggregate composition_rate_effect is not itself the dominant error when raw-rate and availability nearly cancel."
+  },
+  "candidate_evaluations": {
+    "availability_only": {
+      "verdict": "direction_clears_diagnostic_gates",
+      "improves_folds": 3,
+      "gate_passed": true,
+      "eligible_for_freeze": false
+    },
+    "raw_rate_only": {
+      "verdict": "direction_clears_diagnostic_gates",
+      "improves_folds": 3,
+      "gate_passed": true,
+      "eligible_for_freeze": false
+    },
+    "joint_diagnostic": {
+      "verdict": "hold_v1_structural_role",
+      "improves_folds": null,
+      "gate_passed": false,
+      "eligible_for_freeze": false
+    },
+    "v1_control": {
+      "verdict": "hold_v1_structural_role",
+      "improves_folds": null,
+      "gate_passed": false,
+      "eligible_for_freeze": false
+    }
+  },
+  "production_weights_unchanged": true,
+  "promotion_authorized": false,
+  "sleeper_agreement_used": false,
+  "artifact_hash": "fe7d040371cbeeb93afee958ed29945c5dda549755ed35a5966b718e146a90e4"
+}

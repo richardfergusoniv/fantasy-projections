@@ -1,0 +1,78 @@
+{
+  "projection_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\projections_2026.csv",
+  "history_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "threshold_counts": {
+    "qbs_above_3000": 25,
+    "rbs_above_1000": 11
+  },
+  "league_yardage_ratios": {
+    "passing_yards": 0.9691752283104671,
+    "receiving_yards": 0.9732561506167309,
+    "rushing_yards": 1.0072028680963296
+  },
+  "allocation": {
+    "wr1_receiving_yard_share": {
+      "projected": 0.22428421412889576,
+      "historical": 0.270883991871781,
+      "ratio": 0.827971459587237
+    },
+    "rb1_rushing_yard_share": {
+      "projected": 0.45633678687024026,
+      "historical": 0.4950515418316849,
+      "ratio": 0.921796516746114
+    },
+    "rank6_plus_target_share": {
+      "projected": 0.06784836736210341,
+      "historical": 0.02514365720619549,
+      "ratio": 2.6984287450985978
+    }
+  },
+  "identity_max_abs_deviation": {
+    "receiving_yards_to_passing_yards": 4.440892098500626e-16,
+    "receptions_to_completions": 4.440892098500626e-16,
+    "targets_to_attempts": 4.440892098500626e-16,
+    "receiving_tds_to_passing_tds": 4.440892098500626e-16
+  },
+  "named_smoke": {
+    "Amon-Ra St. Brown": {
+      "team": "DET",
+      "position": "WR",
+      "passing_yards": null,
+      "rushing_yards": null,
+      "receiving_yards": 987.4929569019844
+    },
+    "CeeDee Lamb": {
+      "team": "DAL",
+      "position": "WR",
+      "passing_yards": null,
+      "rushing_yards": null,
+      "receiving_yards": 843.4721681799605
+    },
+    "Jonathan Taylor": {
+      "team": "IND",
+      "position": "RB",
+      "passing_yards": null,
+      "rushing_yards": 1089.3452269368738,
+      "receiving_yards": 331.83710539929416
+    },
+    "Saquon Barkley": {
+      "team": "PHI",
+      "position": "RB",
+      "passing_yards": null,
+      "rushing_yards": 1043.694587897892,
+      "receiving_yards": 258.857754661355
+    }
+  },
+  "checks": {
+    "qb_3000_count": false,
+    "rb_1000_count": false,
+    "league_yardage_within_5pct": true,
+    "team_identities": true,
+    "rank6_tail_below_prior_2_2x": false
+  },
+  "passed": false
+}

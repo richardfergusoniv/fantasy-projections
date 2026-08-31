@@ -1,0 +1,606 @@
+{
+  "season": 2026,
+  "stage_order": [
+    "raw_model",
+    "post_team_volume_reconcile",
+    "post_td_clip",
+    "final_shipped"
+  ],
+  "players": {
+    "00-0039732": {
+      "display_name": "Bo Nix",
+      "team": "DEN",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 15.907,
+          "delta_from_raw": -1.398
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 15.654,
+          "delta_from_raw": -1.651
+        },
+        "final_shipped": {
+          "fantasy_ppg": 15.654,
+          "delta_from_raw": -1.651
+        },
+        "raw_model": {
+          "fantasy_ppg": 17.305,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0036355": {
+      "display_name": "Justin Herbert",
+      "team": "LAC",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 17.255,
+          "delta_from_raw": -2.155
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 16.595,
+          "delta_from_raw": -2.815
+        },
+        "final_shipped": {
+          "fantasy_ppg": 16.595,
+          "delta_from_raw": -2.815
+        },
+        "raw_model": {
+          "fantasy_ppg": 19.41,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0036971": {
+      "display_name": "Trevor Lawrence",
+      "team": "JAX",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 16.477,
+          "delta_from_raw": -2.238
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 15.621,
+          "delta_from_raw": -3.094
+        },
+        "final_shipped": {
+          "fantasy_ppg": 15.621,
+          "delta_from_raw": -3.094
+        },
+        "raw_model": {
+          "fantasy_ppg": 18.715,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0039851": {
+      "display_name": "Drake Maye",
+      "team": "NE",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 17.608,
+          "delta_from_raw": -0.607
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 17.512,
+          "delta_from_raw": -0.703
+        },
+        "final_shipped": {
+          "fantasy_ppg": 17.512,
+          "delta_from_raw": -0.703
+        },
+        "raw_model": {
+          "fantasy_ppg": 18.215,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0033077": {
+      "display_name": "Dak Prescott",
+      "team": "DAL",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 15.554,
+          "delta_from_raw": -2.409
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 15.554,
+          "delta_from_raw": -2.409
+        },
+        "final_shipped": {
+          "fantasy_ppg": 15.554,
+          "delta_from_raw": -2.409
+        },
+        "raw_model": {
+          "fantasy_ppg": 17.963,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0033873": {
+      "display_name": "Patrick Mahomes",
+      "team": "KC",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 13.113,
+          "delta_from_raw": -4.398
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 13.066,
+          "delta_from_raw": -4.445
+        },
+        "final_shipped": {
+          "fantasy_ppg": 13.066,
+          "delta_from_raw": -4.445
+        },
+        "raw_model": {
+          "fantasy_ppg": 17.511,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0039918": {
+      "display_name": "Caleb Williams",
+      "team": "CHI",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 14.458,
+          "delta_from_raw": -1.202
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 14.458,
+          "delta_from_raw": -1.202
+        },
+        "final_shipped": {
+          "fantasy_ppg": 14.458,
+          "delta_from_raw": -1.202
+        },
+        "raw_model": {
+          "fantasy_ppg": 15.66,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0033119": {
+      "display_name": "Jacoby Brissett",
+      "team": "ARI",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 13.262,
+          "delta_from_raw": -4.076
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 13.262,
+          "delta_from_raw": -4.076
+        },
+        "final_shipped": {
+          "fantasy_ppg": 13.262,
+          "delta_from_raw": -4.076
+        },
+        "raw_model": {
+          "fantasy_ppg": 17.338,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0037834": {
+      "display_name": "Brock Purdy",
+      "team": "SF",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 11.522,
+          "delta_from_raw": -1.866
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 11.441,
+          "delta_from_raw": -1.947
+        },
+        "final_shipped": {
+          "fantasy_ppg": 11.441,
+          "delta_from_raw": -1.947
+        },
+        "raw_model": {
+          "fantasy_ppg": 13.388,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0033106": {
+      "display_name": "Jared Goff",
+      "team": "DET",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 11.327,
+          "delta_from_raw": -2.52
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 11.327,
+          "delta_from_raw": -2.52
+        },
+        "final_shipped": {
+          "fantasy_ppg": 11.327,
+          "delta_from_raw": -2.52
+        },
+        "raw_model": {
+          "fantasy_ppg": 13.847,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0036389": {
+      "display_name": "Jalen Hurts",
+      "team": "PHI",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 13.032,
+          "delta_from_raw": -3.625
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 11.812,
+          "delta_from_raw": -4.845
+        },
+        "final_shipped": {
+          "fantasy_ppg": 11.812,
+          "delta_from_raw": -4.845
+        },
+        "raw_model": {
+          "fantasy_ppg": 16.657,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0034869": {
+      "display_name": "Sam Darnold",
+      "team": "SEA",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 10.971,
+          "delta_from_raw": -1.595
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 10.971,
+          "delta_from_raw": -1.595
+        },
+        "final_shipped": {
+          "fantasy_ppg": 10.971,
+          "delta_from_raw": -1.595
+        },
+        "raw_model": {
+          "fantasy_ppg": 12.566,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0034857": {
+      "display_name": "Josh Allen",
+      "team": "BUF",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 16.591,
+          "delta_from_raw": -2.365
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 14.653,
+          "delta_from_raw": -4.303
+        },
+        "final_shipped": {
+          "fantasy_ppg": 14.653,
+          "delta_from_raw": -4.303
+        },
+        "raw_model": {
+          "fantasy_ppg": 18.956,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0035710": {
+      "display_name": "Daniel Jones",
+      "team": "IND",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 12.058,
+          "delta_from_raw": -2.615
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 12.058,
+          "delta_from_raw": -2.615
+        },
+        "final_shipped": {
+          "fantasy_ppg": 12.058,
+          "delta_from_raw": -2.615
+        },
+        "raw_model": {
+          "fantasy_ppg": 14.673,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0036442": {
+      "display_name": "Joe Burrow",
+      "team": "CIN",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 9.988,
+          "delta_from_raw": -4.024
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 9.988,
+          "delta_from_raw": -4.024
+        },
+        "final_shipped": {
+          "fantasy_ppg": 9.988,
+          "delta_from_raw": -4.024
+        },
+        "raw_model": {
+          "fantasy_ppg": 14.012,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0026498": {
+      "display_name": "Matthew Stafford",
+      "team": "LA",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 13.677,
+          "delta_from_raw": -2.808
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 13.677,
+          "delta_from_raw": -2.808
+        },
+        "final_shipped": {
+          "fantasy_ppg": 13.677,
+          "delta_from_raw": -2.808
+        },
+        "raw_model": {
+          "fantasy_ppg": 16.485,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0035228": {
+      "display_name": "Kyler Murray",
+      "team": "MIN",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 9.075,
+          "delta_from_raw": -1.641
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 8.407,
+          "delta_from_raw": -2.309
+        },
+        "final_shipped": {
+          "fantasy_ppg": 8.407,
+          "delta_from_raw": -2.309
+        },
+        "raw_model": {
+          "fantasy_ppg": 10.716,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0034855": {
+      "display_name": "Baker Mayfield",
+      "team": "TB",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 13.088,
+          "delta_from_raw": -2.258
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 12.638,
+          "delta_from_raw": -2.708
+        },
+        "final_shipped": {
+          "fantasy_ppg": 12.638,
+          "delta_from_raw": -2.708
+        },
+        "raw_model": {
+          "fantasy_ppg": 15.346,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0039163": {
+      "display_name": "C.J. Stroud",
+      "team": "HOU",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 13.434,
+          "delta_from_raw": -2.271
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 13.32,
+          "delta_from_raw": -2.385
+        },
+        "final_shipped": {
+          "fantasy_ppg": 13.32,
+          "delta_from_raw": -2.385
+        },
+        "raw_model": {
+          "fantasy_ppg": 15.705,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0040691": {
+      "display_name": "Jaxson Dart",
+      "team": "NYG",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 13.094,
+          "delta_from_raw": -1.534
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 11.959,
+          "delta_from_raw": -2.669
+        },
+        "final_shipped": {
+          "fantasy_ppg": 11.959,
+          "delta_from_raw": -2.669
+        },
+        "raw_model": {
+          "fantasy_ppg": 14.628,
+          "delta_from_raw": 0.0
+        }
+      }
+    },
+    "00-0034796": {
+      "display_name": "Lamar Jackson",
+      "team": "BAL",
+      "stages": {
+        "post_team_volume_reconcile": {
+          "fantasy_ppg": 11.464,
+          "delta_from_raw": -2.03
+        },
+        "post_td_clip": {
+          "fantasy_ppg": 11.464,
+          "delta_from_raw": -2.03
+        },
+        "final_shipped": {
+          "fantasy_ppg": 11.464,
+          "delta_from_raw": -2.03
+        },
+        "raw_model": {
+          "fantasy_ppg": 13.494,
+          "delta_from_raw": 0.0
+        }
+      }
+    }
+  },
+  "elite_hurt_by_compose": [
+    {
+      "player_id": "00-0036389",
+      "display_name": "Jalen Hurts",
+      "raw_ppg": 16.657,
+      "final_ppg": 11.812,
+      "total_delta": -4.845,
+      "worst_stage": "post_td_clip"
+    },
+    {
+      "player_id": "00-0033873",
+      "display_name": "Patrick Mahomes",
+      "raw_ppg": 17.511,
+      "final_ppg": 13.066,
+      "total_delta": -4.445,
+      "worst_stage": "post_td_clip"
+    },
+    {
+      "player_id": "00-0034857",
+      "display_name": "Josh Allen",
+      "raw_ppg": 18.956,
+      "final_ppg": 14.653,
+      "total_delta": -4.303,
+      "worst_stage": "post_td_clip"
+    },
+    {
+      "player_id": "00-0033119",
+      "display_name": "Jacoby Brissett",
+      "raw_ppg": 17.338,
+      "final_ppg": 13.262,
+      "total_delta": -4.076,
+      "worst_stage": "post_team_volume_reconcile"
+    },
+    {
+      "player_id": "00-0036442",
+      "display_name": "Joe Burrow",
+      "raw_ppg": 14.012,
+      "final_ppg": 9.988,
+      "total_delta": -4.024,
+      "worst_stage": "post_team_volume_reconcile"
+    },
+    {
+      "player_id": "00-0036971",
+      "display_name": "Trevor Lawrence",
+      "raw_ppg": 18.715,
+      "final_ppg": 15.621,
+      "total_delta": -3.094,
+      "worst_stage": "post_td_clip"
+    },
+    {
+      "player_id": "00-0036355",
+      "display_name": "Justin Herbert",
+      "raw_ppg": 19.41,
+      "final_ppg": 16.595,
+      "total_delta": -2.815,
+      "worst_stage": "post_td_clip"
+    },
+    {
+      "player_id": "00-0026498",
+      "display_name": "Matthew Stafford",
+      "raw_ppg": 16.485,
+      "final_ppg": 13.677,
+      "total_delta": -2.808,
+      "worst_stage": "post_team_volume_reconcile"
+    },
+    {
+      "player_id": "00-0034855",
+      "display_name": "Baker Mayfield",
+      "raw_ppg": 15.346,
+      "final_ppg": 12.638,
+      "total_delta": -2.708,
+      "worst_stage": "post_td_clip"
+    },
+    {
+      "player_id": "00-0040691",
+      "display_name": "Jaxson Dart",
+      "raw_ppg": 14.628,
+      "final_ppg": 11.959,
+      "total_delta": -2.669,
+      "worst_stage": "post_td_clip"
+    },
+    {
+      "player_id": "00-0035710",
+      "display_name": "Daniel Jones",
+      "raw_ppg": 14.673,
+      "final_ppg": 12.058,
+      "total_delta": -2.615,
+      "worst_stage": "post_team_volume_reconcile"
+    },
+    {
+      "player_id": "00-0033077",
+      "display_name": "Dak Prescott",
+      "raw_ppg": 17.963,
+      "final_ppg": 15.554,
+      "total_delta": -2.409,
+      "worst_stage": "post_team_volume_reconcile"
+    },
+    {
+      "player_id": "00-0039163",
+      "display_name": "C.J. Stroud",
+      "raw_ppg": 15.705,
+      "final_ppg": 13.32,
+      "total_delta": -2.385,
+      "worst_stage": "post_td_clip"
+    },
+    {
+      "player_id": "00-0039732",
+      "display_name": "Bo Nix",
+      "raw_ppg": 17.305,
+      "final_ppg": 15.654,
+      "total_delta": -1.651,
+      "worst_stage": "post_td_clip"
+    },
+    {
+      "player_id": "00-0039918",
+      "display_name": "Caleb Williams",
+      "raw_ppg": 15.66,
+      "final_ppg": 14.458,
+      "total_delta": -1.202,
+      "worst_stage": "post_team_volume_reconcile"
+    }
+  ],
+  "stage_summary": {
+    "post_team_volume_reconcile": {
+      "mean_delta_from_raw": -2.364
+    },
+    "post_td_clip": {
+      "mean_delta_from_raw": -2.722
+    },
+    "final_shipped": {
+      "mean_delta_from_raw": -2.722
+    }
+  }
+}

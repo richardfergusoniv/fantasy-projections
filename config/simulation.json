@@ -1,0 +1,53 @@
+{
+  "random_seed": 2026,
+  "profiles": {
+    "dev": {
+      "draws": 1000,
+      "chunk_size": 250
+    },
+    "publish": {
+      "draws": 10000,
+      "chunk_size": 250
+    },
+    "release_candidate": {
+      "draws": 10000,
+      "chunk_size": 250
+    }
+  },
+  "stability_tolerances": {
+    "p50_abs": 0.25,
+    "p10_p90_abs": 1.0,
+    "sim_vorp_p50_abs": 0.5,
+    "probability_abs": 0.015,
+    "expected_pos_rank_abs": 0.25
+  },
+  "stability_draw_candidates": [1000, 2000, 5000, 7500, 10000, 15000],
+  "decision_thresholds": {
+    "p_finish_top12": 0.5,
+    "p_finish_top24": 0.5,
+    "p_vorp_positive": 0.5
+  },
+  "decision_diagnostic": {
+    "primary_reference_draws": 10000,
+    "diagnostic_reference_draws": 20000,
+    "candidate_draw_counts": [1000, 2000, 5000],
+    "boundary_margin_probability": 0.02,
+    "boundary_margin_rank": 0.25,
+    "reference_instability_probability": 0.015,
+    "reference_instability_rank": 0.25,
+    "tail_p50_stable_threshold": 0.25,
+    "tail_finish_probability_threshold": 0.015,
+    "tail_p10_p90_threshold": 1.0,
+    "core_adp_threshold": 36,
+    "core_player_max_difference_requires_review": true,
+    "core_player_decision_change_requires_review": true
+  },
+  "intermediate_stability": {
+    "reference_draws": 20000,
+    "candidate_draw_counts": [7500, 10000, 15000],
+    "checkpoint_dir_suffix": "draws=10000",
+    "require_provenance_ok": true,
+    "prior_sweep_reference_draws": 10000
+  },
+  "core_drafted_adp_max": 36
+}

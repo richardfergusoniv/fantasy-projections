@@ -41,13 +41,15 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMRegressor
 
-from src.projection.depth_history import attach_availability_depth_rank, attach_depth_rank
-from src.projection.depth_rates import depth_rate_factors
+from src.projection.depth_history import attach_availability_depth_rank
 from src.projection.train import LGBM_PARAMS, fit_team_total, fit_availability
 from src.projection.transitions import (
-    build_transition_pairs, ALL_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
+    build_transition_pairs, build_role_transition_pairs,
+    ALL_FEATURES, ROLE_FEATURES, TEAM_FEATURES, TEAM_MODEL_FEATURES, team_model_inputs,
+    role_features_for,
     AVAILABILITY_FEATURES,
-    REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL, receiving_share_scale,
+    REFRAMED_SHARE_STATS, RECEIVING_SHARE_LABEL, RECEIVING_SHARE_ELIG_LABEL,
+    receiving_share_scale, role_rate_label,
     SEASON_GAMES, age_shrunk_predict,
 )
 
@@ -169,24 +171,23 @@ def compute_loo_receiving_residuals(feat, pairs):
         team_model, _ = fit_team_total(feat, train_pairs)
         frames, tests = [], {}
         for position, stat in sorted(REFRAMED_SHARE_STATS):
-            train = build_transition_pairs(feat, position, stat, train_pairs, label_col=RECEIVING_SHARE_LABEL)
-            test = build_transition_pairs(feat, position, stat, [held], label_col=RECEIVING_SHARE_LABEL)
+            train = build_role_transition_pairs(
+                feat, position, stat, train_pairs, label_col=RECEIVING_SHARE_ELIG_LABEL)
+            test = build_role_transition_pairs(
+                feat, position, stat, [held], label_col=RECEIVING_SHARE_ELIG_LABEL)
             test = test.dropna(subset=TEAM_FEATURES).reset_index(drop=True)
             if train.empty or test.empty:
                 continue
             model = LGBMRegressor(**LGBM_PARAMS)
-            model.fit(train[ALL_FEATURES], train[RECEIVING_SHARE_LABEL])
+            features = role_features_for(position, stat)
+            model.fit(train[features], train[RECEIVING_SHARE_ELIG_LABEL])
             f = test[["team"]].copy()
-            f["share"] = np.clip(age_shrunk_predict(model, test, position), 0, None)
-            # Gate B, on the SHARE and before renormalization - the order the
-            # shipped path uses. beta is an ADDITIVE yards/game term that
-            # team_reconcile then scales by this same factor, so fitting it
-            # against undiscounted residuals meant fitting a bonus for one
-            # prediction and adding it to another. See GATE_B_UNIFICATION.md.
-            ranked = attach_depth_rank(
-                test[["player_id"]].assign(position=position), int(held[1]))
-            f["share"] = f["share"] * depth_rate_factors(
-                ranked["position"], ranked["nfl_depth_rank"])
+            f["share"] = np.clip(
+                age_shrunk_predict(model, test, position, features=features), 0, None)
+            # No depth multiplier on the share. beta is an ADDITIVE yards/game
+            # term and team_reconcile no longer scales it by any factor, so the
+            # basis it is fit on and the basis it is added to now agree by
+            # construction rather than by keeping two multipliers in step.
             # Team-grain inputs - see transitions.team_model_inputs. Fitting
             # the elite-shrinkage correction on a composition built from
             # ~40%-low team totals inflated its residuals and therefore beta.
@@ -206,7 +207,10 @@ def compute_loo_receiving_residuals(feat, pairs):
             sub = allf[allf["position"] == position].sort_values("row")
             out = test[["player_id", "games_played", "naive_pred"]].copy()
             out["pred"] = sub["pred"].to_numpy()
-            out["actual"] = test["receiving_yards_pg"].to_numpy()
+            # share_elig x team_passing_yards_pg reduces to receiving yards per
+            # ELIGIBLE week, so the residual beta is fit on must be the role
+            # rate - not receiving_yards_pg, which is per appearance week.
+            out["actual"] = test[role_rate_label("receiving_yards")].to_numpy()
             out["position"] = position
             out["season_from"] = held[0]
             rows.append(out)

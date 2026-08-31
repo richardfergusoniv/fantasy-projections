@@ -1,0 +1,139 @@
+.sleepers-meta {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* The page exists on top of a measurement with real limits; the note carries
+   them and is not decoration. Keep it above the fold. */
+.accuracy-note {
+  margin: 0 0 0.9rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+}
+
+.accuracy-note p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.accuracy-note p + p {
+  margin-top: 0.4rem;
+}
+
+.accuracy-headline {
+  color: var(--text) !important;
+  font-weight: 600;
+}
+
+.accuracy-note strong {
+  color: var(--text);
+}
+
+.sleepers-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sleepers-table th.sortable:hover {
+  color: var(--accent);
+}
+
+.sleepers-table th.sorted-asc::after {
+  content: " ↑";
+  opacity: 0.8;
+}
+
+.sleepers-table th.sorted-desc::after {
+  content: " ↓";
+  opacity: 0.8;
+}
+
+.sleepers-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sleepers-table .col-sentiment {
+  text-align: center;
+  width: 3.75rem;
+}
+
+.sleepers-table .upside {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sleepers-table .market-cheap {
+  color: var(--mine);
+  font-weight: 600;
+}
+
+.sleepers-table .market-rich {
+  color: #f87171;
+}
+
+.sleepers-table .muted {
+  color: var(--text-muted);
+}
+
+.band-pill {
+  display: inline-block;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.band-pill.primary {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.band-pill.speculative {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--warning);
+}
+
+.role-cell {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.sleepers-foot {
+  margin-top: 1.25rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.sleepers-foot a {
+  color: var(--accent);
+}
+
+/* Two of the numeric columns come from the blended board and two from the
+   simulation, and those are not centered on each other. Tag the source in the
+   header so the columns are never read as one scale. */
+.src-tag {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* 61-120 is the strongest admitted band (73.5% startable for RB/WR/TE, against
+   36% for 121-200), so it reads brighter than .primary rather than reusing it. */
+.band-pill.core {
+  background: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+}
