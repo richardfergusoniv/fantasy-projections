@@ -247,3 +247,83 @@ def test_require_active_passes_only_after_promotion(tmp_path, monkeypatch):
     sealed, _ = load_sealed_manifest(bundle_root(2026, "need_active"))
     assert "status" not in sealed
     assert sealed["schema_version"] == SCHEMA_VERSION_V2
+    assert active["schema_version_validated"] == SCHEMA_VERSION_V2
+
+
+def test_attestation_reports_actual_manifest_schema_for_v1_and_v2(tmp_path, monkeypatch):
+    from src.projection.release_bundle import SCHEMA_VERSION, player_id_set_hash, selected_points_vector_hash, treatment_block
+    from src.projection.release_bundle_publish import seal_staged_bundle
+
+    _patch_roots(tmp_path, monkeypatch)
+    _patch_git(monkeypatch, tmp_path)
+    _, _ = _seal(tmp_path, "attest_v2")
+    v2_report = validate_release_bundle(season=2026, namespace="attest_v2")
+    assert v2_report["schema_version_validated"] == SCHEMA_VERSION_V2
+
+    from src.projection.release_bundle import bundle_root
+
+    root = bundle_root(2026, "attest_v1")
+    root.mkdir(parents=True, exist_ok=True)
+    selected = "player_id,fantasy_pts_season\na,100\n"
+    (root / "selected_board.csv").write_text(selected, encoding="utf-8")
+    (root / "players_2026.json").write_text(
+        json.dumps({"meta": {"model_id": "accuracy_first_ensemble"}, "players": [{"player_id": "a"}]}),
+        encoding="utf-8",
+    )
+    for name in (
+        "team_stats_2026.json",
+        "comparison_2026.json",
+        "release_report_2026.json",
+        "release_report_simulation_2026.json",
+        "release_report_board_2026.json",
+    ):
+        (root / name).write_text("{}", encoding="utf-8")
+    (root / "application_contract.json").write_text(json.dumps({"contract_hash": "a" * 64}), encoding="utf-8")
+    (root / "simulation_manifest_2026.json").write_text(
+        json.dumps({"draw_count": 10000, "simulation_run_id": "sim-1"}), encoding="utf-8"
+    )
+    import hashlib
+
+    board_hash = hashlib.sha256(selected.encode()).hexdigest()
+    seal_staged_bundle(
+        season=2026,
+        namespace="attest_v1",
+        root=root,
+        release_id="rel-v1",
+        application={"contract_version": "accuracy_first_2026_v1", "contract_hash": "a" * 64},
+        runs={"projection_run_id": "proj-1", "simulation_run_id": "sim-1"},
+        board={
+            "selected_board_file_hash": board_hash,
+            "selected_points_vector_hash": selected_points_vector_hash({"a": 100.0}),
+        },
+        simulation={
+            "profile": "publish",
+            "draw_count": 10000,
+            "configuration_hash": "b" * 64,
+            "calibration_hashes": {"v3_interval": "c" * 64},
+            "joint_donor_hash": "d" * 64,
+        },
+        overlay={
+            "simulated_player_population_hash": player_id_set_hash(["a"]),
+            "simulated_player_count": 1,
+        },
+        contract_treatments={
+            "selected": treatment_block(["a"]),
+            "incumbent": treatment_block([]),
+            "new_player_v1_only": treatment_block([]),
+        },
+        artifact_specs=[
+            ("selected_board", "selected_board.csv", True, False),
+            ("players", "players_2026.json", True, True),
+            ("team_stats", "team_stats_2026.json", True, True),
+            ("comparison", "comparison_2026.json", True, True),
+            ("release_report", "release_report_2026.json", True, False),
+            ("release_report_simulation", "release_report_simulation_2026.json", True, False),
+            ("release_report_board", "release_report_board_2026.json", True, False),
+            ("application_contract", "application_contract.json", True, False),
+            ("simulation_manifest", "simulation_manifest_2026.json", True, False),
+        ],
+        schema_version=SCHEMA_VERSION,
+    )
+    v1_report = validate_release_bundle(season=2026, namespace="attest_v1")
+    assert v1_report["schema_version_validated"] == SCHEMA_VERSION

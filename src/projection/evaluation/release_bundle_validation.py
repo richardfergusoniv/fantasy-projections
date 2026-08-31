@@ -12,7 +12,6 @@ from src.projection.active_release import (
     read_active_pointer,
 )
 from src.projection.release_bundle import (
-    SCHEMA_VERSION,
     VALIDATION_FILENAME,
     ReleaseBundleError,
     bundle_root,
@@ -295,7 +294,7 @@ def validate_release_bundle(
         require_active=require_active,
         extra={
             "release_id": manifest["bundle"]["release_id"],
-            "schema_version_validated": SCHEMA_VERSION,
+            "schema_version_validated": str(manifest.get("schema_version") or ""),
         },
     )
     dest = root / VALIDATION_FILENAME

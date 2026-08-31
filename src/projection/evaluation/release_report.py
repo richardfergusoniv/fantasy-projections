@@ -92,6 +92,28 @@ def build_release_report_simulation(
     if promotion_gate is None:
         risks.append("promotion_gate: missing")
 
+    draw_count_rollout = _read_json(model_v3 / "draw_count_rollout_decision.json")
+    draw_count_policy = None
+    if isinstance(draw_count_rollout, dict):
+        strict_gate = draw_count_rollout.get("strict_gate_promotion")
+        if strict_gate is False:
+            # Lazy import avoids prepare ↔ release_report ↔ draw_count_rollout cycles.
+            from src.projection.evaluation.draw_count_rollout import DRAW_COUNT_RISK_FLAG_10K
+
+            risk_flag = str(
+                draw_count_rollout.get("release_report_risk_flag") or DRAW_COUNT_RISK_FLAG_10K
+            )
+            if risk_flag not in risks:
+                risks.append(risk_flag)
+            draw_count_policy = {
+                "profile": draw_count_rollout.get("current_production_profile")
+                or draw_count_rollout.get("operational_policy"),
+                "draw_count": draw_count_rollout.get("chosen_production_draw_count")
+                or draw_count_rollout.get("current_production_draw_count"),
+                "phase_2_status": draw_count_rollout.get("phase_2_status"),
+                "strict_gate_promotion": False,
+            }
+
     tail_rates = {}
     scored_path = model_v3 / "holdout_scored_top120_2025.parquet"
     if scored_path.exists():
@@ -158,6 +180,8 @@ def build_release_report_simulation(
                 "wr_calibration_artifact_hash"
             ),
             "partition_hashes": (simulation_manifest or {}).get("partition_hashes"),
+            **({"draw_count_policy": draw_count_policy} if draw_count_policy else {}),
+            **({"summary_risks": list(risks)} if draw_count_policy else {}),
         },
         "gates": {
             "finish_probability": finish_gate,
