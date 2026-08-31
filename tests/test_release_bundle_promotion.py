@@ -229,6 +229,7 @@ def test_browser_pages_load_through_release_loader():
     assert "pointer_missing" in loader
     assert "Never fall back to legacy" in loader
     assert "frozen" in loader
+    assert "release_bundle_manifest_v2" in loader
 
 
 def test_require_active_passes_only_after_promotion(tmp_path, monkeypatch):

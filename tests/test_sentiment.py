@@ -415,3 +415,20 @@ def test_spike_report_empty_claims_is_infeasible(tmp_path):
     assert report["verified_numerator"] == 0
     assert report["frozen_denominator"] == 105
     assert report["verdict"] == VERDICT_INFEASIBLE
+
+
+def test_patch_release_adds_diagnostic_fields_to_players_payload():
+    from src.sentiment.patch_release import patch_players_payload
+
+    players = pd.read_csv(REPO_ROOT / "output" / "fantasy_points_2026.csv").drop_duplicates(
+        "player_id"
+    ).head(20)
+    payload = {
+        "meta": {"generated_at": "2026-08-30T12:00:00+00:00", "season": 2026},
+        "players": [{"player_id": row.player_id, "display_name": row.display_name} for row in players.itertuples()],
+    }
+    patched = patch_players_payload(payload, season=2026, fantasy_points=players)
+    assert "sentiment" in patched["meta"]
+    sample = next(p for p in patched["players"] if p.get("sentiment_tone"))
+    for field in ("sentiment_tone", "sentiment_peer_label", "sentiment_evidence_tier"):
+        assert field in sample

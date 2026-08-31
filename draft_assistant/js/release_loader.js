@@ -10,7 +10,9 @@
  */
 (function (global) {
   const POINTER_SCHEMA = "active_release_pointer_v1";
-  const MANIFEST_SCHEMA = "release_bundle_manifest_v1";
+  const MANIFEST_SCHEMA_V1 = "release_bundle_manifest_v1";
+  const MANIFEST_SCHEMA_V2 = "release_bundle_manifest_v2";
+  const SUPPORTED_MANIFEST_SCHEMAS = new Set([MANIFEST_SCHEMA_V1, MANIFEST_SCHEMA_V2]);
 
   class ReleaseLoadError extends Error {
     constructor(message, extra) {
@@ -65,7 +67,7 @@
   }
 
   function validateManifest(payload, pointer) {
-    if (!payload || payload.schema_version !== MANIFEST_SCHEMA) {
+    if (!payload || !SUPPORTED_MANIFEST_SCHEMAS.has(payload.schema_version)) {
       throw new ReleaseLoadError("Sealed manifest schema is unsupported");
     }
     if (payload.status) {

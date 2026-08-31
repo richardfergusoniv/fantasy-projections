@@ -5,7 +5,7 @@
   "namespace": "v2_baseline_20260830",
   "release_id": "e92edd22-40d9-4219-87f6-47a651489d15",
   "manifest_path": "data/releases/v2_baseline_20260830/release_bundle_manifest.json",
-  "manifest_sha256": "a951ca5093a12e8c2d8637de8515ff12c0b82a3b7a5883ccf95ae155dbaf3a37",
+  "manifest_sha256": "5a8e14536aa7b062b1e5ff6e64aa78356847fb063579d0a42cdbdc5cc159fbb1",
   "activated_at": "2026-08-31T01:57:23.084462+00:00",
   "previous": {
     "namespace": "v2_candidate_20260830",

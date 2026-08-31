@@ -516,7 +516,8 @@ Every file in the namespace must be enumerated — an unlisted file fails the se
 1. Fetch the pointer with cache revalidation.
 2. Pointer **absent** (404/network) → bootstrap the legacy loose files. This is the only path that reads `players_<season>.json` directly.
 3. Pointer present but malformed, or the manifest/files fail validation → **fail visibly. Never fall back to legacy.** A stale board rendered as if current is the failure mode being prevented.
-4. Freeze the namespace at the first successful pointer read, so a promotion landing mid-page-load cannot mix two bundles on one screen.
+4. Accept sealed manifests `release_bundle_manifest_v1` or `release_bundle_manifest_v2`.
+5. Freeze the namespace at the first successful pointer read, so a promotion landing mid-page-load cannot mix two bundles on one screen.
 
 `evaluation/release_pointer.py` implements the same repoint-don't-republish rule for the `output/model_v3/releases/` side.
 
@@ -548,7 +549,7 @@ Machine-readable control-plane snapshot (guarded by `tests/test_pipeline_map_liv
 | namespace | v2_baseline_20260830 |
 | previous_namespace | v2_candidate_20260830 |
 | release_id | e92edd22-40d9-4219-87f6-47a651489d15 |
-| manifest_sha256 | a951ca5093a12e8c2d8637de8515ff12c0b82a3b7a5883ccf95ae155dbaf3a37 |
+| manifest_sha256 | 5a8e14536aa7b062b1e5ff6e64aa78356847fb063579d0a42cdbdc5cc159fbb1 |
 | model_id | accuracy_first_ensemble |
 | draw_count | 10000 |
 | overlay_population | 778 |
@@ -562,7 +563,7 @@ Read from `draft_assistant/data/active_release_2026.json` → `data/releases/v2_
 | Surface | State |
 |---|---|
 | Pointer | `active_release_pointer_v1`, status `active`, activated 2026-08-30T09:42:41Z |
-| Release ID | `e92edd22-40d9-4219-87f6-47a651489d15`; manifest `a951ca5093…` |
+| Release ID | `e92edd22-40d9-4219-87f6-47a651489d15`; manifest `5a8e14536a…` |
 | Rollback target | `previous.namespace = v2_candidate_20260830` (`4348bf20-…`) |
 | Published mean | **`accuracy_first_ensemble`** — RB weights 0.10/0.30/0.60 (v1/v2/ADP), WR weights 0/0.55/0.45; ADP alignment ~0.93/0.85; RB/WR repair track closed, not solved |
 | Simulation | 10000 draws, profile `publish` / `decision_stable_compromise_10000`, human-approved operational compromise (not a passed strict 20k gate) |
