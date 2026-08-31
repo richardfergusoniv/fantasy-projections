@@ -1,0 +1,29 @@
+[
+  {
+    "transaction_id": "fixture-yardage-bonus-txn-1",
+    "type": "trade",
+    "status": "complete",
+    "created": 1756000000000,
+    "roster_ids": [
+      1,
+      2
+    ],
+    "adds": {
+      "sl-0089": 1,
+      "sl-0091": 2
+    },
+    "drops": {
+      "sl-0091": 1,
+      "sl-0089": 2
+    },
+    "draft_picks": [
+      {
+        "season": "2027",
+        "round": 1,
+        "roster_id": 2,
+        "previous_owner_id": 2,
+        "owner_id": 1
+      }
+    ]
+  }
+]

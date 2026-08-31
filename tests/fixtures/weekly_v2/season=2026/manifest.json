@@ -1,0 +1,8 @@
+{
+  "season": 2026,
+  "model_version": "weekly_v2_fixture",
+  "trained_through_season": 2024,
+  "validate_season": 2025,
+  "source": "tests/fixtures/weekly_v2",
+  "notes": "Fixture manifest activates weekly_v2 bridge path without trained model weights."
+}

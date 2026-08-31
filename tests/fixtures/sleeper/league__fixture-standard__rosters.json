@@ -1,0 +1,74 @@
+[
+  {
+    "roster_id": 1,
+    "owner_id": "fixture-user-1",
+    "league_id": "fixture-standard",
+    "players": [
+      "sl-0018",
+      "sl-0067",
+      "sl-0080",
+      "sl-0041",
+      "sl-0044",
+      "sl-0057",
+      "sl-0004",
+      "K-BAL",
+      "DEF-BUF",
+      "sl-0079",
+      "sl-0096"
+    ],
+    "starters": [
+      "sl-0018",
+      "sl-0067",
+      "sl-0080",
+      "sl-0041",
+      "sl-0044",
+      "sl-0057",
+      "sl-0004",
+      "K-BAL",
+      "DEF-BUF"
+    ],
+    "reserve": [],
+    "settings": {
+      "wins": 0,
+      "losses": 0,
+      "fpts": 0,
+      "waiver_budget_used": 0
+    }
+  },
+  {
+    "roster_id": 2,
+    "owner_id": "fixture-user-2",
+    "league_id": "fixture-standard",
+    "players": [
+      "sl-0087",
+      "sl-0028",
+      "sl-0075",
+      "sl-0068",
+      "sl-0031",
+      "sl-0083",
+      "sl-0070",
+      "K-SF",
+      "DEF-PHI",
+      "sl-0033",
+      "sl-0045"
+    ],
+    "starters": [
+      "sl-0087",
+      "sl-0028",
+      "sl-0075",
+      "sl-0068",
+      "sl-0031",
+      "sl-0083",
+      "sl-0070",
+      "K-SF",
+      "DEF-PHI"
+    ],
+    "reserve": [],
+    "settings": {
+      "wins": 0,
+      "losses": 0,
+      "fpts": 0,
+      "waiver_budget_used": 0
+    }
+  }
+]

@@ -1,0 +1,41 @@
+{
+  "league_id": "fixture-yardage-bonus",
+  "season": 2026,
+  "name": "Yardage Bonus Dynasty (Max PF)",
+  "type": "dynasty",
+  "roster_positions": [
+    "QB",
+    "RB",
+    "RB",
+    "WR",
+    "WR",
+    "TE",
+    "FLEX",
+    "DEF",
+    "BN",
+    "BN",
+    "BN"
+  ],
+  "scoring_settings": {
+    "pass_yd": 0.04,
+    "pass_td": 4,
+    "pass_int": -2,
+    "rush_yd": 0.1,
+    "rush_td": 6,
+    "rec": 0.5,
+    "rec_yd": 0.1,
+    "rec_td": 6,
+    "fum_lost": -2,
+    "bonus_pass_yd_300": 3,
+    "bonus_pass_yd_400": 3,
+    "bonus_rush_yd_100": 3,
+    "bonus_rush_yd_200": 3,
+    "bonus_rec_yd_100": 3,
+    "bonus_rec_yd_200": 3,
+    "def_sack": 1,
+    "def_int": 2,
+    "def_fr": 2,
+    "def_td": 6,
+    "safe": 2
+  }
+}

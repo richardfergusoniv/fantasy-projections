@@ -1,0 +1,12 @@
+[
+  {
+    "user_id": "fixture-user-1",
+    "display_name": "Owner",
+    "username": "fixture_owner"
+  },
+  {
+    "user_id": "fixture-user-2",
+    "display_name": "Rival",
+    "username": "rival"
+  }
+]

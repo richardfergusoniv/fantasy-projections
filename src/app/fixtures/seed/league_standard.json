@@ -1,0 +1,43 @@
+{
+  "league_id": "fixture-standard",
+  "season": 2026,
+  "name": "Standard Half PPR",
+  "type": "redraft",
+  "roster_positions": [
+    "QB",
+    "RB",
+    "RB",
+    "WR",
+    "WR",
+    "TE",
+    "FLEX",
+    "K",
+    "DEF",
+    "BN",
+    "BN",
+    "BN"
+  ],
+  "scoring_settings": {
+    "pass_yd": 0.04,
+    "pass_td": 4,
+    "pass_int": -2,
+    "rush_yd": 0.1,
+    "rush_td": 6,
+    "rec": 0.5,
+    "rec_yd": 0.1,
+    "rec_td": 6,
+    "fum_lost": -2,
+    "fgm_0_19": 3,
+    "fgm_20_29": 3,
+    "fgm_30_39": 3,
+    "fgm_40_49": 4,
+    "fgm_50p": 5,
+    "xpm": 1,
+    "xpmiss": -1,
+    "def_sack": 1,
+    "def_int": 2,
+    "def_fr": 2,
+    "def_td": 6,
+    "safe": 2
+  }
+}

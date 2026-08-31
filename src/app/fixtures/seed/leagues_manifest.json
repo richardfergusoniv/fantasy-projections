@@ -1,0 +1,113 @@
+{
+  "season": 2026,
+  "week": 1,
+  "generated_by": "scripts/generate_seed_fixtures.py",
+  "leagues": [
+    {
+      "league_file": "league_standard.json",
+      "roster_file": "roster_standard.json",
+      "opponent_roster_file": "roster_standard_opponent.json",
+      "members": [
+        {
+          "user_id": "u1",
+          "roster_id": 1,
+          "display_name": "Owner"
+        },
+        {
+          "user_id": "u2",
+          "roster_id": 2,
+          "display_name": "Rival"
+        }
+      ]
+    },
+    {
+      "league_file": "league_ppfd.json",
+      "roster_file": "roster_ppfd.json",
+      "opponent_roster_file": "roster_ppfd_opponent.json",
+      "members": [
+        {
+          "user_id": "u1",
+          "roster_id": 1,
+          "display_name": "Owner"
+        },
+        {
+          "user_id": "u2",
+          "roster_id": 2,
+          "display_name": "Rival"
+        }
+      ]
+    },
+    {
+      "league_file": "league_superflex.json",
+      "roster_file": "roster_superflex.json",
+      "opponent_roster_file": "roster_superflex_opponent.json",
+      "members": [
+        {
+          "user_id": "u1",
+          "roster_id": 1,
+          "display_name": "Owner"
+        },
+        {
+          "user_id": "u2",
+          "roster_id": 2,
+          "display_name": "Rival"
+        }
+      ],
+      "draft_order_rule": "max_pf"
+    },
+    {
+      "league_file": "league_dynasty.json",
+      "roster_file": "roster_dynasty.json",
+      "opponent_roster_file": "roster_dynasty_opponent.json",
+      "members": [
+        {
+          "user_id": "u1",
+          "roster_id": 1,
+          "display_name": "Owner"
+        },
+        {
+          "user_id": "u2",
+          "roster_id": 2,
+          "display_name": "Rival"
+        }
+      ],
+      "draft_order_rule": "reverse_standings"
+    },
+    {
+      "league_file": "league_yardage_bonus.json",
+      "roster_file": "roster_yardage_bonus.json",
+      "opponent_roster_file": "roster_yardage_bonus_opponent.json",
+      "members": [
+        {
+          "user_id": "u1",
+          "roster_id": 1,
+          "display_name": "Owner"
+        },
+        {
+          "user_id": "u2",
+          "roster_id": 2,
+          "display_name": "Rival"
+        }
+      ],
+      "draft_order_rule": "max_pf"
+    },
+    {
+      "league_file": "league_k_dst.json",
+      "roster_file": "roster_k_dst.json",
+      "opponent_roster_file": "roster_k_dst_opponent.json",
+      "members": [
+        {
+          "user_id": "u1",
+          "roster_id": 1,
+          "display_name": "Owner"
+        },
+        {
+          "user_id": "u2",
+          "roster_id": 2,
+          "display_name": "Rival"
+        }
+      ],
+      "draft_order_rule": "reverse_standings"
+    }
+  ]
+}

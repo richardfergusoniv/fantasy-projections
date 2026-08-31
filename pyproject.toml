@@ -5,16 +5,32 @@ description = "NFL fantasy projections, simulation, and release promotion pipeli
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
 dependencies = [
+    "alembic>=1.19.1",
+    "boto3>=1.43.83",
+    "croniter>=6.2.4",
+    "email-validator>=2.3.0",
+    "fastapi>=0.141.1",
+    "httpx>=0.28.1",
+    "itsdangerous>=2.2.0",
     "joblib>=1.5.0",
     "lightgbm>=4.7.0",
     "nfl-data-py>=0.3.3",
     "numpy>=2.5.0",
+    "openai>=3.6.0",
     "pandas>=3.0.0",
+    "polars>=1.0.0",
+    "psycopg[binary]>=3.3.4",
+    "python-dotenv>=1.0.0",
     "pyarrow>=25.0.0",
+    "pydantic-settings>=2.15.0",
+    "python-multipart>=0.0.32",
     "PyYAML>=6.0.0",
     "requests>=2.34.0",
     "scikit-learn>=1.6.0",
     "scipy>=1.15.0",
+    "sqlalchemy>=2.0.52",
+    "structlog>=26.1.0",
+    "uvicorn[standard]>=0.52.4",
 ]
 
 [project.optional-dependencies]
@@ -37,4 +53,10 @@ pythonpath = ["."]
 override-dependencies = [
     "pandas>=3.0.0",
     "numpy>=2.5.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.5",
 ]

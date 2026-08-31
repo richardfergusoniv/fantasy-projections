@@ -1,0 +1,78 @@
+[
+  {
+    "roster_id": 1,
+    "owner_id": "fixture-user-1",
+    "league_id": "fixture-dynasty",
+    "players": [
+      "sl-0103",
+      "sl-0104",
+      "sl-0084",
+      "sl-0090",
+      "sl-0051",
+      "sl-0015",
+      "sl-0109",
+      "sl-0019",
+      "K-BUF",
+      "DEF-HOU",
+      "sl-0002",
+      "sl-0061"
+    ],
+    "starters": [
+      "sl-0103",
+      "sl-0104",
+      "sl-0084",
+      "sl-0090",
+      "sl-0051",
+      "sl-0015",
+      "sl-0109",
+      "sl-0019",
+      "K-BUF",
+      "DEF-HOU"
+    ],
+    "reserve": [],
+    "settings": {
+      "wins": 0,
+      "losses": 0,
+      "fpts": 0,
+      "waiver_budget_used": 0
+    }
+  },
+  {
+    "roster_id": 2,
+    "owner_id": "fixture-user-2",
+    "league_id": "fixture-dynasty",
+    "players": [
+      "sl-0005",
+      "sl-0049",
+      "sl-0047",
+      "sl-0013",
+      "sl-0042",
+      "sl-0065",
+      "sl-0021",
+      "sl-0108",
+      "K-PHI",
+      "DEF-PIT",
+      "sl-0052",
+      "sl-0058"
+    ],
+    "starters": [
+      "sl-0005",
+      "sl-0049",
+      "sl-0047",
+      "sl-0013",
+      "sl-0042",
+      "sl-0065",
+      "sl-0021",
+      "sl-0108",
+      "K-PHI",
+      "DEF-PIT"
+    ],
+    "reserve": [],
+    "settings": {
+      "wins": 0,
+      "losses": 0,
+      "fpts": 0,
+      "waiver_budget_used": 0
+    }
+  }
+]

@@ -1,0 +1,401 @@
+{
+  "accounting_input_players": [
+    {
+      "season": 2024,
+      "week": 1,
+      "team": "TST",
+      "gsis_id": "qb",
+      "position": "QB",
+      "pred_dropback_share": 0.97,
+      "pred_carry_share": 0.08,
+      "pred_target_share": 0.0,
+      "pred_ypa": 7.2,
+      "pred_ypc": 4.8,
+      "pred_ypr": 8.0,
+      "pred_catch_rate": 0.0,
+      "pred_completion_rate": 0.64,
+      "pred_pass_td_rate": 0.045,
+      "pred_int_rate": 0.025,
+      "pred_rush_td_rate": 0.02,
+      "pred_rec_td_rate": 0.0,
+      "depth_rank": 1.0
+    },
+    {
+      "season": 2024,
+      "week": 1,
+      "team": "TST",
+      "gsis_id": "rb1",
+      "position": "RB",
+      "pred_dropback_share": 0.0,
+      "pred_carry_share": 0.55,
+      "pred_target_share": 0.08,
+      "pred_ypa": 4.1,
+      "pred_ypc": 4.3,
+      "pred_ypr": 8.5,
+      "pred_catch_rate": 0.75,
+      "pred_completion_rate": 0.0,
+      "pred_pass_td_rate": 0.0,
+      "pred_int_rate": 0.0,
+      "pred_rush_td_rate": 0.03,
+      "pred_rec_td_rate": 0.04,
+      "depth_rank": 1.0
+    },
+    {
+      "season": 2024,
+      "week": 1,
+      "team": "TST",
+      "gsis_id": "rb2",
+      "position": "RB",
+      "pred_dropback_share": 0.0,
+      "pred_carry_share": 0.25,
+      "pred_target_share": 0.05,
+      "pred_ypa": 4.0,
+      "pred_ypc": 3.9,
+      "pred_ypr": 7.0,
+      "pred_catch_rate": 0.7,
+      "pred_completion_rate": 0.0,
+      "pred_pass_td_rate": 0.0,
+      "pred_int_rate": 0.0,
+      "pred_rush_td_rate": 0.02,
+      "pred_rec_td_rate": 0.03,
+      "depth_rank": 2.0
+    },
+    {
+      "season": 2024,
+      "week": 1,
+      "team": "TST",
+      "gsis_id": "wr1",
+      "position": "WR",
+      "pred_dropback_share": 0.0,
+      "pred_carry_share": 0.0,
+      "pred_target_share": 0.22,
+      "pred_ypa": 11.5,
+      "pred_ypc": 4.0,
+      "pred_ypr": 12.0,
+      "pred_catch_rate": 0.65,
+      "pred_completion_rate": 0.0,
+      "pred_pass_td_rate": 0.0,
+      "pred_int_rate": 0.0,
+      "pred_rush_td_rate": 0.0,
+      "pred_rec_td_rate": 0.06,
+      "depth_rank": 1.0
+    },
+    {
+      "season": 2024,
+      "week": 1,
+      "team": "TST",
+      "gsis_id": "te1",
+      "position": "TE",
+      "pred_dropback_share": 0.0,
+      "pred_carry_share": 0.0,
+      "pred_target_share": 0.18,
+      "pred_ypa": 9.0,
+      "pred_ypc": 3.5,
+      "pred_ypr": 10.0,
+      "pred_catch_rate": 0.72,
+      "pred_completion_rate": 0.0,
+      "pred_pass_td_rate": 0.0,
+      "pred_int_rate": 0.0,
+      "pred_rush_td_rate": 0.0,
+      "pred_rec_td_rate": 0.05,
+      "depth_rank": 1.0
+    }
+  ],
+  "accounting_input_team_totals": [
+    {
+      "season": 2024,
+      "week": 1,
+      "team": "TST",
+      "pred_team_pass_attempts": 36.0,
+      "pred_team_rush_attempts": 24.0,
+      "pred_team_pass_tds": 1.8,
+      "pred_team_rush_tds": 1.0
+    }
+  ],
+  "accounting_output": [
+    {
+      "gsis_id": "qb",
+      "attempts": 36.0,
+      "carries": 1.92,
+      "targets": 0.0,
+      "receptions": 0.0,
+      "passing_yards": 259.2,
+      "receiving_yards": 0.0
+    },
+    {
+      "gsis_id": "rb1",
+      "attempts": 0.0,
+      "carries": 15.261535190304059,
+      "targets": 3.276318840131691,
+      "receptions": 2.464923561782452,
+      "passing_yards": 0.0,
+      "receiving_yards": 22.885668821994084
+    },
+    {
+      "gsis_id": "rb2",
+      "attempts": 0.0,
+      "carries": 5.618464809695938,
+      "targets": 1.7098288946937263,
+      "receptions": 1.200623184884869,
+      "passing_yards": 0.0,
+      "receiving_yards": 9.18006999854792
+    },
+    {
+      "gsis_id": "te1",
+      "attempts": 0.0,
+      "carries": 0.0,
+      "targets": 7.371717390296304,
+      "receptions": 5.324234893450095,
+      "passing_yards": 0.0,
+      "receiving_yards": 58.15652312412613
+    },
+    {
+      "gsis_id": "wr1",
+      "attempts": 0.0,
+      "carries": 0.0,
+      "targets": 9.009876810362151,
+      "receptions": 5.874734488914845,
+      "passing_yards": 0.0,
+      "receiving_yards": 77.00354450694479
+    }
+  ],
+  "availability_panel": [
+    {
+      "gsis_id": "p1",
+      "season": 2023,
+      "week": 1
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2023,
+      "week": 2
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2023,
+      "week": 3
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2023,
+      "week": 4
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2023,
+      "week": 5
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2023,
+      "week": 6
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2023,
+      "week": 7
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2023,
+      "week": 8
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2023,
+      "week": 9
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2023,
+      "week": 10
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 1
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 2
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 3
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 4
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 5
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 6
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 7
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 8
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 9
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 10
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 11
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2024,
+      "week": 12
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 1
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 2
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 3
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 4
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 5
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 6
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 7
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 8
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 9
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 10
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 11
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 12
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 13
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 14
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 15
+    },
+    {
+      "gsis_id": "p1",
+      "season": 2025,
+      "week": 16
+    }
+  ],
+  "availability_output": [
+    {
+      "gsis_id": "rookie",
+      "projected_games_estimate": 15.0
+    },
+    {
+      "gsis_id": "p1",
+      "projected_games_estimate": 14.6
+    }
+  ],
+  "leakage_input": [
+    {
+      "gsis_id": "a",
+      "season": 2024,
+      "week": 1,
+      "targets": 1.0
+    },
+    {
+      "gsis_id": "a",
+      "season": 2024,
+      "week": 2,
+      "targets": 2.0
+    },
+    {
+      "gsis_id": "a",
+      "season": 2024,
+      "week": 3,
+      "targets": 3.0
+    },
+    {
+      "gsis_id": "a",
+      "season": 2024,
+      "week": 4,
+      "targets": 4.0
+    },
+    {
+      "gsis_id": "a",
+      "season": 2024,
+      "week": 5,
+      "targets": 5.0
+    }
+  ],
+  "leakage_filtered_weeks": [
+    1,
+    2,
+    3
+  ]
+}

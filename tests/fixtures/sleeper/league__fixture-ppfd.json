@@ -1,0 +1,40 @@
+{
+  "league_id": "fixture-ppfd",
+  "name": "Points Per First Down",
+  "season": "2026",
+  "status": "in_season",
+  "sport": "nfl",
+  "previous_league_id": null,
+  "draft_id": "fixture-ppfd-draft",
+  "settings": {
+    "type": 0,
+    "num_teams": 2
+  },
+  "scoring_settings": {
+    "pass_yd": 0.04,
+    "pass_td": 4,
+    "pass_int": -2,
+    "rush_yd": 0.1,
+    "rush_td": 6,
+    "rec": 0.5,
+    "rec_yd": 0.1,
+    "rec_td": 6,
+    "fum_lost": -2,
+    "pass_fd": 0.5,
+    "rush_fd": 0.5,
+    "rec_fd": 0.5
+  },
+  "roster_positions": [
+    "QB",
+    "RB",
+    "RB",
+    "WR",
+    "WR",
+    "TE",
+    "FLEX",
+    "BN",
+    "BN",
+    "BN"
+  ],
+  "metadata": {}
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "draft_id": "fixture-yardage-bonus-draft",
+    "league_id": "fixture-yardage-bonus",
+    "season": "2026",
+    "status": "complete",
+    "type": "snake",
+    "settings": {
+      "teams": 2,
+      "rounds": 3,
+      "reversal_round": 0
+    },
+    "draft_order": {
+      "fixture-user-1": 1,
+      "fixture-user-2": 2
+    },
+    "slot_to_roster_id": {
+      "1": 1,
+      "2": 2
+    },
+    "metadata": {
+      "name": "Yardage Bonus Dynasty (Max PF) Draft",
+      "draft_order_rule": "max_pf"
+    }
+  }
+]

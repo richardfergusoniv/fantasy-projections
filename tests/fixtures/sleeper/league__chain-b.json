@@ -1,0 +1,10 @@
+{
+  "league_id": "chain-b",
+  "name": "Chain League 2024",
+  "season": 2024,
+  "status": "complete",
+  "settings": {"type": 2},
+  "previous_league_id": "chain-a",
+  "scoring_settings": {"pass_yd": 0.04, "rec": 1},
+  "roster_positions": ["QB", "RB", "WR", "TE", "FLEX", "BN"]
+}

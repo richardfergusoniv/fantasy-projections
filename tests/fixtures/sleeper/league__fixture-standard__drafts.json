@@ -1,0 +1,25 @@
+[
+  {
+    "draft_id": "fixture-standard-draft",
+    "league_id": "fixture-standard",
+    "season": "2026",
+    "status": "complete",
+    "type": "snake",
+    "settings": {
+      "teams": 2,
+      "rounds": 3,
+      "reversal_round": 0
+    },
+    "draft_order": {
+      "fixture-user-1": 1,
+      "fixture-user-2": 2
+    },
+    "slot_to_roster_id": {
+      "1": 1,
+      "2": 2
+    },
+    "metadata": {
+      "name": "Standard Half PPR Draft"
+    }
+  }
+]

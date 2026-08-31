@@ -1,0 +1,78 @@
+[
+  {
+    "roster_id": 1,
+    "owner_id": "fixture-user-1",
+    "league_id": "fixture-superflex",
+    "players": [
+      "sl-0032",
+      "sl-0017",
+      "sl-0063",
+      "sl-0036",
+      "sl-0050",
+      "sl-0016",
+      "sl-0030",
+      "sl-0085",
+      "K-DET",
+      "DEF-DEN",
+      "sl-0097",
+      "sl-0095"
+    ],
+    "starters": [
+      "sl-0032",
+      "sl-0017",
+      "sl-0063",
+      "sl-0036",
+      "sl-0050",
+      "sl-0016",
+      "sl-0030",
+      "sl-0085",
+      "K-DET",
+      "DEF-DEN"
+    ],
+    "reserve": [],
+    "settings": {
+      "wins": 0,
+      "losses": 0,
+      "fpts": 0,
+      "waiver_budget_used": 0
+    }
+  },
+  {
+    "roster_id": 2,
+    "owner_id": "fixture-user-2",
+    "league_id": "fixture-superflex",
+    "players": [
+      "sl-0059",
+      "sl-0102",
+      "sl-0066",
+      "sl-0062",
+      "sl-0056",
+      "sl-0077",
+      "sl-0048",
+      "sl-0034",
+      "K-KC",
+      "DEF-MIN",
+      "sl-0053",
+      "sl-0006"
+    ],
+    "starters": [
+      "sl-0059",
+      "sl-0102",
+      "sl-0066",
+      "sl-0062",
+      "sl-0056",
+      "sl-0077",
+      "sl-0048",
+      "sl-0034",
+      "K-KC",
+      "DEF-MIN"
+    ],
+    "reserve": [],
+    "settings": {
+      "wins": 0,
+      "losses": 0,
+      "fpts": 0,
+      "waiver_budget_used": 0
+    }
+  }
+]

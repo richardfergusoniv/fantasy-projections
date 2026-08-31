@@ -100,3 +100,17 @@ output/model_v3/simulated_vorp/
 output/model_v3/training_draws_*.json
 output/model_v3/wr_calibration.json
 output/model_v3/simulation_summary_recentered_*.csv
+
+# Local environment file. The README's quick start copies .env.example to .env
+# and then fills in real secrets (APP_SECRET_KEY, OPENAI_API_KEY, SMTP/Resend
+# credentials); only the example belongs in git.
+.env
+.env.*
+!.env.example
+
+# Local artifact store for the decision app (ARTIFACT_LOCAL_ROOT). These are
+# content-addressed snapshots and release payloads written by running the app,
+# jobs, and tests. Regenerable, and the database holds the URIs that address
+# them, so they are runtime state rather than source.
+output/app_artifacts/
+requirements-audit.txt
