@@ -5,7 +5,7 @@
   "release_id": "e92edd22-40d9-4219-87f6-47a651489d15",
   "manifest_sha256": "a951ca5093a12e8c2d8637de8515ff12c0b82a3b7a5883ccf95ae155dbaf3a37",
   "source_commit": "10750d35d2c78c0f16f15e959af5c750abb5f872",
-  "provenance_mode": "initial",
-  "activated_at": "2026-08-30T09:42:41.244858+00:00",
+  "provenance_mode": "restore",
+  "activated_at": "2026-08-31T01:57:23.084462+00:00",
   "promotion_invariants_verdict": "pass"
 }
