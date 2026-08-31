@@ -63,6 +63,23 @@ output/*.log
 # draw_count_rollout_decision.json stay tracked.
 output/evaluation/
 output/shadow_opportunity_mean/
+
+# Shadow v1 RB/WR research working set (local evidence, not deployable).
+# Canonical closeout policy, audit/pointer, and availability hold/seal JSON
+# stay tracked; parquet stages, membership dumps, and working tables remain
+# local outside the release path.
+output/shadow_v1_rb_wr/stages/
+output/shadow_v1_rb_wr/*.parquet
+output/shadow_v1_rb_wr/**/*.parquet
+output/shadow_v1_rb_wr/attribution_metrics.csv
+output/shadow_v1_rb_wr/attribution_summary.json
+output/shadow_v1_rb_wr/stage_attribution.csv
+output/shadow_v1_rb_wr/manifest.json
+output/shadow_v1_rb_wr/step6_*.csv
+output/shadow_v1_rb_wr/step6_decision.json
+output/shadow_v1_rb_wr/top120_membership_*.json
+output/shadow_v1_rb_wr/availability_repair/score_table.csv
+output/shadow_v1_rb_wr/availability_repair/scored_players.parquet
 output/weekly_audit/
 output/model_v3/decision_change_*
 output/model_v3/draw_count_decision.json
