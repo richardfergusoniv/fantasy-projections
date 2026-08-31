@@ -1,0 +1,126 @@
+# Local/production-shaped stack for the decision app.
+#
+# Copy `.env.example` to `.env` first; every service reads it.
+#
+# A project name is set explicitly so this stack's containers and volumes can
+# never collide with another project's on the same machine.
+name: fantasy-decision-app
+
+services:
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: fantasy_app
+      POSTGRES_USER: fantasy
+      # Overridable so a deployment is not stuck with the local default.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fantasy}
+    ports:
+      # Bound to loopback: the database is for this stack, not the network.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - fantasy_app_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fantasy -d fantasy_app"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  migrate:
+    build: .
+    command: ["uv", "run", "python", "-m", "src.app.cli", "migrate"]
+    env_file: .env
+    volumes:
+      - fantasy_app_artifacts:/var/lib/fantasy-app/artifacts
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  seed:
+    build: .
+    command: ["uv", "run", "python", "-m", "src.app.cli", "seed", "--email", "owner@example.com"]
+    env_file: .env
+    volumes:
+      - fantasy_app_artifacts:/var/lib/fantasy-app/artifacts
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: .
+    command: ["uv", "run", "python", "-m", "src.app.cli", "api", "--host", "0.0.0.0", "--port", "8000"]
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - fantasy_app_artifacts:/var/lib/fantasy-app/artifacts
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "uv", "run", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+  # The one authoritative scheduler. `run-due` derives the due America/Los_Angeles
+  # slots and keys each occurrence idempotently, so waking every five minutes
+  # cannot double-run a slot and a late wake-up still picks one up within its
+  # grace window. Exactly one replica: two would contend for the same slots and
+  # rely on the advisory lock alone.
+  scheduler:
+    build: .
+    command:
+      - sh
+      - -c
+      - "while true; do uv run python -m src.app.jobs.scheduler run-due; sleep 300; done"
+    env_file: .env
+    volumes:
+      - fantasy_app_artifacts:/var/lib/fantasy-app/artifacts
+    deploy:
+      replicas: 1
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # One-shot refresh, useful for a manual run or a smoke check. It is not the
+  # scheduler; it exits after a single job.
+  worker:
+    build: .
+    command: ["uv", "run", "python", "-m", "src.app.jobs.scheduler", "run-once", "daily-refresh"]
+    env_file: .env
+    volumes:
+      - fantasy_app_artifacts:/var/lib/fantasy-app/artifacts
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "5173:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  fantasy_app_pg:
+  fantasy_app_artifacts:

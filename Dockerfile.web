@@ -1,0 +1,19 @@
+# Static PWA build served by nginx.
+#
+# `npm ci` rather than `npm install`: the deployed bundle must be exactly what
+# the lockfile describes, not whatever resolves at build time.
+FROM node:22-alpine AS build
+WORKDIR /web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+COPY web ./
+RUN npm run build
+
+FROM nginx:1.27-alpine
+COPY --from=build /web/dist /usr/share/nginx/html
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+# `wget` is present in the nginx alpine image; the healthcheck asks the server
+# for the app shell rather than assuming the container being up means it serves.
+HEALTHCHECK --interval=10s --timeout=5s --retries=6 --start-period=10s \
+    CMD wget -q -O /dev/null http://127.0.0.1/ || exit 1
+EXPOSE 80

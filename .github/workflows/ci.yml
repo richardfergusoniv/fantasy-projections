@@ -29,8 +29,77 @@ jobs:
       - name: Run test suite
         run: uv run pytest -q
 
+      - name: App API smoke tests
+        run: uv run pytest tests/app tests/scoring -q
+
+      - name: Alembic migration smoke test
+        run: uv run pytest tests/app/test_migrations.py -q
+
+      # Schema drift check. It runs against SQLite, which revision
+      # d4a1f6c28b57 brought to parity with the PostgreSQL schema, so a
+      # difference reported here is real drift rather than a known gap.
+      - name: Alembic schema drift check
+        env:
+          DATABASE_URL: sqlite+pysqlite:///./ci_alembic_check.db
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check
+
+      - name: Vertical smoke (fixture refresh, then read)
+        run: uv run python scripts/vertical_smoke.py
+
+      # Non-blocking: the repository carries pre-existing lint findings that
+      # predate this workflow. Surfacing them keeps the count visible without
+      # failing unrelated work on them.
+      - name: Lint (ruff)
+        run: uv run ruff check src/app tests/app tests/scoring
+        continue-on-error: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install web dependencies and test
+        shell: pwsh
+        run: |
+          cd web
+          npm ci
+          npm test
+          npm run build
+          npx playwright install chromium
+          $env:CI = 'true'
+          # Starts a disposable seeded API (scripts/e2e_api.py) plus the dev
+          # server, then drives a real owner journey against them.
+          npm run test:e2e
+
+      # `uv run pip-audit` silently did nothing: pip-audit is not a project
+      # dependency, so the command failed to spawn and continue-on-error hid it.
+      # `uvx` fetches the tool, and the audit runs against the exported lock.
+      - name: Dependency audit
+        run: |
+          uv export --frozen --no-hashes --no-dev --format requirements-txt > requirements-audit.txt
+          uvx pip-audit --no-deps --disable-pip -r requirements-audit.txt
+        continue-on-error: true
+
+      - name: Web dependency audit
+        shell: pwsh
+        run: |
+          cd web
+          npm audit --audit-level=high
+        continue-on-error: true
+
       - name: Verify promotion invariant tamper tests
         run: uv run pytest tests/test_promotion_invariants.py -q
+
+      - name: Verify MVP fixture bundle
+        run: uv run python scripts/verify_mvp.py
+
+      - name: Blueprint MVP audit
+        run: uv run python scripts/audit_blueprint_mvp.py
+
+      - name: Validate Docker Compose config
+        run: uv run python scripts/validate_compose_config.py
 
       - name: Verify browser surfaces
         shell: pwsh
