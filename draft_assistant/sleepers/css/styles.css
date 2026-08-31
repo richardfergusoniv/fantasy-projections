@@ -62,7 +62,25 @@
 
 .sleepers-table .col-sentiment {
   text-align: center;
-  width: 3.75rem;
+  width: 4.5rem;
+}
+
+.sleepers-table th.diag {
+  cursor: default;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.sentiment-score.peer-low {
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.14);
+}
+
+.sentiment-evidence {
+  display: inline-block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .sleepers-table .upside {

@@ -7,6 +7,13 @@ from unittest import mock
 
 import pandas as pd
 
+from src.sentiment.diagnostics import (
+    EVIDENCE_LEGACY_ONLY,
+    EVIDENCE_MARKET_ONLY,
+    EVIDENCE_NONE,
+    attach_diagnostic_labels,
+    sentiment_evidence_tier,
+)
 from src.sentiment.gate import audit_snapshots
 from src.sentiment.markdown import (
     RESEARCH_AS_OF,
@@ -19,10 +26,14 @@ from src.sentiment.snapshot import (
     attach_sentiment,
     build_sentiment_snapshot,
 )
+from src.draft_assistant.prepare import build_sentiment_meta
+
+
 from src.sentiment.refresh_outputs import refresh_outputs
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SLEEPERS_DIR = REPO_ROOT / "draft_assistant" / "sleepers"
 
 
 def test_research_registry_covers_all_32_teams():
@@ -163,3 +174,244 @@ def test_refresh_outputs_preserves_projection_values(tmp_path):
     )
     assert set(SENTIMENT_OUTPUT_COLS) <= set(after.columns)
     assert fantasy_path.exists()
+
+
+def test_positive_label_never_renders_bearish():
+    players = pd.read_csv(REPO_ROOT / "output" / "fantasy_points_2026.csv").drop_duplicates(
+        "player_id"
+    )
+    snapshot = build_sentiment_snapshot(players, season=2026, as_of="2026-08-24")
+    positive = snapshot[snapshot["text_sentiment_raw"] > 0]
+    assert not (positive["sentiment_tone"] == "bearish").any()
+    below = positive[positive["sentiment_peer_label"] == "below_peers"]
+    assert len(below) >= 69
+    assert (below["sentiment_tone"] == "bullish").all()
+
+
+def test_peer_label_is_independent_of_tone():
+    frame = pd.DataFrame(
+        [
+            {
+                "text_sentiment_raw": 0.8,
+                "sentiment_score": -50.0,
+                "text_sentiment_z": 1.0,
+                "market_gap_z": None,
+            }
+        ]
+    )
+    labeled = attach_diagnostic_labels(frame).iloc[0]
+    assert labeled["sentiment_tone"] == "bullish"
+    assert labeled["sentiment_peer_label"] == "below_peers"
+
+
+def test_market_only_evidence_tier():
+    frame = pd.DataFrame(
+        [{"text_sentiment_z": None, "market_gap_z": 0.5, "text_sentiment_raw": None, "sentiment_score": -10.0}]
+    )
+    labeled = attach_diagnostic_labels(frame).iloc[0]
+    assert labeled["sentiment_evidence_tier"] == EVIDENCE_MARKET_ONLY
+    assert labeled["sentiment_tone"] == "unavailable"
+
+
+def test_evidence_tier_covers_all_four_combinations():
+    assert sentiment_evidence_tier(has_text=True, has_market=True) == "legacy_plus_market"
+    assert sentiment_evidence_tier(has_text=True, has_market=False) == EVIDENCE_LEGACY_ONLY
+    assert sentiment_evidence_tier(has_text=False, has_market=True) == EVIDENCE_MARKET_ONLY
+    assert sentiment_evidence_tier(has_text=False, has_market=False) == EVIDENCE_NONE
+
+
+def test_sentiment_meta_block_matches_consensus_metadata():
+    players = pd.read_csv(REPO_ROOT / "output" / "fantasy_points_2026.csv").drop_duplicates(
+        "player_id"
+    )
+    snapshot = build_sentiment_snapshot(players, season=2026, as_of="2026-08-24")
+    generated_at = "2026-08-30T12:00:00+00:00"
+    meta = build_sentiment_meta(2026, snapshot, generated_at=generated_at)
+    consensus = json.loads((REPO_ROOT / "data" / "consensus" / "consensus_2026.json").read_text())
+    assert meta["ecr_date"] == consensus["meta"]["ecr"]["scrape_date"]
+    assert meta["adp_end_date"] == consensus["meta"]["adp"]["end_date"]
+    assert meta["status"] == "diagnostic"
+    assert meta["model_active"] is False
+    assert meta["generated_at"] == generated_at
+
+
+def test_release_artifact_carries_diagnostic_fields():
+    path = REPO_ROOT / "draft_assistant" / "data" / "players_2026.json"
+    assert path.exists(), "run prepare export before this test"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert "sentiment" in payload["meta"]
+    sample = next(p for p in payload["players"] if p.get("sentiment_tone"))
+    for field in ("sentiment_tone", "sentiment_peer_label", "sentiment_evidence_tier"):
+        assert field in sample
+
+
+def test_sleeper_diagnostic_columns_are_not_sortable():
+    html = (SLEEPERS_DIR / "index.html").read_text(encoding="utf-8")
+    for label in ("Tone", "Peer buzz", "Evidence"):
+        start = html.index(label)
+        row = html.rfind("<th", 0, start)
+        end = html.index("</th>", start)
+        header = html[row:end]
+        assert 'class="sortable' not in header
+        assert "data-sort" not in header
+    assert 'data-sort="sentiment' not in html
+
+
+def test_sleeper_colspans_match_header_count():
+    html = (SLEEPERS_DIR / "index.html").read_text(encoding="utf-8")
+    import re
+
+    header_count = len(re.findall(r"<th[\s>]", html))
+    app_js = (SLEEPERS_DIR / "js" / "app.js").read_text(encoding="utf-8")
+    colspans = [int(value) for value in re.findall(r'colspan="(\d+)"', app_js)]
+    assert colspans
+    assert all(value == header_count for value in colspans)
+
+
+def test_no_hardcoded_research_date_in_browser_assets():
+    for path in SLEEPERS_DIR.rglob("*"):
+        if path.suffix in {".js", ".html", ".css"}:
+            assert "2026-08-24" not in path.read_text(encoding="utf-8"), path
+
+
+def test_diagnostic_fields_do_not_change_projections():
+    players = pd.read_csv(REPO_ROOT / "output" / "fantasy_points_2026.csv").drop_duplicates(
+        "player_id"
+    )
+    cols = ["fantasy_pts_season", "fantasy_pts", "position", "team"]
+    before = players.set_index("player_id")[cols]
+    attached = attach_sentiment(players, season=2026, as_of="2026-08-24")
+    after = attached.set_index("player_id")[cols]
+    pd.testing.assert_frame_equal(before, after, check_dtype=False)
+
+
+def _write_snapshot(tmp_path, rows: list[dict], name: str) -> Path:
+    path = tmp_path / name
+    pd.DataFrame(rows).to_csv(path, index=False)
+    return path
+
+
+def test_gate_rejects_duplicate_season_snapshots(tmp_path):
+    row = {
+        "player_id": "p1",
+        "position": "WR",
+        "sentiment_as_of": "2026-08-24",
+    }
+    first = _write_snapshot(tmp_path, [row], "sentiment_2026_2026-08-24.csv")
+    second = _write_snapshot(tmp_path, [row], "sentiment_2026_2026-08-25.csv")
+    try:
+        audit_snapshots([first, second])
+        assert False, "expected duplicate season rejection"
+    except ValueError as exc:
+        assert "Duplicate snapshot" in str(exc)
+
+
+def test_gate_three_claims_count_once_in_numerator(tmp_path):
+    claims_path = tmp_path / "claims.jsonl"
+    claims = [
+        {
+            "season": 2026,
+            "position": "WR",
+            "player_id": "p1",
+            "training_eligible": True,
+            "evidence_tier": "verified",
+        }
+        for _ in range(3)
+    ]
+    claims_path.write_text("\n".join(json.dumps(c) for c in claims), encoding="utf-8")
+    snap = _write_snapshot(
+        tmp_path,
+        [{"player_id": "p1", "position": "WR", "sentiment_as_of": "2026-08-24"}],
+        "sentiment_2026_2026-08-24.csv",
+    )
+    report = audit_snapshots([snap], claim_paths=[claims_path])
+    assert report["by_position"]["WR"]["covered_player_seasons"] == 1
+
+
+def test_gate_position_with_one_season_fails_even_if_others_have_three(tmp_path):
+    snap_2026 = _write_snapshot(
+        tmp_path,
+        [{"player_id": "p1", "position": "WR", "sentiment_as_of": "2026-08-24"}],
+        "sentiment_2026_2026-08-24.csv",
+    )
+    for season in (2024, 2025):
+        _write_snapshot(
+            tmp_path,
+            [{"player_id": f"qb{season}", "position": "QB", "sentiment_as_of": f"{season}-08-24"}],
+            f"sentiment_{season}_{season}-08-24.csv",
+        )
+    report = audit_snapshots(
+        [
+            snap_2026,
+            tmp_path / "sentiment_2024_2024-08-24.csv",
+            tmp_path / "sentiment_2025_2025-08-24.csv",
+        ]
+    )
+    assert len(report["by_position"]["WR"]["seasons"]) == 1
+    assert not report["by_position"]["WR"]["prerequisites_met"]
+
+
+def test_gate_coverage_exactly_40_percent_passes(tmp_path):
+    eligible = 10
+    covered = 4
+    rows = [{"player_id": f"p{i}", "position": "WR", "sentiment_as_of": "2026-08-24"} for i in range(eligible)]
+    snap = _write_snapshot(tmp_path, rows, "sentiment_2026_2026-08-24.csv")
+    claims_path = tmp_path / "claims.jsonl"
+    claim_rows = [
+        {
+            "season": 2026,
+            "position": "WR",
+            "player_id": f"p{i}",
+            "training_eligible": True,
+            "evidence_tier": "verified",
+        }
+        for i in range(covered)
+    ]
+    claims_path.write_text("\n".join(json.dumps(c) for c in claim_rows), encoding="utf-8")
+    report = audit_snapshots([snap], claim_paths=[claims_path])
+    assert report["by_position"]["WR"]["coverage"] == 0.4
+    assert report["by_position"]["WR"]["prerequisites_met"] is False  # still needs seasons + count
+
+
+def test_frozen_wr_population_has_105_records():
+    from scripts.freeze_sentiment_spike_population import EXPECTED_WR_COUNT, freeze_population
+
+    payload = freeze_population(2024, "WR")
+    assert payload["denominator"] == EXPECTED_WR_COUNT == 105
+
+
+def test_spike_validator_rejects_post_cutoff_and_missing_hash(tmp_path):
+    from scripts.freeze_sentiment_spike_population import SPIKE_CUTOFF_2024, freeze_population
+    from scripts.validate_spike_claims import validate_claim
+
+    population_path = tmp_path / "population.json"
+    population_path.write_text(json.dumps(freeze_population(2024, "WR")), encoding="utf-8")
+    allowed = {p["player_id"] for p in json.loads(population_path.read_text())["players"]}
+    player_id = next(iter(allowed))
+    cutoff = __import__("datetime").datetime.fromisoformat(SPIKE_CUTOFF_2024.replace("Z", "+00:00"))
+    late = {
+        "player_id": player_id,
+        "evidence_tier": "verified",
+        "training_eligible": True,
+        "source_url": "https://example.com/a",
+        "excerpt": "Coach praised his route development role",
+        "publication_timestamp": "2024-12-01T00:00:00Z",
+        "captured_content_hash": "abc",
+        "reviewer": "rf",
+        "parsed_label": "positive",
+    }
+    assert "after spike cutoff" in validate_claim(late, allowed_players=allowed, cutoff=cutoff)[0]
+    missing_hash = {**late, "publication_timestamp": "2024-08-01T00:00:00Z", "captured_content_hash": ""}
+    assert any("captured_content_hash" in err for err in validate_claim(missing_hash, allowed_players=allowed, cutoff=cutoff))
+
+
+def test_spike_report_empty_claims_is_infeasible(tmp_path):
+    from scripts.freeze_sentiment_spike_population import freeze_population
+    from scripts.report_sentiment_spike import VERDICT_INFEASIBLE, build_report
+
+    population_path = tmp_path / "population.json"
+    population_path.write_text(json.dumps(freeze_population(2024, "WR")), encoding="utf-8")
+    report = build_report(population_path=population_path, claims_path=None, attempts_path=None)
+    assert report["verified_numerator"] == 0
+    assert report["frozen_denominator"] == 105
+    assert report["verdict"] == VERDICT_INFEASIBLE

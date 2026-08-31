@@ -1,0 +1,960 @@
+{
+  "season": 2024,
+  "position": "WR",
+  "cutoff": "2024-09-04T00:00:00Z",
+  "cutoff_note": "Upper bound on evidence availability for the Week 1 roster population. Real drafts occur weeks earlier; coverage here does not transfer to draft-time overlays without re-measurement at an earlier cutoff.",
+  "population_rule": "output/fantasy_evaluation_2024.csv; rank model_forecast_points descending within season; keep proj_rank 61-300; preseason_position == 'WR'; forecast presence only",
+  "denominator": 105,
+  "content_hash": "9e29f86f614f20bb2c7dc69dd98a1c766df638750fb7ca6e3cfccc16425344ae",
+  "collection_order_seed": 20240830,
+  "collection_order": [
+    "00-0039893",
+    "00-0032211",
+    "00-0030035",
+    "00-0033943",
+    "00-0034960",
+    "00-0039901",
+    "00-0033536",
+    "00-0036345",
+    "00-0039064",
+    "00-0034407",
+    "00-0031235",
+    "00-0037816",
+    "00-0033555",
+    "00-0039894",
+    "00-0038621",
+    "00-0036613",
+    "00-0038573",
+    "00-0035341",
+    "00-0038977",
+    "00-0038612",
+    "00-0036407",
+    "00-0038563",
+    "00-0035406",
+    "00-0039915",
+    "00-0038976",
+    "00-0033921",
+    "00-0037545",
+    "00-0036410",
+    "00-0036988",
+    "00-0037238",
+    "00-0039739",
+    "00-0034827",
+    "00-0034386",
+    "00-0034348",
+    "00-0038393",
+    "00-0037837",
+    "00-0039146",
+    "00-0030279",
+    "00-0037664",
+    "00-0034521",
+    "00-0035659",
+    "00-0037240",
+    "00-0033591",
+    "00-0039868",
+    "00-0036849",
+    "00-0038938",
+    "00-0036554",
+    "00-0038543",
+    "00-0032398",
+    "00-0037740",
+    "00-0038997",
+    "00-0035535",
+    "00-0033282",
+    "00-0039853",
+    "00-0037666",
+    "00-0036980",
+    "00-0039907",
+    "00-0039342",
+    "00-0035216",
+    "00-0039849",
+    "00-0037801",
+    "00-0038619",
+    "00-0031549",
+    "00-0031941",
+    "00-0036415",
+    "00-0038544",
+    "00-0039919",
+    "00-0034837",
+    "00-0037261",
+    "00-0037741",
+    "00-0036912",
+    "00-0038752",
+    "00-0035500",
+    "00-0032464",
+    "00-0035640",
+    "00-0036626",
+    "00-0039355",
+    "00-0039062",
+    "00-0038117",
+    "00-0038606",
+    "00-0033009",
+    "00-0036309",
+    "00-0035298",
+    "00-0038124",
+    "00-0039337",
+    "00-0038994",
+    "00-0035719",
+    "00-0036550",
+    "00-0031236",
+    "00-0034775",
+    "00-0033307",
+    "00-0036936",
+    "00-0037091",
+    "00-0038559",
+    "00-0032775",
+    "00-0033908",
+    "00-0039052",
+    "00-0035662",
+    "00-0035208",
+    "00-0036196",
+    "00-0039067",
+    "00-0030431",
+    "00-0034777",
+    "00-0039810",
+    "00-0034418"
+  ],
+  "players": [
+    {
+      "player_id": "00-0030035",
+      "display_name": "Adam Thielen",
+      "preseason_team": "CAR",
+      "model_forecast_points": 152.7524659713387,
+      "proj_rank": 82,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0030279",
+      "display_name": "Keenan Allen",
+      "preseason_team": "CHI",
+      "model_forecast_points": 174.45632659119985,
+      "proj_rank": 65,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0030431",
+      "display_name": "Robert Woods",
+      "preseason_team": "HOU",
+      "model_forecast_points": 42.47651143862481,
+      "proj_rank": 282,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0031235",
+      "display_name": "Odell Beckham Jr.",
+      "preseason_team": "MIA",
+      "model_forecast_points": 39.57676530309546,
+      "proj_rank": 294,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0031236",
+      "display_name": "Brandin Cooks",
+      "preseason_team": "DAL",
+      "model_forecast_points": 99.99915355402752,
+      "proj_rank": 137,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0031549",
+      "display_name": "Nelson Agholor",
+      "preseason_team": "BAL",
+      "model_forecast_points": 52.35531006493414,
+      "proj_rank": 248,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0031941",
+      "display_name": "Jamison Crowder",
+      "preseason_team": "WAS",
+      "model_forecast_points": 45.35111332939924,
+      "proj_rank": 269,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0032211",
+      "display_name": "Tyler Lockett",
+      "preseason_team": "SEA",
+      "model_forecast_points": 155.92799178481604,
+      "proj_rank": 76,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0032398",
+      "display_name": "Chris Moore",
+      "preseason_team": "ARI",
+      "model_forecast_points": 44.41084491145692,
+      "proj_rank": 272,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0032464",
+      "display_name": "Kalif Raymond",
+      "preseason_team": "DET",
+      "model_forecast_points": 65.7595859827621,
+      "proj_rank": 202,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0032775",
+      "display_name": "Demarcus Robinson",
+      "preseason_team": "LA",
+      "model_forecast_points": 58.80994433312055,
+      "proj_rank": 225,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0033009",
+      "display_name": "Tyler Boyd",
+      "preseason_team": "TEN",
+      "model_forecast_points": 59.82046923614473,
+      "proj_rank": 219,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0033282",
+      "display_name": "Curtis Samuel",
+      "preseason_team": "BUF",
+      "model_forecast_points": 72.70077176556538,
+      "proj_rank": 191,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0033307",
+      "display_name": "Kendrick Bourne",
+      "preseason_team": "NE",
+      "model_forecast_points": 100.03541660364677,
+      "proj_rank": 136,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0033536",
+      "display_name": "Mike Williams",
+      "preseason_team": "NYJ",
+      "model_forecast_points": 154.5275494556891,
+      "proj_rank": 77,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0033555",
+      "display_name": "Mack Hollins",
+      "preseason_team": "BUF",
+      "model_forecast_points": 60.06960948355942,
+      "proj_rank": 218,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0033591",
+      "display_name": "Noah Brown",
+      "preseason_team": "WAS",
+      "model_forecast_points": 92.73532605283415,
+      "proj_rank": 147,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0033908",
+      "display_name": "Cooper Kupp",
+      "preseason_team": "LA",
+      "model_forecast_points": 149.88715955021524,
+      "proj_rank": 88,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0033921",
+      "display_name": "Chris Godwin",
+      "preseason_team": "TB",
+      "model_forecast_points": 149.67296418999902,
+      "proj_rank": 89,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0033943",
+      "display_name": "Josh Reynolds",
+      "preseason_team": "DEN",
+      "model_forecast_points": 59.142909596101326,
+      "proj_rank": 224,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0034348",
+      "display_name": "Courtland Sutton",
+      "preseason_team": "DEN",
+      "model_forecast_points": 99.88696528355148,
+      "proj_rank": 138,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0034386",
+      "display_name": "Justin Watson",
+      "preseason_team": "KC",
+      "model_forecast_points": 61.05233406866997,
+      "proj_rank": 215,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0034407",
+      "display_name": "Ray-Ray McCloud",
+      "preseason_team": "ATL",
+      "model_forecast_points": 45.69143038623126,
+      "proj_rank": 264,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0034418",
+      "display_name": "Cedrick Wilson Jr.",
+      "preseason_team": "NO",
+      "model_forecast_points": 42.627622865256896,
+      "proj_rank": 278,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0034521",
+      "display_name": "Allen Lazard",
+      "preseason_team": "NYJ",
+      "model_forecast_points": 51.65170988129694,
+      "proj_rank": 251,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0034775",
+      "display_name": "Christian Kirk",
+      "preseason_team": "JAX",
+      "model_forecast_points": 136.40799332082102,
+      "proj_rank": 101,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0034777",
+      "display_name": "DJ Chark",
+      "preseason_team": "LAC",
+      "model_forecast_points": 41.11133592986414,
+      "proj_rank": 288,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0034827",
+      "display_name": "DJ Moore",
+      "preseason_team": "CHI",
+      "model_forecast_points": 173.1104426221492,
+      "proj_rank": 67,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0034837",
+      "display_name": "Calvin Ridley",
+      "preseason_team": "TEN",
+      "model_forecast_points": 157.37962756533872,
+      "proj_rank": 73,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0034960",
+      "display_name": "Jakobi Meyers",
+      "preseason_team": "LV",
+      "model_forecast_points": 121.09901647481834,
+      "proj_rank": 118,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0035208",
+      "display_name": "Olamide Zaccheaus",
+      "preseason_team": "WAS",
+      "model_forecast_points": 61.05643703628428,
+      "proj_rank": 214,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0035216",
+      "display_name": "Diontae Johnson",
+      "preseason_team": "CAR",
+      "model_forecast_points": 130.0787765536674,
+      "proj_rank": 107,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0035298",
+      "display_name": "Scott Miller",
+      "preseason_team": "PIT",
+      "model_forecast_points": 39.02132536934021,
+      "proj_rank": 297,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0035341",
+      "display_name": "Trenton Irwin",
+      "preseason_team": "CIN",
+      "model_forecast_points": 46.01346675651169,
+      "proj_rank": 263,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0035406",
+      "display_name": "Lil'Jordan Humphrey",
+      "preseason_team": "DEN",
+      "model_forecast_points": 46.09639690804377,
+      "proj_rank": 262,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0035500",
+      "display_name": "Greg Dortch",
+      "preseason_team": "ARI",
+      "model_forecast_points": 43.25864866941467,
+      "proj_rank": 276,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0035535",
+      "display_name": "Darius Slayton",
+      "preseason_team": "NYG",
+      "model_forecast_points": 96.61551247661194,
+      "proj_rank": 144,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0035640",
+      "display_name": "DK Metcalf",
+      "preseason_team": "SEA",
+      "model_forecast_points": 171.59383236520432,
+      "proj_rank": 68,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0035659",
+      "display_name": "Terry McLaurin",
+      "preseason_team": "WAS",
+      "model_forecast_points": 153.8214740182136,
+      "proj_rank": 79,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0035662",
+      "display_name": "Marquise Brown",
+      "preseason_team": "KC",
+      "model_forecast_points": 85.43006586779366,
+      "proj_rank": 162,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0035719",
+      "display_name": "Deebo Samuel Sr.",
+      "preseason_team": "SF",
+      "model_forecast_points": 116.96377630736993,
+      "proj_rank": 122,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0036196",
+      "display_name": "Gabe Davis",
+      "preseason_team": "JAX",
+      "model_forecast_points": 104.98087356924913,
+      "proj_rank": 132,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0036309",
+      "display_name": "Darnell Mooney",
+      "preseason_team": "ATL",
+      "model_forecast_points": 73.63671274788423,
+      "proj_rank": 186,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0036345",
+      "display_name": "K.J. Osborn",
+      "preseason_team": "NE",
+      "model_forecast_points": 59.49195585001431,
+      "proj_rank": 220,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0036407",
+      "display_name": "Jerry Jeudy",
+      "preseason_team": "CLE",
+      "model_forecast_points": 89.4806839963792,
+      "proj_rank": 154,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0036410",
+      "display_name": "Tee Higgins",
+      "preseason_team": "CIN",
+      "model_forecast_points": 121.97000248067178,
+      "proj_rank": 116,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0036415",
+      "display_name": "Van Jefferson",
+      "preseason_team": "PIT",
+      "model_forecast_points": 65.2921355811786,
+      "proj_rank": 203,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0036550",
+      "display_name": "Rashod Bateman",
+      "preseason_team": "BAL",
+      "model_forecast_points": 77.01909268721255,
+      "proj_rank": 178,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0036554",
+      "display_name": "Nico Collins",
+      "preseason_team": "HOU",
+      "model_forecast_points": 156.94866778729866,
+      "proj_rank": 74,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0036613",
+      "display_name": "Jaylen Waddle",
+      "preseason_team": "MIA",
+      "model_forecast_points": 145.3455342500847,
+      "proj_rank": 94,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0036626",
+      "display_name": "Dyami Brown",
+      "preseason_team": "WAS",
+      "model_forecast_points": 42.58667875140585,
+      "proj_rank": 280,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0036849",
+      "display_name": "Tutu Atwell",
+      "preseason_team": "LA",
+      "model_forecast_points": 57.1206385685134,
+      "proj_rank": 232,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0036912",
+      "display_name": "DeVonta Smith",
+      "preseason_team": "PHI",
+      "model_forecast_points": 142.1161561334778,
+      "proj_rank": 96,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0036936",
+      "display_name": "Rondale Moore",
+      "preseason_team": "ATL",
+      "model_forecast_points": 39.62148884733688,
+      "proj_rank": 293,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0036980",
+      "display_name": "Elijah Moore",
+      "preseason_team": "CLE",
+      "model_forecast_points": 77.19686994160975,
+      "proj_rank": 177,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0036988",
+      "display_name": "Josh Palmer",
+      "preseason_team": "LAC",
+      "model_forecast_points": 145.09354753712122,
+      "proj_rank": 95,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0037091",
+      "display_name": "Bo Melton",
+      "preseason_team": "GB",
+      "model_forecast_points": 53.97996073980617,
+      "proj_rank": 242,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0037238",
+      "display_name": "Drake London",
+      "preseason_team": "ATL",
+      "model_forecast_points": 158.64440685226535,
+      "proj_rank": 71,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0037240",
+      "display_name": "Jameson Williams",
+      "preseason_team": "DET",
+      "model_forecast_points": 80.31978837297396,
+      "proj_rank": 172,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0037261",
+      "display_name": "Khalil Shakir",
+      "preseason_team": "BUF",
+      "model_forecast_points": 72.92810906849084,
+      "proj_rank": 190,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0037545",
+      "display_name": "Rashid Shaheed",
+      "preseason_team": "NO",
+      "model_forecast_points": 100.5331286488864,
+      "proj_rank": 135,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0037664",
+      "display_name": "Alec Pierce",
+      "preseason_team": "IND",
+      "model_forecast_points": 61.05833544341571,
+      "proj_rank": 213,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0037666",
+      "display_name": "Jalen Tolbert",
+      "preseason_team": "DAL",
+      "model_forecast_points": 63.18597017070038,
+      "proj_rank": 207,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0037740",
+      "display_name": "Garrett Wilson",
+      "preseason_team": "NYJ",
+      "model_forecast_points": 163.22592645272337,
+      "proj_rank": 70,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0037741",
+      "display_name": "Jahan Dotson",
+      "preseason_team": "PHI",
+      "model_forecast_points": 62.12073579644744,
+      "proj_rank": 211,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0037801",
+      "display_name": "KaVontae Turpin",
+      "preseason_team": "DAL",
+      "model_forecast_points": 38.2099293361614,
+      "proj_rank": 300,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0037816",
+      "display_name": "Romeo Doubs",
+      "preseason_team": "GB",
+      "model_forecast_points": 81.36475796458114,
+      "proj_rank": 168,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0037837",
+      "display_name": "Calvin Austin III",
+      "preseason_team": "PIT",
+      "model_forecast_points": 56.51582769439264,
+      "proj_rank": 235,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038117",
+      "display_name": "Wan'Dale Robinson",
+      "preseason_team": "NYG",
+      "model_forecast_points": 58.79852677287158,
+      "proj_rank": 226,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038124",
+      "display_name": "Christian Watson",
+      "preseason_team": "GB",
+      "model_forecast_points": 92.70504474329373,
+      "proj_rank": 148,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0038393",
+      "display_name": "Dontayvion Wicks",
+      "preseason_team": "GB",
+      "model_forecast_points": 59.41797235591923,
+      "proj_rank": 221,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038543",
+      "display_name": "Jaxon Smith-Njigba",
+      "preseason_team": "SEA",
+      "model_forecast_points": 85.98282460761953,
+      "proj_rank": 161,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0038544",
+      "display_name": "Quentin Johnston",
+      "preseason_team": "LAC",
+      "model_forecast_points": 98.52545843097762,
+      "proj_rank": 143,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0038559",
+      "display_name": "Michael Wilson",
+      "preseason_team": "ARI",
+      "model_forecast_points": 56.685223837249296,
+      "proj_rank": 233,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038563",
+      "display_name": "Tre Tucker",
+      "preseason_team": "LV",
+      "model_forecast_points": 51.47102859058839,
+      "proj_rank": 252,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038573",
+      "display_name": "Derius Davis",
+      "preseason_team": "LAC",
+      "model_forecast_points": 58.24463791336593,
+      "proj_rank": 229,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038606",
+      "display_name": "Parker Washington",
+      "preseason_team": "JAX",
+      "model_forecast_points": 45.43793437334105,
+      "proj_rank": 266,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038612",
+      "display_name": "A.T. Perry",
+      "preseason_team": "NO",
+      "model_forecast_points": 42.598232488771366,
+      "proj_rank": 279,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038619",
+      "display_name": "Andrei Iosivas",
+      "preseason_team": "CIN",
+      "model_forecast_points": 46.26962763507664,
+      "proj_rank": 259,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038621",
+      "display_name": "Demario Douglas",
+      "preseason_team": "NE",
+      "model_forecast_points": 70.50123390154216,
+      "proj_rank": 195,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0038752",
+      "display_name": "Jake Bobo",
+      "preseason_team": "SEA",
+      "model_forecast_points": 45.04645081565598,
+      "proj_rank": 271,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038938",
+      "display_name": "Jalin Hyatt",
+      "preseason_team": "NYG",
+      "model_forecast_points": 72.51412908564289,
+      "proj_rank": 192,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0038976",
+      "display_name": "Marvin Mims Jr.",
+      "preseason_team": "DEN",
+      "model_forecast_points": 49.34188510544861,
+      "proj_rank": 255,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0038977",
+      "display_name": "Tank Dell",
+      "preseason_team": "HOU",
+      "model_forecast_points": 127.15719489605576,
+      "proj_rank": 110,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0038994",
+      "display_name": "Jordan Addison",
+      "preseason_team": "MIN",
+      "model_forecast_points": 150.34591052786757,
+      "proj_rank": 85,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0038997",
+      "display_name": "Josh Downs",
+      "preseason_team": "IND",
+      "model_forecast_points": 93.8716101162953,
+      "proj_rank": 146,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0039052",
+      "display_name": "Trey Palmer",
+      "preseason_team": "TB",
+      "model_forecast_points": 80.63388897902162,
+      "proj_rank": 170,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0039062",
+      "display_name": "Jonathan Mingo",
+      "preseason_team": "CAR",
+      "model_forecast_points": 55.51292572720372,
+      "proj_rank": 237,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0039064",
+      "display_name": "Zay Flowers",
+      "preseason_team": "BAL",
+      "model_forecast_points": 133.21976376497233,
+      "proj_rank": 104,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0039067",
+      "display_name": "Rashee Rice",
+      "preseason_team": "KC",
+      "model_forecast_points": 105.70873299946156,
+      "proj_rank": 130,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0039146",
+      "display_name": "Jayden Reed",
+      "preseason_team": "GB",
+      "model_forecast_points": 91.5525252393586,
+      "proj_rank": 152,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0039337",
+      "display_name": "Malik Nabers",
+      "preseason_team": "NYG",
+      "model_forecast_points": 174.24511144876283,
+      "proj_rank": 66,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0039342",
+      "display_name": "Xavier Legette",
+      "preseason_team": "CAR",
+      "model_forecast_points": 98.75221118489203,
+      "proj_rank": 142,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0039355",
+      "display_name": "Luke McCaffrey",
+      "preseason_team": "WAS",
+      "model_forecast_points": 46.46547693564193,
+      "proj_rank": 258,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0039739",
+      "display_name": "Roman Wilson",
+      "preseason_team": "PIT",
+      "model_forecast_points": 55.54901266570354,
+      "proj_rank": 236,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0039810",
+      "display_name": "Jermaine Burton",
+      "preseason_team": "CIN",
+      "model_forecast_points": 59.29144711252612,
+      "proj_rank": 223,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0039849",
+      "display_name": "Marvin Harrison Jr.",
+      "preseason_team": "ARI",
+      "model_forecast_points": 176.80102167101026,
+      "proj_rank": 62,
+      "band": "deep_core"
+    },
+    {
+      "player_id": "00-0039853",
+      "display_name": "Javon Baker",
+      "preseason_team": "NE",
+      "model_forecast_points": 46.18514123050157,
+      "proj_rank": 260,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0039868",
+      "display_name": "Troy Franklin",
+      "preseason_team": "DEN",
+      "model_forecast_points": 52.1670486537141,
+      "proj_rank": 249,
+      "band": "deep_speculative"
+    },
+    {
+      "player_id": "00-0039893",
+      "display_name": "Brian Thomas Jr.",
+      "preseason_team": "JAX",
+      "model_forecast_points": 108.59587481906,
+      "proj_rank": 126,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0039894",
+      "display_name": "Xavier Worthy",
+      "preseason_team": "KC",
+      "model_forecast_points": 72.11294987120385,
+      "proj_rank": 193,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0039901",
+      "display_name": "Keon Coleman",
+      "preseason_team": "BUF",
+      "model_forecast_points": 112.1205747533636,
+      "proj_rank": 124,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0039907",
+      "display_name": "Ja'Lynn Polk",
+      "preseason_team": "NE",
+      "model_forecast_points": 92.04073090507718,
+      "proj_rank": 150,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0039915",
+      "display_name": "Ladd McConkey",
+      "preseason_team": "LAC",
+      "model_forecast_points": 104.17109580399271,
+      "proj_rank": 133,
+      "band": "deep_primary"
+    },
+    {
+      "player_id": "00-0039919",
+      "display_name": "Rome Odunze",
+      "preseason_team": "CHI",
+      "model_forecast_points": 126.38573737989928,
+      "proj_rank": 111,
+      "band": "deep_core"
+    }
+  ],
+  "frozen_at": "2026-08-31T03:19:53.971092+00:00"
+}

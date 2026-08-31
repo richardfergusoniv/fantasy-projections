@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import RidgeCV
 
+from src.sentiment.diagnostics import attach_diagnostic_labels
 from src.sentiment.markdown import RESEARCH_AS_OF, norm_name, parse_research_directory
 
 
@@ -31,6 +32,9 @@ SENTIMENT_OUTPUT_COLS = [
     "sentiment_source_count",
     "sentiment_model_active",
     "sentiment_version",
+    "sentiment_tone",
+    "sentiment_peer_label",
+    "sentiment_evidence_tier",
 ]
 
 
@@ -249,6 +253,7 @@ def build_sentiment_snapshot(
     out["sentiment_model_active"] = out["position"].map(active).fillna(False).astype(bool)
     out["sentiment_version"] = SENTIMENT_VERSION
     out["season"] = int(season)
+    out = attach_diagnostic_labels(out)
     audit_cols = [
         "player_id", "display_name", "team", "position", "season",
         "text_sentiment_raw", "text_sentiment_z", "text_confidence",

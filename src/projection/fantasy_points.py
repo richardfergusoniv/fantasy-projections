@@ -71,6 +71,7 @@ DESCRIPTIVE_COLS = [
     "sentiment_score", "sentiment_feature", "sentiment_confidence",
     "sentiment_coverage", "sentiment_as_of", "sentiment_claim_count",
     "sentiment_source_count", "sentiment_model_active", "sentiment_version",
+    "sentiment_tone", "sentiment_peer_label", "sentiment_evidence_tier",
 ]
 
 

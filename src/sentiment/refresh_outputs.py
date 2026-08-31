@@ -39,12 +39,12 @@ def refresh_outputs(
     with open(manifest_path, encoding="utf-8") as handle:
         manifest = json.load(handle)
     long = pd.read_csv(projections_path)
-    validate_projection_contract(
-        long, season, manifest=manifest, projection_path=projections_path
-    )
     baseline_cols = [c for c in long.columns if c not in SENTIMENT_OUTPUT_COLS]
     long = long.drop(columns=SENTIMENT_OUTPUT_COLS, errors="ignore")
     long = attach_sentiment(long, season=season, as_of=as_of)
+    validate_projection_contract(
+        long, season, manifest=manifest, projection_path=projections_path
+    )
     long = long[[*baseline_cols, *SENTIMENT_OUTPUT_COLS]]
     fantasy = compute_fantasy_points(long)
     projections_temp = projections_path.with_suffix(projections_path.suffix + ".tmp")

@@ -44,6 +44,8 @@ from src.draft_assistant.replacement_contract import (
     read_replacement_contract,
 )
 from src.projection.inference.recenter import sha256_file
+from src.sentiment.markdown import RESEARCH_AS_OF
+from src.sentiment.snapshot import SENTIMENT_VERSION, attach_sentiment
 from src.draft_assistant.vorp import (
     DEFAULT_TEAM_COUNT,
     load_position_curves,
@@ -108,6 +110,9 @@ EXPORT_COLS = [
     "sentiment_source_count",
     "sentiment_model_active",
     "sentiment_version",
+    "sentiment_tone",
+    "sentiment_peer_label",
+    "sentiment_evidence_tier",
     "fantasy_pts_p10",
     "fantasy_pts_p25",
     "fantasy_pts_p50",
@@ -133,6 +138,15 @@ def load_projections(season: int, path: str | None = None) -> pd.DataFrame:
     if not os.path.exists(path):
         raise FileNotFoundError(f"Missing projection file: {path}")
     df = pd.read_csv(path)
+    if "sentiment_tone" not in df.columns:
+        as_of = RESEARCH_AS_OF.isoformat()
+        if "sentiment_as_of" in df.columns:
+            values = df["sentiment_as_of"].dropna().astype(str).unique().tolist()
+            if len(values) > 1:
+                raise ValueError(f"Mixed sentiment_as_of values in {path}: {values}")
+            if values:
+                as_of = values[0][:10]
+        df = attach_sentiment(df, season=season, as_of=as_of)
     df = df[df["position"].isin(["QB", "RB", "WR", "TE"])].copy()
     df = df.sort_values("fantasy_pts_season", ascending=False).reset_index(drop=True)
     return df
@@ -158,6 +172,44 @@ def to_json_value(val, *, as_bool: bool = False):
             return None
         return round(val, 2)
     return str(val)
+
+
+def build_sentiment_meta(
+    season: int,
+    df: pd.DataFrame,
+    *,
+    generated_at: str,
+) -> dict:
+    """Release metadata for diagnostic sentiment presentation."""
+    consensus_path = os.path.join(REPO_ROOT, "data", "consensus", f"consensus_{season}.json")
+    ecr_date = None
+    adp_end_date = None
+    if os.path.exists(consensus_path):
+        with open(consensus_path, encoding="utf-8") as fh:
+            consensus = json.load(fh)
+        meta = consensus.get("meta") or {}
+        ecr_date = (meta.get("ecr") or {}).get("scrape_date")
+        adp_end_date = (meta.get("adp") or {}).get("end_date")
+
+    if "sentiment_as_of" in df.columns:
+        as_of_values = df["sentiment_as_of"].dropna().astype(str).unique().tolist()
+        if len(as_of_values) > 1:
+            raise ValueError(
+                f"Mixed sentiment_as_of values in release frame: {as_of_values}"
+            )
+        research_cutoff = as_of_values[0][:10] if as_of_values else RESEARCH_AS_OF.isoformat()
+    else:
+        research_cutoff = RESEARCH_AS_OF.isoformat()
+
+    return {
+        "status": "diagnostic",
+        "version": SENTIMENT_VERSION,
+        "research_evidence_cutoff": research_cutoff,
+        "ecr_date": ecr_date,
+        "adp_end_date": adp_end_date,
+        "generated_at": generated_at,
+        "model_active": bool(df.get("sentiment_model_active", pd.Series(dtype=bool)).any()),
+    }
 
 
 def build_player_records(df: pd.DataFrame) -> list[dict]:
@@ -793,10 +845,11 @@ def export_draft_data(
     else:
         engine = "fantasy-projections (rate-forecast / LightGBM)"
 
+    generated_at = datetime.now(timezone.utc).isoformat()
     payload = {
         "meta": {
             "season": season,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": generated_at,
             "player_count": len(players),
             "scoring": "half-PPR, 4pt passing TD",
             "source_file": (
@@ -850,6 +903,7 @@ def export_draft_data(
             "v3_simulation": v3_sim_meta,
             "draft_value_simulation": draft_value_meta,
             "v3_means": v3_means_meta,
+            "sentiment": build_sentiment_meta(season, df, generated_at=generated_at),
         },
         "tier_gaps": {
             "overall_vorp": OVERALL_VORP_TIER_GAP,

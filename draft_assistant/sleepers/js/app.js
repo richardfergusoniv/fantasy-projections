@@ -61,6 +61,7 @@ const state = {
   search: "",
   sortKey: "fantasy_pts_p90",
   sortDir: "desc",
+  sentimentMeta: null,
   hoverId: null,
   hoverTimer: null,
 };
@@ -120,35 +121,71 @@ function finishGateNote(board) {
     : `Not published (${sim.reason || "unknown reason"})`;
 }
 
-// sentiment_confidence is not a measurement — it is a constant chosen by how the
-// mention was parsed (0.75 table row, 0.62 bullet) blended with a hardcoded 1/3
-// for the market family. Report the provenance it actually encodes instead of
-// dressing it up as a confidence percentage.
-function sentimentProvenance(p) {
-  const c = p.sentiment_confidence;
-  if (c == null) return "no signal";
-  const near = (x) => Math.abs(Number(c) - x) < 0.02;
-  if (near(1 / 3)) return "market gap only (ECR vs ADP)";
-  if (near(0.62)) return "one bullet mention";
-  if (near(0.75)) return "one table row";
-  if (near(0.7467)) return "bullet mention + market gap";
-  if (near(0.8333)) return "table row + market gap";
-  return p.sentiment_coverage === "high" ? "text + market gap" : "text only";
+// Diagnostic sentiment: tone is absolute text polarity; peer buzz is position-
+// relative residual; evidence tier replaces numeric confidence language.
+const TONE_LABEL = {
+  bullish: "Bullish",
+  mixed_neutral: "Mixed",
+  bearish: "Bearish",
+  unavailable: "—",
+};
+
+const PEER_LABEL = {
+  above_peers: "Above peers",
+  typical: "Typical",
+  below_peers: "Below peers",
+};
+
+const EVIDENCE_LABEL = {
+  legacy_plus_market: "Legacy + market",
+  legacy_only: "Legacy only",
+  market_only: "Market only",
+  none: "—",
+};
+
+function sentimentMetaDates() {
+  const meta = state.sentimentMeta || {};
+  const parts = [];
+  if (meta.research_evidence_cutoff) {
+    parts.push(`Research cutoff ${meta.research_evidence_cutoff}`);
+  }
+  if (meta.ecr_date) parts.push(`ECR ${meta.ecr_date}`);
+  if (meta.adp_end_date) parts.push(`ADP through ${meta.adp_end_date}`);
+  if (meta.generated_at) parts.push(`Generated ${meta.generated_at.slice(0, 10)}`);
+  return parts.join(" · ");
 }
 
-function sentimentHtml(p) {
-  const score = p.sentiment_score;
-  if (score == null) {
-    return '<span class="sentiment-score none" title="No mention found in the research corpus. Absence is not a negative signal.">—</span>';
-  }
-  const cls = score > 15 ? "positive" : score < -15 ? "negative" : "neutral";
-  const sign = score > 0 ? "+" : "";
+function sentimentToneHtml(p) {
+  const tone = p.sentiment_tone || "unavailable";
+  const label = TONE_LABEL[tone] || "—";
+  const cls =
+    tone === "bullish" ? "positive" : tone === "bearish" ? "negative" : tone === "mixed_neutral" ? "neutral" : "none";
   const title =
-    `Buzz ${sign}${Math.round(score)} — percentile of reviewed mentions within ${p.position}, ` +
-    `across the whole board (not just this page). ` +
-    `Evidence: ${sentimentProvenance(p)}. ` +
-    `Research frozen 2026-08-24. Unvalidated: the corpus is 91.5% positive, 1.2% negative.`;
-  return `<span class="sentiment-score ${cls}" title="${escapeHtml(title)}">${sign}${Math.round(score)}</span>`;
+    `Tone — absolute interpretation of the strongest legacy mention. ` +
+    `${sentimentMetaDates()}. Unvalidated diagnostic only.`;
+  return `<span class="sentiment-score ${cls}" title="${escapeHtml(title)}">${escapeHtml(label)}</span>`;
+}
+
+function sentimentPeerHtml(p) {
+  const peer = p.sentiment_peer_label;
+  if (!peer) {
+    return '<span class="sentiment-score none" title="No position-relative buzz signal.">—</span>';
+  }
+  const label = PEER_LABEL[peer] || "—";
+  const cls = peer === "above_peers" ? "positive" : peer === "below_peers" ? "peer-low" : "neutral";
+  const title =
+    `Peer buzz — position-relative residual, not absolute tone. ` +
+    `Below-peer buzz is not bearish. ${sentimentMetaDates()}.`;
+  return `<span class="sentiment-score ${cls}" title="${escapeHtml(title)}">${escapeHtml(label)}</span>`;
+}
+
+function sentimentEvidenceHtml(p) {
+  const tier = p.sentiment_evidence_tier || "none";
+  const label = EVIDENCE_LABEL[tier] || "—";
+  const title =
+    `Evidence tier — what families contributed to the diagnostic. ` +
+    `${sentimentMetaDates()}.`;
+  return `<span class="sentiment-evidence" title="${escapeHtml(title)}">${escapeHtml(label)}</span>`;
 }
 
 function seasonRange(seasons) {
@@ -248,7 +285,7 @@ async function loadData() {
 
   state.rows = rows;
   state.byId = new Map(rows.map((p) => [p.player_id, p]));
-  state.finishGateNote = finishGateNote(board);
+  state.sentimentMeta = board.meta?.sentiment || null;
 
   try {
     const cards = await loadJson(`../data/team_stats_${SEASON}.json`, { required: false });
@@ -367,7 +404,7 @@ function render() {
     "sorted by upside unless you change it";
 
   if (!rows.length) {
-    body.innerHTML = '<tr><td colspan="15" class="empty-state">No players match these filters.</td></tr>';
+    body.innerHTML = '<tr><td colspan="17" class="empty-state">No players match these filters.</td></tr>';
     return;
   }
 
@@ -391,7 +428,9 @@ function render() {
         <td class="num">${formatVorp(p.vorp)}</td>
         <td class="num ${p.finish_odds == null ? "muted" : ""}" title="${escapeHtml(p.finish_label ? `Probability of a ${p.finish_label} finish` : state.finishGateNote || "No simulated finish probability published for this player")}">${p.finish_odds == null ? "gated" : pct(p.finish_odds)}</td>
         <td><span class="band-pill ${band.cls}">${band.text}</span></td>
-        <td class="col-sentiment">${sentimentHtml(p)}</td>
+        <td class="col-sentiment">${sentimentToneHtml(p)}</td>
+        <td class="col-sentiment">${sentimentPeerHtml(p)}</td>
+        <td class="col-sentiment">${sentimentEvidenceHtml(p)}</td>
         <td class="role-cell">${escapeHtml((p.role || "—").replace(/_/g, " "))}</td>
       </tr>`;
     })
@@ -673,5 +712,5 @@ bind();
 loadData().catch((err) => {
   document.getElementById("metaLine").textContent = String(err.message || err);
   document.getElementById("tableBody").innerHTML =
-    `<tr><td colspan="15" class="empty-state">${escapeHtml(String(err.message || err))}</td></tr>`;
+    `<tr><td colspan="17" class="empty-state">${escapeHtml(String(err.message || err))}</td></tr>`;
 });

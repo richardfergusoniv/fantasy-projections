@@ -1,0 +1,56 @@
+{
+  "importer_version": "legacy_import_v1",
+  "claim_count": 412,
+  "source_file_count": 32,
+  "player_count": 402,
+  "players_with_one_claim": 392,
+  "players_with_multiple_claims": 10,
+  "by_team": {
+    "ARI": 15,
+    "ATL": 11,
+    "BAL": 13,
+    "BUF": 9,
+    "CAR": 10,
+    "CHI": 13,
+    "CIN": 10,
+    "CLE": 11,
+    "DAL": 12,
+    "DEN": 17,
+    "DET": 13,
+    "GB": 12,
+    "HOU": 14,
+    "IND": 12,
+    "JAX": 13,
+    "KC": 13,
+    "LA": 15,
+    "LAC": 15,
+    "LV": 13,
+    "MIA": 14,
+    "MIN": 13,
+    "NE": 13,
+    "NO": 14,
+    "NYG": 14,
+    "NYJ": 11,
+    "PHI": 14,
+    "PIT": 13,
+    "SEA": 14,
+    "SF": 12,
+    "TB": 12,
+    "TEN": 10,
+    "WAS": 17
+  },
+  "by_polarity_sign": {
+    "positive": 377,
+    "neutral": 30,
+    "negative": 5
+  },
+  "by_extraction_method": {
+    "bullet": 146,
+    "table": 266
+  },
+  "missing_provenance": {
+    "source_url_null": 412,
+    "publication_date_null": 412
+  },
+  "training_eligible_count": 0
+}

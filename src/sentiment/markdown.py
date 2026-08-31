@@ -326,6 +326,39 @@ def parse_team_research(
     return rows
 
 
+def iter_scored_team_claims(
+    players: pd.DataFrame,
+    team: str,
+    path: Path,
+) -> list[dict]:
+    """Return every scored mention for each player without collapsing to one winner."""
+    text = path.read_text(encoding="utf-8-sig")
+    lines = text.splitlines()
+    candidates = _table_candidates(lines) + _bullet_candidates(lines)
+    rows: list[dict] = []
+    for player in players.itertuples(index=False):
+        matches = [c for c in candidates if _candidate_matches(c, player.display_name)]
+        for candidate in matches:
+            polarity = score_sentiment(candidate.label, candidate.heading, candidate.context)
+            if polarity is None:
+                continue
+            rows.append(
+                {
+                    "player_id": str(player.player_id),
+                    "display_name": player.display_name,
+                    "team": team,
+                    "position": player.position,
+                    "source_file": path.name,
+                    "line_number": candidate.line_number,
+                    "parsed_label": candidate.label,
+                    "polarity": float(polarity),
+                    "context": candidate.context,
+                    "extraction_method": candidate.method,
+                }
+            )
+    return rows
+
+
 def parse_research_directory(
     players: pd.DataFrame,
     research_dir: str | Path,
