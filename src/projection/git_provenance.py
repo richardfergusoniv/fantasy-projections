@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from src.projection.contracts import REPO_ROOT
+
+ProvenanceMode = Literal["initial", "restore"]
 
 
 class GitProvenanceError(RuntimeError):
@@ -36,6 +38,24 @@ def working_tree_dirty(*, cwd: Path | None = None) -> bool:
     return bool(status)
 
 
+def commit_is_ancestor(commit: str, *, cwd: Path | None = None) -> bool:
+    """True when ``commit`` is an ancestor of HEAD (inclusive via merge-base)."""
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", commit, "HEAD"],
+        cwd=str(cwd or REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        return True
+    if result.returncode == 1:
+        return False
+    raise GitProvenanceError(
+        f"git merge-base --is-ancestor failed: {(result.stderr or result.stdout).strip()}"
+    )
+
+
 def capture_git_provenance(*, cwd: Path | None = None) -> dict[str, Any]:
     """Record the exact source commit at bundle construction time."""
     commit = current_head_commit(cwd=cwd)
@@ -51,8 +71,16 @@ def verify_promotion_git_state(
     manifest_git: dict[str, Any],
     *,
     cwd: Path | None = None,
-) -> None:
-    """Promotion requires a clean tree and HEAD matching the bundle commit."""
+    mode: ProvenanceMode = "initial",
+) -> ProvenanceMode:
+    """Verify clean-tree git provenance for promotion.
+
+    ``initial`` requires ``HEAD == source_commit``.
+    ``restore`` requires ``source_commit`` to be an ancestor of ``HEAD``.
+    Both modes require ``source_dirty == false`` and a clean worktree.
+    """
+    if mode not in ("initial", "restore"):
+        raise GitProvenanceError(f"unsupported provenance mode: {mode!r}")
     if manifest_git.get("source_dirty") is not False:
         raise GitProvenanceError("bundle records source_dirty != false")
     expected_commit = str(manifest_git.get("source_commit") or "").strip()
@@ -61,7 +89,14 @@ def verify_promotion_git_state(
     if working_tree_dirty(cwd=cwd):
         raise GitProvenanceError("promotion requires git status --porcelain to be empty")
     actual_commit = current_head_commit(cwd=cwd)
-    if actual_commit != expected_commit:
+    if mode == "initial":
+        if actual_commit != expected_commit:
+            raise GitProvenanceError(
+                f"HEAD {actual_commit} does not match bundle source_commit {expected_commit}"
+            )
+        return "initial"
+    if not commit_is_ancestor(expected_commit, cwd=cwd):
         raise GitProvenanceError(
-            f"HEAD {actual_commit} does not match bundle source_commit {expected_commit}"
+            f"bundle source_commit {expected_commit} is not an ancestor of HEAD {actual_commit}"
         )
+    return "restore"

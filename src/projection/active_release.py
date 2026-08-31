@@ -66,8 +66,25 @@ def validate_active_pointer(payload: Mapping[str, Any], *, season: int | None = 
     if previous:
         if not previous.get("namespace") or not previous.get("release_id"):
             raise ActiveReleaseError("previous pointer identity must include namespace and release_id")
+        prev_hash = previous.get("manifest_sha256")
+        if prev_hash not in (None, ""):
+            prev_digest = str(prev_hash).strip().lower()
+            if len(prev_digest) != 64:
+                raise ActiveReleaseError("previous.manifest_sha256 is not a sha256 digest")
+        else:
+            prev_digest = None
+    else:
+        prev_digest = None
     public_base = payload.get("public_base") or pointer_public_base(str(payload["namespace"]))
     public_urls = payload.get("public_urls") or {}
+    previous_block = None
+    if previous.get("namespace"):
+        previous_block = {
+            "namespace": previous.get("namespace"),
+            "release_id": previous.get("release_id"),
+        }
+        if prev_digest is not None:
+            previous_block["manifest_sha256"] = prev_digest
     return {
         "schema_version": POINTER_SCHEMA_VERSION,
         "season": int(payload["season"]),
@@ -77,12 +94,7 @@ def validate_active_pointer(payload: Mapping[str, Any], *, season: int | None = 
         "manifest_path": str(payload["manifest_path"]),
         "manifest_sha256": digest,
         "activated_at": str(payload["activated_at"]),
-        "previous": {
-            "namespace": previous.get("namespace"),
-            "release_id": previous.get("release_id"),
-        }
-        if previous.get("namespace")
-        else None,
+        "previous": previous_block,
         "public_base": public_base,
         "public_urls": dict(public_urls),
     }

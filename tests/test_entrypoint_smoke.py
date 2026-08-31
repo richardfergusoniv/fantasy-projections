@@ -24,11 +24,17 @@ def test_entrypoint_modules_import():
 def test_promote_release_has_no_git_bypass():
     from src.projection import promote_release as module
 
-    assert "skip_git" not in inspect.signature(module.promote_release).parameters
-    assert "skip_git" not in inspect.signature(module.rollback_release).parameters
+    forbidden = ("skip_git", "mode", "allow", "provenance", "provenance_mode", "force")
+    for name in ("promote_release", "rollback_release"):
+        params = inspect.signature(getattr(module, name)).parameters
+        for key in forbidden:
+            assert key not in params
 
 
 def test_validate_promotion_invariants_has_no_git_bypass():
     from src.projection.evaluation import promotion_invariants as module
 
-    assert "skip_git" not in inspect.signature(module.validate_promotion_invariants).parameters
+    params = inspect.signature(module.validate_promotion_invariants).parameters
+    assert "skip_git" not in params
+    for key in ("mode", "allow", "provenance", "force"):
+        assert key not in params

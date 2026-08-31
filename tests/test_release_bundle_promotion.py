@@ -79,8 +79,10 @@ def _seal(tmp_path: Path, namespace: str, *, release_id: str = "rel-1") -> tuple
 
 def _patch_git(monkeypatch, tmp_path: Path, source_commit: str = "abc123def4567890abcdef1234567890abcdef12") -> None:
     monkeypatch.setattr("src.projection.git_provenance.REPO_ROOT", str(tmp_path))
+    monkeypatch.setattr("src.projection.promotion_receipt.REPO_ROOT", str(tmp_path))
     monkeypatch.setattr("src.projection.git_provenance.working_tree_dirty", lambda **_: False)
     monkeypatch.setattr("src.projection.git_provenance.current_head_commit", lambda **_: source_commit)
+    monkeypatch.setattr("src.projection.git_provenance.commit_is_ancestor", lambda commit, **_: True)
 
 
 def test_candidate_seal_leaves_active_pointer_unchanged(tmp_path, monkeypatch):

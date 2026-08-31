@@ -19,6 +19,12 @@ from src.projection.evaluation.promotion_invariants import (
     validate_sealed_promotion_invariants,
 )
 from src.projection.evaluation.release_bundle_validation import validate_release_bundle
+from src.projection.promotion_receipt import (
+    PromotionReceiptError,
+    build_promotion_receipt,
+    derive_provenance_mode,
+    write_promotion_receipt,
+)
 from src.projection.release_bundle import (
     MANIFEST_FILENAME,
     ReleaseBundleError,
@@ -116,14 +122,28 @@ def promote_release(season: int, artifact_namespace: str) -> dict[str, Any]:
     sealed_before = sha256_file(root / MANIFEST_FILENAME)
     verify_artifact_hashes(manifest, root=root)
 
+    release_id = str(manifest["bundle"]["release_id"])
+    provenance_mode = derive_provenance_mode(
+        season=season,
+        namespace=artifact_namespace,
+        release_id=release_id,
+        manifest_sha256=digest,
+    )
+
     invariant_report = validate_sealed_promotion_invariants(
         season=season,
         namespace=artifact_namespace,
+        provenance_mode=provenance_mode,
     )
     if invariant_report.get("verdict") != "pass":
         raise PromoteReleaseError(f"promotion invariants failed: {invariant_report}")
 
     public_before = _snapshot_public_namespace(manifest["bundle"]["namespace"])
+    pointer_before = None
+    pointer_path_obj = pointer_path(season)
+    if pointer_path_obj.exists():
+        pointer_before = pointer_path_obj.read_bytes()
+
     try:
         copy_and_validate_public_browser_artifacts(
             manifest,
@@ -138,6 +158,7 @@ def promote_release(season: int, artifact_namespace: str) -> dict[str, Any]:
         season=season,
         namespace=artifact_namespace,
         include_git=False,
+        provenance_mode=provenance_mode,
     )
     if invariant_after_copy.get("verdict") != "pass":
         _restore_public_namespace(manifest["bundle"]["namespace"], public_before)
@@ -154,12 +175,16 @@ def promote_release(season: int, artifact_namespace: str) -> dict[str, Any]:
 
     previous = None
     if current is not None:
-        previous = {"namespace": current["namespace"], "release_id": current["release_id"]}
+        previous = {
+            "namespace": current["namespace"],
+            "release_id": current["release_id"],
+            "manifest_sha256": current["manifest_sha256"],
+        }
 
     pointer = build_active_pointer(
         season=season,
         namespace=artifact_namespace,
-        release_id=str(manifest["bundle"]["release_id"]),
+        release_id=release_id,
         manifest_sha256=digest,
         previous=previous,
         browser_roles=_browser_roles(manifest),
@@ -169,6 +194,28 @@ def promote_release(season: int, artifact_namespace: str) -> dict[str, Any]:
     except Exception as exc:
         _restore_public_namespace(manifest["bundle"]["namespace"], public_before)
         raise PromoteReleaseError(f"pointer write failed; public namespace restored: {exc}") from exc
+
+    source_commit = str((manifest.get("git") or {}).get("source_commit") or "")
+    receipt = build_promotion_receipt(
+        season=season,
+        namespace=artifact_namespace,
+        release_id=release_id,
+        manifest_sha256=digest,
+        source_commit=source_commit,
+        provenance_mode=provenance_mode,
+        activated_at=str(pointer["activated_at"]),
+        promotion_invariants_verdict=str(invariant_after_copy.get("verdict") or "fail"),
+    )
+    try:
+        receipt_dest = write_promotion_receipt(receipt)
+    except PromotionReceiptError as exc:
+        _restore_public_namespace(manifest["bundle"]["namespace"], public_before)
+        if pointer_before is None:
+            if pointer_path_obj.exists():
+                pointer_path_obj.unlink()
+        else:
+            pointer_path_obj.write_bytes(pointer_before)
+        raise PromoteReleaseError(f"promotion receipt write failed; state restored: {exc}") from exc
 
     sealed_after = sha256_file(root / MANIFEST_FILENAME)
     if sealed_after != sealed_before:
@@ -188,6 +235,9 @@ def promote_release(season: int, artifact_namespace: str) -> dict[str, Any]:
         "manifest_sha256": digest,
         "validation": active_report,
         "promotion_invariants": invariant_after_copy,
+        "provenance_mode": provenance_mode,
+        "promotion_receipt": receipt,
+        "promotion_receipt_path": str(receipt_dest),
     }
 
 

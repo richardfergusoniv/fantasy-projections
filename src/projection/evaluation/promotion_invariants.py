@@ -6,7 +6,11 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from src.projection.evaluation.accuracy_first import sha256_file
-from src.projection.git_provenance import GitProvenanceError, verify_promotion_git_state
+from src.projection.git_provenance import (
+    GitProvenanceError,
+    ProvenanceMode,
+    verify_promotion_git_state,
+)
 from src.projection.inference.recenter import board_points_series
 from src.projection.overlay_coverage import OVERLAY_COVERAGE_FIELDS, overlay_coverage_alignment
 from src.projection.release_bundle import (
@@ -319,15 +323,29 @@ def validate_browser_artifacts_in_directory(
     return _check("browser_artifact_completeness", not mismatches, mismatches=mismatches)
 
 
-def _check_git_provenance(manifest: Mapping[str, Any]) -> dict[str, Any]:
+def _check_git_provenance(
+    manifest: Mapping[str, Any],
+    *,
+    provenance_mode: ProvenanceMode = "initial",
+) -> dict[str, Any]:
     git = manifest.get("git")
     if not isinstance(git, Mapping):
         return _check("git_provenance", False, error="manifest missing git block")
     try:
-        verify_promotion_git_state(git)
-        return _check("git_provenance", True, source_commit=git.get("source_commit"))
+        mode = verify_promotion_git_state(git, mode=provenance_mode)
+        return _check(
+            "git_provenance",
+            True,
+            source_commit=git.get("source_commit"),
+            provenance_mode=mode,
+        )
     except GitProvenanceError as exc:
-        return _check("git_provenance", False, error=str(exc))
+        return _check(
+            "git_provenance",
+            False,
+            error=str(exc),
+            provenance_mode=provenance_mode,
+        )
 
 
 def _validate_loaded_manifest(
@@ -339,6 +357,7 @@ def _validate_loaded_manifest(
     public_dir: Path | None,
     include_browser: bool,
     include_git: bool = True,
+    provenance_mode: ProvenanceMode = "initial",
 ) -> dict[str, Any]:
     checks: list[dict[str, Any]] = []
     root = bundle_root(season, namespace)
@@ -348,7 +367,14 @@ def _validate_loaded_manifest(
         _check("promotion_eligible_schema", eligible, schema_version=manifest.get("schema_version"))
     )
     if not eligible:
-        return _result(season, namespace, checks, manifest_hash, eligible=False)
+        return _result(
+            season,
+            namespace,
+            checks,
+            manifest_hash,
+            eligible=False,
+            provenance_mode=provenance_mode,
+        )
 
     checks.append(_check_overlay_coverage_alignment(manifest, root=root))
     checks.append(_check_selected_board_hash_alignment(manifest, root=root))
@@ -358,8 +384,15 @@ def _validate_loaded_manifest(
         target = public_dir or public_release_dir(namespace)
         checks.append(validate_browser_artifacts_in_directory(manifest, target))
     if include_git:
-        checks.append(_check_git_provenance(manifest))
-    return _result(season, namespace, checks, manifest_hash, eligible=True)
+        checks.append(_check_git_provenance(manifest, provenance_mode=provenance_mode))
+    return _result(
+        season,
+        namespace,
+        checks,
+        manifest_hash,
+        eligible=True,
+        provenance_mode=provenance_mode,
+    )
 
 
 def validate_promotion_invariants(
@@ -368,6 +401,7 @@ def validate_promotion_invariants(
     namespace: str,
     public_dir: Path | None = None,
     include_git: bool = True,
+    provenance_mode: ProvenanceMode = "initial",
 ) -> dict[str, Any]:
     """Run all six promotion invariants. Any failure blocks promotion."""
     root = bundle_root(season, namespace)
@@ -376,7 +410,14 @@ def validate_promotion_invariants(
         verify_artifact_hashes(manifest, root=root)
     except ReleaseBundleError as exc:
         checks = [_check("bundle_readable", False, error=str(exc))]
-        return _result(season, namespace, checks, None, eligible=False)
+        return _result(
+            season,
+            namespace,
+            checks,
+            None,
+            eligible=False,
+            provenance_mode=provenance_mode,
+        )
 
     return _validate_loaded_manifest(
         manifest,
@@ -386,6 +427,7 @@ def validate_promotion_invariants(
         public_dir=public_dir,
         include_browser=True,
         include_git=include_git,
+        provenance_mode=provenance_mode,
     )
 
 
@@ -393,6 +435,7 @@ def validate_sealed_promotion_invariants(
     *,
     season: int,
     namespace: str,
+    provenance_mode: ProvenanceMode = "initial",
 ) -> dict[str, Any]:
     """Validate sealed-bundle invariants before public browser copies exist."""
     root = bundle_root(season, namespace)
@@ -401,7 +444,14 @@ def validate_sealed_promotion_invariants(
         verify_artifact_hashes(manifest, root=root)
     except ReleaseBundleError as exc:
         checks = [_check("bundle_readable", False, error=str(exc))]
-        return _result(season, namespace, checks, None, eligible=False)
+        return _result(
+            season,
+            namespace,
+            checks,
+            None,
+            eligible=False,
+            provenance_mode=provenance_mode,
+        )
 
     return _validate_loaded_manifest(
         manifest,
@@ -410,6 +460,7 @@ def validate_sealed_promotion_invariants(
         manifest_hash=manifest_hash,
         public_dir=None,
         include_browser=False,
+        provenance_mode=provenance_mode,
     )
 
 
@@ -420,6 +471,7 @@ def _result(
     manifest_hash: str | None,
     *,
     eligible: bool,
+    provenance_mode: ProvenanceMode = "initial",
 ) -> dict[str, Any]:
     invariant_checks = [
         check
@@ -433,6 +485,7 @@ def _result(
         "namespace": namespace,
         "manifest_sha256": manifest_hash,
         "promotion_eligible": eligible,
+        "provenance_mode": provenance_mode,
         "verdict": "pass" if passed else "fail",
         "checks": checks,
     }

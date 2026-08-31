@@ -25,9 +25,11 @@ def _patch_roots(tmp_path: Path, monkeypatch, *, source_commit: str = SOURCE_COM
     monkeypatch.setattr("src.projection.release_bundle.MODEL_V3_DIR", str(model_v3))
     monkeypatch.setattr("src.projection.release_bundle.REPO_ROOT", str(tmp_path))
     monkeypatch.setattr("src.projection.active_release.REPO_ROOT", str(tmp_path))
+    monkeypatch.setattr("src.projection.promotion_receipt.REPO_ROOT", str(tmp_path))
     monkeypatch.setattr("src.projection.git_provenance.REPO_ROOT", str(tmp_path))
     monkeypatch.setattr("src.projection.git_provenance.working_tree_dirty", lambda **_: False)
     monkeypatch.setattr("src.projection.git_provenance.current_head_commit", lambda **_: source_commit)
+    monkeypatch.setattr("src.projection.git_provenance.commit_is_ancestor", lambda commit, **_: True)
 
 
 def test_v1_bundle_is_not_promotion_eligible(tmp_path, monkeypatch):
@@ -266,6 +268,12 @@ def test_public_promotion_api_has_no_skip_git():
     from src.projection import promote_release as promote_module
     from src.projection.evaluation import promotion_invariants as invariants_module
 
-    assert "skip_git" not in inspect.signature(promote_module.promote_release).parameters
-    assert "skip_git" not in inspect.signature(promote_module.rollback_release).parameters
+    forbidden = ("skip_git", "mode", "allow", "provenance", "provenance_mode", "force")
+    for name in ("promote_release", "rollback_release"):
+        params = inspect.signature(getattr(promote_module, name)).parameters
+        for key in forbidden:
+            assert key not in params
+    # include_git remains an internal helper flag; public promote APIs stay closed.
     assert "skip_git" not in inspect.signature(invariants_module.validate_promotion_invariants).parameters
+    for key in ("mode", "allow", "provenance", "force"):
+        assert key not in inspect.signature(invariants_module.validate_promotion_invariants).parameters
