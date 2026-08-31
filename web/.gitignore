@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+dist/
+
+# Build / test artifacts
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Local env
+.env
+.env.local
+
+# PWA dev
+dev-dist/
+
+# Disposable database/artifacts built by the browser suite (scripts/e2e_api.py).
+.e2e/
