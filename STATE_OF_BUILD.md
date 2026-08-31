@@ -399,23 +399,54 @@ whether or not the gate passes **[doc]** (`PROVENANCE_AUDIT.md` §2).
 
 ## 5. Known open defects and decisions
 
+Re-audited 2026-08-30. Rows marked **Historical** are no longer current facts;
+they remain so the older audits stay interpretable.
+
 | # | Item | Status | Where |
 |---|---|---|---|
-| 1 | Evaluation artifacts and freeze predate the harness rewrite | **Open, blocking any new claim** | §3.3 |
-| 2 | Whole allocation layer uncommitted | **Open** | `REPO_HYGIENE_AUDIT.md` §1, §7 |
-| 3 | 17 of 30 tuning knobs unmeasured; several bind on the board | **Open** | `PROVENANCE_AUDIT.md` §1, §3 |
-| 4 | Sleeper is the deciding evidence in ~half the allocation decisions | **Open — retirement plan pending** | `PROVENANCE_AUDIT.md` §4 |
-| 5 | L2 mix gates are advisory; `mix_source == 'scheme_model'` on 100% of rows | **Open** | `PROVENANCE_AUDIT.md` §2 |
-| 6 | No pass-mix LOSO result recorded anywhere; the doc gives a command and a condition, no number | **Open** | `HIERARCHICAL_PASS_MIX_2026-08-14.md` |
-| 7 | `WR_FORMATION_ROLE_PRIORS` re-enters the live path at weight 0.5 after the same fitted priors were disabled at `USAGE_SHARE_BLEND_W = 0.0` for losing the fantasy evaluation | **Open — highest-priority finding after §3.4** | `PROVENANCE_AUDIT.md` §2 |
-| 8 | Elite shrinkage sits at season-consistency 2.1 against its own gate of 2.0 | **Watch** | `PHASE7_REMEDIATION_REPORT.md` |
-| 9 | TE replacement-level calibration: raised in the freeze at 92.99 vs actual 133.00 **[doc]**; currently 98.71 vs 133.00 on disk **[code]** — still a ~34-point undershoot | **Watch** | `FREEZE_2026-08-13.md` |
+| 1 | Evaluation artifacts and freeze predate the harness rewrite | **Historical / superseded** — accuracy-first + v2 sealed releases are the live board; treat old freeze numbers as archaeology | §3.3 |
+| 2 | Whole allocation layer uncommitted | **Resolved** — `src/projection/` allocation modules, decision records, public releases, and the active pointer are tracked; full bundles stay local/ignored by design | §3.5 |
+| 3 | 17 of 30 tuning knobs unmeasured; several bind on the board | **Historical context** — many knobs retired with volume-composition shutdown; do not treat the 2026-08-15 count as live | `PROVENANCE_AUDIT.md` §1, §3 |
+| 4 | Sleeper is the deciding evidence in ~half the allocation decisions | **Policy held** — Sleeper remains diagnostic-only for new work; past decisions used it | `PROVENANCE_AUDIT.md` §4 |
+| 5 | L2 mix gates are advisory; `mix_source == 'scheme_model'` on 100% of rows | **Historical** — hierarchical pass/rush mix is retired from `compose_board` | volume-composition retirement banner |
+| 6 | No pass-mix LOSO result recorded anywhere | **Historical** — same retirement | `HIERARCHICAL_PASS_MIX_2026-08-14.md` |
+| 7 | `WR_FORMATION_ROLE_PRIORS` re-enters at weight 0.5 after `USAGE_SHARE_BLEND_W = 0.0` | **Historical** — formation/usage-share blend path retired from the live compose path | `PROVENANCE_AUDIT.md` §2 |
+| 8 | Elite shrinkage sits at season-consistency 2.1 against its own gate of 2.0 | **Watch** — TE-only corrections; not an authorized RB/WR reopen | `PHASE7_REMEDIATION_REPORT.md` |
+| 9 | TE replacement-level calibration undershoot | **Watch** | `FREEZE_2026-08-13.md` |
 | 10 | Three curated QBs (Watson, Bennett, DeVito) have no projection row by design; `MISSING` tripwire fires every run | **Accepted** | `DEPTH_CHART_ALLOCATION_2026-08-14.md` |
-| 11 | Team-total model fit on ~32 rows/season; its error lands on every receiver of a team at once | **Open, named as highest-leverage** | `PHASE7_REMEDIATION_REPORT.md` |
-| 12 | Fantasy intervals are componentwise, not a joint fantasy-score interval | **Open** | `PHASE7_REMEDIATION_REPORT.md` |
-| 13 | `DEPTH_CHART_ALLOCATION_2026-08-14.md` §"Still open" says `INCUMBENT_VACANCY_ALPHA['carry']` remains blocked; `RB_CARRY_VACANCY_2026-08-14.md` ships it at 1.0, and `contracts.py:45` confirms 1.0 **[code]**. Both records are dated 2026-08-14 and both are live | **Contradiction — resolve in the docs** | both records |
-| 14 | `DEPTH_RANK_TO_WR_FORMATION_ROLE` is dead code with zero consumers | **Delete candidate** | `PROVENANCE_AUDIT.md` §1 |
-| 15 | Test count: `FREEZE` claims 57, `AGE_EFFECT_SHRINKAGE` claims 63; a static count of `def test_` across 16 files gives 120 **[code]**. No suite was run for this document | **Stale doc numbers** | §3.3 |
+| 11 | Team-total model fit on ~32 rows/season | **Historical / retired from live compose** | `PHASE7_REMEDIATION_REPORT.md` |
+| 12 | Fantasy intervals are componentwise, not a joint fantasy-score interval | **Open (known limitation)** | `PHASE7_REMEDIATION_REPORT.md` |
+| 13 | Carry-vacancy alpha doc contradiction (blocked vs 1.0) | **Resolved in code at 1.0**; treat conflicting prose as stale | `contracts.py`, both 2026-08-14 records |
+| 14 | `DEPTH_RANK_TO_WR_FORMATION_ROLE` dead code | **Delete candidate / low priority** — not season-blocking | `PROVENANCE_AUDIT.md` §1 |
+| 15 | Stale test-count claims in old freezes | **Superseded** — current suite is ~470 pytest cases (`pytest --collect-only`) | §3.3 |
+
+### Season architecture freeze (through 2026 outcomes)
+
+Do **not** reopen before 2026 outcomes land:
+
+- RB/WR accuracy-first weights (0.10/0.30/0.60 and 0/0.55/0.45)
+- Availability blend α (remains 0; Gate A stays in `projected_games_raw`)
+- `v3_means` point-engine cutover
+- Production draw count (10k operational compromise; not a passed strict 20k gate)
+
+Authorized in-season changes: roster/depth/status/consensus freshness and genuine correctness defects only. Model-policy revisit path: unchanged accuracy-first selector + calibration suite after 2026 outcomes (`V1_PRODUCTION_ROLE_2026-08-29.md`).
+
+### Draft-day release cadence
+
+Before each draft-day release:
+
+1. Refresh inputs (roster/depth/status/consensus as needed)
+2. Publish a new namespace (`publish --artifact-namespace …`)
+3. Validate the sealed bundle
+4. Review player deltas vs the live board
+5. Promote (`promote_release`)
+6. Verify browser surfaces (pointer-driven; optional `--namespace` assertion)
+7. Confirm the promotion receipt and pointer `previous` rollback target
+
+### Scheduled follow-ups (not in-season model work)
+
+1. Harden or narrow the internal post-copy `include_git=False` validation surface in `promote_release`.
+2. After 2026 outcomes: run the unchanged accuracy-first selector and calibration suite before any model-policy change.
 
 **Live board tripwires** **[code]** (`predict._warn_board_level_allocation`) —
 stderr only, never change a number: `CAPPED` (a rate pinned on a support
