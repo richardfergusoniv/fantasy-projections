@@ -18,7 +18,7 @@ Generated: 2026-09-02 (repair session)
 | Security roles | **GO** | `fantasy_app_migrator` + `fantasy_app_runtime`; both `BYPASSRLS`. |
 | Release pointer | **GO** | `release_pointer` row for 2026 with `manifest_storage_uri`. |
 | Status overlay pointer | **GO** | Job `6a77ce84`; overlay `f77a20fe…` promoted (13 adjustments). |
-| Supabase cron | **GO (enqueue)** / **PARTIAL (long-job GHA)** | Four `fantasy-*` pg_cron jobs active. Vercel cron enqueues + processes short jobs. Long jobs need `PRODUCTION_JOB_ENV` on GitHub (`scripts/set_production_job_env_secret.ps1`). |
+| Supabase cron | **GO** | Four `fantasy-*` pg_cron jobs active. GitHub Actions `production-jobs.yml` green: run `33597842583` with `PRODUCTION_JOB_ENV` set. |
 | Vercel deployment (xi alias) | **GO** | `https://fantasy-projections-xi.vercel.app`: `/health/live` 200; `/health/ready` 200 with `release_pointer: true`, `overlay_pointer: true`, `last_daily_refresh_ok: true`. |
 | Vercel deployment (canonical) | **NO-GO** | `https://fantasy-projections.vercel.app`: legacy app; `/health/live` 404. Domain not under `rdfergus15` team (`vercel domains ls` → 0 domains). Manual transfer from legacy project required. |
 | First production daily refresh | **GO** | Job `6a77ce84` succeeded 2026-09-02T05:06:24Z; 6 leagues, live Sleeper, overlay promoted. |
@@ -72,16 +72,17 @@ Vercel prebuilt deploy referenced `.env.production.example` at repo root. `.verc
    - `vercel alias set <deployment> fantasy-projections.vercel.app` returns **"already in use"** (2026-09-02).
    - The alias is not visible under the `rdfergus15` team (`vercel domains ls` → 0 domains).
    - **Manual steps:** sign in at vercel.com → locate the old `fantasy-projections` project (likely personal account / legacy Next.js) → Settings → Domains → remove `fantasy-projections.vercel.app` → on `rdfergus15/fantasy-projections` → Settings → Domains → add `fantasy-projections.vercel.app` → update Supabase Vault `production_app_url` and Vercel `APP_PUBLIC_URL` / `TRUSTED_HOSTS`.
-2. **Add** `PRODUCTION_JOB_ENV` via `pwsh scripts/set_production_job_env_secret.ps1` (Vercel Secret-type env vars cannot be exported into CI).
-3. **Pre-repair `pg_dump -Fc`** not captured locally (`pg_dump` not on PATH).
+2. **Pre-repair `pg_dump -Fc`** not captured locally (`pg_dump` not on PATH).
+3. **Disable** direct Vercel Git production deploy in dashboard (manual).
 
 ## Commit / CI reference
 
 | Item | Value |
 |------|-------|
-| Repair commits | `9e00733`, `f2b968f`, `8d391e0`, `62b5607`, `246b917`, `7e8004d`, `fa5d9f2` |
+| Repair commits | `9e00733` … `4060ca0` |
 | Green CI | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33583086436 |
 | Green deploy (production) | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33595811810 |
+| Green production jobs | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33597842583 |
 
 ## Confirmations
 
