@@ -29,9 +29,8 @@ def upgrade() -> None:
         sa.Column("pointer_json", sa.JSON(), server_default=sa.text("'{}'"), nullable=False),
         sa.Column("activated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("season"),
     )
-    op.create_index("ix_release_pointer_season", "release_pointer", ["season"])
+    op.create_index("ix_release_pointer_season", "release_pointer", ["season"], unique=True)
 
     op.create_table(
         "release_pointer_history",
@@ -57,9 +56,13 @@ def upgrade() -> None:
         sa.Column("pointer_json", sa.JSON(), server_default=sa.text("'{}'"), nullable=False),
         sa.Column("activated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("season"),
     )
-    op.create_index("ix_status_overlay_pointer_season", "status_overlay_pointer", ["season"])
+    op.create_index(
+        "ix_status_overlay_pointer_season",
+        "status_overlay_pointer",
+        ["season"],
+        unique=True,
+    )
 
     op.create_table(
         "status_overlay_pointer_history",
