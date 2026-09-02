@@ -8,7 +8,7 @@ _pytest_*.txt
 baseline_pytest.txt
 tests/
 web/e2e/
-fixtures/
+tests/fixtures/
 scripts/weekly_v2_*.py
 output/weekly_v2/
 output/model_v3/
