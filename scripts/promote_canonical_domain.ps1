@@ -8,6 +8,17 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+Write-Host "Preflight: checking canonical domain..."
+$canonicalStatus = curl.exe -sS -o NUL -w "%{http_code}" "https://$CanonicalHost/health/live"
+$canonicalBody = curl.exe -sS "https://$CanonicalHost/" 2>$null
+if ($canonicalStatus -eq "200" -and $canonicalBody -match "Fantasy Decisions") {
+    Write-Host "Canonical domain already serves Fantasy Decisions PWA."
+} elseif ($canonicalBody -match "Fantasy Projections") {
+    Write-Host "BLOCKED: $CanonicalHost still serves legacy Next.js (health/live=$canonicalStatus)."
+    Write-Host "Sign in at vercel.com with the account that owns the legacy project, remove the domain, then re-run this script."
+    throw "Canonical alias still owned by legacy deployment."
+}
+
 Write-Host "Assigning alias $CanonicalHost -> $DeploymentUrl"
 vercel alias set $DeploymentUrl $CanonicalHost
 

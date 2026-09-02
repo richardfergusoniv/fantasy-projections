@@ -20,7 +20,7 @@ Generated: 2026-09-02 (repair session)
 | Status overlay pointer | **GO** | Job `6a77ce84`; overlay `f77a20fe…` promoted (13 adjustments). |
 | Supabase cron | **GO** | Four `fantasy-*` pg_cron jobs active. GitHub Actions `production-jobs.yml` green: run `33597842583` with `PRODUCTION_JOB_ENV` set. |
 | Vercel deployment (xi alias) | **GO** | `https://fantasy-projections-xi.vercel.app`: `/health/live` 200; `/health/ready` 200 with `release_pointer: true`, `overlay_pointer: true`, `last_daily_refresh_ok: true`. |
-| Vercel deployment (canonical) | **NO-GO** | `https://fantasy-projections.vercel.app`: legacy app; `/health/live` 404. Domain not under `rdfergus15` team (`vercel domains ls` → 0 domains). Manual transfer from legacy project required. |
+| Vercel deployment (canonical) | **NO-GO** | `https://fantasy-projections.vercel.app`: legacy Next.js; `/health/live` 404. Vercel API `GET /v13/deployments/get?url=fantasy-projections.vercel.app` → **not found** under current token (`richardfergusoniv` / `rdfergus15`). Alias owned by a **different Vercel account**; `vercel alias set` → "already in use". |
 | First production daily refresh | **GO** | Job `6a77ce84` succeeded 2026-09-02T05:06:24Z; 6 leagues, live Sleeper, overlay promoted. |
 | Secret hygiene in Git | **GO** | No secrets committed. |
 
@@ -70,10 +70,12 @@ Vercel prebuilt deploy referenced `.env.production.example` at repo root. `.verc
 ## Remaining blockers (canonical promotion only)
 
 1. **Transfer** `fantasy-projections.vercel.app` from the legacy Next.js Vercel project to `rdfergus15/fantasy-projections`:
-   - `vercel alias set <deployment> fantasy-projections.vercel.app` returns **"already in use"** (2026-09-02).
-   - The alias is not visible under the `rdfergus15` team (`vercel domains ls` → 0 domains).
-   - **Manual steps:** sign in at vercel.com → switch to your **personal** account scope (not `rdfergus15`) → locate the old `fantasy-projections` Next.js project → Settings → Domains → remove `fantasy-projections.vercel.app`.
+   - `vercel alias set <deployment> fantasy-projections.vercel.app` returns **"already in use"** (verified 2026-09-02T06:35Z).
+   - Vercel API under current account (`richardfergusoniv` / team `rdfergus15`) lists only `prj_TrOVfWAUKG2VHfvV7PHiROTkFWH6` and cannot resolve the canonical deployment — the alias is on a **prior/different Vercel account**, not the current `rdfergus15` team.
+   - **Manual steps:** sign in at [vercel.com](https://vercel.com) and try **both** GitHub and Google OAuth — separate Vercel accounts can share the same email. In the account that owns the legacy Next.js **Fantasy Projections** project, open **Settings → Domains** and remove `fantasy-projections.vercel.app`. Run `powershell -File scripts/diagnose_canonical_domain.ps1` to confirm the block before/after.
+   - **If you cannot find the owning account:** open [vercel.com/help](https://vercel.com/help) and request release/transfer of `fantasy-projections.vercel.app` (common when a deleted project left the alias on a second hobby account).
    - Then run: `powershell -File scripts/promote_canonical_domain.ps1` (assigns alias, updates Vercel env, prints Vault SQL, verifies `/health/live`).
+   - **Auto-promote on deploy:** `deploy-production.yml` runs `scripts/promote_canonical_domain.sh` after each successful deploy (skips non-fatally while legacy owns the alias).
 2. **Pre-repair `pg_dump -Fc`** not captured locally (`pg_dump` not on PATH).
 3. **Disable** direct Vercel Git production deploy in dashboard (manual).
 
@@ -83,8 +85,8 @@ Vercel prebuilt deploy referenced `.env.production.example` at repo root. `.verc
 |------|-------|
 | Repair commits | `9e00733` … `4060ca0` |
 | Green CI | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33583086436 |
-| Green deploy (production) | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33595811810 |
-| Green production jobs | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33597842583 |
+| Green deploy (production) | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33598408952 (latest), `33595811810` |
+| Green production jobs | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33599358252 (scheduled), `33597842583` (dispatch) |
 
 ## Confirmations
 
