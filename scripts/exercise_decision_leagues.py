@@ -23,6 +23,14 @@ DEFAULT_REPORT = ROOT / "output" / "decision_league_exercise.json"
 DEFAULT_LIVE_REPORT = ROOT / "output" / "live_pg" / "decision_league_exercise.json"
 
 
+def _redact_database_url(url: str | None) -> str | None:
+    if not url or "@" not in url:
+        return url
+    scheme, rest = url.split("://", 1)
+    host = rest.split("@", 1)[-1]
+    return f"{scheme}://***@{host}"
+
+
 def _configure(*, database_url: str | None = None, app_env: str = "test") -> None:
     os.environ["APP_ENV"] = app_env
     os.environ.setdefault("APP_ENABLE_DEV_AUTH", "true")
@@ -217,7 +225,9 @@ def run_exercise(
     report: dict = {
         "started_at": datetime.now(UTC).isoformat(),
         "mode": "live_postgresql" if live_mode else "fixture_seed",
-        "database_url": database_url if live_mode else os.environ.get("TEST_DATABASE_URL"),
+        "database_url": _redact_database_url(database_url)
+        if live_mode
+        else os.environ.get("TEST_DATABASE_URL"),
         "projection_source": os.environ.get("APP_PROJECTION_SOURCE", "sealed_release"),
         "week": week,
         "league_count": len(league_ids),

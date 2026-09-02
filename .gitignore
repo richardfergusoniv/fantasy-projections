@@ -107,6 +107,7 @@ output/model_v3/simulation_summary_recentered_*.csv
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # Local artifact store for the decision app (ARTIFACT_LOCAL_ROOT). These are
 # content-addressed snapshots and release payloads written by running the app,
