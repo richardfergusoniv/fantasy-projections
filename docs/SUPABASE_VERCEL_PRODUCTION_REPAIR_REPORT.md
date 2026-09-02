@@ -83,9 +83,9 @@ Vercel prebuilt deploy referenced `.env.production.example` at repo root. `.verc
 
 | Item | Value |
 |------|-------|
-| Repair commits | `9e00733` … `4060ca0` |
+| Repair commits | `9e00733` … `9093e2d` |
 | Green CI | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33583086436 |
-| Green deploy (production) | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33602005866 (latest, auto-promote skip verified), `33601204545`, `33598408952` |
+| Green deploy (production) | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33603536484 (latest, auto-promote skip verified), `33602005866`, `33601204545` |
 | Green production jobs | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33603293313 (scheduled), `33601695404`, `33599358252` |
 
 ## Confirmations
