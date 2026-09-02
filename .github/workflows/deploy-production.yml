@@ -101,6 +101,9 @@ jobs:
           VERCEL_SUPPORT_LARGE_FUNCTIONS: "1"
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
+      - name: Stage env example for prebuilt deploy
+        run: cp -f .env.production.example .vercel/output/.env.production.example
+
       - name: Deploy
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -110,7 +113,7 @@ jobs:
 
       - name: Post-deploy readiness check
         env:
-          PRODUCTION_URL: https://fantasy-projections.vercel.app
+          PRODUCTION_URL: https://fantasy-projections-xi.vercel.app
         run: |
           set -euo pipefail
           for path in /health/live /health/ready; do
