@@ -48,6 +48,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const hasMagicLinkToken = useCallback(() => {
+    if (typeof window === "undefined") return false;
+    const rawHash = window.location.hash.startsWith("#")
+      ? window.location.hash.slice(1)
+      : window.location.hash;
+    if (new URLSearchParams(rawHash).get("token")) return true;
+    return new URLSearchParams(window.location.search).get("token") != null;
+  }, []);
+
   const clearLocalSession = useCallback(() => {
     sessionStorage.removeItem(CSRF_KEY);
     api.setCsrfToken(undefined);
@@ -90,8 +99,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     restoreCsrf();
+    // On the magic-link callback the LoginScreen verifies and then refreshes.
+    // Firing a cold getMe() here would 401 (no session yet) and its
+    // onUnauthorized handler would clear the CSRF token that verify races to
+    // set — leaving a valid session cookie but no CSRF token, so every later
+    // mutation 403s. Let verify be the sole auth path when a link token exists.
+    if (hasMagicLinkToken()) {
+      setLoading(false);
+      return;
+    }
     void refresh().finally(() => setLoading(false));
-  }, [refresh, restoreCsrf]);
+  }, [refresh, restoreCsrf, hasMagicLinkToken]);
 
   const login = useCallback(async (email: string) => {
     setError(null);
