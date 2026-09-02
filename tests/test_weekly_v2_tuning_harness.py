@@ -60,11 +60,13 @@ def _synthetic_panel() -> pl.DataFrame:
     return pl.DataFrame(rows)
 
 
-def test_tuner_and_evaluator_share_run_preseason_backtest():
+def test_tuner_and_evaluator_share_run_preseason_backtest(tmp_path: Path):
     """Tuner inner logic and evaluator must use the same backtest function."""
     panel = _synthetic_panel()
+    panel_path = tmp_path / "player_week_panel.parquet"
+    panel.write_parquet(panel_path)
     config = PreseasonEvalConfig(
-        panel_path=Path("data/processed/player_week_panel.parquet"),
+        panel_path=panel_path,
         outer_start=2022,
         outer_end=2022,
         volume_options={"two_stage": False},

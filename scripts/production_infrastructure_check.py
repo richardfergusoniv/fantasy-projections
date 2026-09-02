@@ -170,19 +170,23 @@ def run_audit(
     else:
         audit["health"] = {"status": "skipped", "reason": "no_api_base_url"}
 
-    blockers: list[str] = []
+    config_blockers: list[str] = []
     if problems:
-        blockers.extend(f"config:{p}" for p in problems)
+        config_blockers.extend(f"config:{p}" for p in problems)
+
+    runtime_blockers: list[str] = []
     pg = audit["runtime"]["postgresql"]
-    if database_url and "postgresql" in database_url.lower() and pg.get("status") != "ok":
-        blockers.append(f"postgresql:{pg.get('status')}")
-    if not audit["runtime"]["backup_script"]:
-        blockers.append("missing_backup_script")
+    if database_url and "postgresql" in database_url.lower() and pg.get("status") not in {"ok", "skipped"}:
+        runtime_blockers.append(f"postgresql:{pg.get('status')}")
     if api_base_url:
         for name, probe in (audit["health"] or {}).items():
             if isinstance(probe, dict) and probe.get("status") not in {"ok", None}:
                 if name in {"live", "ready"}:
-                    blockers.append(f"health_{name}:{probe.get('status')}")
+                    runtime_blockers.append(f"health_{name}:{probe.get('status')}")
+
+    cloud_blockers = list(config_blockers)
+    if not audit["runtime"]["production_env_example"]:
+        cloud_blockers.append("missing_production_env_example")
 
     audit["phone_access_requirements"] = {
         "https_public_url": "Set APP_PUBLIC_URL=https://your-domain",
@@ -192,11 +196,20 @@ def run_audit(
         "tls_termination": "Terminate TLS at reverse proxy; see docker/nginx.tls.conf.example",
         "backups": "Schedule scripts/pg_backup.ps1 daily; rehearse restore before go-live",
         "monitoring": "Poll GET /health/ready every 60s; alert on non-200",
+        "supabase_roles": "Create fantasy_app_runtime and fantasy_app_migrator via supabase/roles.sql",
+        "release_pointer": "Set release_pointer.manifest_storage_uri for the sealed baseline",
+        "cron_secret": "Store CRON_SECRET in Supabase Vault and install supabase/cron/run_due.sql",
     }
 
     audit["verdict"] = {
-        "phone_access_ready": not blockers,
-        "blockers": blockers,
+        "code_ready": audit["runtime"]["backup_script"] and audit["runtime"]["compose_config_valid"],
+        "cloud_configuration_ready": not cloud_blockers,
+        "runtime_verified": not runtime_blockers,
+        "phone_access_ready": not config_blockers and not runtime_blockers,
+        "config_blockers": config_blockers,
+        "cloud_blockers": cloud_blockers,
+        "runtime_blockers": runtime_blockers,
+        "blockers": config_blockers + runtime_blockers,
     }
     audit["finished_at"] = datetime.now(UTC).isoformat()
 

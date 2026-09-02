@@ -22,7 +22,8 @@ def test_production_audit_reports_config_blockers(tmp_path: Path):
         report_path=tmp_path / "audit.json",
     )
     assert audit["verdict"]["phone_access_ready"] is False
-    assert audit["verdict"]["blockers"]
+    assert audit["verdict"]["cloud_configuration_ready"] is False
+    assert audit["verdict"]["config_blockers"]
     assert "production_config_problems" in audit["configuration"]
     assert audit["runtime"]["backup_script"] is True
     assert (tmp_path / "audit.json").is_file()
@@ -54,4 +55,5 @@ def test_production_audit_passes_with_valid_env_file(tmp_path: Path):
         report_path=tmp_path / "pass.json",
     )
     assert audit["configuration"]["production_ready"] is True
+    assert audit["verdict"]["cloud_configuration_ready"] is True
     assert audit["verdict"]["phone_access_ready"] is True

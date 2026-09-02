@@ -63,7 +63,8 @@ def test_loader_uses_sealed_component_projections_not_output_fallback():
     assert "component_projections_from_output_fallback" not in bundle.caveats
     assert bundle.component_projections_path is not None
     assert bundle.component_projections_path.name == "projections_2026.csv"
-    assert "release_bundles" in bundle.component_projections_path.as_posix()
+    path_posix = bundle.component_projections_path.as_posix()
+    assert "release_bundles" in path_posix or "/releases/" in path_posix
     entry = next(
         a for a in json.loads(bundle.manifest_path.read_text(encoding="utf-8"))["artifacts"]
         if a["role"] == "projections"

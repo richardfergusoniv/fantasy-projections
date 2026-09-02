@@ -34,6 +34,7 @@ jobs = [
     "nfl-data-py>=0.3.3",
     "nflreadpy>=0.1.0",
     "polars>=1.0.0",
+    "polars-runtime-32>=1.0.0",
     "pyarrow>=25.0.0",
     "scikit-learn>=1.6.0",
     "scipy>=1.15.0",
@@ -52,6 +53,9 @@ packages = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "integration: tests that require external research datasets or live services",
+]
 
 [tool.uv]
 override-dependencies = [

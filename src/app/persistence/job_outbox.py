@@ -112,8 +112,12 @@ class JobOutboxService:
         if job_name is not None:
             query = query.filter(JobOutbox.job_name == job_name)
         for row in query.limit(20):
-            if row.scheduled_at is not None and row.scheduled_at > now:
-                continue
+            scheduled_at = row.scheduled_at
+            if scheduled_at is not None:
+                if scheduled_at.tzinfo is None:
+                    scheduled_at = scheduled_at.replace(tzinfo=UTC)
+                if scheduled_at > now:
+                    continue
             holder = _holder_id()
             row.status = "claimed"
             row.holder_id = holder
@@ -149,14 +153,23 @@ class JobOutboxService:
         cutoff = utcnow() - stale_after
         rows = (
             self.session.query(JobOutbox)
-            .filter(JobOutbox.status.in_(("claimed", "running")), JobOutbox.started_at < cutoff)
+            .filter(JobOutbox.status.in_(("claimed", "running")))
             .all()
         )
+        recovered = 0
         for row in rows:
+            started_at = row.started_at
+            if started_at is None:
+                continue
+            if started_at.tzinfo is None:
+                started_at = started_at.replace(tzinfo=UTC)
+            if started_at >= cutoff:
+                continue
             row.status = "queued"
             row.holder_id = None
             row.claimed_at = None
             row.started_at = None
             self.session.add(row)
+            recovered += 1
         self.session.flush()
-        return len(rows)
+        return recovered

@@ -307,6 +307,29 @@ class DraftBoardService:
             contract,
             team_count,
         )
+        baseline_rows = [
+            {
+                "player_id": row["player_id"],
+                "position": row["position"],
+                "league_points": row["fantasy_pts_season"],
+            }
+            for row in rows
+        ]
+        baseline_contract = compile_sleeper_scoring(
+            BASELINE_HALF_PPR_SCORING,
+            roster_positions,
+        )
+        baseline_replacement_ranks = _league_wide_replacement_ranks(
+            baseline_rows,
+            baseline_contract,
+            team_count,
+        )
+        league_specific = (
+            replacement_ranks != baseline_replacement_ranks
+            or covered > 0
+            and contract.contract_hash
+            != compile_sleeper_scoring(BASELINE_HALF_PPR_SCORING, []).contract_hash
+        )
         entries = [
             {
                 "player_id": row["player_id"],
@@ -344,7 +367,7 @@ class DraftBoardService:
                 "generated_at", bundle.generated_at or datetime.now(UTC).isoformat()
             ),
             "projection_run_id": f"preseason-{bundle.namespace}",
-            "league_specific": True,
+            "league_specific": league_specific,
             "league_id": league_id,
             "league_name": league.name,
             "team_count": team_count,

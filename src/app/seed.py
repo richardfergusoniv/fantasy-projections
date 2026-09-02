@@ -167,16 +167,23 @@ def seed_development_data(session: Session, *, email: str) -> dict:
             )
         )
 
+    from src.app.config import get_settings
     from src.app.releases.bridge import ReleaseBridge
     from src.app.projections.weekly_run import WeeklyProjectionService
     from src.app.decisions.tendencies import ManagerTendencyService
 
     bridge = ReleaseBridge(session)
-    preseason_run_id = bridge.sync_preseason_pointer(manifest.get("season", 2026))
-    weekly_service = WeeklyProjectionService(session)
-    weekly_run_id = weekly_service.promote_week(manifest.get("season", 2026), manifest.get("week", 1))
-    ros_run_id = weekly_service.promote_ros(manifest.get("season", 2026), from_week=manifest.get("week", 1))
-    dynasty_run_id = weekly_service.promote_dynasty(manifest.get("season", 2026))
+    season = manifest.get("season", 2026)
+    week = manifest.get("week", 1)
+    preseason_run_id = bridge.sync_preseason_pointer(season)
+    weekly_run_id = None
+    ros_run_id = None
+    dynasty_run_id = None
+    if get_settings().weekly_rnd_enabled:
+        weekly_service = WeeklyProjectionService(session)
+        weekly_run_id = weekly_service.promote_week(season, week, automatic=False)
+        ros_run_id = weekly_service.promote_ros(season, from_week=week)
+        dynasty_run_id = weekly_service.promote_dynasty(season)
     ManagerTendencyService(session).rebuild(seeded[0] if seeded else "fixture-standard")
     session.flush()
     return {

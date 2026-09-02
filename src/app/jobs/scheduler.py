@@ -306,7 +306,7 @@ def process_outbox(*, max_jobs: int = 5) -> list[dict]:
     results: list[dict] = []
     with get_job_session() as session:
         outbox = JobOutboxService(session)
-        outbox.recover_stale_running(timedelta(hours=2))
+        outbox.recover_stale_running(stale_after=timedelta(hours=2))
         for _ in range(max_jobs):
             row = outbox.claim_next()
             if row is None:

@@ -293,7 +293,12 @@ def operations_status(user: AppUser = Depends(get_current_user), db: Session = D
         "last_sync_at": _iso(latest_source.fetched_at) if latest_source else None,
         "active_releases": active_releases,
         "active_releases_by_league": active_releases_by_league,
-        "active_projection_run_id": active_releases["weekly"],
+        "active_projection_run_id": (
+            active_releases["weekly"]
+            or active_releases["preseason"]
+            or active_releases["ros"]
+            or active_releases["dynasty"]
+        ),
         "modes": {
             # Fixture data must never be mistakable for live league data.
             "sleeper_source": settings.sleeper_mode,

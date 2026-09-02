@@ -41,6 +41,7 @@ def _migrated_engine(tmp_path: Path, monkeypatch, *, revision: str = "head"):
     database_url = f"sqlite+pysqlite:///{db_path.as_posix()}"
     # monkeypatch, not os.environ: a leaked DATABASE_URL would silently
     # repoint every later test in the session at this temporary database.
+    monkeypatch.delenv("MIGRATION_DATABASE_URL", raising=False)
     monkeypatch.setenv("DATABASE_URL", database_url)
 
     cfg = Config(str(REPO_ROOT / "alembic.ini"))

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import numpy as np
 import polars as pl
@@ -216,6 +217,10 @@ def test_full_frame_content_hash_changes_with_rows():
 
 
 @pytest.mark.integration
+@pytest.mark.skipif(
+    not Path("data/processed/player_week_panel.parquet").is_file(),
+    reason="external research panel unavailable in clean clone",
+)
 def test_roster_row_without_boxscore_survives_cohort():
     panel = pl.read_parquet("data/processed/player_week_panel.parquet")
     cohort = build_complete_roster_cohort(panel, seasons=[2024])
