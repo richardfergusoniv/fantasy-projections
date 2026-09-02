@@ -11,7 +11,9 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Match CI (windows-latest): sealed-bundle hash checks are sensitive to the
+    # Linux checkout path and fail with players artifact drift on ubuntu runners.
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 

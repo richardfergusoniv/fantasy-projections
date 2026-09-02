@@ -295,7 +295,6 @@ def test_status_overlay_out_zeros_player():
 
 
 def test_overlay_rollback_restores_prior_pointer(tmp_path, monkeypatch):
-    from src.projection.contracts import REPO_ROOT
     from src.app.projections.status_overlay import (
         _overlay_pointer_path,
         promote_overlay_pointer,
@@ -303,11 +302,11 @@ def test_overlay_rollback_restores_prior_pointer(tmp_path, monkeypatch):
     )
     from src.app.projections.status_overlay import StatusOverlayBundle, validate_overlay_gate
 
-    path = _overlay_pointer_path(2026)
-    if path.exists():
-        backup = path.read_text(encoding="utf-8")
-    else:
-        backup = None
+    pointer_path = tmp_path / "active_status_overlay_2026.json"
+    monkeypatch.setattr(
+        "src.app.projections.status_overlay._overlay_pointer_path",
+        lambda season: pointer_path if season == 2026 else tmp_path / f"active_status_overlay_{season}.json",
+    )
 
     overlay = StatusOverlayBundle(
         schema_version="status_overlay_pointer_v1",
@@ -340,11 +339,7 @@ def test_overlay_rollback_restores_prior_pointer(tmp_path, monkeypatch):
     restored = rollback_overlay_pointer(2026)
     assert restored is not None
     assert restored.get("overlay_hash") == "d" * 64
-
-    if backup is not None:
-        path.write_text(backup, encoding="utf-8")
-    elif path.exists():
-        path.unlink()
+    assert pointer_path.exists()
 
 
 def test_capability_matrix_separates_production_from_weekly_rnd(db_session):
