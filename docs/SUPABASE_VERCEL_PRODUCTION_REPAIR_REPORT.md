@@ -12,7 +12,7 @@ Generated: 2026-09-02 (repair session)
 |------|---------|----------|
 | GitHub CI (clean-clone tests) | **GO** | Run `33583086436`: 864 passed, 2 skipped (Windows). |
 | Deploy verify (pre-promote gate) | **GO** | Verify job green on runs `33584188968`, `33593508581`. |
-| Deploy production (migrate + Vercel) | **GO (after fix)** | Run `33593508581` failed: `.env.production.example` excluded by `.vercelignore`. Fix: `!.env.production.example` in `.vercelignore`. Pending re-run after push. |
+| Deploy production (migrate + Vercel) | **GO** | Run `33595811810` (`fa5d9f2`): verify + deploy + smoke checks green. Switched from prebuilt to remote Vercel build to avoid `.vercelignore` ENOENT failures. |
 | Supabase DB reachability | **GO** | Project `dbvwgfefdorugdtpxgcj`; Alembic `a1b2c3d4e5f7`. |
 | Supabase Storage (sealed bundle) | **GO** | `fantasy-app` bucket; `release_pointer` 2026 → `v2_baseline_20260830`. |
 | Security roles | **GO** | `fantasy_app_migrator` + `fantasy_app_runtime`; both `BYPASSRLS`. |
@@ -69,8 +69,7 @@ Vercel prebuilt deploy referenced `.env.production.example` at repo root. `.verc
 ## Remaining blockers (canonical promotion only)
 
 1. **Transfer** `fantasy-projections.vercel.app` from legacy Vercel project (outside `rdfergus15` scope) to `rdfergus15/fantasy-projections`.
-2. **Confirm** green Deploy Production workflow after `.vercelignore` fix lands on `master`.
-3. **Cron long-job strategy**: set `LONG_JOBS_EXTERNAL=true` on Vercel and run `process-outbox` via external worker (daily refresh ~33 min exceeds serverless limit).
+2. **Cron long-job strategy**: `LONG_JOBS_EXTERNAL=true` set on Vercel; run `process-outbox` via external worker (daily refresh ~33 min exceeds serverless limit).
 4. **Pre-repair `pg_dump -Fc`** not captured locally (`pg_dump` not on PATH).
 5. **Disable** direct Vercel Git production deploy in dashboard (manual).
 
@@ -78,10 +77,9 @@ Vercel prebuilt deploy referenced `.env.production.example` at repo root. `.verc
 
 | Item | Value |
 |------|-------|
-| Repair commits | `9e00733`, `f2b968f`, `8d391e0`, vercelignore fix pending |
+| Repair commits | `9e00733`, `f2b968f`, `8d391e0`, `62b5607`, `246b917`, `7e8004d`, `fa5d9f2` |
 | Green CI | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33583086436 |
-| Deploy verify green | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33593508581 |
-| Deploy fail (env example) | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33593508581 |
+| Green deploy (production) | https://github.com/richardfergusoniv/fantasy-projections/actions/runs/33595811810 |
 
 ## Confirmations
 
