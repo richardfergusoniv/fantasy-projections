@@ -3,7 +3,7 @@
 --   create extension if not exists pg_cron with schema extensions;
 --   create extension if not exists pg_net with schema extensions;
 --   select vault.create_secret('<cron-secret>', 'cron_secret', 'Bearer token for Vercel cron');
---   select vault.create_secret('https://fantasy-projections.vercel.app', 'production_app_url', 'Canonical production URL');
+--   select vault.create_secret('https://fantasy-projections-xi.vercel.app', 'production_app_url', 'Canonical production URL');
 
 select cron.unschedule(jobid)
 from cron.job
