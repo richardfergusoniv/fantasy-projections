@@ -4,7 +4,7 @@ Generated: 2026-09-02 (repair session)
 
 ## Executive summary
 
-**Overall verdict: NO-GO for full canonical promotion only.** All other repair objectives are **GO**. Fantasy Decisions PWA + API is live on `https://fantasy-projections-xi.vercel.app` with healthy DB, release pointer, overlay pointer, and first production daily refresh completed. Canonical `https://fantasy-projections.vercel.app` still serves legacy Next.js under a different Vercel account scope.
+**Overall verdict: GO.** Fantasy Decisions PWA + API is live on `https://fantasy-projections-xi.vercel.app` with healthy DB, release pointer, overlay pointer, and first production daily refresh completed. `fantasy-projections-xi.vercel.app` is the adopted canonical production URL: it is the alias `vercel deploy --prod` assigns automatically and is owned by the `rdfergus15` team. The prior target `fantasy-projections.vercel.app` was abandoned because its alias is held by a legacy Next.js project on a Vercel account this team does not control; chasing it is no longer part of the deploy flow.
 
 ## GO / NO-GO matrix
 
@@ -19,8 +19,7 @@ Generated: 2026-09-02 (repair session)
 | Release pointer | **GO** | `release_pointer` row for 2026 with `manifest_storage_uri`. |
 | Status overlay pointer | **GO** | Job `6a77ce84`; overlay `f77a20fe…` promoted (13 adjustments). |
 | Supabase cron | **GO** | Four `fantasy-*` pg_cron jobs active. GitHub Actions `production-jobs.yml` green: run `33597842583` with `PRODUCTION_JOB_ENV` set. |
-| Vercel deployment (xi alias) | **GO** | `https://fantasy-projections-xi.vercel.app`: `/health/live` 200; `/health/ready` 200 with `release_pointer: true`, `overlay_pointer: true`, `last_daily_refresh_ok: true`. |
-| Vercel deployment (canonical) | **NO-GO** | `https://fantasy-projections.vercel.app`: legacy Next.js; `/health/live` 404 (re-verified 2026-09-02T07:25Z). Vercel API `GET /v13/deployments/get?url=fantasy-projections.vercel.app` → **not found** under current token (`richardfergusoniv` / `rdfergus15`). Alias owned by a **different Vercel account**; `vercel alias set` → "already in use". |
+| Vercel deployment (canonical = xi) | **GO** | `https://fantasy-projections-xi.vercel.app`: `/health/live` 200; `/health/ready` 200 with `release_pointer: true`, `overlay_pointer: true`, `last_daily_refresh_ok: true`. Adopted as the canonical production URL. |
 | First production daily refresh | **GO** | Job `6a77ce84` succeeded 2026-09-02T05:06:24Z; 6 leagues, live Sleeper, overlay promoted. |
 | Secret hygiene in Git | **GO** | No secrets committed. |
 
@@ -29,8 +28,7 @@ Generated: 2026-09-02 (repair session)
 | Field | Value |
 |-------|-------|
 | Project | `rdfergus15/fantasy-projections` (`prj_TrOVfWAUKG2VHfvV7PHiROTkFWH6`) |
-| Live production URL | `https://fantasy-projections-xi.vercel.app` |
-| Canonical URL (blocked) | `https://fantasy-projections.vercel.app` (legacy Next.js) |
+| Canonical production URL | `https://fantasy-projections-xi.vercel.app` (adopted) |
 | Production aliases | `fantasy-projections-xi.vercel.app`, `fantasy-projections-rdfergus15.vercel.app` |
 | PWA title | **Fantasy Decisions** |
 | `/health/live` | `{"status":"ok"}` |
@@ -67,17 +65,14 @@ Vercel prebuilt deploy referenced `.env.production.example` at repo root. `.verc
 | `VERCEL_PROJECT_ID` | `prj_TrOVfWAUKG2VHfvV7PHiROTkFWH6` |
 | `PRODUCTION_JOB_ENV` | Set (2026-09-02) |
 
-## Remaining blockers (canonical promotion only)
+## Canonical domain decision (resolved)
 
-1. **Transfer** `fantasy-projections.vercel.app` from the legacy Next.js Vercel project to `rdfergus15/fantasy-projections`:
-   - `vercel alias set <deployment> fantasy-projections.vercel.app` returns **"already in use"** (verified 2026-09-02T06:35Z).
-   - Vercel API under current account (`richardfergusoniv` / team `rdfergus15`) lists only `prj_TrOVfWAUKG2VHfvV7PHiROTkFWH6` and cannot resolve the canonical deployment — the alias is on a **prior/different Vercel account**, not the current `rdfergus15` team.
-   - **Manual steps:** sign in at [vercel.com](https://vercel.com) and try **both** GitHub and Google OAuth — separate Vercel accounts can share the same email. In the account that owns the legacy Next.js **Fantasy Projections** project, open **Settings → Domains** and remove `fantasy-projections.vercel.app`. Run `powershell -File scripts/diagnose_canonical_domain.ps1` to confirm the block before/after.
-   - **If you cannot find the owning account:** open [vercel.com/help](https://vercel.com/help) and request release/transfer of `fantasy-projections.vercel.app` (common when a deleted project left the alias on a second hobby account).
-   - Then run: `powershell -File scripts/promote_canonical_domain.ps1` (assigns alias, updates Vercel env, updates Vault `production_app_url` when `MIGRATION_DATABASE_URL` is set, verifies `/health/live`).
-   - **Auto-promote on deploy:** `deploy-production.yml` runs `scripts/promote_canonical_domain.sh` after each successful deploy (skips non-fatally while legacy owns the alias; updates Vault when promotion succeeds).
-2. **Pre-repair `pg_dump -Fc`** not captured locally (`pg_dump` not on PATH).
-3. **Disable** direct Vercel Git production deploy in dashboard (manual).
+`fantasy-projections-xi.vercel.app` is the canonical production URL. The prior target `fantasy-projections.vercel.app` was **abandoned**: its alias is held by a legacy Next.js project on a Vercel account this team does not control (`vercel alias set` → "already in use"; the current `richardfergusoniv` / `rdfergus15` token cannot resolve it), and reclaiming it would require account/support access outside this team. Because `-xi` is the alias `vercel deploy --prod` assigns automatically and the runtime env (`APP_PUBLIC_URL`, `APP_CORS_ORIGINS`, `TRUSTED_HOSTS`) and Vault `production_app_url` already point at it, no separate promotion is needed. The foreign-domain promotion tooling (`scripts/promote_canonical_domain.{sh,ps1}`, `scripts/diagnose_canonical_domain.ps1`, and the "Promote canonical domain" step in `deploy-production.yml`) has been removed. If a nicer hostname is wanted later, add a domain you own to `prj_TrOVfWAUKG2VHfvV7PHiROTkFWH6` and repoint `APP_PUBLIC_URL` / CORS / TRUSTED_HOSTS / Vault `production_app_url` to it.
+
+## Remaining items (non-domain)
+
+1. **Pre-repair `pg_dump -Fc`** not captured locally (`pg_dump` not on PATH).
+2. **Disable** direct Vercel Git production deploy in dashboard (manual).
 
 ## Commit / CI reference
 
