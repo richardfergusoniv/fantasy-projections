@@ -108,6 +108,7 @@ output/model_v3/simulation_summary_recentered_*.csv
 .env.*
 !.env.example
 !.env.production.example
+!.env.production.jobs.example
 .env.production.jobs
 
 # Local artifact store for the decision app (ARTIFACT_LOCAL_ROOT). These are
