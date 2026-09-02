@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "uv sync --frozen --no-dev",
+  "installCommand": "uv sync --frozen --no-dev --extra jobs",
   "buildCommand": "cd web && npm ci && npm run build",
   "outputDirectory": "web/dist",
   "rewrites": [
@@ -12,7 +12,8 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 300,
-      "memory": 1024
+      "memory": 1024,
+      "excludeFiles": "{tests/**,output/**,web/node_modules/**,web/src/**,docs/**,scripts/**,migrations/**,.github/**,**/__pycache__/**,**/*.pyc,**/.pytest_cache/**,**/.ruff_cache/**,**/.venv/**,docker-compose.yml,Dockerfile*}"
     }
   }
 }

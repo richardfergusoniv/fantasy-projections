@@ -41,7 +41,11 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 
 REVOKE CREATE ON SCHEMA public FROM fantasy_app_runtime;
 
--- Verification query (run as postgres):
+-- Alembic must read alembic_version under RLS; migrator also needs BYPASSRLS for migrations.
+ALTER TABLE alembic_version DISABLE ROW LEVEL SECURITY;
+ALTER ROLE fantasy_app_migrator BYPASSRLS;
+ALTER ROLE fantasy_app_runtime BYPASSRLS;
+GRANT SELECT ON alembic_version TO fantasy_app_migrator;
 --   SET ROLE fantasy_app_runtime;
 --   CREATE TABLE public.__runtime_ddl_probe(id int);  -- must fail
 --   RESET ROLE;

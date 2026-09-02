@@ -14,7 +14,19 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 
 from src.projection.contracts import MODEL_V3_DIR, REPO_ROOT
-from src.projection.evaluation.accuracy_first import canonical_json_hash, sha256_file
+
+
+def sha256_file(path: str | Path) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def canonical_json_hash(payload: dict) -> str:
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 SCHEMA_VERSION = "release_bundle_manifest_v1"

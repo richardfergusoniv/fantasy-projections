@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import hashlib
+from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Session
 
 from src.app.config import get_settings
 from src.app.persistence.models import SimulationPartition
-from src.app.projections.weekly_draws import WeeklyDrawPartition
+
+if TYPE_CHECKING:
+    from src.app.projections.weekly_draws import WeeklyDrawPartition
 
 
 def register_run_partitions(

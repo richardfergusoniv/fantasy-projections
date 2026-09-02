@@ -130,3 +130,5 @@ curl_cookies.txt
 backups/
 output/app_artifacts/
 
+.vercel
+.env.local
