@@ -38,8 +38,13 @@ for pair in "APP_PUBLIC_URL:${PUBLIC_URL}" "APP_CORS_ORIGINS:${CORS}" "TRUSTED_H
   echo "Updated Vercel env ${name}"
 done
 
-echo "Apply Supabase Vault SQL manually or via MCP:"
-cat <<EOF
+echo "Apply Supabase Vault production_app_url -> ${PUBLIC_URL}"
+if [ -n "${MIGRATION_DATABASE_URL:-}" ]; then
+  if uv run python scripts/update_production_app_url.py "${PUBLIC_URL}"; then
+    echo "Supabase Vault production_app_url updated."
+  else
+    echo "WARN: could not update Vault via database URL; apply manually:"
+    cat <<EOF
 SELECT vault.update_secret(
   (SELECT id FROM vault.secrets WHERE name = 'production_app_url'),
   '${PUBLIC_URL}',
@@ -47,6 +52,18 @@ SELECT vault.update_secret(
   'Canonical production URL'
 );
 EOF
+  fi
+else
+  echo "Apply Supabase Vault SQL manually or via MCP:"
+  cat <<EOF
+SELECT vault.update_secret(
+  (SELECT id FROM vault.secrets WHERE name = 'production_app_url'),
+  '${PUBLIC_URL}',
+  'production_app_url',
+  'Canonical production URL'
+);
+EOF
+fi
 
 live_status="$(curl -sS -o /tmp/canonical_live.json -w "%{http_code}" "${PUBLIC_URL}/health/live")"
 if [ "${live_status}" != "200" ]; then

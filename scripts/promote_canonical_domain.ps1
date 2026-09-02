@@ -38,7 +38,14 @@ foreach ($pair in @(
 }
 
 Write-Host "Updating Supabase Vault production_app_url -> $publicUrl"
-$sql = @"
+$dbUrl = $env:MIGRATION_DATABASE_URL
+if (-not $dbUrl) { $dbUrl = $env:DATABASE_URL }
+if ($dbUrl) {
+    $env:MIGRATION_DATABASE_URL = $dbUrl
+    uv run python scripts/update_production_app_url.py $publicUrl
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Could not update Vault via database URL; apply manually:"
+        Write-Host @"
 SELECT vault.update_secret(
   (SELECT id FROM vault.secrets WHERE name = 'production_app_url'),
   '$publicUrl',
@@ -46,8 +53,19 @@ SELECT vault.update_secret(
   'Canonical production URL'
 );
 "@
-# Requires Supabase CLI or MCP; print SQL if not available.
-Write-Host $sql
+    } else {
+        Write-Host "Supabase Vault production_app_url updated."
+    }
+} else {
+    Write-Host @"
+SELECT vault.update_secret(
+  (SELECT id FROM vault.secrets WHERE name = 'production_app_url'),
+  '$publicUrl',
+  'production_app_url',
+  'Canonical production URL'
+);
+"@
+}
 
 Write-Host "Verifying canonical health..."
 $status = curl.exe -sS -o NUL -w "%{http_code}" "$publicUrl/health/live"

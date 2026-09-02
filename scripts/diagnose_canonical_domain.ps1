@@ -11,8 +11,11 @@ Write-Host "=== Canonical domain diagnostic ===" -ForegroundColor Cyan
 $liveStatus = curl.exe -sS -o NUL -w "%{http_code}" "https://$CanonicalHost/health/live"
 $homeBody = curl.exe -sS "https://$CanonicalHost/" 2>$null
 $title = "(unknown)"
-if ($homeBody -and $homeBody -match "<title>([^<]+)</title>") {
-    $title = $Matches[1]
+if ($homeBody) {
+    $titleMatch = [regex]::Match($homeBody, "<title>([^<]+)</title>")
+    if ($titleMatch.Success) {
+        $title = $titleMatch.Groups[1].Value
+    }
 }
 
 Write-Host "Canonical: https://$CanonicalHost"

@@ -46,6 +46,10 @@ ALTER TABLE alembic_version DISABLE ROW LEVEL SECURITY;
 ALTER ROLE fantasy_app_migrator BYPASSRLS;
 ALTER ROLE fantasy_app_runtime BYPASSRLS;
 GRANT SELECT ON alembic_version TO fantasy_app_migrator;
+
+-- Canonical domain promotion updates Vault production_app_url from deploy CI.
+GRANT USAGE ON SCHEMA vault TO fantasy_app_migrator;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA vault TO fantasy_app_migrator;
 --   SET ROLE fantasy_app_runtime;
 --   CREATE TABLE public.__runtime_ddl_probe(id int);  -- must fail
 --   RESET ROLE;
