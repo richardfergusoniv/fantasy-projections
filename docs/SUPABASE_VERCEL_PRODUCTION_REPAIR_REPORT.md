@@ -48,7 +48,7 @@ Vercel prebuilt deploy referenced `.env.production.example` at repo root. `.verc
 | `pg_cron` / `pg_net` | Enabled |
 | Vault | `cron_secret`, `production_app_url` → `https://fantasy-projections-xi.vercel.app` |
 | `fantasy_app_runtime` | `BYPASSRLS` |
-| Cron schedules | `fantasy-run-due`, `fantasy-run-due-sunday-kickoff`, `fantasy-run-due-sunday-late` |
+| Cron schedules | `fantasy-run-due`, `fantasy-run-due-sunday-kickoff`, `fantasy-run-due-sunday-late`, `fantasy-process-outbox` |
 
 ## Daily refresh
 
@@ -65,13 +65,15 @@ Vercel prebuilt deploy referenced `.env.production.example` at repo root. `.verc
 | `VERCEL_TOKEN` | Set |
 | `VERCEL_ORG_ID` | `team_2wadxBpdAExHEXF0iyvy6t1F` |
 | `VERCEL_PROJECT_ID` | `prj_TrOVfWAUKG2VHfvV7PHiROTkFWH6` |
+| `PRODUCTION_JOB_ENV` | Set (2026-09-02) |
 
 ## Remaining blockers (canonical promotion only)
 
 1. **Transfer** `fantasy-projections.vercel.app` from the legacy Next.js Vercel project to `rdfergus15/fantasy-projections`:
    - `vercel alias set <deployment> fantasy-projections.vercel.app` returns **"already in use"** (2026-09-02).
    - The alias is not visible under the `rdfergus15` team (`vercel domains ls` → 0 domains).
-   - **Manual steps:** sign in at vercel.com → locate the old `fantasy-projections` project (likely personal account / legacy Next.js) → Settings → Domains → remove `fantasy-projections.vercel.app` → on `rdfergus15/fantasy-projections` → Settings → Domains → add `fantasy-projections.vercel.app` → update Supabase Vault `production_app_url` and Vercel `APP_PUBLIC_URL` / `TRUSTED_HOSTS`.
+   - **Manual steps:** sign in at vercel.com → switch to your **personal** account scope (not `rdfergus15`) → locate the old `fantasy-projections` Next.js project → Settings → Domains → remove `fantasy-projections.vercel.app`.
+   - Then run: `powershell -File scripts/promote_canonical_domain.ps1` (assigns alias, updates Vercel env, prints Vault SQL, verifies `/health/live`).
 2. **Pre-repair `pg_dump -Fc`** not captured locally (`pg_dump` not on PATH).
 3. **Disable** direct Vercel Git production deploy in dashboard (manual).
 
