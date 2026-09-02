@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "username": "your_sleeper_username",
+  "season": 2026,
+  "leagues": [
+    {
+      "league_id": "0000000000000000001",
+      "display_name": "Example Redraft League",
+      "league_type": "redraft"
+    },
+    {
+      "league_id": "0000000000000000002",
+      "display_name": "Example Redraft League II",
+      "league_type": "redraft"
+    },
+    {
+      "league_id": "0000000000000000003",
+      "display_name": "Example Dynasty (reverse standings)",
+      "league_type": "dynasty",
+      "rookie_pick_rule": "reverse_standings"
+    },
+    {
+      "league_id": "0000000000000000004",
+      "display_name": "Example Dynasty Superflex (max PF)",
+      "league_type": "dynasty",
+      "rookie_pick_rule": "max_pf"
+    },
+    {
+      "league_id": "0000000000000000005",
+      "display_name": "Example Dynasty (max PF)",
+      "league_type": "dynasty",
+      "rookie_pick_rule": "max_pf"
+    },
+    {
+      "league_id": "0000000000000000006",
+      "display_name": "Example Dynasty Superflex (reverse standings)",
+      "league_type": "dynasty",
+      "rookie_pick_rule": "reverse_standings"
+    }
+  ]
+}

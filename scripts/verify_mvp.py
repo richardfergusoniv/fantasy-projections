@@ -2,11 +2,21 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+os.environ.setdefault("APP_ENV", "test")
+os.environ.setdefault("APP_ENABLE_DEV_AUTH", "true")
+os.environ.setdefault("TEST_DATABASE_URL", "sqlite+pysqlite:///:memory:")
+os.environ.setdefault("TRUSTED_HOSTS", "testserver,localhost,127.0.0.1,*")
+os.environ.setdefault("APP_ALLOWED_EMAIL", "owner@example.com")
+os.environ.setdefault("EMAIL_PROVIDER", "development")
+os.environ.setdefault("SLEEPER_USE_FIXTURES", "true")
+os.environ.setdefault("INJURY_RESEARCH_MODE", "fixture")
 
 REQUIRED_PATHS = [
     "src/app/factory.py",
@@ -35,7 +45,7 @@ def check_paths() -> list[str]:
 
 
 def run(cmd: list[str]) -> tuple[int, str]:
-    proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+    proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, env=os.environ.copy())
     output = (proc.stdout or "") + (proc.stderr or "")
     return proc.returncode, output.strip()
 
@@ -92,16 +102,21 @@ def main() -> int:
     )
 
     if not weekly_v2_artifacts_available(2026, 1):
-        failures.append("weekly v2 fixture manifest not detected for season 2026")
+        failures.append("weekly v2 artifacts not detected for season 2026")
     else:
-        print("OK   weekly v2 fixture manifest")
+        print("OK   weekly v2 artifacts present")
     manifest = load_weekly_v2_manifest(2026)
-    if not manifest or manifest.get("model_version") != "weekly_v2_fixture":
-        failures.append("weekly v2 fixture manifest content invalid")
-    elif weekly_v2_model_version(2026) != "weekly_v2_fixture":
+    model_version = weekly_v2_model_version(2026)
+    if not manifest or not model_version:
+        failures.append("weekly v2 manifest content invalid")
+    elif manifest.get("model_version") != model_version:
         failures.append("weekly v2 model version mismatch")
+    elif manifest.get("model_version") == "weekly_v2_fixture":
+        print("OK   weekly v2 fixture manifest")
+    elif manifest.get("schema_version") == 2:
+        print(f"OK   weekly v2 trained manifest ({model_version})")
     else:
-        print("OK   weekly v2 model version")
+        failures.append(f"weekly v2 manifest unexpected: {manifest.get('model_version')}")
 
     if failures:
         print("\nMVP verification failed:")

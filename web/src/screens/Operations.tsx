@@ -64,11 +64,27 @@ export function OperationsScreen() {
         />
 
         {/*
-          Mode labels come first: every number below them means something
-          different depending on whether the data is fixture or live and whether
-          the projection came from trained artifacts or a fallback.
+          Production panel: sealed release + status overlay health.
+          Weekly R&D NO-GO must not mark this panel unhealthy.
         */}
+        <h3 className="section-title">Production (sealed release)</h3>
         <ul className="ops-list ops-modes">
+          <li>
+            <span>Projection source</span>
+            <strong>{data?.modes?.projection_source ?? "sealed_release"}</strong>
+          </li>
+          <li>
+            <span>Production health</span>
+            <strong
+              className={data?.production?.healthy ? undefined : "state-warning-text"}
+            >
+              {data?.production?.healthy
+                ? "healthy"
+                : data?.production?.degraded_capabilities?.length
+                  ? `degraded (${data.production.degraded_capabilities.length})`
+                  : "degraded"}
+            </strong>
+          </li>
           <li>
             <span>Sleeper data source</span>
             <strong
@@ -81,25 +97,48 @@ export function OperationsScreen() {
                   : "unknown"}
             </strong>
           </li>
+        </ul>
+        {data?.production?.degraded_capabilities?.length ? (
+          <ul className="urgent-list">
+            {data.production.degraded_capabilities.map((capability) => {
+              const detail = data.capabilities?.capabilities.find(
+                (row) => row.capability === capability,
+              );
+              return (
+                <li key={capability} className="urgent-warning">
+                  <strong>{capability}</strong>
+                  {detail?.detail ? ` — ${detail.detail}` : null}
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+
+        <h3 className="section-title">Weekly modeling R&amp;D</h3>
+        <ul className="ops-list ops-modes">
           <li>
-            <span>Weekly projection artifacts</span>
+            <span>Weekly-v2 artifacts</span>
             <strong
               className={data?.modes?.weekly_v2_state === "trained" ? undefined : "state-warning-text"}
             >
               {data?.modes?.weekly_v2_state === "trained"
                 ? `trained (${data.modes.weekly_v2_model_version ?? "version unknown"})`
-                : `${data?.modes?.weekly_v2_state ?? "unknown"} — not trained production output`}
+                : `${data?.modes?.weekly_v2_state ?? "unknown"} — R&D only, not production`}
             </strong>
           </li>
           <li>
-            <span>Automatic publishing</span>
+            <span>R&amp;D auto-publish</span>
             <strong
-              className={data?.modes?.auto_publish_allowed ? undefined : "state-warning-text"}
+              className={data?.weekly_rnd?.auto_publish_allowed ? undefined : "state-warning-text"}
             >
-              {data?.modes?.auto_publish_allowed
+              {data?.weekly_rnd?.auto_publish_allowed
                 ? "allowed"
-                : "blocked until trained artifacts are available"}
+                : "NO-GO — blocked until weekly gates pass"}
             </strong>
+          </li>
+          <li>
+            <span>Weekly R&amp;D enabled</span>
+            <strong>{data?.modes?.weekly_rnd_enabled ? "yes" : "no (default)"}</strong>
           </li>
         </ul>
         {data?.modes?.weekly_v2_reasons?.length ? (

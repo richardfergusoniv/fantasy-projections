@@ -36,7 +36,7 @@ def research_changed_players(session: Session, *, limit: int = 25, mode: str | N
     if resolved_mode == MODE_DISABLED:
         return _unavailable(resolved_mode, "research_disabled", len(events))
     try:
-        provider = build_provider(settings, mode=resolved_mode)
+        provider = build_provider(settings, mode=resolved_mode, session=session)
     except ResearchUnavailable as exc:
         logger.warning("injury_research_unavailable", extra={"mode": resolved_mode, "reason": str(exc)})
         return _unavailable(resolved_mode, str(exc), len(events))

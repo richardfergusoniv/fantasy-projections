@@ -8,7 +8,11 @@ import { useAppState } from "../hooks/useAppState";
  */
 export function LeagueSwitcher() {
   const {
+    visibleLeagues,
+    configuredLeagueIds,
     leagues,
+    showAllLeagues,
+    setShowAllLeagues,
     selectedLeagueId,
     selectLeague,
     leaguesLoading,
@@ -19,6 +23,10 @@ export function LeagueSwitcher() {
     rostersLoading,
   } = useAppState();
 
+  const hasHistoricalLeagues =
+    configuredLeagueIds.length > 0 &&
+    leagues.some((league) => !configuredLeagueIds.includes(league.id));
+
   return (
     <div className="shell-controls">
       <div className="shell-control">
@@ -27,19 +35,32 @@ export function LeagueSwitcher() {
           id="shell-league-select"
           value={selectedLeagueId ?? ""}
           onChange={(event) => selectLeague(event.target.value)}
-          disabled={leaguesLoading || leagues.length === 0}
+          disabled={leaguesLoading || visibleLeagues.length === 0}
         >
           {leaguesLoading ? <option value="">Loading leagues…</option> : null}
-          {!leaguesLoading && leagues.length === 0 ? (
+          {!leaguesLoading && visibleLeagues.length === 0 ? (
             <option value="">No leagues synced</option>
           ) : null}
-          {leagues.map((league) => (
+          {visibleLeagues.map((league) => (
             <option key={league.id} value={league.id}>
               {league.name} · {league.season}
             </option>
           ))}
         </select>
       </div>
+
+      {hasHistoricalLeagues ? (
+        <div className="shell-control shell-control-inline">
+          <label className="checkbox-inline">
+            <input
+              type="checkbox"
+              checked={showAllLeagues}
+              onChange={(event) => setShowAllLeagues(event.target.checked)}
+            />
+            Show historical leagues
+          </label>
+        </div>
+      ) : null}
 
       <div className="shell-control">
         <label htmlFor="shell-week-select">Week</label>

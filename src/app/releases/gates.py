@@ -78,6 +78,20 @@ def validate_simulation_partitions(session, *, run_id: str, input_hash: str) -> 
             failures.append(f"invalid_partition_hash:{partition.partition_key}")
         if partition.draw_count <= 0:
             failures.append(f"invalid_draw_count:{partition.partition_key}")
+        if partition.uri.startswith("file:"):
+            from pathlib import Path
+            from urllib.parse import urlparse
+            from urllib.request import url2pathname
+
+            file_path = Path(url2pathname(urlparse(partition.uri).path))
+            if not file_path.exists():
+                failures.append(f"missing_partition_artifact:{partition.partition_key}")
+            else:
+                import hashlib
+
+                digest = hashlib.sha256(file_path.read_bytes()).hexdigest()
+                if digest != partition.sha256:
+                    failures.append(f"partition_hash_mismatch:{partition.partition_key}")
     if input_hash and len(input_hash) < 16:
         failures.append("invalid_input_hash")
     return GateResult(passed=not failures, failures=failures)
@@ -95,6 +109,7 @@ def validate_artifact_readiness(readiness, *, app_env: str, automatic: bool) -> 
     failures: list[str] = []
     warnings: list[str] = []
     state = getattr(readiness, "state", "absent")
+    auto_publish_allowed = bool(getattr(readiness, "auto_publish_allowed", False))
     if state != "trained":
         detail = f"weekly_v2_artifacts_not_trained:{state}"
         missing = tuple(getattr(readiness, "missing_artifacts", ()) or ())
@@ -104,6 +119,36 @@ def validate_artifact_readiness(readiness, *, app_env: str, automatic: bool) -> 
             failures.append(detail)
         else:
             warnings.append(detail)
+    elif not auto_publish_allowed:
+        detail = "weekly_v2_auto_publish_blocked"
+        reasons = tuple(getattr(readiness, "reasons", ()) or ())
+        if reasons:
+            detail = f"{detail}:{reasons[0]}"
+        if automatic:
+            failures.append(detail)
+        else:
+            warnings.append(detail)
+    return GateResult(passed=not failures, failures=failures, warnings=warnings)
+
+
+def validate_inference_provenance(candidate, readiness) -> GateResult:
+    """Block trained publication when rows came from the preseason scaling fallback."""
+    failures: list[str] = []
+    warnings: list[str] = []
+    artifact_mode = getattr(candidate, "artifact_mode", "derived")
+    derivation = (getattr(candidate, "metadata", {}) or {}).get("derivation")
+    state = getattr(readiness, "state", "absent")
+
+    if artifact_mode == "trained":
+        if derivation != "weekly_v2_trained_inference":
+            failures.append(f"trained_mode_with_wrong_derivation:{derivation}")
+        if state != "trained":
+            failures.append(f"trained_mode_with_readiness_state:{state}")
+        if not (getattr(candidate, "metadata", {}) or {}).get("output_sha256"):
+            failures.append("trained_mode_missing_output_sha256")
+    elif derivation == "preseason_bundle_scaled" and artifact_mode == "trained":
+        failures.append("hash_scaled_preseason_rows_labelled_trained")
+
     return GateResult(passed=not failures, failures=failures, warnings=warnings)
 
 

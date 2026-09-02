@@ -25,6 +25,16 @@ from src.projection.weekly.scoring.fantasy_points import compute_fantasy_points
 logger = logging.getLogger(__name__)
 
 
+def _calibration_path(season: int) -> Path:
+    for candidate in (
+        MODELS_DIR / f"season={season}" / "calibration.json",
+        MODELS_DIR / "calibration.json",
+    ):
+        if candidate.exists():
+            return candidate
+    return MODELS_DIR / "calibration.json"
+
+
 def _residual_bands(panel: pl.DataFrame, train_seasons: list[int]) -> dict[str, tuple[float, float]]:
     """Floor/ceiling offsets from per-player residual percentiles by position.
 
@@ -101,7 +111,7 @@ def project_veterans_week(
     scored = compute_fantasy_points(accounted, scoring, alias="fantasy_points")
 
     calibration = load_calibration_for_season(
-        MODELS_DIR / "calibration.json", target_season=season
+        _calibration_path(season), target_season=season
     )
     if calibration is not None:
         scored = apply_position_calibration(scored, calibration)

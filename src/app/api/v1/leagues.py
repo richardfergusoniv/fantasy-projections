@@ -8,29 +8,52 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from src.app.api.deps import get_current_user, get_db, require_csrf, require_idempotency_key
-from src.app.jobs.runner import JobRunner
-from src.app.jobs.handlers import run_daily_refresh
+from src.app.api.deps import (
+    get_current_user,
+    get_db,
+    require_csrf,
+    require_idempotency_key,
+)
+from src.app.config import get_settings
 from src.app.decisions.draft_board import DraftBoardService
 from src.app.decisions.services import LineupService, WaiverService
+from src.app.jobs.handlers import run_daily_refresh
+from src.app.jobs.runner import JobRunner
+from src.app.league.sleeper.owner_config import load_owner_config
 from src.app.league.sleeper.sync import SleeperSyncService
+from src.app.logging import get_logger
 from src.app.persistence.models import (
     AppUser,
     League,
     LeagueDraftRule,
-    LeagueRuleSnapshot,
     LeagueMember,
+    LeagueRuleSnapshot,
     MatchupSnapshot,
     RosterSnapshot,
 )
 from src.app.persistence.repositories import ProjectionRepository
-from src.app.scoring.compiler import compile_sleeper_scoring
-from src.app.config import get_settings
-from src.app.logging import get_logger
+from src.app.projections.loader import get_bundle_loader
+from src.app.projections.source import (
+    ProjectionSource,
+    configured_projection_source,
+    weekly_rnd_enabled,
+)
 
 logger = get_logger(__name__)
 
 router = APIRouter()
+
+
+def _configured_league_ids() -> frozenset[str]:
+    """Owner-configured league ids when owner config is set."""
+
+    settings = get_settings()
+    if not settings.sleeper_owner_config and not settings.sleeper_owner_json:
+        return frozenset()
+    try:
+        return load_owner_config(settings.sleeper_owner_config).allowed_league_ids
+    except (FileNotFoundError, OSError, ValueError):
+        return frozenset()
 
 
 def _unprocessable(code: str, message: str, *, league_id: str, exc: Exception) -> HTTPException:
@@ -58,19 +81,34 @@ def _meta(session: Session, league_id: str, *, week: int = 1) -> dict:
     )
     league = session.query(League).filter(League.league_id == league_id).one_or_none()
     season = league.season if league else 2026
-    weekly_run = ProjectionRepository(session).active_run(mode="weekly", season=season, week=week)
-    if weekly_run is None:
-        weekly_run = ProjectionRepository(session).active_run(mode="preseason", season=season, week=None)
+    source = configured_projection_source()
+    projections = ProjectionRepository(session)
+    run = None
+    if source == ProjectionSource.WEEKLY_V2_RND and weekly_rnd_enabled():
+        run = projections.active_run(mode="weekly", season=season, week=week)
+    if run is None:
+        run = projections.active_run(mode="preseason", season=season, week=None)
+    projection_run_id = "fixture"
+    if source in {ProjectionSource.SEALED_RELEASE, ProjectionSource.STATUS_ADJUSTED_RELEASE}:
+        bundle = get_bundle_loader(season).load_bundle()
+        if bundle is not None:
+            projection_run_id = f"preseason-{bundle.namespace}"
+        elif run is not None:
+            projection_run_id = run.id
+    elif run is not None:
+        projection_run_id = run.id
     return {
         "data_as_of": (snapshot.fetched_at if snapshot else datetime.now(UTC)).isoformat(),
         "rule_snapshot_id": snapshot.id if snapshot else None,
-        "projection_run_id": weekly_run.id if weekly_run else "fixture",
+        "projection_run_id": projection_run_id,
+        "projection_source": source.value,
     }
 
 
 @router.get("/leagues")
 def list_leagues(user: AppUser = Depends(get_current_user), db: Session = Depends(get_db)):
     leagues = db.query(League).all()
+    configured_ids = _configured_league_ids()
     payload = []
     for league in leagues:
         snapshot = (
@@ -91,10 +129,15 @@ def list_leagues(user: AppUser = Depends(get_current_user), db: Session = Depend
                 "season": league.season,
                 "scoring_type": scoring_type,
                 "is_dynasty": league.league_type == "dynasty",
+                "is_configured": (
+                    league.league_id in configured_ids if configured_ids else True
+                ),
                 "roster_positions": league.raw_json.get("roster_positions", []) if league.raw_json else [],
             }
         )
     meta = _meta(db, leagues[0].league_id if leagues else "")
+    if configured_ids:
+        meta["configured_league_ids"] = sorted(configured_ids)
     return {"leagues": payload, **meta}
 
 
@@ -139,7 +182,30 @@ def update_draft_order_rule(
 
 @router.get("/leagues/{league_id}/rosters")
 def get_rosters(league_id: str, user: AppUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    from src.app.persistence.models import PlayerIdentity
+
     rosters = db.query(RosterSnapshot).filter(RosterSnapshot.league_id == league_id).all()
+    members = {
+        row.roster_id: row.display_name
+        for row in db.query(LeagueMember).filter(LeagueMember.league_id == league_id).all()
+    }
+    identities: dict[str, PlayerIdentity] = {}
+    for row in db.query(PlayerIdentity).all():
+        identities[row.player_id] = row
+        if row.sleeper_id:
+            identities.setdefault(row.sleeper_id, row)
+
+    def player_label(player_id: str) -> dict:
+        row = identities.get(str(player_id))
+        if row is None:
+            return {"player_id": str(player_id), "name": str(player_id)}
+        return {
+            "player_id": row.player_id,
+            "name": row.name,
+            "position": row.position,
+            "team": row.team,
+        }
+
     return {
         "rosters": [
             {
@@ -148,9 +214,12 @@ def get_rosters(league_id: str, user: AppUser = Depends(get_current_user), db: S
                 "players": r.players,
                 "starters": r.starters,
                 "reserve": r.reserve,
+                "manager_name": members.get(r.roster_id),
+                "player_details": [player_label(pid) for pid in (r.players or []) if pid],
             }
             for r in rosters
         ],
+        "managers": {str(roster_id): name for roster_id, name in members.items()},
         **_meta(db, league_id),
     }
 
@@ -232,7 +301,7 @@ def draft_board(league_id: str, user: AppUser = Depends(get_current_user), db: S
 
     league = db.query(League).filter(League.league_id == league_id).one_or_none()
     season = league.season if league else 2026
-    board = DraftBoardService().load_board(season)
+    board = DraftBoardService(db).load_board(season, league_id=league_id)
     settings = get_settings()
     client = SleeperClient(use_fixtures=settings.use_sleeper_fixtures)
     nfl_state = client.get_nfl_state()

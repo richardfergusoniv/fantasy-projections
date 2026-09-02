@@ -21,7 +21,7 @@ OUTPUTS_DIR = Path(
 )
 
 TRAIN_START_SEASON = int(os.getenv("TRAIN_START_SEASON", "2016"))
-TRAIN_END_SEASON = int(os.getenv("TRAIN_END_SEASON", "2024"))
+TRAIN_END_SEASON = int(os.getenv("TRAIN_END_SEASON", "2025"))
 VALIDATE_SEASON = int(os.getenv("VALIDATE_SEASON", "2025"))
 
 SKILL_POSITIONS = ("QB", "RB", "WR", "TE")

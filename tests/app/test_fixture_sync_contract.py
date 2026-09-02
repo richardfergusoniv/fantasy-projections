@@ -55,6 +55,7 @@ def synced(monkeypatch):
     """Seed, log in, and run one full fixture refresh through the public API."""
     monkeypatch.setenv("APP_ENV", "test")
     monkeypatch.setenv("APP_ENABLE_DEV_AUTH", "true")
+    monkeypatch.setenv("SLEEPER_USE_FIXTURES", "true")
     from src.app.config import get_settings
     from src.app.factory import create_app
     from src.app.middleware.rate_limit import limiter

@@ -23,8 +23,11 @@ target_metadata = Base.metadata
 
 def _database_url() -> str:
     return os.environ.get(
-        "DATABASE_URL",
-        config.get_main_option("sqlalchemy.url", "postgresql+psycopg://fantasy:fantasy@localhost:5432/fantasy_app"),
+        "MIGRATION_DATABASE_URL",
+        os.environ.get(
+            "DATABASE_URL",
+            config.get_main_option("sqlalchemy.url", "postgresql+psycopg://fantasy:fantasy@localhost:5432/fantasy_app"),
+        ),
     )
 
 

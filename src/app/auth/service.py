@@ -149,7 +149,9 @@ class AuthService:
         )
         self.session.add(record)
         self.session.flush()
-        link = f"{self.settings.app_public_url}/auth/callback?token={token}"
+        # Hash fragment keeps the token out of the initial GET so mail scanners
+        # cannot consume a one-time link before the owner opens it in a browser.
+        link = f"{self.settings.app_public_url}/auth/callback#token={token}"
         dev_link = self.email_provider.send_magic_link(email, link)
         payload = {"status": "sent"}
         if dev_link:

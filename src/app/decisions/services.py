@@ -33,8 +33,15 @@ from src.app.decisions.trades import (
     evaluate_trade,
 )
 from src.app.decisions.waivers import WaiverPlayer, recommend_waivers
+from src.app.availability.identity import PlayerIdentityResolver
 from src.app.persistence.repositories import LeagueRepository, ProjectionRepository
 from src.app.projections.loader import PlayerSummary, get_bundle_loader
+from src.app.projections.service import ProjectionService
+from src.app.projections.source import (
+    ProjectionSource,
+    configured_projection_source,
+    weekly_rnd_enabled,
+)
 from src.app.releases.gates import validate_matchup_probabilities
 from src.app.scoring.compiler import compile_sleeper_scoring, require_publishable
 from src.app.scoring.contract import ScoringContract
@@ -87,13 +94,23 @@ class _LeagueContext:
         self.week = week
         self.season = self.league.season
         self.league_type = (self.league.league_type or "redraft").lower()
+        self.projection_source = configured_projection_source()
         self.run = self._resolve_run(week)
-        self.projection_run_id = self.run.id if self.run else None
+        self.projection_service = ProjectionService(session, season=self.season)
         self.bundle = get_bundle_loader(self.season)
+        self.projection_run_id = self._projection_run_id()
+        self.projection_context = self.projection_service.context(league_id=league_id)
         self.draw_count = draw_count
+        self._identity = PlayerIdentityResolver(session)
+
+    def _uses_weekly_db_run(self) -> bool:
+        return (
+            self.projection_source == ProjectionSource.WEEKLY_V2_RND
+            and weekly_rnd_enabled()
+        )
 
     def _resolve_run(self, week: int | None):
-        if week is not None:
+        if self._uses_weekly_db_run() and week is not None:
             run = self.projections.active_run(
                 mode="weekly", season=self.season, week=week
             )
@@ -102,6 +119,47 @@ class _LeagueContext:
         return self.projections.active_run(
             mode="preseason", season=self.season, week=None
         )
+
+    def _projection_run_id(self) -> str | None:
+        if self.projection_source in {
+            ProjectionSource.SEALED_RELEASE,
+            ProjectionSource.STATUS_ADJUSTED_RELEASE,
+        }:
+            bundle = self.bundle.load_bundle()
+            if bundle is not None:
+                return f"preseason-{bundle.namespace}"
+        if self.run is not None:
+            return self.run.id
+        return None
+
+    def resolve_player_id(self, raw_id: str) -> str | None:
+        """Map a roster id (Sleeper or canonical) onto the projection id space."""
+        if not raw_id:
+            return None
+        resolution = self._identity.resolve(
+            player_id=str(raw_id), sleeper_id=str(raw_id)
+        )
+        if resolution.status == "resolved" and resolution.player_id:
+            return resolution.player_id
+        if self.bundle.get(str(raw_id)) is not None:
+            return str(raw_id)
+        return None
+
+    def resolve_roster_ids(
+        self, raw_ids: list[str]
+    ) -> tuple[dict[str, str], list[str]]:
+        """Resolve roster ids to canonical projection ids for ownership checks."""
+        mapping: dict[str, str] = {}
+        unresolved: list[str] = []
+        for raw_id in raw_ids:
+            if not raw_id:
+                continue
+            canonical = self.resolve_player_id(str(raw_id))
+            if canonical is None:
+                unresolved.append(str(raw_id))
+            else:
+                mapping[str(raw_id)] = canonical
+        return mapping, unresolved
 
     # ------------------------------------------------------------------ players
     def summaries_for(self, player_ids: list[str]) -> tuple[list[PlayerSummary], list[str]]:
@@ -233,23 +291,22 @@ class _LeagueContext:
         return datetime.now(UTC).isoformat()
 
     def provenance(self, draw_set: DrawSet, missing: list[str]) -> dict:
-        return {
+        base = {
             "projection_run_id": self.projection_run_id,
             "projection_available": self.projection_run_id is not None,
             "contract_hash": self.contract.contract_hash,
             "league_type": self.league_type,
             "data_as_of": self.data_as_of(),
             "draw_count": draw_set.draw_count,
-            "scoring_fidelity": draw_set.mode,
+            "scoring_fidelity": self.projection_context.scoring_fidelity,
             "scoring_fidelity_note": draw_set.fidelity_note(),
             "unapplied_scoring_rules": draw_set.unapplied_rules,
             "players_without_projection": missing,
             "baseline_scoring": self.bundle.meta.get("scoring"),
-            # The active release publishes means and uncertainty bands from
-            # different models; these players' bands were recentred on the
-            # promoted mean so the overlay cannot override the point forecast.
             "recentred_uncertainty_players": draw_set.recentred_players,
         }
+        base.update(self.projection_context.to_dict())
+        return base
 
 
 class LineupService:
@@ -304,6 +361,10 @@ class LineupService:
                 f"no_projected_players_on_roster:league={league_id},week={week}"
             )
 
+        matchup_allowed = ctx.projection_service.matchup_win_probability_allowed(
+            season=ctx.season, week=week
+        )
+
         evaluation = matchup_probabilities(
             draw_set,
             ctx.contract,
@@ -316,11 +377,14 @@ class LineupService:
         recommended = evaluation["recommended"]
         probs = evaluation["recommended_probabilities"]
 
-        gate = validate_matchup_probabilities(probs)
-        if not gate.passed:
-            raise LeagueContextError(
-                f"matchup_probability_gate_failed:{gate.failures}"
-            )
+        if matchup_allowed:
+            gate = validate_matchup_probabilities(probs)
+            if not gate.passed:
+                raise LeagueContextError(
+                    f"matchup_probability_gate_failed:{gate.failures}"
+                )
+        else:
+            probs = {"win": None, "tie": None, "loss": None}
 
         opponent_totals = draw_set.totals_for(evaluation["opponent_starters"])
         swaps = swap_recommendations(
@@ -365,8 +429,12 @@ class LineupService:
             "quantiles": {k: round(v, 4) for k, v in recommended.quantiles.items()},
             "objective": recommended.objective,
             "matchup_probabilities": probs,
-            "win_probability": probs.get("win", 0.0),
-            "current_lineup_probabilities": evaluation["current_probabilities"],
+            "win_probability": probs.get("win") if matchup_allowed else None,
+            "matchup_win_probability_available": matchup_allowed,
+            "capability_mode": ctx.projection_context.capability_mode,
+            "current_lineup_probabilities": evaluation["current_probabilities"]
+            if matchup_allowed
+            else None,
             "current_starters": evaluation["current_starters"],
             "current_expected_points": round(evaluation["current_expected_points"], 4),
             "opponent_starters": evaluation["opponent_starters"],
@@ -393,9 +461,21 @@ class WaiverService:
     ) -> dict:
         ctx = _LeagueContext(self.session, league_id, week)
         rosters = self.leagues.latest_rosters(league_id, week)
-        rostered = {pid for roster in rosters for pid in (roster.players or []) if pid}
+        raw_rostered = [
+            pid for roster in rosters for pid in (roster.players or []) if pid
+        ]
+        id_mapping, unresolved_rostered = ctx.resolve_roster_ids(raw_rostered)
+        if unresolved_rostered:
+            raise LeagueContextError(
+                f"waiver_ownership_incomplete:{len(unresolved_rostered)}"
+            )
+        rostered = set(id_mapping.values())
         user_roster = next((r for r in rosters if r.roster_id == user_roster_id), None)
-        user_ids = [pid for pid in ((user_roster.players if user_roster else []) or []) if pid]
+        user_ids = [
+            id_mapping.get(str(pid), str(pid))
+            for pid in ((user_roster.players if user_roster else []) or [])
+            if pid
+        ]
 
         startable = ctx.contract.eligible_positions()
         pool_summaries = [

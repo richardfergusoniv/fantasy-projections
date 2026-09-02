@@ -46,3 +46,21 @@ def test_ppfd_first_down_scoring():
         contract,
     )
     assert points == pytest.approx(2.0 + 4.0 + 2.5)
+
+
+def test_live_sleeper_kicker_distance_buckets_compile():
+    contract = compile_sleeper_scoring(
+        {"fgm_50_59": 5.0, "fgm_60p": 6.0, "rec": 1.0},
+        ["K", "BN"],
+    )
+    assert contract.unsupported_keys == []
+    points = score_stat_draw({"fgm_50_59": 1, "fgm_60p": 1}, contract)
+    assert points == pytest.approx(11.0)
+
+
+def test_live_sleeper_idp_dst_bonus_keys_compile():
+    contract = compile_sleeper_scoring(
+        {"def_pass_def": 1.0, "tkl_loss": 2.0},
+        ["DEF", "BN"],
+    )
+    assert contract.unsupported_keys == []

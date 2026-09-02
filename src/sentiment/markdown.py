@@ -359,6 +359,72 @@ def iter_scored_team_claims(
     return rows
 
 
+def iter_scored_daily_claims(
+    players: pd.DataFrame,
+    path: Path,
+) -> list[dict]:
+    """Return every scored player mention from a cross-team daily summary.
+
+    Daily reports mix explicit player tables with prose grouped beneath
+    directional headings.  Tables use the same parser as the team summaries;
+    prose is scored from its own wording, falling back to the current heading.
+    The output remains legacy/unverified evidence: this parser supplies no
+    source URL or original publication timestamp.
+    """
+    text = path.read_text(encoding="utf-8-sig")
+    lines = text.splitlines()
+    candidates = _table_candidates(lines) + _bullet_candidates(lines)
+
+    heading = ""
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            heading = stripped.lstrip("# ").strip()
+            continue
+        if not stripped or stripped.startswith("|"):
+            continue
+        if re.match(r"^(?:[-*]|\d+\.)\s+", stripped):
+            continue
+        candidates.append(
+            Candidate(
+                player_text=stripped,
+                label=stripped,
+                context=stripped,
+                heading=heading,
+                method="prose",
+                line_number=idx + 1,
+            )
+        )
+
+    rows: list[dict] = []
+    seen: set[tuple[str, int, str]] = set()
+    for player in players.itertuples(index=False):
+        matches = [c for c in candidates if _candidate_matches(c, player.display_name)]
+        for candidate in matches:
+            polarity = score_sentiment(candidate.label, candidate.heading, candidate.context)
+            if polarity is None:
+                continue
+            identity = (str(player.player_id), candidate.line_number, candidate.method)
+            if identity in seen:
+                continue
+            seen.add(identity)
+            rows.append(
+                {
+                    "player_id": str(player.player_id),
+                    "display_name": player.display_name,
+                    "team": player.team,
+                    "position": player.position,
+                    "source_file": path.name,
+                    "line_number": candidate.line_number,
+                    "parsed_label": candidate.label,
+                    "polarity": float(polarity),
+                    "context": candidate.context,
+                    "extraction_method": candidate.method,
+                }
+            )
+    return rows
+
+
 def parse_research_directory(
     players: pd.DataFrame,
     research_dir: str | Path,

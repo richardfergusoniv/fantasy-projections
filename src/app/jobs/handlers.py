@@ -182,6 +182,86 @@ def _maybe_incremental_weekly(
     }
 
 
+def _live_injury_evidence_rows(session: Session, *, limit: int = 200) -> list[dict]:
+    """Return injury citations suitable for production overlay promotion.
+
+    Fixture/synthetic evidence must never annotate a live overlay.
+    """
+    from src.app.persistence.models import InjuryEvidence
+
+    rows: list[dict] = []
+    for row in session.query(InjuryEvidence).order_by(InjuryEvidence.fetched_at.desc()).limit(limit).all():
+        claim = row.claim_json or {}
+        source_url = str(row.source_url or "")
+        if claim.get("synthetic") or source_url.startswith("fixture://"):
+            continue
+        rows.append(
+            {
+                "player_id": row.player_id,
+                "summary": claim.get("summary") or row.source_title,
+                "source": source_url,
+            }
+        )
+    return rows
+
+
+def _run_status_overlay_refresh(
+    session: Session,
+    *,
+    season: int,
+    automatic: bool,
+) -> dict:
+    """Build and optionally promote a status overlay from availability sync."""
+    from src.app.persistence.models import AvailabilityEvent
+    from src.app.projections.status_overlay import (
+        build_status_overlay,
+        promote_overlay_pointer,
+        write_overlay_artifact,
+    )
+
+    events = [
+        {
+            "player_id": evt.player_id,
+            "status": (evt.policy_json or {}).get("status") or evt.event_type,
+            "availability_probability": (evt.policy_json or {}).get("play_probability"),
+            "observed_at": evt.active_from.isoformat() if evt.active_from else None,
+            "source": evt.event_type,
+        }
+        for evt in session.query(AvailabilityEvent)
+        .filter(AvailabilityEvent.cleared_at.is_(None))
+        .all()
+    ]
+    evidence = _live_injury_evidence_rows(session)
+    overlay = build_status_overlay(
+        season=season,
+        availability_events=events,
+        evidence_rows=evidence,
+    )
+    if overlay is None:
+        return {"status": "unchanged", "reason": "no_sealed_bundle"}
+    if not overlay.validation.get("passed"):
+        return {
+            "status": "gate_failed",
+            "failures": overlay.validation.get("failures", []),
+            "overlay_hash": overlay.overlay_hash,
+        }
+    if automatic:
+        uri = promote_overlay_pointer(overlay, season=season, session=session)
+        return {
+            "status": "promoted" if uri else "unchanged",
+            "overlay_hash": overlay.overlay_hash,
+            "adjustment_count": len(overlay.adjustments),
+        }
+    artifact_uri = write_overlay_artifact(overlay)
+    return {
+        "status": "built_not_promoted",
+        "overlay_hash": overlay.overlay_hash,
+        "adjustment_count": len(overlay.adjustments),
+        "artifact_uri": artifact_uri,
+        "automatic": False,
+    }
+
+
 def run_daily_refresh(session: Session, *, automatic: bool = True) -> dict:
     settings = get_settings()
     sync = SleeperSyncService(session, use_fixtures=settings.use_sleeper_fixtures)
@@ -193,35 +273,48 @@ def run_daily_refresh(session: Session, *, automatic: bool = True) -> dict:
     bridge = ReleaseBridge(session)
     preseason_run_id = bridge.sync_preseason_pointer(season_week.season, automatic=automatic)
 
-    # The scoring-contract gate runs *before* promotion (it used to run after,
-    # where it could observe a failure but not prevent it) and is also handed to
-    # the publication pipeline as a blocking gate.
     scoring_gate = validate_scoring_contracts(session, leagues)
-    weekly = WeeklyProjectionService(session)
-    weekly_run_id = weekly.promote_week(
-        season_week.season,
-        season_week.week,
-        automatic=automatic,
-        league_ids=leagues,
-    )
-    weekly_run_id, incremental = _maybe_incremental_weekly(
-        session,
-        season_week.season,
-        season_week.week,
-        weekly_run_id,
-        automatic=automatic,
-    )
+
+    # Production path: sealed release + optional status overlay. Weekly-v2 promotion
+    # is quarantined to explicit R&D opt-in and full-release jobs only.
+    overlay_result: dict = {"status": "skipped"}
+    if settings.status_overlay_auto_publish:
+        overlay_result = _run_status_overlay_refresh(
+            session,
+            season=season_week.season,
+            automatic=automatic,
+        )
+
+    weekly_run_id = None
+    incremental: dict = {"mode": "weekly_rnd_disabled"}
+    if settings.weekly_rnd_enabled:
+        weekly = WeeklyProjectionService(session)
+        weekly_run_id = weekly.promote_week(
+            season_week.season,
+            season_week.week,
+            automatic=automatic,
+            league_ids=leagues,
+        )
+        weekly_run_id, incremental = _maybe_incremental_weekly(
+            session,
+            season_week.season,
+            season_week.week,
+            weekly_run_id,
+            automatic=automatic,
+        )
+
     for league_id in leagues:
         ManagerTendencyService(session).rebuild(league_id)
     return {
         "leagues_synced": len(leagues),
         "sleeper_source": settings.sleeper_mode,
-        # Surfaced so an operator can see a Sleeper roster id that no longer maps
-        # to a known player instead of silently losing that player's projection.
+        "projection_source": settings.app_projection_source,
+        "weekly_rnd_enabled": settings.weekly_rnd_enabled,
         "unresolved_player_ids": sorted(sync.unresolved_player_ids),
         "availability": availability,
         "injury_research": research,
         "preseason_run_id": preseason_run_id,
+        "status_overlay": overlay_result,
         "weekly_run_id": weekly_run_id,
         "scoring_gate": scoring_gate.to_dict(),
         "incremental": incremental,
@@ -252,26 +345,33 @@ def run_full_release(session: Session, *, automatic: bool = True) -> dict:
     preseason_run_id = bridge.sync_preseason_pointer(season_week.season, automatic=automatic)
     league_ids = [row.league_id for row in session.query(League).all()]
     scoring_gate = validate_scoring_contracts(session, league_ids)
-    weekly = WeeklyProjectionService(session)
-    weekly_run_id = weekly.promote_week(
-        season_week.season,
-        season_week.week,
-        automatic=automatic,
-        league_ids=league_ids,
-    )
-    weekly_run_id, incremental = _maybe_incremental_weekly(
-        session,
-        season_week.season,
-        season_week.week,
-        weekly_run_id,
-        automatic=automatic,
-    )
-    ros_run_id = weekly.promote_ros(
-        season_week.season, from_week=season_week.week, automatic=automatic, league_ids=league_ids
-    )
-    dynasty_run_id = weekly.promote_dynasty(
-        season_week.season, automatic=automatic, league_ids=league_ids
-    )
+    weekly_run_id = None
+    incremental: dict = {"mode": "weekly_rnd_disabled"}
+    if settings.weekly_rnd_enabled:
+        weekly = WeeklyProjectionService(session)
+        weekly_run_id = weekly.promote_week(
+            season_week.season,
+            season_week.week,
+            automatic=automatic,
+            league_ids=league_ids,
+        )
+        weekly_run_id, incremental = _maybe_incremental_weekly(
+            session,
+            season_week.season,
+            season_week.week,
+            weekly_run_id,
+            automatic=automatic,
+        )
+    ros_run_id = None
+    dynasty_run_id = None
+    if settings.weekly_rnd_enabled:
+        weekly = WeeklyProjectionService(session)
+        ros_run_id = weekly.promote_ros(
+            season_week.season, from_week=season_week.week, automatic=automatic, league_ids=league_ids
+        )
+        dynasty_run_id = weekly.promote_dynasty(
+            season_week.season, automatic=automatic, league_ids=league_ids
+        )
     return {
         "status": "promoted" if weekly_run_id else "unchanged",
         "availability": availability,

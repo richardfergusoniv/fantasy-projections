@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from src.app.projections.loader import ReleaseBundleLoader
 from src.app.releases.gates import GateResult, validate_promotion
 from src.app.releases.publication import Candidate, CandidateRow, publish
+from src.app.storage.release_bundle import ReleaseBundleResolver
 from src.projection.active_release import read_active_pointer
 
 
@@ -20,6 +21,9 @@ class ReleaseBridge:
         self.session = session
 
     def _manifest_path(self, season: int, namespace: str) -> Path | None:
+        pointer = read_active_pointer(season)
+        if pointer and pointer.get("manifest_storage_uri"):
+            return None
         candidates = (
             Path("draft_assistant/data/releases") / namespace / "release_bundle_manifest.json",
             Path("output/model_v3/release_bundles")
@@ -31,6 +35,23 @@ class ReleaseBridge:
             if path.exists():
                 return path
         return None
+
+    def _load_manifest(self, season: int, namespace: str) -> dict | None:
+        pointer = read_active_pointer(season)
+        manifest_uri = pointer.get("manifest_storage_uri") if pointer else None
+        resolver = ReleaseBundleResolver(
+            season=season,
+            namespace=namespace,
+            manifest_storage_uri=manifest_uri,
+        )
+        try:
+            manifest, _, _ = resolver.load_manifest()
+            return manifest
+        except Exception:
+            manifest_path = self._manifest_path(season, namespace)
+            if manifest_path is None:
+                return None
+            return json.loads(manifest_path.read_text(encoding="utf-8"))
 
     def sync_preseason_pointer(
         self,
@@ -51,10 +72,14 @@ class ReleaseBridge:
         if pointer is None:
             return None
         namespace = pointer["namespace"]
-        manifest_path = self._manifest_path(season, namespace)
-        if manifest_path is None:
+        manifest = self._load_manifest(season, namespace)
+        if manifest is None:
             return None
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+        local_manifest = self._manifest_path(season, namespace)
+        manifest_uri = pointer.get("manifest_storage_uri") or (
+            local_manifest.resolve().as_uri() if local_manifest else f"release-bundle://{namespace}"
+        )
 
         players = ReleaseBundleLoader(season=season).load()
         if not players:
@@ -82,7 +107,7 @@ class ReleaseBridge:
             run_id=f"preseason-{namespace}",
             model_version=str(manifest.get("model_version", "v2_baseline")),
             input_hash=str(pointer.get("manifest_sha256", "unknown")),
-            manifest_uri=manifest_path.resolve().as_uri(),
+            manifest_uri=manifest_uri,
             artifact_mode="release_bundle",
             partition_mode="preseason",
             rows=rows,

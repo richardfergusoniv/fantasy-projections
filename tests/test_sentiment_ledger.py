@@ -7,10 +7,13 @@ import pandas as pd
 import pytest
 
 from src.sentiment.ledger import (
+    DAILY_IMPORTER_VERSION,
+    DAILY_RESEARCH_FILES,
     EVIDENCE_TIER_LEGACY,
     assert_training_eligible_allowed,
     build_legacy_claim,
     import_legacy_ledger,
+    import_legacy_daily_ledger,
     write_ledger,
 )
 
@@ -114,3 +117,49 @@ def test_audit_expectations_match_current_corpus():
     assert frame["source_file"].nunique() == 32
     assert int((frame["extraction_method"] == "table").sum()) == 266
     assert int((frame["extraction_method"] == "bullet").sum()) == 146
+
+
+def test_daily_registry_covers_august_26_through_29():
+    assert list(DAILY_RESEARCH_FILES) == [
+        "2026-08-26",
+        "2026-08-27",
+        "2026-08-28",
+        "2026-08-29",
+    ]
+    root = REPO_ROOT / "perplexity research" / "daily"
+    assert all((root / filename).exists() for filename in DAILY_RESEARCH_FILES.values())
+
+
+def test_daily_reports_import_as_training_ineligible_legacy_evidence(tmp_path):
+    players = pd.read_csv(REPO_ROOT / "output" / "fantasy_points_2026.csv").drop_duplicates(
+        "player_id"
+    )
+    first = import_legacy_daily_ledger(players, season=2026)
+    second = import_legacy_daily_ledger(players, season=2026)
+    assert first
+    assert first == second
+    assert {row["research_cutoff"] for row in first} == set(DAILY_RESEARCH_FILES)
+    assert {row["importer_version"] for row in first} == {DAILY_IMPORTER_VERSION}
+    assert all(row["evidence_tier"] == EVIDENCE_TIER_LEGACY for row in first)
+    assert all(row["training_eligible"] is False for row in first)
+    assert all(row["source_url"] is None for row in first)
+    assert all(row["publication_date"] is None for row in first)
+
+    out_a = tmp_path / "daily_a.jsonl"
+    out_b = tmp_path / "daily_b.jsonl"
+    write_ledger(first, out_a)
+    write_ledger(second, out_b)
+    assert out_a.read_bytes() == out_b.read_bytes()
+
+
+def test_daily_import_contains_known_directional_mentions():
+    players = pd.read_csv(REPO_ROOT / "output" / "fantasy_points_2026.csv").drop_duplicates(
+        "player_id"
+    )
+    records = import_legacy_daily_ledger(players, season=2026)
+    by_name = {}
+    for row in records:
+        by_name.setdefault(row["display_name"], []).append(row)
+    assert any(row["polarity"] > 0 for row in by_name["Breece Hall"])
+    assert any(row["polarity"] > 0 for row in by_name["D'Andre Swift"])
+    assert any(row["polarity"] < 0 for row in by_name["Rome Odunze"])

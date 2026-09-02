@@ -12,11 +12,19 @@ export function LoginScreen() {
   const [submitting, setSubmitting] = useState(false);
   const autoVerified = useRef(false);
 
-  const linkToken = searchParams.get("token");
+  const queryToken = searchParams.get("token");
+  const hashToken = (() => {
+    const raw = window.location.hash.startsWith("#")
+      ? window.location.hash.slice(1)
+      : window.location.hash;
+    return new URLSearchParams(raw).get("token");
+  })();
+  const linkToken = hashToken ?? queryToken;
 
   useEffect(() => {
     // Arriving from the emailed magic link: verify without making the user
-    // copy the token out of the URL bar.
+    // copy the token out of the URL bar. Production links use a hash fragment
+    // so mail scanners cannot burn the one-time token on prefetch.
     if (!linkToken || autoVerified.current) return;
     autoVerified.current = true;
     setSubmitting(true);

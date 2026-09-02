@@ -11,14 +11,24 @@ import pandas as pd
 from src.sentiment.markdown import (
     RESEARCH_AS_OF,
     TEAM_RESEARCH_FILES,
+    iter_scored_daily_claims,
     iter_scored_team_claims,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RESEARCH_DIR = REPO_ROOT / "perplexity research"
+DEFAULT_DAILY_RESEARCH_DIR = DEFAULT_RESEARCH_DIR / "daily"
 DEFAULT_LEDGER_DIR = REPO_ROOT / "data" / "sentiment" / "ledger"
 IMPORTER_VERSION = "legacy_import_v1"
+DAILY_IMPORTER_VERSION = "legacy_daily_import_v1"
 EVIDENCE_TIER_LEGACY = "legacy_unverified"
+
+DAILY_RESEARCH_FILES = {
+    "2026-08-26": "player_sentiment_2026-08-26.md",
+    "2026-08-27": "player_sentiment_2026-08-27.md",
+    "2026-08-28": "player_sentiment_2026-08-28.md",
+    "2026-08-29": "player_sentiment_2026-08-29.md",
+}
 
 
 def _claim_id(source_file: str, line_number: int, player_id: str, label: str) -> str:
@@ -34,6 +44,8 @@ def build_legacy_claim(
     *,
     season: int,
     claim: dict,
+    research_cutoff: str | None = None,
+    importer_version: str = IMPORTER_VERSION,
 ) -> dict:
     """Materialize one ledger record from a scored parser row."""
     return {
@@ -55,8 +67,8 @@ def build_legacy_claim(
         "polarity": claim["polarity"],
         "context": claim["context"],
         "extraction_method": claim["extraction_method"],
-        "research_cutoff": RESEARCH_AS_OF.isoformat(),
-        "importer_version": IMPORTER_VERSION,
+        "research_cutoff": research_cutoff or RESEARCH_AS_OF.isoformat(),
+        "importer_version": importer_version,
         "source_url": None,
         "publication_date": None,
         "evidence_tier": EVIDENCE_TIER_LEGACY,
@@ -94,10 +106,47 @@ def import_legacy_ledger(
     return records
 
 
+def import_legacy_daily_ledger(
+    players: pd.DataFrame,
+    *,
+    season: int,
+    research_dir: str | Path = DEFAULT_DAILY_RESEARCH_DIR,
+) -> list[dict]:
+    """Import the dated cross-team summaries as legacy-unverified claims."""
+    root = Path(research_dir)
+    missing = [name for name in DAILY_RESEARCH_FILES.values() if not (root / name).exists()]
+    if missing:
+        raise FileNotFoundError(f"Missing daily sentiment research files: {missing}")
+
+    records: list[dict] = []
+    for report_date, filename in DAILY_RESEARCH_FILES.items():
+        claims = iter_scored_daily_claims(players, root / filename)
+        for claim in claims:
+            record = build_legacy_claim(
+                season=season,
+                claim=claim,
+                research_cutoff=report_date,
+                importer_version=DAILY_IMPORTER_VERSION,
+            )
+            assert_training_eligible_allowed(record)
+            records.append(record)
+    records.sort(
+        key=lambda row: (
+            row["research_cutoff"],
+            row["source_file"],
+            row["line_number"],
+            row["player_id"],
+            row["claim_id"],
+        )
+    )
+    return records
+
+
 def audit_ledger(records: list[dict]) -> dict:
     """Summarize ledger contents for human review."""
     frame = pd.DataFrame(records)
-    by_player = frame.groupby("player_id").size()
+    by_player = frame.groupby("player_id").size() if not frame.empty else pd.Series(dtype="int64")
+    importer_versions = sorted(frame["importer_version"].dropna().unique()) if not frame.empty else []
     missing_provenance = {
         "source_url_null": int(frame["source_url"].isna().sum()) if "source_url" in frame else 0,
         "publication_date_null": int(frame["publication_date"].isna().sum())
@@ -105,7 +154,7 @@ def audit_ledger(records: list[dict]) -> dict:
         else 0,
     }
     return {
-        "importer_version": IMPORTER_VERSION,
+        "importer_version": importer_versions[0] if len(importer_versions) == 1 else "mixed",
         "claim_count": int(len(records)),
         "source_file_count": int(frame["source_file"].nunique()) if not frame.empty else 0,
         "player_count": int(frame["player_id"].nunique()) if not frame.empty else 0,
@@ -142,6 +191,11 @@ def main() -> int:
     parser.add_argument("--season", type=int, required=True)
     parser.add_argument("--players-path", default=None)
     parser.add_argument("--research-dir", default=str(DEFAULT_RESEARCH_DIR))
+    parser.add_argument(
+        "--daily",
+        action="store_true",
+        help="Import the registered cross-team daily reports instead of the 32 team summaries",
+    )
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
@@ -149,10 +203,22 @@ def main() -> int:
         REPO_ROOT / "output" / f"fantasy_points_{args.season}.csv"
     )
     players = pd.read_csv(players_path).drop_duplicates("player_id")
-    records = import_legacy_ledger(players, season=args.season, research_dir=args.research_dir)
-    out_path = Path(args.out) if args.out else (
-        DEFAULT_LEDGER_DIR / f"legacy_{args.season}.jsonl"
-    )
+    if args.daily:
+        daily_research_dir = (
+            DEFAULT_DAILY_RESEARCH_DIR
+            if args.research_dir == str(DEFAULT_RESEARCH_DIR)
+            else Path(args.research_dir)
+        )
+        records = import_legacy_daily_ledger(
+            players,
+            season=args.season,
+            research_dir=daily_research_dir,
+        )
+        default_name = f"legacy_daily_{args.season}.jsonl"
+    else:
+        records = import_legacy_ledger(players, season=args.season, research_dir=args.research_dir)
+        default_name = f"legacy_{args.season}.jsonl"
+    out_path = Path(args.out) if args.out else DEFAULT_LEDGER_DIR / default_name
     report = write_ledger(records, out_path)
     print(json.dumps(report, indent=2))
     print(f"Wrote {out_path}")

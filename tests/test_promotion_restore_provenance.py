@@ -494,3 +494,32 @@ def test_commit_is_ancestor_uses_merge_base(tmp_path):
     assert commit_is_ancestor(first, cwd=repo) is False
     subprocess.run(["git", "checkout", "master"], cwd=repo, check=False, capture_output=True)
     subprocess.run(["git", "checkout", "main"], cwd=repo, check=False, capture_output=True)
+
+
+def test_check_promotion_provenance_derives_restore_and_warns_on_naive_initial(
+    tmp_path, monkeypatch
+):
+    from scripts.check_promotion_provenance import check_promotion_provenance
+
+    _patch_roots(tmp_path, monkeypatch, source_commit=SOURCE_COMMIT)
+    manifest, digest = seal_v2_bundle(tmp_path, "check_ns", release_id="rel-check")
+    release_id = str(manifest["bundle"]["release_id"])
+    write_active_pointer(
+        build_active_pointer(
+            season=2026,
+            namespace="check_ns",
+            release_id=release_id,
+            manifest_sha256=digest,
+        )
+    )
+    monkeypatch.setattr(
+        "src.projection.git_provenance.current_head_commit",
+        lambda **_: HEAD_COMMIT,
+    )
+
+    report = check_promotion_provenance(season=2026, namespace="check_ns")
+    assert report["provenance_mode"] == "restore"
+    assert report["promotable"] is True
+    assert report["verdict"] == "pass"
+    assert report["naive_initial_warning"] is not None
+    assert "naive initial-mode" in report["naive_initial_warning"]

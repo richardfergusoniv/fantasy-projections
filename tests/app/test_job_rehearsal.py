@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy.orm import Session
 
 
-def test_projection_rollback_restores_previous_pointer(db_session: Session):
+def test_projection_rollback_restores_previous_pointer(db_session: Session, monkeypatch, tmp_path):
     from src.app.availability.service import AvailabilityService
     from src.app.persistence.models import SourceSnapshot
     from src.app.persistence.repositories import ProjectionRepository
@@ -16,9 +16,12 @@ def test_projection_rollback_restores_previous_pointer(db_session: Session):
     from src.app.releases.incremental import IncrementalSimulationService, build_impact_set
     from src.app.releases.rollback import ProjectionRollbackService
 
+    monkeypatch.setenv("WEEKLY_V2_MODELS_DIR", str(tmp_path / "empty_models"))
+    monkeypatch.setenv("WEEKLY_V2_OUTPUTS_DIR", str(tmp_path / "empty_outputs"))
+
     if ReleaseBridge(db_session).sync_preseason_pointer(2026) is None:
         pytest.skip("no active release bundle")
-    weekly_run_id = WeeklyProjectionService(db_session).promote_week(2026, week=1)
+    weekly_run_id = WeeklyProjectionService(db_session).promote_week(2026, week=1, automatic=False)
     assert weekly_run_id
 
     snapshot = SourceSnapshot(
@@ -62,11 +65,14 @@ def test_projection_rollback_restores_previous_pointer(db_session: Session):
     assert active_after.id == weekly_run_id
 
 
-def test_two_consecutive_daily_refresh_jobs(db_session: Session):
+def test_two_consecutive_daily_refresh_jobs(db_session: Session, monkeypatch, tmp_path):
     from src.app.jobs.handlers import run_daily_refresh
     from src.app.jobs.runner import JobRunner
     from src.app.persistence.repositories import ProjectionRepository
     from src.app.seed import seed_development_data
+
+    monkeypatch.setenv("WEEKLY_V2_MODELS_DIR", str(tmp_path / "empty_models"))
+    monkeypatch.setenv("WEEKLY_V2_OUTPUTS_DIR", str(tmp_path / "empty_outputs"))
 
     seed_development_data(db_session, email="owner@example.com")
     runner = JobRunner(db_session)
@@ -74,8 +80,12 @@ def test_two_consecutive_daily_refresh_jobs(db_session: Session):
     second = runner.run("daily-refresh", lambda: run_daily_refresh(db_session), idempotency_key="rehearsal-week-2")
     assert first.status == "succeeded"
     assert second.status == "succeeded"
-    active = ProjectionRepository(db_session).active_run(mode="weekly", season=2026, week=1)
-    assert active is not None
-    assert first.metadata_json.get("weekly_run_id")
-    assert second.metadata_json.get("weekly_run_id")
+    preseason = ProjectionRepository(db_session).active_run(mode="preseason", season=2026, week=None)
+    assert preseason is not None
+    # Production daily path promotes sealed preseason + status overlay, not weekly-v2.
+    assert first.metadata_json.get("preseason_run_id")
+    assert second.metadata_json.get("preseason_run_id")
+    assert first.metadata_json.get("weekly_run_id") is None
+    assert second.metadata_json.get("weekly_run_id") is None
+    assert first.metadata_json.get("incremental", {}).get("mode") == "weekly_rnd_disabled"
     assert second.metadata_json.get("scoring_gate", {}).get("passed") is True

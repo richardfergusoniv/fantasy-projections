@@ -31,6 +31,8 @@ PRODUCTION_SAFE = {
     "database_url": "postgresql+psycopg://u:p@db:5432/app",
     "artifact_backend": "local",
     "trusted_hosts": "app.example.org",
+    "cron_secret": "x" * 48,
+    "sleeper_use_fixtures": False,
 }
 
 
@@ -161,7 +163,7 @@ def test_trusted_host_list_parsing():
         "app.example.org",
         "api.example.org",
     ]
-    assert Settings().trusted_host_list == ["*"]
+    assert Settings(_env_file=None, trusted_hosts="*").trusted_host_list == ["*"]
 
 
 def test_new_bounded_settings_have_defaults():
@@ -539,6 +541,8 @@ def test_unhandled_exception_returns_envelope_without_traceback(monkeypatch):
         database_url="postgresql+psycopg://u:p@db:5432/app",
         test_database_url="sqlite+pysqlite:///:memory:?cache=shared",
         trusted_hosts="app.example.org,testserver",
+        cron_secret="z" * 48,
+        sleeper_use_fixtures=False,
     )
     monkeypatch.setattr("src.app.factory.get_settings", lambda: production_like)
 

@@ -32,23 +32,29 @@ def _prepare_environment(port: int) -> None:
     if artifacts.exists():
         shutil.rmtree(artifacts)
 
+    web_port = os.environ.get("E2E_WEB_PORT", "5173")
+    web_origin = f"http://127.0.0.1:{web_port}"
+
     os.environ.update(
         {
             "APP_ENV": "development",
             "APP_SECRET_KEY": "e2e-only-secret-key-not-used-anywhere-else",
             "APP_ALLOWED_EMAIL": "owner@example.com",
             "APP_ENABLE_DEV_AUTH": "true",
-            "APP_PUBLIC_URL": "http://127.0.0.1:5173",
-            "APP_CORS_ORIGINS": "http://127.0.0.1:5173,http://localhost:5173",
+            "APP_PUBLIC_URL": web_origin,
+            "APP_CORS_ORIGINS": f"{web_origin},http://localhost:{web_port}",
             "TRUSTED_HOSTS": "*",
             "DATABASE_URL": f"sqlite+pysqlite:///{db_path.as_posix()}",
             "ARTIFACT_BACKEND": "local",
             "ARTIFACT_LOCAL_ROOT": str(artifacts),
             "EMAIL_PROVIDER": "development",
             "LOG_JSON": "false",
+            "SLEEPER_USE_FIXTURES": "true",
+            "INJURY_RESEARCH_MODE": "fixture",
             # No API key: the browser journey must exercise the deterministic
             # assistant, and CI must never make a paid external call.
             "OPENAI_API_KEY": "",
+            "AUTH_RATE_LIMIT_PER_MINUTE": "1000",
             "E2E_API_PORT": str(port),
         }
     )

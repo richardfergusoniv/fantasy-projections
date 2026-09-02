@@ -12,15 +12,31 @@ import joblib
 
 from src.projection.weekly.config.paths import MODELS_DIR, ensure_dirs
 
+_registry_dir: Path | None = None
+
+
+def set_registry_dir(path: Path | None) -> None:
+    """Override the active model directory for save/load (explicit training output)."""
+    global _registry_dir
+    _registry_dir = path
+
+
+def active_models_dir() -> Path:
+    return _registry_dir or MODELS_DIR
+
 
 def model_path(name: str) -> Path:
     ensure_dirs()
-    return MODELS_DIR / f"{name}.joblib"
+    root = active_models_dir()
+    root.mkdir(parents=True, exist_ok=True)
+    return root / f"{name}.joblib"
 
 
 def meta_path(name: str) -> Path:
     ensure_dirs()
-    return MODELS_DIR / f"{name}.meta.json"
+    root = active_models_dir()
+    root.mkdir(parents=True, exist_ok=True)
+    return root / f"{name}.meta.json"
 
 
 def save_model(name: str, obj: Any, meta: dict | None = None) -> Path:

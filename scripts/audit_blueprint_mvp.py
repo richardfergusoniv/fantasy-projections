@@ -3,12 +3,22 @@
 from __future__ import annotations
 
 import importlib
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+os.environ.setdefault("APP_ENV", "test")
+os.environ.setdefault("APP_ENABLE_DEV_AUTH", "true")
+os.environ.setdefault("TEST_DATABASE_URL", "sqlite+pysqlite:///:memory:")
+os.environ.setdefault("TRUSTED_HOSTS", "testserver,localhost,127.0.0.1,*")
+os.environ.setdefault("APP_ALLOWED_EMAIL", "owner@example.com")
+os.environ.setdefault("EMAIL_PROVIDER", "development")
+os.environ.setdefault("SLEEPER_USE_FIXTURES", "true")
+os.environ.setdefault("INJURY_RESEARCH_MODE", "fixture")
 
 
 @dataclass
@@ -122,11 +132,13 @@ def audit_scoring_fixtures() -> list[Check]:
 
 
 def run_pytest_subset() -> Check:
+    env = os.environ.copy()
     proc = subprocess.run(
         [sys.executable, "-m", "pytest", "tests/app", "tests/scoring", "-q", "--tb=no"],
         cwd=ROOT,
         capture_output=True,
         text=True,
+        env=env,
     )
     return Check("app + scoring tests", proc.returncode == 0, proc.stdout[-200:] if proc.stdout else proc.stderr[-200:])
 

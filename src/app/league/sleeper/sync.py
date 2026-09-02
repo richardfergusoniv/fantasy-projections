@@ -265,7 +265,7 @@ class SleeperSyncService:
         Returns ``None`` when the id cannot be resolved; callers keep the raw id
         and record it as unresolved rather than guessing a player.
         """
-        if raw_id in (None, ""):
+        if raw_id in (None, "", "0", 0):
             return None
         key = str(raw_id)
         if key in self._identity_cache:
@@ -286,7 +286,7 @@ class SleeperSyncService:
         """Resolve a roster list, preserving order and dropping empty slots."""
         resolved: list[str] = []
         for raw_id in raw_ids or []:
-            if raw_id in (None, ""):
+            if raw_id in (None, "", "0", 0):
                 continue
             key = str(raw_id)
             mapped = self.resolve_player_id(key)
@@ -309,11 +309,14 @@ class SleeperSyncService:
         """
         created = 0
         updated = 0
+        seen_canonical: set[str] = set()
         for sleeper_id, payload in (players or {}).items():
             if not isinstance(payload, dict):
                 continue
             sid = str(sleeper_id)
-            gsis_id = payload.get("gsis_id") or None
+            gsis_id = payload.get("gsis_id")
+            if gsis_id is not None:
+                gsis_id = str(gsis_id).strip() or None
             resolution = self.identity.resolve(gsis_id=gsis_id, sleeper_id=sid)
             if resolution.status == "ambiguous":
                 logger.warning(
@@ -322,35 +325,57 @@ class SleeperSyncService:
                 )
                 continue
             name = payload.get("full_name") or payload.get("last_name") or sid
-            position = payload.get("position")
+            position = str(payload.get("position") or "UNK")
             team = payload.get("team")
+            row: PlayerIdentity | None = None
             if resolution.status == "resolved" and resolution.player_id:
                 row = self.session.get(PlayerIdentity, resolution.player_id)
-                if row is not None:
+            if row is None and gsis_id:
+                row = self.session.get(PlayerIdentity, gsis_id)
+            if row is None:
+                row = (
+                    self.session.query(PlayerIdentity)
+                    .filter(PlayerIdentity.sleeper_id == sid)
+                    .one_or_none()
+                )
+            if row is None:
+                canonical = str(gsis_id or sid).strip()
+                if canonical in seen_canonical:
+                    pending = self.session.get(PlayerIdentity, canonical)
+                    if pending is not None:
+                        row = pending
+                if row is None:
+                    row = PlayerIdentity(
+                        player_id=canonical,
+                        sleeper_id=sid,
+                        gsis_id=gsis_id,
+                        name=str(name),
+                        position=position,
+                        team=str(team) if team else None,
+                    )
+                    self.session.add(row)
+                    seen_canonical.add(canonical)
+                    created += 1
+                else:
                     row.sleeper_id = sid
                     if gsis_id:
-                        row.gsis_id = str(gsis_id)
+                        row.gsis_id = gsis_id
                     if name:
                         row.name = str(name)
-                    if position:
-                        row.position = str(position)
+                    row.position = position
                     row.team = str(team) if team else row.team
                     updated += 1
-                    continue
-            canonical = str(gsis_id or sid)
-            self.session.merge(
-                PlayerIdentity(
-                    player_id=canonical,
-                    sleeper_id=sid,
-                    gsis_id=str(gsis_id) if gsis_id else None,
-                    name=str(name),
-                    position=str(position) if position else None,
-                    team=str(team) if team else None,
-                )
-            )
-            created += 1
+            else:
+                row.sleeper_id = sid
+                if gsis_id:
+                    row.gsis_id = gsis_id
+                if name:
+                    row.name = str(name)
+                row.position = position
+                row.team = str(team) if team else row.team
+                updated += 1
+            self.session.flush()
         self.session.flush()
-        # A new identity can change how a previously unknown id resolves.
         self._identity_cache.clear()
         return {"identities_created": created, "identities_updated": updated}
 
@@ -521,17 +546,58 @@ class SleeperSyncService:
         return summaries
 
     def _record_draft_rule(self, league_id: str, rule: str) -> LeagueDraftRule:
+        return self.persist_owner_confirmed_draft_rule(league_id, rule)
+
+    def persist_owner_confirmed_draft_rule(self, league_id: str, rule: str) -> LeagueDraftRule:
+        """Persist an owner-confirmed rookie-pick rule with auditable updates.
+
+        Re-syncing the same rule is idempotent. A changed rule updates the row
+        and stamps a fresh ``confirmed_at`` rather than appending a duplicate.
+        """
+        normalized = str(rule).strip().lower()
+        if normalized not in KNOWN_DRAFT_ORDER_RULES:
+            raise ValueError(f"unknown_draft_order_rule:{normalized}")
         existing = (
             self.session.query(LeagueDraftRule)
-            .filter(LeagueDraftRule.league_id == league_id, LeagueDraftRule.rule == rule)
+            .filter(LeagueDraftRule.league_id == league_id)
+            .order_by(LeagueDraftRule.confirmed_at.desc())
             .first()
         )
-        if existing is not None:
-            return existing
-        row = LeagueDraftRule(league_id=league_id, rule=rule)
-        self.session.add(row)
-        self.session.flush()
-        return row
+        now = datetime.now(UTC)
+        if existing is None:
+            row = LeagueDraftRule(league_id=league_id, rule=normalized, confirmed_at=now)
+            self.session.add(row)
+            self.session.flush()
+            return row
+        if existing.rule != normalized:
+            existing.rule = normalized
+            existing.confirmed_at = now
+            self.session.flush()
+        return existing
+
+    def sync_configured_leagues(
+        self,
+        user_id: str,
+        season: int,
+        allowed_league_ids: frozenset[str] | set[str],
+        *,
+        include_history: bool = True,
+    ) -> list[str]:
+        """Sync only explicitly allowed leagues; never import extras."""
+        payload = self.client.get_leagues(user_id, season)
+        self._record_last_source()
+        allowed = {str(league_id) for league_id in allowed_league_ids}
+        synced: list[str] = []
+        for league_data in payload:
+            league_id = str(league_data.get("league_id", ""))
+            if league_id not in allowed:
+                continue
+            league = self._upsert_league(league_data, season)
+            synced.append(league.league_id)
+            self._sync_league_details(league.league_id, int(league.season))
+            if include_history:
+                self.sync_season_history(league_data)
+        return synced
 
     def sync_market_signals(self, league_id: str, week: int) -> dict | None:
         """Store trending adds as a market/urgency signal.

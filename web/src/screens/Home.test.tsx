@@ -88,7 +88,10 @@ describe("HomeScreen urgent decisions", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
-    getLeagues.mockResolvedValue(LEAGUES);
+    getLeagues.mockResolvedValue({
+      leagues: LEAGUES,
+      configuredLeagueIds: LEAGUES.map((league) => league.id),
+    });
     getRosters.mockResolvedValue(ROSTERS);
     getLineup.mockResolvedValue(lineup());
     getWaivers.mockResolvedValue(waivers());

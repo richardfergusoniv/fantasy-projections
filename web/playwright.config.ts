@@ -3,12 +3,16 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * The browser suite runs against the real API and a real seeded database, not
  * mocks. Two servers are started: a disposable API (fresh SQLite, migrated and
- * seeded per run) and the Vite dev server, which proxies `/api` to it.
- *
- * `dev` is used in CI as well as locally, because `preview` serves the built
- * bundle without the `/api` proxy — under preview the app cannot reach the API
- * at all, which is how the suite came to test only that the shell renders.
+ * seeded per run) and vite preview serving the production bundle from `dist/`,
+ * which proxies `/api` to the disposable API via `preview.proxy` in vite.config.
  */
+/**
+ * E2E ports are isolated from the phone-access stack (5173/8002) so tests can
+ * run while production preview is up.
+ */
+const E2E_API_PORT = process.env.E2E_API_PORT ?? "8765";
+const E2E_WEB_PORT = process.env.E2E_WEB_PORT ?? "5174";
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -19,7 +23,7 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 15_000 },
   use: {
-    baseURL: "http://127.0.0.1:5173",
+    baseURL: `http://127.0.0.1:${E2E_WEB_PORT}`,
     trace: "on-first-retry",
   },
   projects: [
@@ -30,19 +34,21 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "uv run python scripts/e2e_api.py --port 8000",
+      command: `uv run python scripts/e2e_api.py --port ${E2E_API_PORT}`,
       cwd: "..",
-      url: "http://127.0.0.1:8000/health/ready",
-      reuseExistingServer: !process.env.CI,
+      url: `http://127.0.0.1:${E2E_API_PORT}/health/ready`,
+      env: { E2E_WEB_PORT },
+      reuseExistingServer: false,
       timeout: 180_000,
       stdout: "pipe",
       stderr: "pipe",
     },
     {
-      command: "npm run dev -- --port 5173 --host 127.0.0.1",
-      url: "http://127.0.0.1:5173",
-      reuseExistingServer: !process.env.CI,
-      timeout: 120_000,
+      command: `npm run build && npm run preview -- --host 127.0.0.1 --port ${E2E_WEB_PORT}`,
+      env: { API_PROXY_PORT: E2E_API_PORT },
+      url: `http://127.0.0.1:${E2E_WEB_PORT}`,
+      reuseExistingServer: false,
+      timeout: 180_000,
     },
   ],
 });

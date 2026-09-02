@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
+from pathlib import Path
 
 from src.app.config import get_settings
 from src.app.persistence.database import get_session, init_db
@@ -32,6 +33,22 @@ def _api(args: argparse.Namespace) -> None:
     uvicorn.run("src.app.main:app", host=args.host, port=args.port, reload=get_settings().is_development)
 
 
+def _sleeper_shadow_sync(args: argparse.Namespace) -> None:
+    from src.app.league.sleeper.shadow_sync import ShadowSyncOptions, run_shadow_sync
+
+    options = ShadowSyncOptions(
+        config_path=Path(args.config),
+        season=args.season,
+        database_url=args.database_url,
+        artifact_root=args.artifact_root,
+        report_path=Path(args.report),
+        allow_production_database=args.allow_production_database,
+        inject_failure=args.inject_failure,
+        skip_second_run=args.skip_second_run,
+    )
+    raise SystemExit(run_shadow_sync(options))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Fantasy decision app commands")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -47,6 +64,44 @@ def main() -> None:
     api.add_argument("--host", default="0.0.0.0")
     api.add_argument("--port", type=int, default=8000)
     api.set_defaults(func=_api)
+
+    shadow = sub.add_parser(
+        "sleeper-shadow-sync",
+        help="Opt-in live Sleeper read-only shadow sync in an isolated database",
+    )
+    shadow.add_argument("--config", required=True, help="Path to owner league config JSON")
+    shadow.add_argument("--season", type=int, default=None)
+    shadow.add_argument(
+        "--database-url",
+        default=f"sqlite+pysqlite:///output/live_shadow/shadow_app.db",
+        help="Shadow database URL (never the production database)",
+    )
+    shadow.add_argument(
+        "--artifact-root",
+        default="output/live_shadow/artifacts",
+        help="Isolated artifact prefix",
+    )
+    shadow.add_argument(
+        "--report",
+        default="output/live_shadow/sleeper_sync_report.json",
+        help="Machine-readable report path",
+    )
+    shadow.add_argument(
+        "--allow-production-database",
+        action="store_true",
+        help="Explicit acknowledgement to run against a production-looking database URL",
+    )
+    shadow.add_argument(
+        "--inject-failure",
+        action="store_true",
+        help="After sync, inject a publication failure and verify the active pointer is unchanged",
+    )
+    shadow.add_argument(
+        "--skip-second-run",
+        action="store_true",
+        help="Skip the idempotent second sync (for faster debugging)",
+    )
+    shadow.set_defaults(func=_sleeper_shadow_sync)
 
     args = parser.parse_args()
     args.func(args)

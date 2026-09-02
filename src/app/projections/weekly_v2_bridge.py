@@ -1,12 +1,9 @@
 """Detect and classify weekly-v2 artifacts before they are used for publication.
 
-The bridge previously answered a single boolean question ("are weekly v2
-artifacts available?") and answered ``True`` whenever *any* candidate path
-existed — including the checked-in test fixture manifest, which ships in the
-repository. Season 2026 therefore always looked "available" even though no
-trained model weights exist anywhere, and the resulting run still carried a
-``fixture://`` manifest URI. This module now reports an explicit state so the
-publication pipeline can refuse to auto-publish untrained output.
+Readiness is a verified contract, not mere file presence. A run may be labelled
+``trained`` only when manifest hashes validate, required models load in-process,
+and a real weekly output exists whose provenance links back to those exact model
+hashes. Presence of nine joblib files without output provenance is ``fallback``.
 """
 
 from __future__ import annotations
@@ -16,29 +13,18 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from src.app.projections.weekly_manifest import (
+    REQUIRED_MODEL_ARTIFACTS,
+    validate_manifest,
+    verify_output_provenance,
+)
 from src.projection.weekly.config.paths import MODELS_DIR, OUTPUTS_DIR
 
 FIXTURE_MANIFEST_ROOT = (
     Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "weekly_v2"
 )
 
-#: Weight files the weekly v2 inference path loads through
-#: :mod:`src.projection.weekly.models.registry`. Every one of these must exist
-#: before a run may be labelled ``trained``.
-REQUIRED_MODEL_ARTIFACTS: tuple[str, ...] = (
-    "team_totals.joblib",
-    "volume_QB.joblib",
-    "volume_RB.joblib",
-    "volume_WR.joblib",
-    "volume_TE.joblib",
-    "efficiency_QB.joblib",
-    "efficiency_RB.joblib",
-    "efficiency_WR.joblib",
-    "efficiency_TE.joblib",
-)
-
-#: Manifest ``schema_version`` values this application knows how to consume.
-SUPPORTED_MANIFEST_SCHEMA_VERSIONS: frozenset[int] = frozenset({1})
+SUPPORTED_MANIFEST_SCHEMA_VERSIONS = frozenset({1, 2})
 
 STATE_TRAINED = "trained"
 STATE_FALLBACK = "fallback"
@@ -60,6 +46,7 @@ class WeeklyV2Readiness:
     manifest_path: str | None
     missing_artifacts: tuple[str, ...]
     reasons: tuple[str, ...]
+    auto_publish_allowed: bool = False
 
     @property
     def is_trained(self) -> bool:
@@ -75,6 +62,7 @@ class WeeklyV2Readiness:
             "manifest_path": self.manifest_path,
             "missing_artifacts": list(self.missing_artifacts),
             "reasons": list(self.reasons),
+            "auto_publish_allowed": self.auto_publish_allowed,
         }
 
 
@@ -101,26 +89,19 @@ def _models_manifest(season: int) -> Path:
     return _models_dir() / f"season={season}" / "manifest.json"
 
 
-def _artifact_search_roots(season: int) -> tuple[Path, ...]:
-    models = _models_dir()
-    return (models / f"season={season}", models)
-
-
-def _missing_model_artifacts(season: int) -> tuple[str, ...]:
-    roots = _artifact_search_roots(season)
-    return tuple(
-        name for name in REQUIRED_MODEL_ARTIFACTS if not any((root / name).exists() for root in roots)
-    )
-
-
-def _real_output_paths(season: int, week: int) -> tuple[Path, ...]:
-    outputs = _outputs_dir()
-    week_dir = outputs / f"season={season}" / f"week={week:02d}"
-    return (
-        week_dir / "weekly_projections.parquet",
-        week_dir / "weekly_projections.json",
-        outputs / f"projections_{season}_w{week:02d}.csv",
-    )
+def _evaluation_promotion_passes(season: int) -> tuple[bool, list[str]]:
+    report_path = _outputs_dir() / "preseason_backtest.json"
+    if not report_path.exists():
+        return False, ["evaluation_report_missing"]
+    try:
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False, ["evaluation_report_unreadable"]
+    promotion = payload.get("promotion") or {}
+    if promotion.get("promote"):
+        return True, []
+    failures = promotion.get("failures") or []
+    return False, [f"evaluation_promotion_failed:{failure}" for failure in failures]
 
 
 def _read_json(path: Path) -> dict | None:
@@ -130,70 +111,57 @@ def _read_json(path: Path) -> dict | None:
         return None
 
 
-def _manifest_incompatibility(manifest: dict | None) -> str | None:
-    if manifest is None:
-        return "manifest_unreadable"
-    if "model_version" not in manifest:
-        return "manifest_missing_model_version"
-    schema_version = manifest.get("schema_version")
-    if schema_version is None:
-        return "manifest_missing_schema_version"
-    try:
-        schema_version = int(schema_version)
-    except (TypeError, ValueError):
-        return "manifest_schema_version_invalid"
-    if schema_version not in SUPPORTED_MANIFEST_SCHEMA_VERSIONS:
-        return f"manifest_schema_version_unsupported:{schema_version}"
-    return None
-
-
 def weekly_v2_readiness(season: int, week: int) -> WeeklyV2Readiness:
-    """Classify the weekly-v2 artifacts for ``season``/``week``.
+    """Classify weekly-v2 artifacts for ``season``/``week``.
 
-    ``trained``  every required weight file exists and the models manifest is
-                 schema-compatible.
-    ``fallback`` real weekly output exists (or a models manifest does) but the
-                 weights are missing or the manifest schema is not supported.
+    ``trained``  manifest v2 validates, models load, output provenance links to
+                 the same model hashes, and no fallback derivation is in use.
+    ``fallback`` weights or manifest exist but the full contract is incomplete.
     ``fixture``  only the checked-in test fixture manifest is present.
     ``absent``   nothing weekly-v2 related exists for this season.
     """
     reasons: list[str] = []
     models_manifest_path = _models_manifest(season)
-    models_manifest = _read_json(models_manifest_path) if models_manifest_path.exists() else None
-    missing = _missing_model_artifacts(season)
+    validation = validate_manifest(season)
 
-    if not missing:
-        incompatibility = _manifest_incompatibility(models_manifest)
-        if incompatibility is None:
+    if validation.valid:
+        output_ok, output_reasons = verify_output_provenance(
+            season, week, manifest_validation=validation
+        )
+        if output_ok:
+            eval_ok, eval_reasons = _evaluation_promotion_passes(season)
             return WeeklyV2Readiness(
                 season=season,
                 week=week,
                 state=STATE_TRAINED,
-                model_version=str(models_manifest.get("model_version")),
+                model_version=str(validation.model_version),
                 manifest_uri=models_manifest_path.resolve().as_uri(),
                 manifest_path=str(models_manifest_path),
                 missing_artifacts=(),
-                reasons=(),
+                reasons=tuple(eval_reasons),
+                auto_publish_allowed=eval_ok,
             )
-        reasons.append(incompatibility)
+        reasons.extend(output_reasons)
+        reasons.append("trained_artifacts_without_verified_output")
     else:
-        reasons.append(f"missing_model_artifacts:{len(missing)}")
+        reasons.extend(validation.failures)
+        if validation.missing_artifacts:
+            reasons.append(f"missing_model_artifacts:{len(validation.missing_artifacts)}")
+        if validation.hash_mismatches:
+            reasons.append(f"hash_mismatches:{len(validation.hash_mismatches)}")
 
-    real_outputs = [path for path in _real_output_paths(season, week) if path.exists()]
-    if real_outputs or models_manifest_path.exists():
-        source = real_outputs[0] if real_outputs else models_manifest_path
-        model_version = DEFAULT_MODEL_VERSION
-        if models_manifest is not None:
-            model_version = str(models_manifest.get("model_version", DEFAULT_MODEL_VERSION))
+    if models_manifest_path.exists() or validation.artifact_hashes:
+        model_version = validation.model_version or DEFAULT_MODEL_VERSION
         return WeeklyV2Readiness(
             season=season,
             week=week,
             state=STATE_FALLBACK,
-            model_version=model_version,
-            manifest_uri=f"weekly-v2-fallback://{source.as_posix()}",
+            model_version=str(model_version),
+            manifest_uri=f"weekly-v2-fallback://{models_manifest_path.as_posix()}",
             manifest_path=str(models_manifest_path) if models_manifest_path.exists() else None,
-            missing_artifacts=missing,
+            missing_artifacts=validation.missing_artifacts or REQUIRED_MODEL_ARTIFACTS,
             reasons=tuple(reasons),
+            auto_publish_allowed=False,
         )
 
     fixture_path = _fixture_manifest(season)
@@ -207,8 +175,9 @@ def weekly_v2_readiness(season: int, week: int) -> WeeklyV2Readiness:
             model_version=str(fixture_manifest.get("model_version", DEFAULT_MODEL_VERSION)),
             manifest_uri=f"fixture://weekly-v2/{fixture_path.as_posix()}",
             manifest_path=str(fixture_path),
-            missing_artifacts=missing,
+            missing_artifacts=validation.missing_artifacts or REQUIRED_MODEL_ARTIFACTS,
             reasons=tuple(reasons),
+            auto_publish_allowed=False,
         )
 
     reasons.append("no_weekly_v2_artifacts")
@@ -219,18 +188,14 @@ def weekly_v2_readiness(season: int, week: int) -> WeeklyV2Readiness:
         model_version=DEFAULT_MODEL_VERSION,
         manifest_uri=f"derived://preseason-bundle/{season}/{week:02d}",
         manifest_path=None,
-        missing_artifacts=missing,
+        missing_artifacts=validation.missing_artifacts or REQUIRED_MODEL_ARTIFACTS,
         reasons=tuple(reasons),
+        auto_publish_allowed=False,
     )
 
 
 def weekly_v2_artifacts_available(season: int, week: int) -> bool:
-    """Backwards-compatible presence check.
-
-    Presence is *not* readiness: a ``True`` here still covers the ``fixture`` and
-    ``fallback`` states. Callers deciding whether to publish must use
-    :func:`weekly_v2_readiness` and the artifact-readiness gate instead.
-    """
+    """Backwards-compatible presence check (not readiness)."""
     return weekly_v2_readiness(season, week).state != STATE_ABSENT
 
 

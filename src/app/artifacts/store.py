@@ -251,6 +251,7 @@ def _atomic_write_bytes(path: Path, content: bytes) -> None:
 class S3ArtifactStore(ArtifactStore):
     def __init__(self) -> None:
         import boto3
+        from botocore.config import Config
 
         settings = get_settings()
         self.bucket = settings.s3_bucket
@@ -259,7 +260,11 @@ class S3ArtifactStore(ArtifactStore):
             aws_secret_access_key=settings.s3_secret_access_key,
             region_name=settings.s3_region,
         )
-        self.client = session.client("s3", endpoint_url=settings.s3_endpoint_url)
+        self.client = session.client(
+            "s3",
+            endpoint_url=settings.s3_endpoint_url,
+            config=Config(s3={"addressing_style": "path"}),
+        )
 
     def put_bytes(self, content: bytes, *, content_type: str = "application/octet-stream") -> str:
         digest = hashlib.sha256(content).hexdigest()

@@ -1,35 +1,89 @@
-import { NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
-const NAV_ITEMS = [
+const PRIMARY_NAV = [
   { to: "/", label: "Home", icon: "⌂" },
   { to: "/lineup", label: "Lineup", icon: "▣" },
   { to: "/waivers", label: "Waivers", icon: "＋" },
   { to: "/trade-lab", label: "Trade", icon: "⇄" },
   { to: "/dynasty", label: "Dynasty", icon: "◈" },
+] as const;
+
+const MORE_NAV = [
   { to: "/draft", label: "Draft", icon: "◎" },
   { to: "/assistant", label: "Assist", icon: "✦" },
   { to: "/operations", label: "Ops", icon: "⚙" },
 ] as const;
 
+const MORE_PATHS = new Set<string>(MORE_NAV.map((item) => item.to));
+
 export function BottomNav() {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const moreActive = MORE_PATHS.has(location.pathname);
+
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [location.pathname]);
+
   return (
-    <nav className="bottom-nav" aria-label="Primary">
-      <ul>
-        {NAV_ITEMS.map((item) => (
-          <li key={item.to}>
-            <NavLink
-              to={item.to}
-              end={item.to === "/"}
-              className={({ isActive }) => (isActive ? "active" : undefined)}
+    <>
+      {moreOpen ? (
+        <div className="bottom-nav-more" role="dialog" aria-label="More screens">
+          <ul>
+            {MORE_NAV.map((item) => (
+              <li key={item.to}>
+                <button
+                  type="button"
+                  className={location.pathname === item.to ? "active" : undefined}
+                  onClick={() => {
+                    setMoreOpen(false);
+                    void navigate(item.to);
+                  }}
+                >
+                  <span className="nav-icon" aria-hidden>
+                    {item.icon}
+                  </span>
+                  <span className="nav-label">{item.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      <nav className="bottom-nav" aria-label="Primary">
+        <ul>
+          {PRIMARY_NAV.map((item) => (
+            <li key={item.to}>
+              <NavLink
+                to={item.to}
+                end={item.to === "/"}
+                className={({ isActive }) => (isActive ? "active" : undefined)}
+              >
+                <span className="nav-icon" aria-hidden>
+                  {item.icon}
+                </span>
+                <span className="nav-label">{item.label}</span>
+              </NavLink>
+            </li>
+          ))}
+          <li>
+            <button
+              type="button"
+              className={moreActive || moreOpen ? "active" : undefined}
+              aria-expanded={moreOpen}
+              aria-haspopup="dialog"
+              onClick={() => setMoreOpen((open) => !open)}
             >
               <span className="nav-icon" aria-hidden>
-                {item.icon}
+                ⋯
               </span>
-              <span className="nav-label">{item.label}</span>
-            </NavLink>
+              <span className="nav-label">More</span>
+            </button>
           </li>
-        ))}
-      </ul>
-    </nav>
+        </ul>
+      </nav>
+    </>
   );
 }

@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import uuid
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -14,6 +15,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import JSONResponse
 
 from src.app.api.v1.router import api_v1_router
+from src.app.api.v1.internal_cron import router as internal_cron_router
 from src.app.config import get_settings
 from src.app.logging import (
     bind_correlation_id,
@@ -57,6 +59,9 @@ async def lifespan(app: FastAPI):
     configure_logging(json_logs=settings.log_json, level=settings.log_level)
     # Fail closed: never boot a production process with unsafe configuration.
     settings.validate_production()
+    from src.app.persistence.database import assert_expected_revision
+
+    assert_expected_revision()
     logger.info("app_starting", env=settings.app_env)
     yield
     logger.info("app_stopping")
@@ -132,24 +137,57 @@ def create_app() -> FastAPI:
     @app.get("/health/ready")
     async def health_ready(request: Request):
         cid = _correlation_id_of(request)
+        checks: dict[str, object] = {}
         try:
-            from src.app.persistence.database import get_engine
+            from src.app.persistence.database import current_alembic_revision, get_engine, get_session
 
             with get_engine().connect() as conn:
                 conn.exec_driver_sql("SELECT 1")
-            return {"status": "ready"}
+            checks["database"] = "ok"
+            checks["alembic_revision"] = current_alembic_revision()
+            settings = get_settings()
+            if settings.expected_alembic_revision:
+                checks["alembic_revision_ok"] = (
+                    checks["alembic_revision"] == settings.expected_alembic_revision
+                )
+            from src.app.storage.release_bundle import probe_storage_round_trip
+            from src.projection.active_release import read_active_pointer
+
+            pointer = read_active_pointer(2026)
+            checks["release_pointer"] = pointer is not None
+            checks["storage"] = probe_storage_round_trip()
+            from src.app.projections.status_overlay import read_active_overlay
+
+            checks["overlay_pointer"] = read_active_overlay(2026) is not None
+            from src.app.persistence.models import JobRun
+
+            with get_session() as session:
+                last_refresh = (
+                    session.query(JobRun)
+                    .filter(JobRun.job_name == "daily-refresh", JobRun.status == "succeeded")
+                    .order_by(JobRun.finished_at.desc())
+                    .first()
+                )
+                if last_refresh and last_refresh.finished_at:
+                    age_hours = (
+                        datetime.now(UTC) - last_refresh.finished_at.astimezone(UTC)
+                    ).total_seconds() / 3600
+                    checks["last_daily_refresh_hours"] = round(age_hours, 2)
+                    checks["last_daily_refresh_ok"] = age_hours < 26
+            return {"status": "ready", "checks": checks}
         except Exception:  # noqa: BLE001
-            # Database errors routinely contain hostnames, users and DSNs.
             logger.exception("readiness_check_failed", correlation_id=cid)
             return JSONResponse(
                 status_code=503,
                 content={
                     "status": "not_ready",
+                    "checks": checks,
                     **_error_envelope("dependency_unavailable", "Readiness check failed.", cid),
                 },
             )
 
     app.include_router(api_v1_router, prefix="/api/v1")
+    app.include_router(internal_cron_router, prefix="/api")
     return app
 
 

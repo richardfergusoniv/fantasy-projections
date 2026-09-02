@@ -30,7 +30,7 @@
   --radius: 8px;
   --font: "Segoe UI", system-ui, -apple-system, sans-serif;
   /* Two rows of four on a phone; one row of eight from 480px up. */
-  --bottom-nav-height: 6.75rem;
+  --bottom-nav-height: 4.75rem;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --touch-target: 48px;
 }
@@ -198,6 +198,17 @@ a {
   padding: 0.5rem 0.6rem;
   min-height: var(--touch-target);
   width: 100%;
+}
+
+.checkbox-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
 }
 
 .shell-error {
@@ -730,11 +741,7 @@ a {
 }
 
 /*
- * Four columns on a phone, eight from 480px up.
- *
- * Eight columns across a 390px viewport left ~48px per item and forced a
- * 0.62rem (~10px) label. Two rows of four gives ~95px per item, a legible
- * 0.75rem label, and a 48px touch target.
+ * Five primary tabs plus a More menu on every viewport.
  */
 .bottom-nav ul {
   list-style: none;
@@ -742,26 +749,72 @@ a {
   padding: 0.35rem 0.25rem;
   max-width: 960px;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.2rem;
 }
 
-.bottom-nav a {
+.bottom-nav a,
+.bottom-nav button {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.15rem;
-  min-height: var(--touch-target);
-  padding: 0.25rem 0.1rem;
-  color: var(--text-muted);
+  min-height: 48px;
+  padding: 0.25rem 0.15rem;
+  border-radius: 0.5rem;
+  color: var(--muted);
   text-decoration: none;
-  border-radius: 10px;
   font-size: 0.75rem;
-  font-weight: 600;
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.bottom-nav a.active {
+.bottom-nav-more {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  z-index: 25;
+  background: rgba(20, 26, 33, 0.98);
+  border-top: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+}
+
+.bottom-nav-more ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.bottom-nav-more button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.bottom-nav-more button.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.bottom-nav a.active,
+.bottom-nav button.active {
   color: var(--accent-text);
   background: var(--accent-soft);
 }
@@ -907,6 +960,171 @@ a {
   color: var(--text-muted);
 }
 
+.draft-board-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(8rem, 0.7fr);
+  gap: 0.65rem;
+  align-items: end;
+  margin: 0.9rem 0;
+}
+
+.draft-toggle {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.draft-toggle input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent);
+}
+
+.draft-player-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.draft-player-card {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: linear-gradient(145deg, var(--bg-panel), var(--bg));
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.12);
+  transition: border-color 120ms ease, opacity 120ms ease;
+}
+
+.draft-player-card:hover {
+  border-color: var(--border-strong);
+}
+
+.draft-player-card.is-drafted {
+  opacity: 0.5;
+}
+
+.draft-player-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.draft-rank {
+  min-width: 2.2rem;
+  padding-top: 0.15rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.draft-player-identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.draft-player-identity h3 {
+  overflow: hidden;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.draft-player-identity p {
+  margin: 0.3rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.draft-player-action {
+  min-height: 34px;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.draft-player-action.is-drafted {
+  border-color: var(--border);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.draft-card-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.draft-card-stat {
+  min-width: 0;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid rgba(45, 58, 77, 0.65);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.draft-card-stat .label,
+.draft-card-stat .hint {
+  display: block;
+  overflow: hidden;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.draft-card-stat .label {
+  margin-bottom: 0.15rem;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.draft-card-stat strong {
+  display: block;
+  color: var(--mine);
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.draft-card-stat strong.negative {
+  color: var(--danger);
+}
+
+.draft-card-stat .hint {
+  margin-top: 0.1rem;
+  font-size: 0.62rem;
+}
+
+.draft-replacement-note {
+  margin: 0.55rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 680px) {
+  .draft-board-controls,
+  .draft-player-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .draft-player-action {
+    padding-inline: 0.45rem;
+  }
+}
+
 .assistant-thread {
   min-height: 12rem;
   border: 1px dashed var(--border);
@@ -952,15 +1170,7 @@ a {
 
 @media (min-width: 480px) {
   :root {
-    --bottom-nav-height: 4.5rem;
-  }
-
-  .bottom-nav ul {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-  }
-
-  .bottom-nav a {
-    font-size: 0.68rem;
+    --bottom-nav-height: 4.25rem;
   }
 }
 

@@ -20,7 +20,23 @@ from sqlalchemy.orm import Session
 from src.app.jobs.handlers import JOB_HANDLERS
 from src.app.jobs.runner import JobRunner
 from src.app.logging import bind_correlation_id, configure_logging, get_logger
-from src.app.persistence.database import get_session, init_db
+from src.app.config import get_settings
+from src.app.ops.alerts import send_ops_alert
+from src.app.persistence.database import assert_expected_revision, get_job_session, get_session
+from src.app.persistence.job_outbox import JobOutboxService
+
+LONG_RUNNING_JOBS = frozenset(
+    {
+        "daily-refresh",
+        "sunday-early",
+        "sunday-afternoon",
+        "sunday-night",
+        "monday-night",
+        "weekly-close-preliminary",
+        "weekly-correction",
+        "full-release",
+    }
+)
 
 TZ = ZoneInfo("America/Los_Angeles")
 logger = get_logger(__name__)
@@ -234,8 +250,8 @@ def _as_utc(value: datetime) -> datetime:
 
 def run_job(job_name: str, *, idempotency_key: str | None = None) -> dict:
     bind_correlation_id()
-    init_db()
-    with get_session() as session:
+    assert_expected_revision()
+    with get_job_session() as session:
         runner = JobRunner(session)
 
         handler = JOB_HANDLERS.get(job_name)
@@ -258,28 +274,82 @@ def run_job(job_name: str, *, idempotency_key: str | None = None) -> dict:
         }
 
 
-def run_due(now_utc: datetime | None = None, *, grace: timedelta = DEFAULT_GRACE) -> list[dict]:
-    """Execute every slot that is currently due, keyed idempotently by slot.
-
-    Safe to invoke from an external cron at any frequency: each occurrence gets a
-    deterministic idempotency key, so a second invocation for the same slot is
-    deduplicated by :class:`~src.app.jobs.runner.JobRunner` instead of re-running.
-    """
+def enqueue_due_slots(
+    now_utc: datetime | None = None,
+    *,
+    grace: timedelta = DEFAULT_GRACE,
+) -> list[dict]:
     now_utc = _as_utc(now_utc or datetime.now(UTC))
-    init_db()
     with get_session() as session:
         last_runs = last_successful_runs(session)
-    pending = due_slots(now_utc, last_runs, grace=grace)
+        pending = due_slots(now_utc, last_runs, grace=grace)
+        outbox = JobOutboxService(session)
+        enqueued: list[dict] = []
+        for slot in pending:
+            row = outbox.enqueue(
+                slot.job_name,
+                idempotency_key=slot.slot_key,
+                scheduled_at=slot.scheduled_at,
+            )
+            enqueued.append(
+                {
+                    "job_name": slot.job_name,
+                    "idempotency_key": slot.slot_key,
+                    "outbox_id": row.id,
+                    "status": row.status,
+                }
+            )
+    return enqueued
+
+
+def process_outbox(*, max_jobs: int = 5) -> list[dict]:
     results: list[dict] = []
-    for slot in pending:
-        logger.info(
-            "job_due",
-            job_name=slot.job_name,
-            scheduled_at=slot.scheduled_at.isoformat(),
-            slot_key=slot.slot_key,
-        )
-        results.append(run_job(slot.job_name, idempotency_key=slot.slot_key))
+    with get_job_session() as session:
+        outbox = JobOutboxService(session)
+        outbox.recover_stale_running(timedelta(hours=2))
+        for _ in range(max_jobs):
+            row = outbox.claim_next()
+            if row is None:
+                break
+            outbox.mark_running(row)
+            try:
+                payload = run_job(row.job_name, idempotency_key=row.idempotency_key)
+                if payload.get("status") == "succeeded":
+                    outbox.mark_succeeded(row, metadata=payload)
+                else:
+                    error = str(payload.get("error") or payload.get("status"))
+                    outbox.mark_failed(row, error)
+                    send_ops_alert(
+                        f"Job failed: {row.job_name}",
+                        f"outbox_id={row.id}\nidempotency_key={row.idempotency_key}\nerror={error}",
+                    )
+                results.append(payload)
+            except Exception as exc:  # noqa: BLE001
+                outbox.mark_failed(row, f"{type(exc).__name__}: {exc}")
+                send_ops_alert(
+                    f"Job exception: {row.job_name}",
+                    f"outbox_id={row.id}\nerror={type(exc).__name__}: {exc}",
+                )
+                results.append(
+                    {
+                        "outbox_id": row.id,
+                        "job_name": row.job_name,
+                        "status": "failed",
+                        "error": str(exc),
+                    }
+                )
     return results
+
+
+def run_due(now_utc: datetime | None = None, *, grace: timedelta = DEFAULT_GRACE) -> list[dict]:
+    """Enqueue due slots, then execute inline unless external executor is configured."""
+    enqueued = enqueue_due_slots(now_utc, grace=grace)
+    if not enqueued:
+        return []
+    settings = get_settings()
+    if settings.long_jobs_external:
+        return enqueued
+    return process_outbox(max_jobs=len(enqueued) + 2)
 
 
 def main() -> None:

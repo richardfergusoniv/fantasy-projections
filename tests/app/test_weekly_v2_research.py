@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 
-def test_weekly_v2_fixture_manifest_available():
+def test_weekly_v2_fixture_manifest_available(monkeypatch, tmp_path):
     from src.app.projections.weekly_v2_bridge import (
+        FIXTURE_MANIFEST_ROOT,
         load_weekly_v2_manifest,
         weekly_v2_artifacts_available,
         weekly_v2_model_version,
     )
+
+    monkeypatch.setenv("WEEKLY_V2_MODELS_DIR", str(tmp_path / "empty_models"))
+    monkeypatch.setenv("WEEKLY_V2_FIXTURE_ROOT", str(FIXTURE_MANIFEST_ROOT))
 
     assert weekly_v2_artifacts_available(2026, 1) is True
     manifest = load_weekly_v2_manifest(2026)

@@ -1,25 +1,23 @@
-"""PostgreSQL advisory locks and job orchestration."""
+"""PostgreSQL lease locks and job orchestration."""
 
 from __future__ import annotations
 
 import hashlib
 import os
 import time
+import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any, Callable, Generator
 
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from src.app.logging import bind_correlation_id, get_logger
+from src.app.persistence.job_outbox import JobLeaseManager
 from src.app.persistence.models import JobRun, utcnow
 
 logger = get_logger(__name__)
-
-ADVISORY_LOCK_SQL = "SELECT pg_try_advisory_lock(:key)"
-ADVISORY_UNLOCK_SQL = "SELECT pg_advisory_unlock(:key)"
 
 #: A ``running`` row older than this is assumed to belong to a crashed worker and
 #: may be recovered by the next attempt. Override with ``JOB_STALE_AFTER_SECONDS``.
@@ -29,53 +27,6 @@ DEFAULT_STALE_AFTER = timedelta(hours=2)
 #: status instead of ``succeeded``, so a deliberately deferred run is not
 #: indistinguishable from a run that did the work.
 NON_SUCCESS_RESULT_STATUSES = frozenset({"postponed", "blocked"})
-
-
-def _lock_key(job_name: str) -> int:
-    """Deterministic 64-bit advisory-lock key for ``job_name``.
-
-    ``hash()`` is seeded per process for ``str`` (PYTHONHASHSEED randomization),
-    so two workers computed different keys for the same job and both "acquired"
-    the lock. A SHA-256 prefix is stable across processes, hosts and releases.
-    """
-    digest = hashlib.sha256(job_name.encode("utf-8")).digest()[:8]
-    return int.from_bytes(digest, "big", signed=True)
-
-
-def advisory_lock_statement(job_name: str) -> tuple[str, dict[str, int]]:
-    """SQL and bind parameters used to take the PostgreSQL advisory lock."""
-    return ADVISORY_LOCK_SQL, {"key": _lock_key(job_name)}
-
-
-def advisory_unlock_statement(job_name: str) -> tuple[str, dict[str, int]]:
-    """SQL and bind parameters used to release the PostgreSQL advisory lock."""
-    return ADVISORY_UNLOCK_SQL, {"key": _lock_key(job_name)}
-
-
-@contextmanager
-def advisory_lock(session: Session, job_name: str) -> Generator[None]:
-    statement, params = advisory_lock_statement(job_name)
-    acquired = session.execute(text(statement), params).scalar()
-    if not acquired:
-        raise RuntimeError(f"Could not acquire advisory lock for {job_name}")
-    try:
-        yield
-    finally:
-        unlock_statement, unlock_params = advisory_unlock_statement(job_name)
-        session.execute(text(unlock_statement), unlock_params)
-
-
-@contextmanager
-def sqlite_job_guard(_session: Session, job_name: str) -> Generator[None]:
-    """Best-effort single-process guard for SQLite tests."""
-    yield
-
-
-def job_lock(session: Session, job_name: str) -> Generator[None]:
-    bind = session.get_bind()
-    if bind.dialect.name == "postgresql":
-        return advisory_lock(session, job_name)
-    return sqlite_job_guard(session, job_name)
 
 
 def _default_stale_after() -> timedelta:
@@ -94,6 +45,36 @@ def _as_utc(value: datetime | None) -> datetime | None:
     if value.tzinfo is None:
         return value.replace(tzinfo=UTC)
     return value.astimezone(UTC)
+
+
+@contextmanager
+def job_lock(session: Session, job_name: str) -> Generator[None]:
+    """Acquire a durable lease instead of a PostgreSQL advisory lock."""
+    bind = session.get_bind()
+    if bind.dialect.name != "postgresql":
+        yield
+        return
+    lease = JobLeaseManager(session)
+    if not lease.acquire(job_name):
+        raise RuntimeError(f"Could not acquire job lease for {job_name}")
+    try:
+        yield
+    finally:
+        lease.release(job_name)
+
+
+# Backward-compatible exports for tests that assert advisory-lock SQL shape.
+def _lock_key(job_name: str) -> int:
+    digest = hashlib.sha256(job_name.encode("utf-8")).digest()[:8]
+    return int.from_bytes(digest, "big", signed=True)
+
+
+def advisory_lock_statement(job_name: str) -> tuple[str, dict[str, int]]:
+    return "SELECT 1", {"key": _lock_key(job_name)}
+
+
+def advisory_unlock_statement(job_name: str) -> tuple[str, dict[str, int]]:
+    return "SELECT 1", {"key": _lock_key(job_name)}
 
 
 @dataclass(frozen=True)

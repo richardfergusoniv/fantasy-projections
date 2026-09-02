@@ -11,6 +11,17 @@ from typing import Any
 import numpy as np
 import polars as pl
 
+#: Per-position maximum linear expansion slope. WR/TE OOF residuals routinely
+#: request more spread than QB/RB; a uniform 1.35 cap leaves calibrated
+#: dispersion below policy for those positions while 1.6+ caused rank blow-ups.
+POSITION_SLOPE_CAPS: dict[str, float] = {
+    "QB": 1.35,
+    "RB": 1.40,
+    "WR": 1.52,
+    "TE": 1.52,
+}
+DEFAULT_SLOPE_CAP = 1.35
+
 
 def fit_position_calibration(
     oof: pl.DataFrame,
@@ -50,11 +61,8 @@ def fit_position_calibration(
         # job here is to match the observed cross-player spread; use the
         # standard-deviation ratio and preserve the mean with the intercept.
         slope = actual_sd / pred_sd if pred_sd > 1e-9 else 1.0
-        # A hard expansion cap limits tail amplification under year-to-year
-        # distribution shift.  1.35 restores most OOF dispersion without the
-        # WR1 vacuum blow-ups seen when the slope sat at 1.6 (Flowers-style
-        # concentration errors get multiplied into overall-rank outliers).
-        slope = float(np.clip(slope, 0.5, 1.35))
+        cap = POSITION_SLOPE_CAPS.get(str(pos), DEFAULT_SLOPE_CAP)
+        slope = float(np.clip(slope, 0.5, cap))
         intercept = float(np.mean(y) - slope * np.mean(x))
         calibrated = intercept + slope * x
         residual = y - calibrated

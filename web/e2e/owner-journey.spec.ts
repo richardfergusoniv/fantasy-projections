@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { openMoreScreen, selectLeague, signIn } from "./helpers";
 
 /**
  * One end-to-end journey for the only user this app has, against the real API
@@ -12,39 +13,6 @@ import { expect, test, type Page } from "@playwright/test";
  * suite checked that the login heading rendered and skipped the rest, which is
  * why a defect that broke every lineup recommendation went unnoticed.
  */
-
-const OWNER = "owner@example.com";
-
-async function signIn(page: Page) {
-  await page.goto("/login");
-  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
-
-  await page.getByLabel("Email").fill(OWNER);
-  await page.getByRole("button", { name: "Send magic link" }).click();
-
-  // Dev auth returns the link in the response; the app renders it.
-  const devLink = page.locator(".dev-link a");
-  await expect(devLink).toBeVisible();
-  const href = await devLink.getAttribute("href");
-  expect(href).toContain("token=");
-
-  await page.getByLabel("Token").fill(new URL(href!).searchParams.get("token")!);
-  await page.getByRole("button", { name: "Verify token" }).click();
-
-  await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
-}
-
-/**
- * Select by league id, not by name: two of the six leagues are both called
- * "Superflex Dynasty", which is exactly the ambiguity the ids exist to resolve.
- */
-async function selectLeague(page: Page, leagueId: string) {
-  // `#shell-league-select`, not the label: the Home panel is also labelled "League".
-  const select = page.locator("#shell-league-select");
-  await expect(select).toBeEnabled();
-  await select.selectOption(leagueId);
-  await expect(select).toHaveValue(leagueId);
-}
 
 test.describe("owner journey", () => {
   test("signs in, reads real recommendations, and checks freshness", async ({ page }) => {
@@ -104,15 +72,15 @@ test.describe("owner journey", () => {
     await expect(page.getByText("Your side value")).toBeVisible();
 
     // ---------------------------------------------------------- operations
-    await page.getByRole("link", { name: "Ops" }).click();
+    await openMoreScreen(page, "Ops");
     await expect(page.getByText(/Active release/i).first()).toBeVisible();
     // Fixture data and untrained artifacts must be labelled where the owner
     // reads them, not only in the API payload.
     await expect(page.getByText(/not live league data/i)).toBeVisible();
-    await expect(page.getByText(/not trained production output/i)).toBeVisible();
     await expect(
-      page.getByText(/blocked until trained artifacts are available/i),
-    ).toBeVisible();
+      page.locator("li").filter({ hasText: "Weekly-v2 artifacts" }),
+    ).toContainText(/trained \(|not production/);
+    await expect(page.getByText(/blocked until weekly gates pass/i)).toBeVisible();
   });
 
   test("a refresh produces cited evidence that opens safely in a new tab", async ({ page }) => {
@@ -120,7 +88,7 @@ test.describe("owner journey", () => {
 
     // A freshly seeded database holds no injury evidence; the refresh job is
     // what produces it, so the journey runs one rather than skipping the check.
-    await page.getByRole("link", { name: "Ops" }).click();
+    await openMoreScreen(page, "Ops");
     await page.getByRole("button", { name: "Run daily refresh" }).click();
     await expect(page.getByText(/Daily refresh: Job /)).toBeVisible({ timeout: 60_000 });
 

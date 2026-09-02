@@ -22,8 +22,11 @@ from src.app.availability.service import (
 
 MODE_FIXTURE = RESEARCH_MODE_FIXTURE
 MODE_LIVE = RESEARCH_MODE_LIVE
+MODE_SLEEPER = "sleeper"
 MODE_DISABLED = "disabled"
-VALID_MODES = {MODE_FIXTURE, MODE_LIVE, MODE_DISABLED}
+VALID_MODES = {MODE_FIXTURE, MODE_LIVE, MODE_SLEEPER, MODE_DISABLED}
+
+SLEEPER_PLAYERS_ENDPOINT = "https://api.sleeper.app/v1/players/nfl"
 
 RESEARCH_MODE_ENV = "INJURY_RESEARCH_MODE"
 
@@ -94,6 +97,71 @@ class FixtureInjuryResearchProvider(InjuryResearchProvider):
         )
 
 
+class SleeperStatusInjuryResearchProvider(InjuryResearchProvider):
+    """Cited injury status from the latest Sleeper players/nfl sync snapshot."""
+
+    mode = MODE_SLEEPER
+    synthetic = False
+
+    def __init__(self, session) -> None:
+        self.session = session
+
+    def research(self, player_id: str, *, as_of: str | None = None) -> ResearchResult:
+        from src.app.persistence.models import PlayerStatusSnapshot
+
+        row = (
+            self.session.query(PlayerStatusSnapshot)
+            .filter(PlayerStatusSnapshot.player_id == player_id)
+            .order_by(PlayerStatusSnapshot.fetched_at.desc())
+            .first()
+        )
+        if row is None or not row.injury_status:
+            raise ResearchUnavailable(f"no_sleeper_injury_status_for_{player_id}")
+
+        raw = row.raw_json if isinstance(row.raw_json, dict) else {}
+        player_name = str(raw.get("full_name") or raw.get("search_full_name") or player_id)
+        injury_status = str(row.injury_status)
+        body_part = raw.get("injury_body_part")
+        practice = row.practice or raw.get("practice_participation")
+        reported = injury_status
+        if body_part:
+            reported = f"{injury_status} ({body_part})"
+        if practice:
+            reported = f"{reported}; practice={practice}"
+
+        observed_at = as_of or (row.fetched_at.isoformat() if row.fetched_at else datetime.now(UTC).isoformat())
+        sources = [
+            {
+                "url": SLEEPER_PLAYERS_ENDPOINT,
+                "title": f"Sleeper NFL player status: {player_name} — {injury_status}",
+                "published_at": observed_at,
+                "publisher": "sleeper",
+            }
+        ]
+        claim = EvidenceClaim(
+            player_id=player_id,
+            status=injury_status.lower(),
+            reported_injury=reported,
+            expected_return_min=None,
+            expected_return_max=None,
+            claim_confidence=0.75,
+            sources=sources,
+            mode=MODE_SLEEPER,
+            synthetic=False,
+            publisher="sleeper",
+            source_reliability=0.85,
+            published_at=observed_at,
+            retrieved_at=observed_at,
+        )
+        return ResearchResult(
+            claims=[claim],
+            model_id=None,
+            citations=sources,
+            mode=MODE_SLEEPER,
+            synthetic=False,
+        )
+
+
 class OpenAIInjuryResearchProvider(InjuryResearchProvider):
     """Live web-search research. Requires a configured API key at runtime."""
 
@@ -123,15 +191,21 @@ def resolve_research_mode(settings, env: dict[str, str] | None = None) -> str:
             raise ResearchUnavailable(f"unknown {RESEARCH_MODE_ENV}: {requested}")
         return requested
     if getattr(settings, "app_env", "development") == "production":
-        return MODE_LIVE
+        if getattr(settings, "use_sleeper_fixtures", False):
+            return MODE_FIXTURE
+        return MODE_SLEEPER
     return MODE_FIXTURE
 
 
-def build_provider(settings, *, mode: str) -> InjuryResearchProvider:
+def build_provider(settings, *, mode: str, session=None) -> InjuryResearchProvider:
     """Return the provider for ``mode``, never a silent substitute."""
 
     if mode == MODE_FIXTURE:
         return FixtureInjuryResearchProvider()
+    if mode == MODE_SLEEPER:
+        if session is None:
+            raise ResearchUnavailable("sleeper research requires a database session")
+        return SleeperStatusInjuryResearchProvider(session)
     if mode == MODE_LIVE:
         api_key = getattr(settings, "openai_api_key", None)
         if not api_key:

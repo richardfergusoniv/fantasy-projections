@@ -26,6 +26,26 @@ from src.app.scoring.contract import (
     ThresholdRule,
 )
 
+# Keys that identify a flat Sleeper scoring_settings dict stored at snapshot root.
+_FLAT_SCORING_MARKERS = frozenset(
+    {"rec", "rush_yd", "pass_yd", "pts_allow_0", "fgm_0_19", "def_td", "rush_fd", "rec_fd"}
+)
+
+
+def scoring_settings_from_snapshot(raw_json: dict[str, Any] | None) -> dict[str, Any]:
+    """Return Sleeper scoring_settings from a rule snapshot or league payload.
+
+    Live sync persists the flat scoring dict on ``LeagueRuleSnapshot.raw_json``.
+    Seed data and ``League.raw_json`` nest the same dict under ``scoring_settings``.
+    """
+    raw = dict(raw_json or {})
+    nested = raw.get("scoring_settings")
+    if isinstance(nested, dict) and nested:
+        return dict(nested)
+    if _FLAT_SCORING_MARKERS & raw.keys():
+        return raw
+    return dict(nested) if isinstance(nested, dict) else {}
+
 # --------------------------------------------------------------------- linear
 # Sleeper scoring key -> canonical stat name.
 LINEAR_KEY_MAP: dict[str, str] = {
@@ -70,6 +90,8 @@ LINEAR_KEY_MAP: dict[str, str] = {
     "fgm_30_39": "fgm_30_39",
     "fgm_40_49": "fgm_40_49",
     "fgm_50p": "fgm_50p",
+    "fgm_50_59": "fgm_50_59",
+    "fgm_60p": "fgm_60p",
     "fgmiss": "fgmiss",
     "fgmiss_0_19": "fgmiss_0_19",
     "fgmiss_20_29": "fgmiss_20_29",
@@ -155,6 +177,8 @@ DST_KEY_MAP: dict[str, str] = {
     "def_yds_allowed": "yards_allowed",
     "def_4_and_stop": "fourth_down_stops",
     "def_3_and_out": "three_and_outs",
+    "def_pass_def": "passes_defended",
+    "tkl_loss": "tackles_for_loss",
 }
 
 # ----------------------------------------------------------------------- slots

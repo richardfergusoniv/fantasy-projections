@@ -6,7 +6,10 @@ export interface ApiMeta {
 }
 
 export interface ApiError {
-  detail: string | { msg: string; type: string }[];
+  detail:
+    | string
+    | { msg: string; type: string }[]
+    | { code?: string; message?: string };
 }
 
 export interface User {
@@ -31,6 +34,8 @@ export interface LeagueSummary {
   scoring_type: string;
   roster_positions: string[];
   is_dynasty: boolean;
+  /** False when the league is synced but not in the owner config file. */
+  is_configured?: boolean;
 }
 
 export interface LeagueDetail extends LeagueSummary {
@@ -60,6 +65,8 @@ export interface Roster {
   players: string[];
   starters: string[];
   reserve: string[];
+  manager_name?: string;
+  player_details?: RosterPlayer[];
 }
 
 export interface Matchup {
@@ -122,9 +129,9 @@ export interface LineupRecommendation {
   opponent_mode: OpponentMode;
   starters: RosterPlayer[];
   swaps: LineupSwap[];
-  win_probability: number;
+  win_probability: number | null;
   /** Full matchup probability vector (win/loss/tie) when the API supplies it. */
-  matchup_probabilities: Record<string, number>;
+  matchup_probabilities: Record<string, number | null>;
   points: PointsRange;
   contract_hash?: string;
   meta: ApiMeta;
@@ -209,6 +216,19 @@ export interface DraftBoardEntry {
   rank: number;
   tier?: number;
   vorp?: number;
+  points_mean?: number;
+  replacement_points?: number;
+  replacement_rank?: number;
+}
+
+export interface DraftBoardProfile {
+  league_specific: boolean;
+  team_count?: number;
+  roster_positions: string[];
+  contract_hash?: string;
+  scoring_fidelity?: string;
+  replacement_ranks: Record<string, number>;
+  caveats: string[];
 }
 
 export interface DraftContext {
@@ -224,6 +244,7 @@ export interface DraftBoard {
   league_id: string;
   entries: DraftBoardEntry[];
   context?: DraftContext;
+  profile?: DraftBoardProfile;
   meta: ApiMeta;
 }
 
@@ -287,6 +308,8 @@ export interface SyncResponse {
 export interface OperationsModes {
   /** `fixture` = recorded Sleeper payloads; `live` = the real read-only API. */
   sleeper_source?: "fixture" | "live";
+  projection_source?: string;
+  weekly_rnd_enabled?: boolean;
   /** `trained` | `fallback` | `fixture` — the weekly v2 artifact state. */
   weekly_v2_state?: string;
   weekly_v2_model_version?: string | null;
@@ -296,6 +319,28 @@ export interface OperationsModes {
   by_horizon?: Record<string, string | null>;
 }
 
+export interface CapabilityStatus {
+  capability: string;
+  verdict: string;
+  source: string;
+  detail: string;
+  caveats?: string[];
+}
+
+export interface OperationsProductionPanel {
+  healthy?: boolean;
+  degraded_capabilities?: string[];
+  sealed_release?: CapabilityStatus | null;
+  status_overlay?: CapabilityStatus | null;
+}
+
+export interface OperationsWeeklyRndPanel {
+  healthy?: boolean;
+  state?: string;
+  auto_publish_allowed?: boolean;
+  failed_gates?: string[];
+}
+
 export interface OperationsStatus {
   data_as_of?: string;
   // The API sends `null` when nothing has been recorded yet, and "never synced"
@@ -303,6 +348,13 @@ export interface OperationsStatus {
   last_sync_at?: string | null;
   active_projection_run_id?: string | null;
   modes?: OperationsModes;
+  production?: OperationsProductionPanel;
+  weekly_rnd?: OperationsWeeklyRndPanel;
+  capabilities?: {
+    capabilities: CapabilityStatus[];
+    production_healthy: boolean;
+    weekly_rnd_healthy: boolean;
+  };
   failed_gates: string[];
   estimated_month_cost_usd?: number;
   latest_job?: {

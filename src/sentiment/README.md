@@ -5,6 +5,14 @@ The current `markdown_market_v1` snapshot uses the 32 reviewed summaries in
 `perplexity research/` plus the contemporaneous ECR-versus-ADP gap in
 `data/consensus/consensus_<season>.json`.
 
+Cross-team daily summaries for 2026-08-26 through 2026-08-29 are preserved in
+`perplexity research/daily/` and imported separately into
+`data/sentiment/ledger/legacy_daily_2026.jsonl`. They contain placeholder
+citations rather than recoverable source URLs, so every row is permanently
+`legacy_unverified` and `training_eligible=false`. They do not change the
+active diagnostic snapshot until the daily set is complete and explicitly
+promoted into the diagnostic aggregation.
+
 The score is **relative within position**, after removing observable depth and
 availability structure. `+50` means roughly the 75th percentile of residual
 sentiment for that position; it does not mean a 50% projection increase.
@@ -23,6 +31,9 @@ python -m src.team_stats.prepare --season 2026
 
 # Check whether enough historical snapshots exist to attempt an ablation
 python -m src.sentiment.gate
+
+# Import the dated legacy-unverified daily reports
+python -m src.sentiment.ledger --season 2026 --daily
 ```
 
 `predict --as-of` also attaches the latest eligible sentiment directly. The

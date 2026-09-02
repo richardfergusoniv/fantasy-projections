@@ -98,9 +98,11 @@ def test_release_gate_rejects_small_player_set():
 
 
 @pytest.fixture()
-def client(monkeypatch):
+def client(monkeypatch, tmp_path):
     monkeypatch.setenv("APP_ENV", "test")
     monkeypatch.setenv("APP_ENABLE_DEV_AUTH", "true")
+    monkeypatch.setenv("WEEKLY_V2_MODELS_DIR", str(tmp_path / "empty_models"))
+    monkeypatch.setenv("WEEKLY_V2_OUTPUTS_DIR", str(tmp_path / "empty_outputs"))
     from src.app.config import get_settings
     from src.app.factory import create_app
     from src.app.persistence.database import get_session, init_db

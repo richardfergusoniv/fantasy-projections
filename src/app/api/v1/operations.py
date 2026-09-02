@@ -80,16 +80,18 @@ def _artifact_store_health() -> dict:
     settings = get_settings()
     backend = settings.artifact_backend
     try:
-        if backend != "local":
+        from src.app.artifacts.store import get_artifact_store
+        from src.app.storage.release_bundle import probe_storage_round_trip
+
+        if backend == "s3":
+            probe = probe_storage_round_trip()
             return {
                 "backend": backend,
-                "status": "unknown",
-                "detail": "probe_skipped_remote_backend",
-                "writable": None,
-                "readable": None,
+                "status": probe.get("status", "unknown"),
+                "detail": probe.get("detail", "round_trip"),
+                "writable": probe.get("writable"),
+                "readable": probe.get("readable"),
             }
-        from src.app.artifacts.store import get_artifact_store
-
         store = get_artifact_store()
         uri = store.put_json({"probe": "operations_status"})
         echoed = store.get_json(uri)
@@ -225,8 +227,10 @@ def operations_status(user: AppUser = Depends(get_current_user), db: Session = D
     active_releases_by_league = {league_id: dict(active_releases) for league_id in league_ids}
 
     from src.app.projections.weekly_v2_bridge import weekly_v2_readiness
+    from src.app.readiness.capabilities import build_capability_matrix
 
     readiness = weekly_v2_readiness(season, week)
+    capability_matrix = build_capability_matrix(db, season=season, week=week)
     artifact_store = _artifact_store_health()
     scheduler = _scheduler_health(db, now)
 
@@ -270,6 +274,7 @@ def operations_status(user: AppUser = Depends(get_current_user), db: Session = D
             "name": "weekly_v2_artifacts",
             "status": "healthy" if readiness.is_trained else "degraded",
             "detail": readiness.state,
+            "panel": "weekly_rnd",
         },
         {
             "name": "assistant_llm",
@@ -292,13 +297,36 @@ def operations_status(user: AppUser = Depends(get_current_user), db: Session = D
         "modes": {
             # Fixture data must never be mistakable for live league data.
             "sleeper_source": settings.sleeper_mode,
+            "projection_source": settings.app_projection_source,
+            "weekly_rnd_enabled": settings.weekly_rnd_enabled,
             "weekly_v2_state": readiness.state,
             "weekly_v2_model_version": readiness.model_version,
             "weekly_v2_manifest_uri": readiness.manifest_uri,
             "weekly_v2_reasons": list(readiness.reasons),
-            "auto_publish_allowed": readiness.is_trained,
+            "auto_publish_allowed": readiness.auto_publish_allowed,
             "by_horizon": modes_by_horizon,
         },
+        "production": {
+            "healthy": capability_matrix.production_healthy,
+            "degraded_capabilities": list(capability_matrix.production_degraded),
+            "sealed_release": (
+                capability_matrix.by_name()["sealed_season_projection_source"].to_dict()
+                if "sealed_season_projection_source" in capability_matrix.by_name()
+                else None
+            ),
+            "status_overlay": (
+                capability_matrix.by_name()["daily_injury_depth_adjustments"].to_dict()
+                if "daily_injury_depth_adjustments" in capability_matrix.by_name()
+                else None
+            ),
+        },
+        "weekly_rnd": {
+            "healthy": capability_matrix.weekly_rnd_healthy,
+            "state": readiness.state,
+            "auto_publish_allowed": readiness.auto_publish_allowed,
+            "failed_gates": list(readiness.reasons),
+        },
+        "capabilities": capability_matrix.to_dict(),
         "jobs": {
             "latest": _job_payload(latest_job),
             "last_successful": _job_payload(last_successful_job),

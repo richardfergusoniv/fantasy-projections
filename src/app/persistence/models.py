@@ -482,6 +482,129 @@ class PromotionEvent(Base):
     )
 
 
+class ReleasePointer(Base):
+    """Active sealed-release pointer (replaces filesystem active_release_{season}.json)."""
+
+    __tablename__ = "release_pointer"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    season: Mapped[int] = mapped_column(Integer, nullable=False, unique=True, index=True)
+    namespace: Mapped[str] = mapped_column(String(128), nullable=False)
+    release_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    manifest_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    manifest_storage_uri: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="active", server_default="active"
+    )
+    pointer_json: Mapped[dict] = mapped_column(
+        JSON, default=dict, server_default=_JSON_OBJECT_DEFAULT
+    )
+    activated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+
+class ReleasePointerHistory(Base):
+    __tablename__ = "release_pointer_history"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    season: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    pointer_json: Mapped[dict] = mapped_column(
+        JSON, default=dict, server_default=_JSON_OBJECT_DEFAULT
+    )
+    reason: Mapped[str] = mapped_column(String(64), nullable=False, default="promote")
+    activated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+
+class StatusOverlayPointer(Base):
+    """Active status-overlay pointer (replaces filesystem active_status_overlay_{season}.json)."""
+
+    __tablename__ = "status_overlay_pointer"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    season: Mapped[int] = mapped_column(Integer, nullable=False, unique=True, index=True)
+    overlay_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    base_release_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    base_manifest_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    artifact_uri: Mapped[str] = mapped_column(Text, nullable=False)
+    adjustment_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    algorithm_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    pointer_json: Mapped[dict] = mapped_column(
+        JSON, default=dict, server_default=_JSON_OBJECT_DEFAULT
+    )
+    activated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+
+class StatusOverlayPointerHistory(Base):
+    __tablename__ = "status_overlay_pointer_history"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    season: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    pointer_json: Mapped[dict] = mapped_column(
+        JSON, default=dict, server_default=_JSON_OBJECT_DEFAULT
+    )
+    reason: Mapped[str] = mapped_column(String(64), nullable=False, default="promote")
+    activated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+
+class JobLease(Base):
+    """Durable job lock replacing PostgreSQL advisory locks (pooler-safe)."""
+
+    __tablename__ = "job_lease"
+
+    job_name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    holder_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    lease_until: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+
+class JobOutbox(Base):
+    """Durable scheduled-job queue with idempotent slot keys."""
+
+    __tablename__ = "job_outbox"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    job_name: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    status: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="queued", server_default="queued"
+    )
+    holder_id: Mapped[str | None] = mapped_column(String(64))
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempt: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    error: Mapped[str | None] = mapped_column(Text)
+    metadata_json: Mapped[dict] = mapped_column(
+        JSON, default=dict, server_default=_JSON_OBJECT_DEFAULT
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+
+class RateLimitBucket(Base):
+    """Shared rate-limit counters (replaces in-memory limiter on serverless)."""
+
+    __tablename__ = "rate_limit_bucket"
+
+    bucket_key: Mapped[str] = mapped_column(String(256), primary_key=True)
+    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    event_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, server_default=func.now()
+    )
+
+
 class AssistantAudit(Base):
     __tablename__ = "assistant_audit"
 

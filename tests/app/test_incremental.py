@@ -22,7 +22,7 @@ def test_build_impact_set_expands_teammates():
     assert impact.affected_teams == frozenset({"KC"})
 
 
-def test_incremental_promotion_updates_active_pointer(db_session: Session):
+def test_incremental_promotion_updates_active_pointer(db_session: Session, monkeypatch, tmp_path):
     from src.app.availability.service import AvailabilityService
     from src.app.persistence.models import SourceSnapshot
     from src.app.projections.loader import ReleaseBundleLoader
@@ -31,9 +31,12 @@ def test_incremental_promotion_updates_active_pointer(db_session: Session):
     from src.app.releases.incremental import IncrementalSimulationService, build_impact_set
     from src.app.persistence.repositories import ProjectionRepository
 
+    monkeypatch.setenv("WEEKLY_V2_MODELS_DIR", str(tmp_path / "empty_models"))
+    monkeypatch.setenv("WEEKLY_V2_OUTPUTS_DIR", str(tmp_path / "empty_outputs"))
+
     if ReleaseBridge(db_session).sync_preseason_pointer(2026) is None:
         pytest.skip("no active release bundle")
-    weekly_run_id = WeeklyProjectionService(db_session).promote_week(2026, week=1)
+    weekly_run_id = WeeklyProjectionService(db_session).promote_week(2026, week=1, automatic=False)
     assert weekly_run_id
 
     snapshot = SourceSnapshot(

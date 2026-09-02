@@ -59,6 +59,27 @@ export interface ApiClientOptions {
 
 type RawRecord = Record<string, unknown>;
 
+function formatApiErrorDetail(detail: ApiError["detail"] | undefined): string | undefined {
+  if (detail == null) {
+    return undefined;
+  }
+  if (typeof detail === "string") {
+    return detail;
+  }
+  if (Array.isArray(detail)) {
+    return detail.map((entry) => entry.msg).join(", ");
+  }
+  if (typeof detail === "object") {
+    if (typeof detail.message === "string" && detail.message) {
+      return detail.message;
+    }
+    if (typeof detail.code === "string" && detail.code) {
+      return detail.code;
+    }
+  }
+  return undefined;
+}
+
 /** Called whenever the API rejects a request because the session is gone. */
 export type UnauthorizedListener = () => void;
 
@@ -139,11 +160,7 @@ export class ApiClient {
         }
       }
       throw new ApiClientError(
-        body?.detail
-          ? typeof body.detail === "string"
-            ? body.detail
-            : body.detail.map((d) => d.msg).join(", ")
-          : response.statusText,
+        formatApiErrorDetail(body?.detail) ?? response.statusText,
         response.status,
         body,
       );
@@ -199,8 +216,13 @@ export class ApiClient {
     return this.request(`/jobs/${jobId}`);
   }
 
-  getLeagues(): Promise<LeagueSummary[]> {
-    return this.request<RawRecord>("/leagues").then(adaptLeagues);
+  getLeagues(): Promise<{ leagues: LeagueSummary[]; configuredLeagueIds: string[] }> {
+    return this.request<RawRecord>("/leagues").then((raw) => ({
+      leagues: adaptLeagues(raw),
+      configuredLeagueIds: Array.isArray(raw.configured_league_ids)
+        ? raw.configured_league_ids.map(String)
+        : [],
+    }));
   }
 
   getLeague(leagueId: string): Promise<LeagueDetail> {
@@ -296,11 +318,46 @@ export class ApiClient {
           rank: Number(row.rank ?? index + 1),
           tier: row.tier != null ? Number(row.tier) : undefined,
           vorp: row.vorp != null ? Number(row.vorp) : undefined,
+          points_mean: row.points_mean != null ? Number(row.points_mean) : undefined,
+          replacement_points:
+            row.replacement_points != null ? Number(row.replacement_points) : undefined,
+          replacement_rank:
+            row.replacement_rank != null ? Number(row.replacement_rank) : undefined,
         }),
       );
+      const rawContext = raw.context as RawRecord | undefined;
       return {
         league_id: leagueId,
         entries,
+        context: rawContext
+          ? ({
+              draft_status: String(rawContext.draft_status ?? "preseason"),
+              draft_id: rawContext.draft_id != null ? String(rawContext.draft_id) : null,
+              season: rawContext.season != null ? Number(rawContext.season) : undefined,
+              nfl_week: rawContext.nfl_week != null ? Number(rawContext.nfl_week) : undefined,
+              current_pick:
+                rawContext.current_pick != null ? Number(rawContext.current_pick) : null,
+              on_clock_roster_id:
+                rawContext.on_clock_roster_id != null
+                  ? Number(rawContext.on_clock_roster_id)
+                  : null,
+            } as DraftBoard["context"])
+          : undefined,
+        profile: {
+          league_specific: Boolean(board.league_specific),
+          team_count: board.team_count != null ? Number(board.team_count) : undefined,
+          roster_positions: ((board.roster_positions as unknown[]) ?? []).map(String),
+          contract_hash: board.contract_hash ? String(board.contract_hash) : undefined,
+          scoring_fidelity: board.scoring_fidelity
+            ? String(board.scoring_fidelity)
+            : undefined,
+          replacement_ranks: Object.fromEntries(
+            Object.entries((board.replacement_ranks as RawRecord | undefined) ?? {}).map(
+              ([position, rank]) => [position, Number(rank)],
+            ),
+          ),
+          caveats: ((board.caveats as unknown[]) ?? []).map(String),
+        },
         meta: {
           data_as_of: String(board.data_as_of ?? raw.data_as_of ?? new Date().toISOString()),
           projection_run_id: String(board.projection_run_id ?? raw.projection_run_id ?? "fixture"),

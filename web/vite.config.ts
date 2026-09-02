@@ -55,13 +55,28 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    allowedHosts: [".trycloudflare.com"],
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:8000",
+        target: `http://127.0.0.1:${process.env.API_PROXY_PORT ?? "8000"}`,
         changeOrigin: true,
       },
       "/health": {
-        target: "http://127.0.0.1:8000",
+        target: `http://127.0.0.1:${process.env.API_PROXY_PORT ?? "8000"}`,
+        changeOrigin: true,
+      },
+    },
+  },
+  preview: {
+    port: 5173,
+    allowedHosts: [".trycloudflare.com"],
+    proxy: {
+      "/api": {
+        target: `http://127.0.0.1:${process.env.API_PROXY_PORT ?? "8000"}`,
+        changeOrigin: true,
+      },
+      "/health": {
+        target: `http://127.0.0.1:${process.env.API_PROXY_PORT ?? "8000"}`,
         changeOrigin: true,
       },
     },

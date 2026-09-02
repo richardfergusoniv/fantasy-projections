@@ -12,9 +12,14 @@ import type { LeagueSummary, Roster } from "../api/types";
 
 const LEAGUE_KEY = "fantasy-decisions:selected-league";
 const WEEK_KEY = "fantasy-decisions:selected-week";
+const SHOW_ALL_LEAGUES_KEY = "fantasy-decisions:show-all-leagues";
 
 interface AppStateValue {
   leagues: LeagueSummary[];
+  visibleLeagues: LeagueSummary[];
+  configuredLeagueIds: string[];
+  showAllLeagues: boolean;
+  setShowAllLeagues: (show: boolean) => void;
   selectedLeague: LeagueSummary | null;
   selectedLeagueId: string | null;
   selectLeague: (leagueId: string) => void;
@@ -62,6 +67,10 @@ function readStoredWeek(leagueId: string | null): number | null {
  */
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [leagues, setLeagues] = useState<LeagueSummary[]>([]);
+  const [configuredLeagueIds, setConfiguredLeagueIds] = useState<string[]>([]);
+  const [showAllLeagues, setShowAllLeaguesState] = useState<boolean>(
+    () => localStorage.getItem(SHOW_ALL_LEAGUES_KEY) === "true",
+  );
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(() =>
     localStorage.getItem(LEAGUE_KEY),
   );
@@ -82,17 +91,29 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setWeekOverride(readStoredWeek(leagueId));
   }, []);
 
+  const setShowAllLeagues = useCallback((show: boolean) => {
+    setShowAllLeaguesState(show);
+    localStorage.setItem(SHOW_ALL_LEAGUES_KEY, show ? "true" : "false");
+  }, []);
+
   const refreshLeagues = useCallback(async () => {
     setLeaguesLoading(true);
     setLeaguesError(null);
     try {
-      const items = await api.getLeagues();
+      const { leagues: items, configuredLeagueIds: configured } = await api.getLeagues();
       setLeagues(items);
+      setConfiguredLeagueIds(configured);
       setSelectedLeagueId((current) => {
         if (current && items.some((league) => league.id === current)) {
           return current;
         }
-        const next = items[0]?.id ?? null;
+        const configuredSet = new Set(configured);
+        const hasConfiguredOverlap =
+          configured.length > 0 && items.some((league) => configuredSet.has(league.id));
+        const preferred = hasConfiguredOverlap
+          ? items.filter((league) => configuredSet.has(league.id))
+          : items;
+        const next = preferred[0]?.id ?? null;
         if (next) {
           localStorage.setItem(LEAGUE_KEY, next);
         }
@@ -159,12 +180,27 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [selectedLeagueId],
   );
 
+  const visibleLeagues = useMemo(() => {
+    const configuredSet = new Set(configuredLeagueIds);
+    const hasConfiguredOverlap =
+      configuredLeagueIds.length > 0 &&
+      leagues.some((league) => configuredSet.has(league.id));
+    if (showAllLeagues || !hasConfiguredOverlap) {
+      return leagues;
+    }
+    return leagues.filter((league) => configuredSet.has(league.id));
+  }, [configuredLeagueIds, leagues, showAllLeagues]);
+
   const selectedLeague =
     leagues.find((league) => league.id === selectedLeagueId) ?? null;
 
   const value = useMemo<AppStateValue>(
     () => ({
       leagues,
+      visibleLeagues,
+      configuredLeagueIds,
+      showAllLeagues,
+      setShowAllLeagues,
       selectedLeague,
       selectedLeagueId,
       selectLeague,
@@ -182,6 +218,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }),
     [
       availableWeeks,
+      configuredLeagueIds,
       leagues,
       leaguesError,
       leaguesLoading,
@@ -192,7 +229,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       selectLeague,
       selectedLeague,
       selectedLeagueId,
+      setShowAllLeagues,
       setWeek,
+      showAllLeagues,
+      visibleLeagues,
       week,
       weekOverride,
     ],

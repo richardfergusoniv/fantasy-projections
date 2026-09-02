@@ -22,6 +22,11 @@ from fastapi.testclient import TestClient
 os.environ.setdefault("APP_ENV", "test")
 os.environ.setdefault("APP_ENABLE_DEV_AUTH", "true")
 os.environ.setdefault("TEST_DATABASE_URL", "sqlite+pysqlite:///:memory:?cache=shared")
+os.environ.setdefault("TRUSTED_HOSTS", "testserver,localhost,127.0.0.1,*")
+os.environ.setdefault("APP_ALLOWED_EMAIL", "owner@example.com")
+os.environ.setdefault("EMAIL_PROVIDER", "development")
+os.environ.setdefault("SLEEPER_USE_FIXTURES", "true")
+os.environ.setdefault("INJURY_RESEARCH_MODE", "fixture")
 
 Failure = tuple[str, str]
 

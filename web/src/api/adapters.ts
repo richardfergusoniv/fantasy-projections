@@ -78,6 +78,7 @@ export function adaptLeagues(raw: RawRecord): LeagueSummary[] {
     scoring_type: String(league.scoring_type ?? league.type ?? "standard"),
     roster_positions: (league.roster_positions as string[]) ?? [],
     is_dynasty: Boolean(league.is_dynasty ?? league.type === "dynasty"),
+    is_configured: league.is_configured !== false,
   }));
 }
 
@@ -97,13 +98,21 @@ export function adaptRosters(raw: RawRecord): Roster[] {
     players: ((roster.players as unknown[]) ?? []).map(String).filter(Boolean),
     starters: ((roster.starters as unknown[]) ?? []).map(String).filter(Boolean),
     reserve: ((roster.reserve as unknown[]) ?? []).map(String).filter(Boolean),
+    manager_name: roster.manager_name ? String(roster.manager_name) : undefined,
+    player_details: ((roster.player_details as RawRecord[] | undefined) ?? []).map((player) => ({
+      player_id: String(player.player_id),
+      name: String(player.name ?? player.player_id),
+      position: String(player.position ?? "FLEX"),
+      team: player.team ? String(player.team) : undefined,
+    })),
   }));
 }
 
 export function adaptLineup(raw: RawRecord): LineupRecommendation {
   const meta = metaFrom(raw);
   const swaps = (raw.swaps as RawRecord[] | undefined) ?? [];
-  const probabilities = (raw.matchup_probabilities as Record<string, number> | undefined) ?? {};
+  const probabilities = (raw.matchup_probabilities as Record<string, unknown> | undefined) ?? {};
+  const matchupAllowed = raw.matchup_win_probability_available !== false;
   return {
     week: Number(raw.week),
     opponent_mode: (raw.opponent_mode as LineupRecommendation["opponent_mode"]) ?? "current",
@@ -114,8 +123,14 @@ export function adaptLineup(raw: RawRecord): LineupRecommendation {
       win_probability_delta: Number(swap.win_probability_delta ?? swap.win_probability_gain ?? 0),
       reason: String(swap.reason ?? `Start ${swap.add} over ${swap.drop}`),
     })),
-    win_probability: Number(raw.win_probability ?? probabilities.win ?? 0.5),
-    matchup_probabilities: probabilities,
+    win_probability: matchupAllowed
+      ? numberOrNull(raw.win_probability ?? probabilities.win)
+      : null,
+    matchup_probabilities: {
+      win: numberOrNull(probabilities.win),
+      tie: numberOrNull(probabilities.tie),
+      loss: numberOrNull(probabilities.loss),
+    },
     points: pointsRangeFrom(raw),
     contract_hash: raw.contract_hash ? String(raw.contract_hash) : undefined,
     meta,

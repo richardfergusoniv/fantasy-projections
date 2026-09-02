@@ -23,16 +23,23 @@ callers because it changes what the league scoring contract can express:
 
 Randomness
 ----------
-Each player is sampled from its own generator seeded by a stable digest of
-(player id, run id, week, salt). Consequences:
+**Legacy / fallback modes** (``legacy_points_independent``,
+``legacy_scaled_components``): each player is sampled from its own generator
+seeded by a stable digest of (player id, run id, week, salt). Consequences:
 
 * Results are reproducible for a given projection run.
 * Players are drawn **independently**, so a draw index is a joint sample across
   the roster rather than a shared percentile. Perfectly correlated percentile
   draws would make every matchup probability collapse to 0 or 1.
-* Independence is an explicit modelling assumption. There is no team-level
-  correlation (game environment, QB/WR stacking) in this layer; see
-  ``docs/PRODUCTION_READINESS_AUDIT.md`` for that limitation.
+* Independence is an explicit modelling assumption for these legacy modes.
+  There is no team-level correlation (game environment, QB/WR stacking) in this
+  layer for legacy/fallback; see ``docs/PRODUCTION_READINESS_AUDIT.md``.
+
+**Joint mixture modes** (``joint_stat_mixture_candidate``,
+``joint_stat_mixture_validated``): component-stat draws are loaded from an
+immutable game-level partition with a shared simulation index. Teammate and
+opponent outcomes are correlated by construction. Callers must not reseed
+independently per API request when a joint partition is attached.
 """
 
 from __future__ import annotations
@@ -46,7 +53,16 @@ import numpy as np
 from src.app.scoring.compiler import score_stat_draw
 from src.app.scoring.contract import ScoringContract
 
-DrawMode = Literal["stat_level", "baseline_points_only", "actual", "mixed"]
+DrawMode = Literal[
+    "stat_level",
+    "baseline_points_only",
+    "actual",
+    "mixed",
+    "legacy_points_independent",
+    "legacy_scaled_components",
+    "joint_stat_mixture_candidate",
+    "joint_stat_mixture_validated",
+]
 
 #: Draw count for interactive decisions. The 10,000-draw profile in
 #: ``Settings.simulation_draw_count`` remains the publish-time profile; decision

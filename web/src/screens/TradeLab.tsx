@@ -16,12 +16,14 @@ function PlayerPicker({
   selected,
   onToggle,
   emptyMessage,
+  playerLabels,
 }: {
   legend: string;
   players: string[];
   selected: string[];
   onToggle: (playerId: string) => void;
   emptyMessage: string;
+  playerLabels: Map<string, string>;
 }) {
   if (players.length === 0) {
     return (
@@ -37,6 +39,7 @@ function PlayerPicker({
       <div className="player-options">
         {players.map((playerId) => {
           const id = `${legend.replace(/\W+/g, "-").toLowerCase()}-${playerId}`;
+          const label = playerLabels.get(playerId) ?? playerId;
           return (
             <div key={playerId} className="player-option">
               <input
@@ -45,7 +48,7 @@ function PlayerPicker({
                 checked={selected.includes(playerId)}
                 onChange={() => onToggle(playerId)}
               />
-              <label htmlFor={id}>{playerId}</label>
+              <label htmlFor={id}>{label}</label>
             </div>
           );
         })}
@@ -92,6 +95,25 @@ export function TradeLabScreen() {
 
   const sideAPool = playersFor(sideARosterId);
   const sideBPool = playersFor(sideBRosterId);
+
+  const playerLabels = useMemo(() => {
+    const labels = new Map<string, string>();
+    for (const roster of rosters) {
+      for (const player of roster.player_details ?? []) {
+        const position = player.position ? ` (${player.position})` : "";
+        labels.set(player.player_id, `${player.name}${position}`);
+      }
+    }
+    return labels;
+  }, [rosters]);
+
+  const managerLabel = (rosterId: number) => {
+    const roster = rosters.find((row) => row.roster_id === rosterId);
+    if (roster?.manager_name) {
+      return `${roster.manager_name} (Roster ${rosterId})`;
+    }
+    return `Roster ${rosterId}`;
+  };
 
   const canEvaluate =
     Boolean(selectedLeagueId) &&
@@ -156,7 +178,7 @@ export function TradeLabScreen() {
               {rosterIds.length === 0 ? <option value="">No rosters</option> : null}
               {rosterIds.map((id) => (
                 <option key={id} value={id}>
-                  Roster {id}
+                  {managerLabel(id)}
                 </option>
               ))}
             </select>
@@ -174,6 +196,7 @@ export function TradeLabScreen() {
               )
             }
             emptyMessage="This roster snapshot has no players."
+            playerLabels={playerLabels}
           />
 
           <div className="field">
@@ -190,7 +213,7 @@ export function TradeLabScreen() {
               {rosterIds.length === 0 ? <option value="">No rosters</option> : null}
               {rosterIds.map((id) => (
                 <option key={id} value={id}>
-                  Roster {id}
+                  {managerLabel(id)}
                 </option>
               ))}
             </select>
@@ -208,6 +231,7 @@ export function TradeLabScreen() {
               )
             }
             emptyMessage="This roster snapshot has no players."
+            playerLabels={playerLabels}
           />
 
           <div className="field">

@@ -132,7 +132,35 @@ def build_active_pointer(
     return validate_active_pointer(payload, season=season)
 
 
-def read_active_pointer(season: int) -> dict[str, Any] | None:
+def read_active_pointer(season: int, *, session: Any | None = None) -> dict[str, Any] | None:
+    """Read the active release pointer from DB (preferred) or local filesystem."""
+    from src.app.config import get_settings
+
+    if session is not None:
+        from src.app.persistence.release_pointers import ReleasePointerStore
+
+        return ReleasePointerStore(session).read(season)
+
+    settings = get_settings()
+    if settings.app_env == "test":
+        path = pointer_path(season)
+        if not path.exists():
+            return None
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise ActiveReleaseError(f"active pointer is not valid JSON: {exc}") from exc
+        return validate_active_pointer(payload, season=season)
+
+    from src.app.persistence.release_pointers import try_db_read_release_pointer
+
+    db_pointer = try_db_read_release_pointer(season)
+    if db_pointer is not None:
+        return db_pointer
+
+    if settings.app_env == "production":
+        return None
+
     path = pointer_path(season)
     if not path.exists():
         return None
@@ -159,9 +187,26 @@ def atomic_write_json(path: Path, payload: Mapping[str, Any]) -> None:
         raise
 
 
-def write_active_pointer(payload: Mapping[str, Any]) -> Path:
+def write_active_pointer(payload: Mapping[str, Any], *, session: Any | None = None) -> Path:
+    from src.app.config import get_settings
+
     pointer = validate_active_pointer(payload)
-    dest = pointer_path(int(pointer["season"]))
+    season = int(pointer["season"])
+
+    if session is not None:
+        from src.app.persistence.release_pointers import ReleasePointerStore
+
+        ReleasePointerStore(session).write(pointer)
+    else:
+        from src.app.persistence.release_pointers import try_db_write_release_pointer
+
+        try_db_write_release_pointer(pointer)
+
+    settings = get_settings()
+    if settings.app_env == "production":
+        return pointer_path(season)
+
+    dest = pointer_path(season)
     atomic_write_json(dest, pointer)
     return dest
 

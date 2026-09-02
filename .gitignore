@@ -112,5 +112,20 @@ output/model_v3/simulation_summary_recentered_*.csv
 # content-addressed snapshots and release payloads written by running the app,
 # jobs, and tests. Regenerable, and the database holds the URIs that address
 # them, so they are runtime state rather than source.
+# Live Sleeper owner configuration (real league IDs and dynasty rules).
+config/sleeper_owner.json
+config/sleeper_owner.*.json
+!config/sleeper_owner.example.json
+config/phone_access.secrets.json
+
+# Live shadow sync working state (isolated DB, artifacts, reports).
+output/live_shadow/
+
+# Local shadow sync / eval scratch output
+_eval_*.txt
+_pytest_*.txt
+baseline_pytest.txt
+curl_cookies.txt
+backups/
 output/app_artifacts/
-requirements-audit.txt
+

@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from typing import Literal
 from urllib.parse import urlparse
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 
 DEFAULT_SECRET_KEY = "dev-only-change-me"
 DEFAULT_ALLOWED_EMAIL = "owner@example.com"
@@ -50,7 +51,15 @@ class Settings(BaseSettings):
     trusted_hosts: str = "*"
 
     database_url: str = "postgresql+psycopg://fantasy:fantasy@localhost:5432/fantasy_app"
+    job_database_url: str | None = None
+    migration_database_url: str | None = None
     test_database_url: str = "sqlite+pysqlite:///:memory:?cache=shared"
+
+    cron_secret: str | None = None
+    expected_alembic_revision: str | None = None
+    alert_email_to: str | None = None
+    long_jobs_external: bool = False
+    sleeper_owner_json: str | None = None
 
     artifact_backend: Literal["local", "s3"] = "local"
     artifact_local_root: str = "output/app_artifacts"
@@ -62,6 +71,7 @@ class Settings(BaseSettings):
 
     sleeper_username: str | None = None
     sleeper_user_id: str | None = None
+    sleeper_owner_config: str | None = None
     #: Explicit override for the Sleeper data source. ``None`` means "derive
     #: from APP_ENV". Making it settable means an operator can run the real
     #: read-only API from a staging environment, and — more importantly — that
@@ -95,6 +105,28 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_json: bool = True
 
+    #: Default projection source: sealed_release | status_adjusted_release | weekly_v2_rnd
+    app_projection_source: str = "sealed_release"
+    #: Explicit opt-in for weekly-v2 R&D source (never selected by default).
+    weekly_rnd_enabled: bool = False
+    #: Enable automatic status-overlay publication after gate passes.
+    status_overlay_auto_publish: bool = True
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        # Tests must never inherit developer .env values; only explicit env vars and
+        # constructor kwargs apply when APP_ENV=test.
+        if os.getenv("APP_ENV") == "test":
+            return (init_settings, env_settings, file_secret_settings)
+        return (init_settings, env_settings, dotenv_settings, file_secret_settings)
+
     @field_validator("sleeper_use_fixtures", mode="before")
     @classmethod
     def _blank_is_unset(cls, value: object) -> object:
@@ -126,6 +158,17 @@ class Settings(BaseSettings):
         if self.app_env == "test":
             return self.test_database_url
         return self.database_url
+
+    @property
+    def sqlalchemy_job_url(self) -> str:
+        if self.app_env == "test":
+            return self.test_database_url
+        return self.job_database_url or self.database_url
+
+    @property
+    def use_serverless_db_pool(self) -> bool:
+        url = self.sqlalchemy_url.lower()
+        return "pooler" in url or "pgbouncer=true" in url
 
     @property
     def use_sleeper_fixtures(self) -> bool:
@@ -214,6 +257,12 @@ class Settings(BaseSettings):
             ):
                 if not value:
                     problems.append(f"{name} is required when ARTIFACT_BACKEND='s3'")
+
+        if not self.cron_secret:
+            problems.append("CRON_SECRET is required in production for scheduled job endpoints")
+
+        if self.long_jobs_external and not self.job_database_url:
+            problems.append("JOB_DATABASE_URL is required when LONG_JOBS_EXTERNAL=true")
 
         return problems
 
