@@ -8,9 +8,14 @@
 #   Direct `db.<project-ref>.supabase.co:5432` is IPv6-only and fails on GitHub runners.
 #
 # Production job runner (`.github/workflows/production-jobs.yml`):
-# Uses `vercel env run -e production` with the existing `VERCEL_*` secrets to inject
-# decrypted production env vars in CI (Vercel `env pull` cannot export sensitive values).
-# No additional secrets required beyond the deploy pipeline tokens.
+# - PRODUCTION_JOB_ENV — multiline env block for long-running scheduled jobs.
+#   Vercel marks production values as **Secret**; neither `vercel env pull` nor
+#   `vercel env run` can decrypt them in GitHub Actions (values become empty or
+#   `[SENSITIVE]`). One-time setup:
+#     1. Copy `.env.production.jobs.example` → `.env.production.jobs`
+#     2. Fill values from the Vercel production dashboard
+#     3. Run `pwsh scripts/set_production_job_env_secret.ps1`
+#
 # Optional runtime verification secrets:
 # - DATABASE_URL (transaction pooler for app)
 # - JOB_DATABASE_URL (session pooler for jobs)

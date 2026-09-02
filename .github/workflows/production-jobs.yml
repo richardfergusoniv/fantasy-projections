@@ -31,22 +31,22 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --extra jobs
 
-      - name: Install Vercel CLI
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: npm install -g vercel@latest
-
-      - name: Pull Vercel project settings
+      - name: Load production job environment
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          PRODUCTION_JOB_ENV: ${{ secrets.PRODUCTION_JOB_ENV }}
+        run: |
+          if [ -z "${PRODUCTION_JOB_ENV}" ]; then
+            echo "PRODUCTION_JOB_ENV is not set on the production GitHub environment."
+            echo "Run scripts/set_production_job_env_secret.ps1 locally once (see docs/GITHUB_PRODUCTION_SECRETS.md)."
+            exit 1
+          fi
+          printf '%s\n' "${PRODUCTION_JOB_ENV}" > .env.production.local
 
       - name: Run due production jobs
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          vercel env run -e production --token=${{ secrets.VERCEL_TOKEN }} -- \
-            bash scripts/run_production_jobs.sh
+          set -a
+          # shellcheck disable=SC1091
+          source .env.production.local
+          set +a
+          export LONG_JOBS_EXTERNAL=false
+          uv run python -m src.app.jobs.scheduler run-due
