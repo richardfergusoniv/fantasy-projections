@@ -8,25 +8,9 @@
 #   Direct `db.<project-ref>.supabase.co:5432` is IPv6-only and fails on GitHub runners.
 #
 # Production job runner (`.github/workflows/production-jobs.yml`):
-# - PRODUCTION_JOB_ENV — multiline env block copied from the Vercel production dashboard
-#   (or a local production `.env` used for the first daily refresh). Must include at least:
-#   APP_ENV=production
-#   APP_SECRET_KEY=...
-#   DATABASE_URL=postgresql+psycopg://fantasy_app_runtime...:6543/postgres
-#   JOB_DATABASE_URL=postgresql+psycopg://fantasy_app_runtime...:5432/postgres
-#   ARTIFACT_BACKEND=s3
-#   S3_ENDPOINT_URL=...
-#   S3_BUCKET=fantasy-app
-#   S3_ACCESS_KEY_ID=...
-#   S3_SECRET_ACCESS_KEY=...
-#   SLEEPER_USER_ID=...
-#   SLEEPER_USERNAME=...
-#   SLEEPER_USE_FIXTURES=false
-#   WEEKLY_RND_ENABLED=false
-#   STATUS_OVERLAY_AUTO_PUBLISH=true
-#   Note: `vercel env pull` cannot export sensitive Vercel secrets into CI (values become
-#   `[SENSITIVE]`); paste the runtime block into this GitHub secret instead.
-#
+# Uses `vercel env run -e production` with the existing `VERCEL_*` secrets to inject
+# decrypted production env vars in CI (Vercel `env pull` cannot export sensitive values).
+# No additional secrets required beyond the deploy pipeline tokens.
 # Optional runtime verification secrets:
 # - DATABASE_URL (transaction pooler for app)
 # - JOB_DATABASE_URL (session pooler for jobs)
