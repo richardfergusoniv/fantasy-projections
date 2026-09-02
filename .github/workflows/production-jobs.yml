@@ -31,19 +31,16 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --extra jobs
 
-      - name: Install Vercel CLI
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - run: npm install -g vercel@latest
-
-      - name: Pull production environment
+      - name: Load production job environment
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          PRODUCTION_JOB_ENV: ${{ secrets.PRODUCTION_JOB_ENV }}
         run: |
-          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          vercel env pull .env.production.local --environment=production --yes --token=${{ secrets.VERCEL_TOKEN }}
+          if [ -z "${PRODUCTION_JOB_ENV}" ]; then
+            echo "PRODUCTION_JOB_ENV is not set on the production GitHub environment."
+            echo "Add a multiline secret with APP_ENV=production, JOB_DATABASE_URL, DATABASE_URL, S3_*, SLEEPER_USER_ID, APP_SECRET_KEY, and related runtime vars."
+            exit 1
+          fi
+          printf '%s\n' "${PRODUCTION_JOB_ENV}" > .env.production.local
 
       - name: Run due production jobs
         run: |

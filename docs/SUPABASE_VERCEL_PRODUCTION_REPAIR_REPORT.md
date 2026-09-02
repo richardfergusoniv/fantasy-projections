@@ -18,7 +18,7 @@ Generated: 2026-09-02 (repair session)
 | Security roles | **GO** | `fantasy_app_migrator` + `fantasy_app_runtime`; both `BYPASSRLS`. |
 | Release pointer | **GO** | `release_pointer` row for 2026 with `manifest_storage_uri`. |
 | Status overlay pointer | **GO** | Job `6a77ce84`; overlay `f77a20fe…` promoted (13 adjustments). |
-| Supabase cron | **GO** | Three `fantasy-run-due*` jobs active; `fantasy-process-outbox` every 10 min (apply `supabase/cron/process_outbox.sql`). Vault `production_app_url` → xi deployment. Long jobs run via GitHub Actions `production-jobs.yml` (every 15 min). Vercel `LONG_JOBS_EXTERNAL=true` for enqueue-only cron. |
+| Supabase cron | **GO** | Four `fantasy-*` jobs active (`run-due` ×3 + `process-outbox` every 10 min). GitHub Actions `production-jobs.yml` runs long jobs when `PRODUCTION_JOB_ENV` secret is set. |
 | Vercel deployment (xi alias) | **GO** | `https://fantasy-projections-xi.vercel.app`: `/health/live` 200; `/health/ready` 200 with `release_pointer: true`, `overlay_pointer: true`, `last_daily_refresh_ok: true`. |
 | Vercel deployment (canonical) | **NO-GO** | `https://fantasy-projections.vercel.app`: legacy app; `/health/live` 404. Domain not under `rdfergus15` team (`vercel domains ls` → 0 domains). Manual transfer from legacy project required. |
 | First production daily refresh | **GO** | Job `6a77ce84` succeeded 2026-09-02T05:06:24Z; 6 leagues, live Sleeper, overlay promoted. |
@@ -72,7 +72,7 @@ Vercel prebuilt deploy referenced `.env.production.example` at repo root. `.verc
    - `vercel alias set <deployment> fantasy-projections.vercel.app` returns **"already in use"** (2026-09-02).
    - The alias is not visible under the `rdfergus15` team (`vercel domains ls` → 0 domains).
    - **Manual steps:** sign in at vercel.com → locate the old `fantasy-projections` project (likely personal account / legacy Next.js) → Settings → Domains → remove `fantasy-projections.vercel.app` → on `rdfergus15/fantasy-projections` → Settings → Domains → add `fantasy-projections.vercel.app` → update Supabase Vault `production_app_url` and Vercel `APP_PUBLIC_URL` / `TRUSTED_HOSTS`.
-2. **Apply** `supabase/cron/process_outbox.sql` in production (if not yet applied).
+2. **Add** `PRODUCTION_JOB_ENV` multiline secret to GitHub Production environment (see `docs/GITHUB_PRODUCTION_SECRETS.md`). Required for long-job execution via `production-jobs.yml`; `vercel env pull` redacts sensitive values in CI.
 3. **Pre-repair `pg_dump -Fc`** not captured locally (`pg_dump` not on PATH).
 4. **Disable** direct Vercel Git production deploy in dashboard (manual).
 
