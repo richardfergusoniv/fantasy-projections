@@ -51,4 +51,4 @@ def test_preflight_production_ready_with_env(tmp_path: Path):
 
     report = run_preflight(root=tmp_path)
     assert report["ready_for_production"] is True
-    assert report["blockers"] == []
+    assert report["production_blockers"] == []

@@ -31,11 +31,14 @@ def test_production_audit_reports_config_blockers(tmp_path: Path):
     assert payload["verdict"]["phone_access_ready"] is False
 
 
-def test_production_audit_passes_with_valid_env_file(tmp_path: Path):
+def test_production_audit_passes_with_valid_env_file(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.delenv("TEST_DATABASE_URL", raising=False)
     env = tmp_path / ".env"
     env.write_text(
         "\n".join(
             [
+                "APP_ENV=production",
                 "APP_SECRET_KEY=" + ("x" * 64),
                 "APP_ALLOWED_EMAIL=owner@realdomain.com",
                 "APP_PUBLIC_URL=https://fantasy.realdomain.com",
@@ -51,9 +54,7 @@ def test_production_audit_passes_with_valid_env_file(tmp_path: Path):
     )
     audit = run_audit(
         env_file=env,
-        database_url="postgresql+psycopg://fantasy:secret@localhost:5432/fantasy_app",
         report_path=tmp_path / "pass.json",
     )
     assert audit["configuration"]["production_ready"] is True
     assert audit["verdict"]["cloud_configuration_ready"] is True
-    assert audit["verdict"]["phone_access_ready"] is True

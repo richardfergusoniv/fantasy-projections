@@ -113,13 +113,14 @@ def run_audit(
     from src.app.config import Settings
     from src.app.env_file import settings_from_env_file
 
-    database_url = database_url or os.environ.get("DATABASE_URL", "")
     if env_file and env_file.is_file():
         prod = settings_from_env_file(env_file)
+        database_url = database_url or prod.database_url
+    else:
+        database_url = database_url or os.environ.get("DATABASE_URL", "")
+        prod = Settings(app_env="production")
         if database_url:
             prod = prod.model_copy(update={"database_url": database_url})
-    else:
-        prod = Settings(app_env="production")
     problems = prod.production_config_problems()
 
     audit: dict = {
