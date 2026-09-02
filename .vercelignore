@@ -17,6 +17,7 @@ output/shadow_*/
 .env
 .env.*
 !.env.example
+!.env.production.example
 config/sleeper_owner.json
 config/phone_access.secrets.json
 docker-compose.yml

@@ -101,9 +101,6 @@ jobs:
           VERCEL_SUPPORT_LARGE_FUNCTIONS: "1"
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Stage env example for prebuilt deploy
-        run: cp -f .env.production.example .vercel/output/.env.production.example
-
       - name: Deploy
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
