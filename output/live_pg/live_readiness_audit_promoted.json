@@ -1,0 +1,359 @@
+{
+  "started_at": "2026-09-01T05:26:51.854394+00:00",
+  "database_url": "postgresql+psycopg://fantasy:fantasy@localhost:5432/fantasy_app",
+  "sealed_bundle": {
+    "namespace": "v2_baseline_20260830",
+    "release_id": "e92edd22-40d9-4219-87f6-47a651489d15",
+    "manifest_sha256": "5a8e14536aa7b062b1e5ff6e64aa78356847fb063579d0a42cdbdc5cc159fbb1",
+    "caveats": [],
+    "component_projections": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\release_bundles\\season=2026\\namespace=v2_baseline_20260830\\projections_2026.csv",
+    "component_hash": "25dbb9ee2a4574191678726d703e6ab34a2249cada474029624c0b0049dcfc13"
+  },
+  "infrastructure": {
+    "docker_available": false,
+    "postgresql_url_configured": true,
+    "production_config_problems": [
+      "APP_SECRET_KEY is still the built-in development default",
+      "EMAIL_PROVIDER='development' echoes magic links to API responses; use 'smtp' or 'resend' in production",
+      "APP_ALLOWED_EMAIL is still the built-in default owner@example.com",
+      "APP_PUBLIC_URL must start with https:// in production",
+      "TRUSTED_HOSTS must name the deployment's hostnames in production, not '*'"
+    ],
+    "production_ready": false,
+    "email_provider_dev_default": true,
+    "app_public_url_https": false
+  },
+  "daily_refresh": {
+    "leagues_synced": 6,
+    "sleeper_source": "live",
+    "projection_source": "sealed_release",
+    "weekly_rnd_enabled": false,
+    "unresolved_player_ids": [],
+    "availability": {
+      "activated": 0,
+      "unchanged": 409,
+      "cleared": 0,
+      "player_count": 12225,
+      "clearing_allowed": true,
+      "clearing_reason": "healthy_primary_source",
+      "identities_created": 0,
+      "identities_updated": 12225,
+      "payload_stale": false,
+      "payload_fetched_at": "2026-09-01T05:26:52.720598+00:00"
+    },
+    "injury_research": {
+      "researched": 0,
+      "rejected": 0,
+      "active_events": 25,
+      "mode": "disabled",
+      "synthetic": false,
+      "status": "unavailable",
+      "available": false,
+      "reason": "research_disabled"
+    },
+    "preseason_run_id": "preseason-v2_baseline_20260830",
+    "status_overlay": {
+      "status": "promoted",
+      "overlay_hash": "ecd4f501a95f3e184d37cadfcdc1117f055c71a0cdaf0662cf86f4a96bff1a1e",
+      "adjustment_count": 13
+    },
+    "weekly_run_id": null,
+    "scoring_gate": {
+      "passed": true,
+      "failures": [],
+      "warnings": []
+    },
+    "incremental": {
+      "mode": "weekly_rnd_disabled"
+    },
+    "season": 2026,
+    "week": 1,
+    "season_week_source": "nfl_state",
+    "automatic": true
+  },
+  "league_rescore": [
+    {
+      "league_id": "1389344450517430272",
+      "display_name": "The NY Sack Exchange I",
+      "contract_hash": "861a9a66a4afed806d8579bd9c1946b95f9e8fdfa4bc67e653fe8b20c0a2c69a",
+      "scoring_fidelity": "modeled_approximation",
+      "unsupported_keys": [],
+      "approximate_rules": [
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed"
+      ],
+      "player_count": 778,
+      "sample_spread": 0.0,
+      "special_rules": {
+        "has_ppfd_approximation": false,
+        "approximate_rules": [
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed"
+        ]
+      }
+    },
+    {
+      "league_id": "1355920300633513984",
+      "display_name": "Tits Out for The Ladz XII (TWELVE\ud83d\ude24)",
+      "contract_hash": "8bce4bb6aedd594065642deefced022ac18bde1655b45e56b7fc510ca86c772a",
+      "scoring_fidelity": "modeled_approximation",
+      "unsupported_keys": [],
+      "approximate_rules": [
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:points_allowed",
+        "bracket:yards_allowed",
+        "bracket:points_allowed",
+        "bracket:yards_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed"
+      ],
+      "player_count": 778,
+      "sample_spread": 0.0,
+      "special_rules": {
+        "has_ppfd_approximation": false,
+        "approximate_rules": [
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:points_allowed",
+          "bracket:yards_allowed",
+          "bracket:points_allowed",
+          "bracket:yards_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed"
+        ]
+      }
+    },
+    {
+      "league_id": "1317270144682070016",
+      "display_name": "C2C. The real superconference",
+      "contract_hash": "fd3dbb1981f20b64ae616df5c5ab69f238649afdcd91e91d448c85f336637475",
+      "scoring_fidelity": "modeled_approximation",
+      "unsupported_keys": [],
+      "approximate_rules": [
+        "threshold:pass_yards",
+        "threshold:rec_yards",
+        "threshold:rush_yards",
+        "threshold:rush_rec_yards",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed"
+      ],
+      "player_count": 778,
+      "sample_spread": 0.0,
+      "special_rules": {
+        "has_ppfd_approximation": false,
+        "approximate_rules": [
+          "threshold:pass_yards",
+          "threshold:rec_yards",
+          "threshold:rush_yards",
+          "threshold:rush_rec_yards",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed"
+        ]
+      }
+    },
+    {
+      "league_id": "1312127020972404736",
+      "display_name": "Hoe Ass Dynasty League",
+      "contract_hash": "d6add0512b2bbacd98981fabe2c067f92dc42e0a1801a42d5238e992433c68b8",
+      "scoring_fidelity": "modeled_approximation",
+      "unsupported_keys": [],
+      "approximate_rules": [
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed"
+      ],
+      "player_count": 778,
+      "sample_spread": 0.0,
+      "special_rules": {
+        "has_ppfd_approximation": false,
+        "approximate_rules": [
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed"
+        ]
+      }
+    },
+    {
+      "league_id": "1311470531635052544",
+      "display_name": "Tainticklers",
+      "contract_hash": "3b3da51a5e7ddd1ded9b4a406f748e523f22667c9d670445408d203ff071afd6",
+      "scoring_fidelity": "modeled_approximation",
+      "unsupported_keys": [],
+      "approximate_rules": [
+        "bracket:points_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed"
+      ],
+      "player_count": 778,
+      "sample_spread": 0.0,
+      "special_rules": {
+        "has_ppfd_approximation": false,
+        "approximate_rules": [
+          "bracket:points_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed"
+        ]
+      }
+    },
+    {
+      "league_id": "1306489414548979712",
+      "display_name": "Dynastical Cucks",
+      "contract_hash": "bd87f15387a0487e454ae35dd98ddfb3c9b1f95a919fcf5d705e9480ae19d22f",
+      "scoring_fidelity": "modeled_approximation",
+      "unsupported_keys": [],
+      "approximate_rules": [
+        "ppfd:rush_first_downs",
+        "ppfd:rec_first_downs",
+        "bracket:points_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:yards_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed",
+        "bracket:points_allowed"
+      ],
+      "player_count": 778,
+      "sample_spread": 0.0,
+      "special_rules": {
+        "has_ppfd_approximation": true,
+        "approximate_rules": [
+          "ppfd:rush_first_downs",
+          "ppfd:rec_first_downs",
+          "bracket:points_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:yards_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed",
+          "bracket:points_allowed"
+        ]
+      }
+    }
+  ],
+  "scoring_summary": {
+    "league_count": 6,
+    "all_publishable": true,
+    "distinct_contracts": 6,
+    "fidelity_counts": {
+      "modeled_approximation": 6
+    }
+  },
+  "conservation": {
+    "exit_code": 0,
+    "stdout_tail": [
+      "receiving_tds    ALL           794          783   1.014",
+      "",
+      "=== Hard identities (projected) ===",
+      "  receiving_yards vs passing_yards          120,927 vs      120,927   ratio 1.000",
+      "  receptions vs completions                  11,254 vs       11,254   ratio 1.000",
+      "  targets vs attempts                        16,814 vs       17,661   ratio 0.952",
+      "  receiving_tds vs passing_tds                  794 vs          794   ratio 1.000",
+      "",
+      "=== Same identities, realized (sanity: should be ~1.000) ===",
+      "  receiving_yards vs passing_yards          125,284 vs      125,929   ratio 0.995",
+      "  receptions vs completions                  11,472 vs       11,547   ratio 0.994",
+      "  targets vs attempts                        16,957 vs       18,309   ratio 0.926"
+    ],
+    "stderr": null
+  },
+  "overlay_candidate": {
+    "status": "promoted",
+    "overlay_hash": "ecd4f501a95f3e184d37cadfcdc1117f055c71a0cdaf0662cf86f4a96bff1a1e",
+    "adjustment_count": 13,
+    "artifact_path": null,
+    "promoted": true,
+    "from_live_data": true
+  },
+  "projection_deltas": {
+    "status": "missing_artifact"
+  },
+  "overlay_promotion": {
+    "requested": true,
+    "pointer_active": true,
+    "pointer_hash": "ecd4f501a95f3e184d37cadfcdc1117f055c71a0cdaf0662cf86f4a96bff1a1e",
+    "matches_candidate": true,
+    "fixture_citations_in_artifact": 0
+  },
+  "identity": {
+    "unresolved_player_ids": [],
+    "unresolved_count": 0
+  },
+  "injury_research": {
+    "researched": 0,
+    "rejected": 0,
+    "active_events": 25,
+    "mode": "disabled",
+    "synthetic": false,
+    "status": "unavailable",
+    "available": false,
+    "reason": "research_disabled"
+  },
+  "finished_at": "2026-09-01T05:27:34.935394+00:00",
+  "verdict": {
+    "first_live_overlay_promoted": true,
+    "blockers": []
+  }
+}

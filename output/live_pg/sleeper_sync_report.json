@@ -1,0 +1,1423 @@
+{
+  "started_at": "2026-09-01T05:23:17.332035+00:00",
+  "finished_at": "2026-09-01T05:24:46.977373+00:00",
+  "status": "passed",
+  "exit_code": 0,
+  "environment": {
+    "database_url": "postgresql+psycopg://fantasy:fantasy@localhost:5432/fantasy_app",
+    "artifact_root": "output/live_pg/artifacts",
+    "sleeper_mode": "live",
+    "config_path": "config\\sleeper_owner.json",
+    "season": 2026
+  },
+  "safety": {
+    "opt_in_env": "LIVE_SLEEPER_SHADOW",
+    "read_only_method": "GET",
+    "auto_publish_allowed": false,
+    "sleeper_connectivity": "ok",
+    "resolved_user_id": "739931264659927040"
+  },
+  "league_selection": {
+    "configured_count": 6,
+    "discovered_count": 6,
+    "imported_count": 6,
+    "extra_league_ids": [],
+    "extra_leagues_ignored": 0,
+    "leagues": [
+      {
+        "league_id": "1389344450517430272",
+        "display_name": "The NY Sack Exchange I",
+        "league_type": "redraft",
+        "rookie_pick_rule": ""
+      },
+      {
+        "league_id": "1355920300633513984",
+        "display_name": "Tits Out for The Ladz XII (TWELVE\ud83d\ude24)",
+        "league_type": "redraft",
+        "rookie_pick_rule": ""
+      },
+      {
+        "league_id": "1317270144682070016",
+        "display_name": "C2C. The real superconference",
+        "league_type": "dynasty",
+        "rookie_pick_rule": "reverse_standings"
+      },
+      {
+        "league_id": "1306489414548979712",
+        "display_name": "Dynastical Cucks",
+        "league_type": "dynasty",
+        "rookie_pick_rule": "max_pf"
+      },
+      {
+        "league_id": "1312127020972404736",
+        "display_name": "Hoe Ass Dynasty League",
+        "league_type": "dynasty",
+        "rookie_pick_rule": "max_pf"
+      },
+      {
+        "league_id": "1311470531635052544",
+        "display_name": "Tainticklers",
+        "league_type": "dynasty",
+        "rookie_pick_rule": "reverse_standings"
+      }
+    ]
+  },
+  "draft_rules": {
+    "1306489414548979712": "max_pf",
+    "1311470531635052544": "reverse_standings",
+    "1312127020972404736": "max_pf",
+    "1317270144682070016": "reverse_standings"
+  },
+  "scoring": [
+    {
+      "league_id": "1389344450517430272",
+      "display_name": "The NY Sack Exchange I",
+      "season": 2026,
+      "status": "pre_draft",
+      "league_type": "redraft",
+      "team_count": 15,
+      "roster_slot_count": 15,
+      "roster_positions": [
+        "QB",
+        "RB",
+        "RB",
+        "WR",
+        "WR",
+        "TE",
+        "FLEX",
+        "FLEX",
+        "K",
+        "DEF",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN"
+      ],
+      "nonzero_scoring_keys": [
+        "blk_kick",
+        "def_st_ff",
+        "def_st_fum_rec",
+        "def_st_td",
+        "def_td",
+        "ff",
+        "fgm_0_19",
+        "fgm_20_29",
+        "fgm_30_39",
+        "fgm_40_49",
+        "fgm_50_59",
+        "fgm_60p",
+        "fgmiss",
+        "fum_lost",
+        "fum_rec",
+        "fum_rec_td",
+        "int",
+        "pass_2pt",
+        "pass_int",
+        "pass_td",
+        "pass_yd",
+        "pts_allow_0",
+        "pts_allow_14_20",
+        "pts_allow_1_6",
+        "pts_allow_28_34",
+        "pts_allow_35p",
+        "pts_allow_7_13",
+        "rec",
+        "rec_2pt",
+        "rec_td",
+        "rec_yd",
+        "rush_2pt",
+        "rush_td",
+        "rush_yd",
+        "sack",
+        "safe",
+        "st_ff",
+        "st_fum_rec",
+        "st_td",
+        "xpm",
+        "xpmiss"
+      ],
+      "contract_hash": "861a9a66a4afed806d8579bd9c1946b95f9e8fdfa4bc67e653fe8b20c0a2c69a",
+      "unsupported_keys": [],
+      "unsupported_slots": [],
+      "waiver_type": 2,
+      "waiver_budget": 200,
+      "playoff_week_start": 15,
+      "publishable": true
+    },
+    {
+      "league_id": "1355920300633513984",
+      "display_name": "Tits Out for The Ladz XII (TWELVE\ud83d\ude24)",
+      "season": 2026,
+      "status": "pre_draft",
+      "league_type": "redraft",
+      "team_count": 16,
+      "roster_slot_count": 16,
+      "roster_positions": [
+        "QB",
+        "RB",
+        "RB",
+        "WR",
+        "WR",
+        "WR",
+        "TE",
+        "FLEX",
+        "K",
+        "DEF",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN"
+      ],
+      "nonzero_scoring_keys": [
+        "blk_kick",
+        "def_2pt",
+        "def_3_and_out",
+        "def_4_and_stop",
+        "def_pass_def",
+        "def_st_ff",
+        "def_st_fum_rec",
+        "def_st_td",
+        "def_td",
+        "ff",
+        "fgm_0_19",
+        "fgm_20_29",
+        "fgm_30_39",
+        "fgm_40_49",
+        "fgm_50p",
+        "fum_lost",
+        "fum_rec",
+        "fum_rec_td",
+        "int",
+        "pass_2pt",
+        "pass_int",
+        "pass_td",
+        "pass_yd",
+        "pts_allow_14_20",
+        "pts_allow_21_27",
+        "pts_allow_28_34",
+        "pts_allow_35p",
+        "rec",
+        "rec_2pt",
+        "rec_td",
+        "rec_yd",
+        "rush_2pt",
+        "rush_td",
+        "rush_yd",
+        "sack",
+        "safe",
+        "st_ff",
+        "st_fum_rec",
+        "st_td",
+        "tkl_loss",
+        "xpm",
+        "yds_allow_300_349",
+        "yds_allow_350_399",
+        "yds_allow_400_449",
+        "yds_allow_450_499",
+        "yds_allow_500_549",
+        "yds_allow_550p"
+      ],
+      "contract_hash": "8bce4bb6aedd594065642deefced022ac18bde1655b45e56b7fc510ca86c772a",
+      "unsupported_keys": [],
+      "unsupported_slots": [],
+      "waiver_type": 2,
+      "waiver_budget": 200,
+      "playoff_week_start": 15,
+      "publishable": true
+    },
+    {
+      "league_id": "1317270144682070016",
+      "display_name": "C2C. The real superconference",
+      "season": 2026,
+      "status": "in_season",
+      "league_type": "dynasty",
+      "team_count": 21,
+      "roster_slot_count": 21,
+      "roster_positions": [
+        "QB",
+        "RB",
+        "WR",
+        "TE",
+        "FLEX",
+        "FLEX",
+        "FLEX",
+        "FLEX",
+        "DEF",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN"
+      ],
+      "nonzero_scoring_keys": [
+        "blk_kick",
+        "bonus_pass_yd_400",
+        "bonus_rec_yd_200",
+        "bonus_rush_rec_yd_200",
+        "bonus_rush_yd_200",
+        "def_st_ff",
+        "def_st_fum_rec",
+        "def_st_td",
+        "def_td",
+        "ff",
+        "fgm_0_19",
+        "fgm_20_29",
+        "fgm_30_39",
+        "fgm_40_49",
+        "fgm_50p",
+        "fgmiss",
+        "fum",
+        "fum_lost",
+        "fum_rec",
+        "fum_rec_td",
+        "int",
+        "pass_2pt",
+        "pass_int",
+        "pass_td",
+        "pass_yd",
+        "pts_allow_0",
+        "pts_allow_14_20",
+        "pts_allow_1_6",
+        "pts_allow_28_34",
+        "pts_allow_35p",
+        "pts_allow_7_13",
+        "rec",
+        "rec_2pt",
+        "rec_td",
+        "rec_yd",
+        "rush_2pt",
+        "rush_td",
+        "rush_yd",
+        "sack",
+        "safe",
+        "st_ff",
+        "st_fum_rec",
+        "st_td",
+        "xpm",
+        "xpmiss"
+      ],
+      "contract_hash": "fd3dbb1981f20b64ae616df5c5ab69f238649afdcd91e91d448c85f336637475",
+      "unsupported_keys": [],
+      "unsupported_slots": [],
+      "waiver_type": 2,
+      "waiver_budget": 1000,
+      "playoff_week_start": 15,
+      "publishable": true
+    },
+    {
+      "league_id": "1306489414548979712",
+      "display_name": "Dynastical Cucks",
+      "season": 2026,
+      "status": "in_season",
+      "league_type": "dynasty",
+      "team_count": 27,
+      "roster_slot_count": 27,
+      "roster_positions": [
+        "QB",
+        "RB",
+        "RB",
+        "WR",
+        "WR",
+        "WR",
+        "TE",
+        "FLEX",
+        "FLEX",
+        "SUPER_FLEX",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN"
+      ],
+      "nonzero_scoring_keys": [
+        "blk_kick",
+        "def_st_ff",
+        "def_st_fum_rec",
+        "def_st_td",
+        "def_td",
+        "ff",
+        "fgm_0_19",
+        "fgm_20_29",
+        "fgm_30_39",
+        "fgm_40_49",
+        "fgm_50p",
+        "fgmiss",
+        "fum_lost",
+        "fum_rec",
+        "fum_rec_td",
+        "int",
+        "pass_2pt",
+        "pass_int",
+        "pass_td",
+        "pass_td_40p",
+        "pass_td_50p",
+        "pass_yd",
+        "pts_allow_0",
+        "pts_allow_14_20",
+        "pts_allow_1_6",
+        "pts_allow_28_34",
+        "pts_allow_35p",
+        "pts_allow_7_13",
+        "rec",
+        "rec_2pt",
+        "rec_fd",
+        "rec_td",
+        "rec_yd",
+        "rush_2pt",
+        "rush_fd",
+        "rush_td",
+        "rush_yd",
+        "sack",
+        "safe",
+        "st_ff",
+        "st_fum_rec",
+        "st_td",
+        "xpm",
+        "xpmiss",
+        "yds_allow_0_100",
+        "yds_allow_100_199",
+        "yds_allow_200_299",
+        "yds_allow_350_399",
+        "yds_allow_400_449",
+        "yds_allow_450_499",
+        "yds_allow_500_549",
+        "yds_allow_550p"
+      ],
+      "contract_hash": "bd87f15387a0487e454ae35dd98ddfb3c9b1f95a919fcf5d705e9480ae19d22f",
+      "unsupported_keys": [],
+      "unsupported_slots": [],
+      "waiver_type": 2,
+      "waiver_budget": 1000,
+      "playoff_week_start": 15,
+      "publishable": true
+    },
+    {
+      "league_id": "1312127020972404736",
+      "display_name": "Hoe Ass Dynasty League",
+      "season": 2026,
+      "status": "in_season",
+      "league_type": "dynasty",
+      "team_count": 22,
+      "roster_slot_count": 22,
+      "roster_positions": [
+        "QB",
+        "RB",
+        "RB",
+        "WR",
+        "WR",
+        "TE",
+        "FLEX",
+        "FLEX",
+        "K",
+        "DEF",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN"
+      ],
+      "nonzero_scoring_keys": [
+        "blk_kick",
+        "def_st_ff",
+        "def_st_fum_rec",
+        "def_st_td",
+        "def_td",
+        "ff",
+        "fgm_0_19",
+        "fgm_20_29",
+        "fgm_30_39",
+        "fgm_40_49",
+        "fgm_50_59",
+        "fgm_60p",
+        "fgmiss",
+        "fum_lost",
+        "fum_rec",
+        "fum_rec_td",
+        "int",
+        "pass_2pt",
+        "pass_int",
+        "pass_td",
+        "pass_yd",
+        "pts_allow_0",
+        "pts_allow_14_20",
+        "pts_allow_1_6",
+        "pts_allow_28_34",
+        "pts_allow_35p",
+        "pts_allow_7_13",
+        "rec",
+        "rec_2pt",
+        "rec_td",
+        "rec_yd",
+        "rush_2pt",
+        "rush_td",
+        "rush_yd",
+        "sack",
+        "safe",
+        "st_ff",
+        "st_fum_rec",
+        "st_td",
+        "xpm",
+        "xpmiss"
+      ],
+      "contract_hash": "d6add0512b2bbacd98981fabe2c067f92dc42e0a1801a42d5238e992433c68b8",
+      "unsupported_keys": [],
+      "unsupported_slots": [],
+      "waiver_type": 0,
+      "waiver_budget": 100,
+      "playoff_week_start": 15,
+      "publishable": true
+    },
+    {
+      "league_id": "1311470531635052544",
+      "display_name": "Tainticklers",
+      "season": 2026,
+      "status": "in_season",
+      "league_type": "dynasty",
+      "team_count": 27,
+      "roster_slot_count": 27,
+      "roster_positions": [
+        "QB",
+        "RB",
+        "RB",
+        "WR",
+        "WR",
+        "TE",
+        "FLEX",
+        "FLEX",
+        "FLEX",
+        "SUPER_FLEX",
+        "K",
+        "DEF",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN",
+        "BN"
+      ],
+      "nonzero_scoring_keys": [
+        "blk_kick",
+        "def_st_ff",
+        "def_st_fum_rec",
+        "def_st_td",
+        "def_td",
+        "ff",
+        "fgm_0_19",
+        "fgm_20_29",
+        "fgm_30_39",
+        "fgm_40_49",
+        "fgm_50_59",
+        "fgm_60p",
+        "fgmiss",
+        "fum_lost",
+        "fum_rec",
+        "fum_rec_td",
+        "int",
+        "pass_2pt",
+        "pass_int",
+        "pass_td",
+        "pass_yd",
+        "pts_allow_0",
+        "pts_allow_14_20",
+        "pts_allow_1_6",
+        "pts_allow_28_34",
+        "pts_allow_35p",
+        "pts_allow_7_13",
+        "rec",
+        "rec_2pt",
+        "rec_td",
+        "rec_yd",
+        "rush_2pt",
+        "rush_td",
+        "rush_yd",
+        "sack",
+        "safe",
+        "st_ff",
+        "st_fum_rec",
+        "st_td",
+        "xpm",
+        "xpmiss",
+        "yds_allow_0_100",
+        "yds_allow_100_199",
+        "yds_allow_200_299",
+        "yds_allow_350_399",
+        "yds_allow_400_449",
+        "yds_allow_450_499",
+        "yds_allow_500_549",
+        "yds_allow_550p"
+      ],
+      "contract_hash": "3b3da51a5e7ddd1ded9b4a406f748e523f22667c9d670445408d203ff071afd6",
+      "unsupported_keys": [],
+      "unsupported_slots": [],
+      "waiver_type": 2,
+      "waiver_budget": 300,
+      "playoff_week_start": 14,
+      "publishable": true
+    }
+  ],
+  "identity": {
+    "by_league": [
+      {
+        "league_id": "1389344450517430272",
+        "display_name": "The NY Sack Exchange I",
+        "total_distinct_rostered_ids": 0,
+        "resolved_canonical": 0,
+        "unresolved_ids": 0,
+        "ambiguous_ids": 0,
+        "resolved_starters": 0,
+        "unresolved_starters": 0,
+        "missing_weekly_projections": 0,
+        "missing_season_projections": 0,
+        "outside_projection_universe": {},
+        "unresolved_starter_ids": [],
+        "unresolved_skill_ids": []
+      },
+      {
+        "league_id": "1355920300633513984",
+        "display_name": "Tits Out for The Ladz XII (TWELVE\ud83d\ude24)",
+        "total_distinct_rostered_ids": 0,
+        "resolved_canonical": 0,
+        "unresolved_ids": 0,
+        "ambiguous_ids": 0,
+        "resolved_starters": 0,
+        "unresolved_starters": 0,
+        "missing_weekly_projections": 0,
+        "missing_season_projections": 0,
+        "outside_projection_universe": {},
+        "unresolved_starter_ids": [],
+        "unresolved_skill_ids": []
+      },
+      {
+        "league_id": "1317270144682070016",
+        "display_name": "C2C. The real superconference",
+        "total_distinct_rostered_ids": 213,
+        "resolved_canonical": 213,
+        "unresolved_ids": 0,
+        "ambiguous_ids": 0,
+        "resolved_starters": 88,
+        "unresolved_starters": 0,
+        "missing_weekly_projections": 173,
+        "missing_season_projections": 173,
+        "outside_projection_universe": {},
+        "unresolved_starter_ids": [],
+        "unresolved_skill_ids": []
+      },
+      {
+        "league_id": "1306489414548979712",
+        "display_name": "Dynastical Cucks",
+        "total_distinct_rostered_ids": 342,
+        "resolved_canonical": 342,
+        "unresolved_ids": 0,
+        "ambiguous_ids": 0,
+        "resolved_starters": 120,
+        "unresolved_starters": 0,
+        "missing_weekly_projections": 285,
+        "missing_season_projections": 289,
+        "outside_projection_universe": {},
+        "unresolved_starter_ids": [],
+        "unresolved_skill_ids": []
+      },
+      {
+        "league_id": "1312127020972404736",
+        "display_name": "Hoe Ass Dynasty League",
+        "total_distinct_rostered_ids": 308,
+        "resolved_canonical": 308,
+        "unresolved_ids": 0,
+        "ambiguous_ids": 0,
+        "resolved_starters": 120,
+        "unresolved_starters": 0,
+        "missing_weekly_projections": 262,
+        "missing_season_projections": 264,
+        "outside_projection_universe": {},
+        "unresolved_starter_ids": [],
+        "unresolved_skill_ids": []
+      },
+      {
+        "league_id": "1311470531635052544",
+        "display_name": "Tainticklers",
+        "total_distinct_rostered_ids": 457,
+        "resolved_canonical": 457,
+        "unresolved_ids": 0,
+        "ambiguous_ids": 0,
+        "resolved_starters": 161,
+        "unresolved_starters": 0,
+        "missing_weekly_projections": 385,
+        "missing_season_projections": 390,
+        "outside_projection_universe": {},
+        "unresolved_starter_ids": [],
+        "unresolved_skill_ids": []
+      }
+    ],
+    "aggregate": {
+      "total_distinct_rostered_ids": 1320,
+      "resolved_canonical": 1320,
+      "unresolved_ids": 0,
+      "ambiguous_ids": 0,
+      "resolved_starters": 489,
+      "unresolved_starters": 0,
+      "missing_weekly_projections": 1105,
+      "missing_season_projections": 1116
+    },
+    "unresolved_artifact_count": 0,
+    "recommendation_gate_failed": false,
+    "gate_failures": []
+  },
+  "completeness": {
+    "source_snapshots": 72,
+    "roster_snapshots": 72,
+    "transactions": 31,
+    "traded_picks": 93,
+    "nfl_week": 1,
+    "season_week_source": "nfl_state"
+  },
+  "recommendations": [
+    {
+      "league_id": "1389344450517430272",
+      "display_name": "The NY Sack Exchange I",
+      "owner_roster_id": 2,
+      "league_status": "pre_draft",
+      "checks": {
+        "skipped": "pre_draft_empty_roster"
+      },
+      "errors": [],
+      "ok": true
+    },
+    {
+      "league_id": "1355920300633513984",
+      "display_name": "Tits Out for The Ladz XII (TWELVE\ud83d\ude24)",
+      "owner_roster_id": 11,
+      "league_status": "pre_draft",
+      "checks": {
+        "skipped": "pre_draft_empty_roster"
+      },
+      "errors": [],
+      "ok": true
+    },
+    {
+      "league_id": "1317270144682070016",
+      "display_name": "C2C. The real superconference",
+      "owner_roster_id": 6,
+      "league_status": "in_season",
+      "checks": {
+        "lineup_current": "ok",
+        "lineup_optimized": "ok",
+        "matchup_modes_distinct": false,
+        "waivers": 20,
+        "trade_evaluate": "ok",
+        "dynasty_state": "contender",
+        "rookie_pick_rule": "reverse_standings",
+        "draft_board_players": 100
+      },
+      "errors": [],
+      "ok": true
+    },
+    {
+      "league_id": "1306489414548979712",
+      "display_name": "Dynastical Cucks",
+      "owner_roster_id": 7,
+      "league_status": "in_season",
+      "checks": {
+        "lineup_current": "ok",
+        "lineup_optimized": "ok",
+        "matchup_modes_distinct": false,
+        "waivers": 25,
+        "trade_evaluate": "ok",
+        "dynasty_state": "rebuilding",
+        "rookie_pick_rule": "max_pf",
+        "draft_board_players": 100
+      },
+      "errors": [],
+      "ok": true
+    },
+    {
+      "league_id": "1312127020972404736",
+      "display_name": "Hoe Ass Dynasty League",
+      "owner_roster_id": 1,
+      "league_status": "in_season",
+      "checks": {
+        "lineup_current": "ok",
+        "lineup_optimized": "ok",
+        "matchup_modes_distinct": false,
+        "waivers": 25,
+        "trade_evaluate": "ok",
+        "dynasty_state": "contender",
+        "rookie_pick_rule": "max_pf",
+        "draft_board_players": 100
+      },
+      "errors": [],
+      "ok": true
+    },
+    {
+      "league_id": "1311470531635052544",
+      "display_name": "Tainticklers",
+      "owner_roster_id": 2,
+      "league_status": "in_season",
+      "checks": {
+        "lineup_current": "ok",
+        "lineup_optimized": "ok",
+        "matchup_modes_distinct": false,
+        "waivers": 25,
+        "trade_evaluate": "ok",
+        "dynasty_state": "contender",
+        "rookie_pick_rule": "reverse_standings",
+        "draft_board_players": 100
+      },
+      "errors": [],
+      "ok": true
+    }
+  ],
+  "idempotency": {
+    "first_run": {
+      "draft_rules": 4,
+      "rosters": 72,
+      "transactions": 31,
+      "traded_picks": 93,
+      "source_snapshots": 72
+    },
+    "second_run": {
+      "draft_rules": 4,
+      "rosters": 72,
+      "transactions": 31,
+      "traded_picks": 93,
+      "source_snapshots": 72
+    },
+    "stable": true
+  },
+  "failure_injection": {},
+  "projections": {
+    "weekly_v2_state": "trained",
+    "auto_publish_allowed": false,
+    "manifest_uri": "file:///C:/Users/rdfer/Projects/fantasy-projections/output/weekly_v2/models/season%3D2026/manifest.json",
+    "reasons": [
+      "evaluation_promotion_failed:2023: dispersion outside policy",
+      "evaluation_promotion_failed:2024: dispersion outside policy"
+    ],
+    "shadow_mode_label": "fixture/fallback \u2014 not production-quality football advice"
+  },
+  "league_scoring_shadow": {
+    "league_count": 6,
+    "distinct_contract_hashes": 6,
+    "sample_player_count": 25,
+    "max_cross_league_spread": 3.694,
+    "leagues": [
+      {
+        "league_id": "1389344450517430272",
+        "display_name": "The NY Sack Exchange I",
+        "contract_hash": "861a9a66a4afed806d8579bd9c1946b95f9e8fdfa4bc67e653fe8b20c0a2c69a",
+        "unsupported_keys": [],
+        "top_players": [
+          {
+            "player_id": "00-0038542",
+            "name": "Bijan Robinson",
+            "position": "RB",
+            "league_scored_points": 16.255,
+            "model_fantasy_points": 23.149
+          },
+          {
+            "player_id": "00-0036900",
+            "name": "Ja'Marr Chase",
+            "position": "WR",
+            "league_scored_points": 15.389,
+            "model_fantasy_points": 27.079
+          },
+          {
+            "player_id": "00-0033288",
+            "name": "George Kittle",
+            "position": "TE",
+            "league_scored_points": 13.412,
+            "model_fantasy_points": 23.808
+          },
+          {
+            "player_id": "00-0037744",
+            "name": "Trey McBride",
+            "position": "TE",
+            "league_scored_points": 13.312,
+            "model_fantasy_points": 24.536
+          },
+          {
+            "player_id": "00-0039075",
+            "name": "Puka Nacua",
+            "position": "WR",
+            "league_scored_points": 13.116,
+            "model_fantasy_points": 22.982
+          },
+          {
+            "player_id": "00-0036963",
+            "name": "Amon-Ra St. Brown",
+            "position": "WR",
+            "league_scored_points": 12.572,
+            "model_fantasy_points": 21.677
+          },
+          {
+            "player_id": "00-0039040",
+            "name": "De'Von Achane",
+            "position": "RB",
+            "league_scored_points": 12.465,
+            "model_fantasy_points": 17.682
+          },
+          {
+            "player_id": "00-0040126",
+            "name": "Colston Loveland",
+            "position": "TE",
+            "league_scored_points": 11.915,
+            "model_fantasy_points": 21.194
+          },
+          {
+            "player_id": "00-0034351",
+            "name": "Dallas Goedert",
+            "position": "TE",
+            "league_scored_points": 11.603,
+            "model_fantasy_points": 20.5
+          },
+          {
+            "player_id": "00-0036970",
+            "name": "Kyle Pitts",
+            "position": "TE",
+            "league_scored_points": 10.852,
+            "model_fantasy_points": 19.438
+          }
+        ]
+      },
+      {
+        "league_id": "1355920300633513984",
+        "display_name": "Tits Out for The Ladz XII (TWELVE\ud83d\ude24)",
+        "contract_hash": "8bce4bb6aedd594065642deefced022ac18bde1655b45e56b7fc510ca86c772a",
+        "unsupported_keys": [],
+        "top_players": [
+          {
+            "player_id": "00-0038542",
+            "name": "Bijan Robinson",
+            "position": "RB",
+            "league_scored_points": 16.255,
+            "model_fantasy_points": 23.149
+          },
+          {
+            "player_id": "00-0036900",
+            "name": "Ja'Marr Chase",
+            "position": "WR",
+            "league_scored_points": 15.389,
+            "model_fantasy_points": 27.079
+          },
+          {
+            "player_id": "00-0033288",
+            "name": "George Kittle",
+            "position": "TE",
+            "league_scored_points": 13.412,
+            "model_fantasy_points": 23.808
+          },
+          {
+            "player_id": "00-0037744",
+            "name": "Trey McBride",
+            "position": "TE",
+            "league_scored_points": 13.312,
+            "model_fantasy_points": 24.536
+          },
+          {
+            "player_id": "00-0039075",
+            "name": "Puka Nacua",
+            "position": "WR",
+            "league_scored_points": 13.116,
+            "model_fantasy_points": 22.982
+          },
+          {
+            "player_id": "00-0036963",
+            "name": "Amon-Ra St. Brown",
+            "position": "WR",
+            "league_scored_points": 12.572,
+            "model_fantasy_points": 21.677
+          },
+          {
+            "player_id": "00-0039040",
+            "name": "De'Von Achane",
+            "position": "RB",
+            "league_scored_points": 12.465,
+            "model_fantasy_points": 17.682
+          },
+          {
+            "player_id": "00-0040126",
+            "name": "Colston Loveland",
+            "position": "TE",
+            "league_scored_points": 11.915,
+            "model_fantasy_points": 21.194
+          },
+          {
+            "player_id": "00-0034351",
+            "name": "Dallas Goedert",
+            "position": "TE",
+            "league_scored_points": 11.603,
+            "model_fantasy_points": 20.5
+          },
+          {
+            "player_id": "00-0036970",
+            "name": "Kyle Pitts",
+            "position": "TE",
+            "league_scored_points": 10.852,
+            "model_fantasy_points": 19.438
+          }
+        ]
+      },
+      {
+        "league_id": "1317270144682070016",
+        "display_name": "C2C. The real superconference",
+        "contract_hash": "fd3dbb1981f20b64ae616df5c5ab69f238649afdcd91e91d448c85f336637475",
+        "unsupported_keys": [],
+        "top_players": [
+          {
+            "player_id": "00-0038542",
+            "name": "Bijan Robinson",
+            "position": "RB",
+            "league_scored_points": 16.255,
+            "model_fantasy_points": 23.149
+          },
+          {
+            "player_id": "00-0036900",
+            "name": "Ja'Marr Chase",
+            "position": "WR",
+            "league_scored_points": 15.389,
+            "model_fantasy_points": 27.079
+          },
+          {
+            "player_id": "00-0033288",
+            "name": "George Kittle",
+            "position": "TE",
+            "league_scored_points": 13.412,
+            "model_fantasy_points": 23.808
+          },
+          {
+            "player_id": "00-0037744",
+            "name": "Trey McBride",
+            "position": "TE",
+            "league_scored_points": 13.312,
+            "model_fantasy_points": 24.536
+          },
+          {
+            "player_id": "00-0039075",
+            "name": "Puka Nacua",
+            "position": "WR",
+            "league_scored_points": 13.116,
+            "model_fantasy_points": 22.982
+          },
+          {
+            "player_id": "00-0036963",
+            "name": "Amon-Ra St. Brown",
+            "position": "WR",
+            "league_scored_points": 12.572,
+            "model_fantasy_points": 21.677
+          },
+          {
+            "player_id": "00-0039040",
+            "name": "De'Von Achane",
+            "position": "RB",
+            "league_scored_points": 12.465,
+            "model_fantasy_points": 17.682
+          },
+          {
+            "player_id": "00-0040126",
+            "name": "Colston Loveland",
+            "position": "TE",
+            "league_scored_points": 11.915,
+            "model_fantasy_points": 21.194
+          },
+          {
+            "player_id": "00-0034351",
+            "name": "Dallas Goedert",
+            "position": "TE",
+            "league_scored_points": 11.603,
+            "model_fantasy_points": 20.5
+          },
+          {
+            "player_id": "00-0036970",
+            "name": "Kyle Pitts",
+            "position": "TE",
+            "league_scored_points": 10.852,
+            "model_fantasy_points": 19.438
+          }
+        ]
+      },
+      {
+        "league_id": "1306489414548979712",
+        "display_name": "Dynastical Cucks",
+        "contract_hash": "bd87f15387a0487e454ae35dd98ddfb3c9b1f95a919fcf5d705e9480ae19d22f",
+        "unsupported_keys": [],
+        "top_players": [
+          {
+            "player_id": "00-0038542",
+            "name": "Bijan Robinson",
+            "position": "RB",
+            "league_scored_points": 16.255,
+            "model_fantasy_points": 23.149
+          },
+          {
+            "player_id": "00-0036900",
+            "name": "Ja'Marr Chase",
+            "position": "WR",
+            "league_scored_points": 15.389,
+            "model_fantasy_points": 27.079
+          },
+          {
+            "player_id": "00-0033288",
+            "name": "George Kittle",
+            "position": "TE",
+            "league_scored_points": 13.412,
+            "model_fantasy_points": 23.808
+          },
+          {
+            "player_id": "00-0037744",
+            "name": "Trey McBride",
+            "position": "TE",
+            "league_scored_points": 13.312,
+            "model_fantasy_points": 24.536
+          },
+          {
+            "player_id": "00-0039075",
+            "name": "Puka Nacua",
+            "position": "WR",
+            "league_scored_points": 13.116,
+            "model_fantasy_points": 22.982
+          },
+          {
+            "player_id": "00-0036963",
+            "name": "Amon-Ra St. Brown",
+            "position": "WR",
+            "league_scored_points": 12.572,
+            "model_fantasy_points": 21.677
+          },
+          {
+            "player_id": "00-0039040",
+            "name": "De'Von Achane",
+            "position": "RB",
+            "league_scored_points": 12.465,
+            "model_fantasy_points": 17.682
+          },
+          {
+            "player_id": "00-0040126",
+            "name": "Colston Loveland",
+            "position": "TE",
+            "league_scored_points": 11.915,
+            "model_fantasy_points": 21.194
+          },
+          {
+            "player_id": "00-0034351",
+            "name": "Dallas Goedert",
+            "position": "TE",
+            "league_scored_points": 11.603,
+            "model_fantasy_points": 20.5
+          },
+          {
+            "player_id": "00-0036970",
+            "name": "Kyle Pitts",
+            "position": "TE",
+            "league_scored_points": 10.852,
+            "model_fantasy_points": 19.438
+          }
+        ]
+      },
+      {
+        "league_id": "1312127020972404736",
+        "display_name": "Hoe Ass Dynasty League",
+        "contract_hash": "d6add0512b2bbacd98981fabe2c067f92dc42e0a1801a42d5238e992433c68b8",
+        "unsupported_keys": [],
+        "top_players": [
+          {
+            "player_id": "00-0036900",
+            "name": "Ja'Marr Chase",
+            "position": "WR",
+            "league_scored_points": 18.655,
+            "model_fantasy_points": 27.079
+          },
+          {
+            "player_id": "00-0038542",
+            "name": "Bijan Robinson",
+            "position": "RB",
+            "league_scored_points": 18.023,
+            "model_fantasy_points": 23.149
+          },
+          {
+            "player_id": "00-0037744",
+            "name": "Trey McBride",
+            "position": "TE",
+            "league_scored_points": 17.005,
+            "model_fantasy_points": 24.536
+          },
+          {
+            "player_id": "00-0033288",
+            "name": "George Kittle",
+            "position": "TE",
+            "league_scored_points": 16.526,
+            "model_fantasy_points": 23.808
+          },
+          {
+            "player_id": "00-0039075",
+            "name": "Puka Nacua",
+            "position": "WR",
+            "league_scored_points": 15.959,
+            "model_fantasy_points": 22.982
+          },
+          {
+            "player_id": "00-0036963",
+            "name": "Amon-Ra St. Brown",
+            "position": "WR",
+            "league_scored_points": 15.101,
+            "model_fantasy_points": 21.677
+          },
+          {
+            "player_id": "00-0040126",
+            "name": "Colston Loveland",
+            "position": "TE",
+            "league_scored_points": 14.806,
+            "model_fantasy_points": 21.194
+          },
+          {
+            "player_id": "00-0034351",
+            "name": "Dallas Goedert",
+            "position": "TE",
+            "league_scored_points": 14.35,
+            "model_fantasy_points": 20.5
+          },
+          {
+            "player_id": "00-0039040",
+            "name": "De'Von Achane",
+            "position": "RB",
+            "league_scored_points": 14.119,
+            "model_fantasy_points": 17.682
+          },
+          {
+            "player_id": "00-0036970",
+            "name": "Kyle Pitts",
+            "position": "TE",
+            "league_scored_points": 13.652,
+            "model_fantasy_points": 19.438
+          }
+        ]
+      },
+      {
+        "league_id": "1311470531635052544",
+        "display_name": "Tainticklers",
+        "contract_hash": "3b3da51a5e7ddd1ded9b4a406f748e523f22667c9d670445408d203ff071afd6",
+        "unsupported_keys": [],
+        "top_players": [
+          {
+            "player_id": "00-0036900",
+            "name": "Ja'Marr Chase",
+            "position": "WR",
+            "league_scored_points": 18.655,
+            "model_fantasy_points": 27.079
+          },
+          {
+            "player_id": "00-0038542",
+            "name": "Bijan Robinson",
+            "position": "RB",
+            "league_scored_points": 18.023,
+            "model_fantasy_points": 23.149
+          },
+          {
+            "player_id": "00-0037744",
+            "name": "Trey McBride",
+            "position": "TE",
+            "league_scored_points": 17.005,
+            "model_fantasy_points": 24.536
+          },
+          {
+            "player_id": "00-0033288",
+            "name": "George Kittle",
+            "position": "TE",
+            "league_scored_points": 16.526,
+            "model_fantasy_points": 23.808
+          },
+          {
+            "player_id": "00-0039075",
+            "name": "Puka Nacua",
+            "position": "WR",
+            "league_scored_points": 15.959,
+            "model_fantasy_points": 22.982
+          },
+          {
+            "player_id": "00-0036963",
+            "name": "Amon-Ra St. Brown",
+            "position": "WR",
+            "league_scored_points": 15.101,
+            "model_fantasy_points": 21.677
+          },
+          {
+            "player_id": "00-0040126",
+            "name": "Colston Loveland",
+            "position": "TE",
+            "league_scored_points": 14.806,
+            "model_fantasy_points": 21.194
+          },
+          {
+            "player_id": "00-0034351",
+            "name": "Dallas Goedert",
+            "position": "TE",
+            "league_scored_points": 14.35,
+            "model_fantasy_points": 20.5
+          },
+          {
+            "player_id": "00-0039040",
+            "name": "De'Von Achane",
+            "position": "RB",
+            "league_scored_points": 14.119,
+            "model_fantasy_points": 17.682
+          },
+          {
+            "player_id": "00-0036970",
+            "name": "Kyle Pitts",
+            "position": "TE",
+            "league_scored_points": 13.652,
+            "model_fantasy_points": 19.438
+          }
+        ]
+      }
+    ],
+    "cross_league_spreads": [
+      {
+        "player_id": "00-0037744",
+        "min_score": 13.312,
+        "max_score": 17.005,
+        "spread": 3.694
+      },
+      {
+        "player_id": "00-0036900",
+        "min_score": 15.389,
+        "max_score": 18.655,
+        "spread": 3.265
+      },
+      {
+        "player_id": "00-0033288",
+        "min_score": 13.412,
+        "max_score": 16.526,
+        "spread": 3.114
+      },
+      {
+        "player_id": "00-0040663",
+        "min_score": 10.394,
+        "max_score": 13.382,
+        "spread": 2.988
+      },
+      {
+        "player_id": "00-0040126",
+        "min_score": 11.915,
+        "max_score": 14.806,
+        "spread": 2.892
+      },
+      {
+        "player_id": "00-0039075",
+        "min_score": 13.116,
+        "max_score": 15.959,
+        "spread": 2.844
+      },
+      {
+        "player_id": "00-0036970",
+        "min_score": 10.852,
+        "max_score": 13.652,
+        "spread": 2.799
+      },
+      {
+        "player_id": "00-0039338",
+        "min_score": 10.663,
+        "max_score": 13.455,
+        "spread": 2.792
+      },
+      {
+        "player_id": "00-0034351",
+        "min_score": 11.603,
+        "max_score": 14.35,
+        "spread": 2.747
+      },
+      {
+        "player_id": "00-0030506",
+        "min_score": 10.463,
+        "max_score": 13.17,
+        "spread": 2.707
+      },
+      {
+        "player_id": "00-0036963",
+        "min_score": 12.572,
+        "max_score": 15.101,
+        "spread": 2.529
+      },
+      {
+        "player_id": "00-0038543",
+        "min_score": 10.685,
+        "max_score": 12.836,
+        "spread": 2.152
+      },
+      {
+        "player_id": "00-0036322",
+        "min_score": 9.746,
+        "max_score": 11.885,
+        "spread": 2.139
+      },
+      {
+        "player_id": "00-0035640",
+        "min_score": 9.738,
+        "max_score": 11.874,
+        "spread": 2.136
+      },
+      {
+        "player_id": "00-0039067",
+        "min_score": 8.145,
+        "max_score": 10.206,
+        "spread": 2.061
+      }
+    ],
+    "validation": {
+      "six_distinct_contracts": true,
+      "cross_league_scoring_differs": true,
+      "all_contracts_publishable": true
+    },
+    "status": "ok",
+    "source_parquet": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\weekly_v2\\season=2026\\week=01\\weekly_projections.parquet"
+  },
+  "defects": [],
+  "blockers": [
+    "automatic weekly publication blocked until evaluation promotion passes",
+    "PostgreSQL runtime unverified on this machine",
+    "Docker compose runtime unverified on this machine",
+    "email delivery unverified",
+    "OpenAI assistant path unverified",
+    "internet deployment unverified"
+  ],
+  "go_no_go": "go",
+  "commands": [
+    "uv run python -m src.app.cli sleeper-shadow-sync --season 2026 --config config\\sleeper_owner.json"
+  ]
+}

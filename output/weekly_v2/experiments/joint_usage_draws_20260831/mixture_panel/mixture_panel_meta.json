@@ -1,0 +1,86 @@
+{
+  "conditional_target_cols": [
+    "cond_target_share",
+    "cond_carry_share",
+    "cond_snap_share",
+    "cond_passing_first_downs",
+    "cond_rushing_first_downs",
+    "cond_receiving_first_downs"
+  ],
+  "cutoff_note": "features as-of pre-kickoff; labels from same-week outcomes for training only",
+  "event_label_cols": [
+    "has_scheduled_game",
+    "is_active_label",
+    "participated_label",
+    "positive_usage_label",
+    "zero_class"
+  ],
+  "event_rates": {
+    "by_position": {
+      "QB": {
+        "active": 1.0,
+        "participated": 1.0,
+        "positive_usage": 0.9980945121951219,
+        "rows": 2624
+      },
+      "RB": {
+        "active": 1.0,
+        "participated": 0.9369051274178692,
+        "positive_usage": 0.8799508750383789,
+        "rows": 6514
+      },
+      "TE": {
+        "active": 1.0,
+        "participated": 0.9906218144750255,
+        "positive_usage": 0.8917431192660551,
+        "rows": 4905
+      },
+      "WR": {
+        "active": 1.0,
+        "participated": 0.9597554763117677,
+        "positive_usage": 0.8766174223127865,
+        "rows": 9815
+      }
+    },
+    "by_season": {
+      "2022": {
+        "active": 1.0,
+        "participated": 0.9668807029401825,
+        "positive_usage": 0.9036836769178777,
+        "rows": 5918
+      },
+      "2023": {
+        "active": 1.0,
+        "participated": 0.9718500932677633,
+        "positive_usage": 0.9089367474987282,
+        "rows": 5897
+      },
+      "2024": {
+        "active": 1.0,
+        "participated": 0.9646166807076664,
+        "positive_usage": 0.8903117101937658,
+        "rows": 5935
+      },
+      "2025": {
+        "active": 1.0,
+        "participated": 0.954158480681074,
+        "positive_usage": 0.8737721021611002,
+        "rows": 6108
+      }
+    },
+    "bye_or_unscheduled": 0,
+    "rate_is_active_label": 1.0,
+    "rate_participated_label": 0.9642887081901249,
+    "rate_positive_usage_label": 0.893997820437589,
+    "rows": 23858,
+    "scheduled_rows": 23858,
+    "zero_class_counts": {
+      "None": 23006,
+      "active_zero_usage": 852
+    }
+  },
+  "panel_hash": "0c21cd411f0022bc476de1eb01a32b1f80c4b151518bcc350c7cfa165f96456a",
+  "row_count": 23858,
+  "schema_version": 1,
+  "source_panel_hash": "b09a8ac0299d9bd18255c9a7e436a7982d34c9509f74a732ac79a7051afbae3c"
+}

@@ -1,0 +1,13 @@
+﻿{
+    "started_at":  "2026-09-01T16:53:36.6581692Z",
+    "public_url":  "https://product-phi-undefined-semester.trycloudflare.com",
+    "public_host":  "product-phi-undefined-semester.trycloudflare.com",
+    "api_pid":  137780,
+    "api_port":  8002,
+    "web_mode":  null,
+    "web_pid":  null,
+    "web_container":  null,
+    "web_port":  5173,
+    "tunnel_pid":  126024,
+    "bootstrap":  true
+}

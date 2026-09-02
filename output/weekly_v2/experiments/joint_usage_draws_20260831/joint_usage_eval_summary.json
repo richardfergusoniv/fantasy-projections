@@ -1,0 +1,269 @@
+{
+  "conservation": {
+    "checked_draws": 640,
+    "checked_teams": 16,
+    "n_violations": 0,
+    "ok": true,
+    "violations": []
+  },
+  "contract_fingerprint": "d5cea62f988963624eb5a600e1b9849a88d2930e9a7ea33f32a36b0aa650f7ea",
+  "contract_version": "weekly_mixture_contract_v1",
+  "created_at_utc": "2026-09-01T03:45:10.483529+00:00",
+  "distributional": {
+    "joint": {
+      "coverage_p10_p90": 0.875,
+      "crps_mean": 2.8388532848011363,
+      "mean_width_p10_p90": 11.672545454545462,
+      "n": 176,
+      "note": "Deterministic-mean dispersion must be reported separately from distributional calibration; sample variance does not pass the point gate.",
+      "pit_mean": 0.6384943181818182,
+      "point_metrics": {
+        "mae": 0.0,
+        "rank_corr": 1.0,
+        "rmse": 0.0
+      },
+      "wis_mean": 16.456295454545455,
+      "zero_mass": {
+        "abs_gap": 0.2519176136363636,
+        "actual_zero_rate": 0.19886363636363635,
+        "mean_pred_zero_mass": 0.45078124999999997
+      }
+    },
+    "legacy_scaled": {
+      "coverage_p10_p90": 0.175,
+      "crps_mean": 4.891534228780228,
+      "mean_width_p10_p90": 0.5222040045144893,
+      "n": 80,
+      "note": "Deterministic-mean dispersion must be reported separately from distributional calibration; sample variance does not pass the point gate.",
+      "pit_mean": 0.98953125,
+      "point_metrics": {
+        "mae": 5.009230447761121,
+        "rank_corr": 0.9202062822315987,
+        "rmse": 7.092895924371732
+      },
+      "wis_mean": 48.01136043703895,
+      "zero_mass": {
+        "abs_gap": 0.0,
+        "actual_zero_rate": 0.175,
+        "mean_pred_zero_mass": 0.175
+      }
+    }
+  },
+  "event_calibration_path": "output\\weekly_v2\\experiments\\joint_usage_draws_20260831\\event_calibration.json",
+  "experiment_id": "joint_usage_draws_20260831",
+  "mixture_panel": {
+    "cutoff_note": "features as-of pre-kickoff; labels from same-week outcomes for training only",
+    "event_rates": {
+      "by_position": {
+        "QB": {
+          "active": 1.0,
+          "participated": 1.0,
+          "positive_usage": 0.9980945121951219,
+          "rows": 2624
+        },
+        "RB": {
+          "active": 1.0,
+          "participated": 0.9369051274178692,
+          "positive_usage": 0.8799508750383789,
+          "rows": 6514
+        },
+        "TE": {
+          "active": 1.0,
+          "participated": 0.9906218144750255,
+          "positive_usage": 0.8917431192660551,
+          "rows": 4905
+        },
+        "WR": {
+          "active": 1.0,
+          "participated": 0.9597554763117677,
+          "positive_usage": 0.8766174223127865,
+          "rows": 9815
+        }
+      },
+      "by_season": {
+        "2022": {
+          "active": 1.0,
+          "participated": 0.9668807029401825,
+          "positive_usage": 0.9036836769178777,
+          "rows": 5918
+        },
+        "2023": {
+          "active": 1.0,
+          "participated": 0.9718500932677633,
+          "positive_usage": 0.9089367474987282,
+          "rows": 5897
+        },
+        "2024": {
+          "active": 1.0,
+          "participated": 0.9646166807076664,
+          "positive_usage": 0.8903117101937658,
+          "rows": 5935
+        },
+        "2025": {
+          "active": 1.0,
+          "participated": 0.954158480681074,
+          "positive_usage": 0.8737721021611002,
+          "rows": 6108
+        }
+      },
+      "bye_or_unscheduled": 0,
+      "rate_is_active_label": 1.0,
+      "rate_participated_label": 0.9642887081901249,
+      "rate_positive_usage_label": 0.893997820437589,
+      "rows": 23858,
+      "scheduled_rows": 23858,
+      "zero_class_counts": {
+        "None": 23006,
+        "active_zero_usage": 852
+      }
+    },
+    "panel_hash": "0c21cd411f0022bc476de1eb01a32b1f80c4b151518bcc350c7cfa165f96456a",
+    "path": "output\\weekly_v2\\experiments\\joint_usage_draws_20260831\\mixture_panel\\mixture_panel.parquet",
+    "row_count": 23858,
+    "schema_version": 1,
+    "source_panel_hash": "b09a8ac0299d9bd18255c9a7e436a7982d34c9509f74a732ac79a7051afbae3c"
+  },
+  "notes": [
+    "Point-dispersion gate unchanged and still failing; sample variance of draws does not pass it.",
+    "This experiment is a follow-up architecture eval, not a volume-grid selection.",
+    "Automatic publication remains disabled."
+  ],
+  "panel_hash": "b09a8ac0299d9bd18255c9a7e436a7982d34c9509f74a732ac79a7051afbae3c",
+  "readiness": {
+    "auto_publish_allowed": false,
+    "automatic_weekly_publication": "NO-GO",
+    "gates": {
+      "artifact_integrity": {
+        "detail": "joint partition hash=f9549c2861a9c79bae09c04a43aee667521501c8cbaae0dd6bbaec8464bba652",
+        "evidence": {
+          "path": "output\\weekly_v2\\experiments\\joint_usage_draws_20260831\\shadow_partition\\joint_stat_partition.json",
+          "sha256": "f9549c2861a9c79bae09c04a43aee667521501c8cbaae0dd6bbaec8464bba652"
+        },
+        "name": "artifact_integrity",
+        "passed": true
+      },
+      "decision_lineup_matchup": {
+        "detail": "Decision thresholds predeclared; outer-fold start/sit backtest incomplete",
+        "evidence": {},
+        "name": "decision_lineup_matchup",
+        "passed": false
+      },
+      "dst_readiness": {
+        "detail": "Game-linked DST simulator implemented; high uncertainty, historical baseline thin",
+        "evidence": {},
+        "name": "dst_readiness",
+        "passed": true
+      },
+      "event_probability_calibration": {
+        "detail": "brier_beats_baseline=0/21",
+        "evidence": {},
+        "name": "event_probability_calibration",
+        "passed": false
+      },
+      "joint_draw_proper_scores": {
+        "detail": "joint_crps=2.8388532848011363, legacy_crps=4.891534228780228, zero_gap=0.2519176136363636",
+        "evidence": {
+          "joint": {
+            "coverage_p10_p90": 0.875,
+            "crps_mean": 2.8388532848011363,
+            "mean_width_p10_p90": 11.672545454545462,
+            "n": 176,
+            "note": "Deterministic-mean dispersion must be reported separately from distributional calibration; sample variance does not pass the point gate.",
+            "pit_mean": 0.6384943181818182,
+            "point_metrics": {
+              "mae": 0.0,
+              "rank_corr": 1.0,
+              "rmse": 0.0
+            },
+            "wis_mean": 16.456295454545455,
+            "zero_mass": {
+              "abs_gap": 0.2519176136363636,
+              "actual_zero_rate": 0.19886363636363635,
+              "mean_pred_zero_mass": 0.45078124999999997
+            }
+          },
+          "legacy": {
+            "coverage_p10_p90": 0.175,
+            "crps_mean": 4.891534228780228,
+            "mean_width_p10_p90": 0.5222040045144893,
+            "n": 80,
+            "note": "Deterministic-mean dispersion must be reported separately from distributional calibration; sample variance does not pass the point gate.",
+            "pit_mean": 0.98953125,
+            "point_metrics": {
+              "mae": 5.009230447761121,
+              "rank_corr": 0.9202062822315987,
+              "rmse": 7.092895924371732
+            },
+            "wis_mean": 48.01136043703895,
+            "zero_mass": {
+              "abs_gap": 0.0,
+              "actual_zero_rate": 0.175,
+              "mean_pred_zero_mass": 0.175
+            }
+          }
+        },
+        "name": "joint_draw_proper_scores",
+        "passed": false
+      },
+      "kicker_readiness": {
+        "detail": "Game-linked K simulator implemented; high uncertainty, historical baseline thin",
+        "evidence": {},
+        "name": "kicker_readiness",
+        "passed": true
+      },
+      "league_scoring_completeness": {
+        "detail": "Six-league live shadow not fully exercised in this candidate run",
+        "evidence": {},
+        "name": "league_scoring_completeness",
+        "passed": false
+      },
+      "per_draw_conservation": {
+        "detail": "violations=0",
+        "evidence": {
+          "checked_draws": 640,
+          "checked_teams": 16,
+          "n_violations": 0,
+          "ok": true,
+          "violations": []
+        },
+        "name": "per_draw_conservation",
+        "passed": true
+      },
+      "point_model_classification": {
+        "detail": "Trained artifact GO with caveats; volume tune promote=false preserved",
+        "evidence": {
+          "promote": false,
+          "tuning_selection": null
+        },
+        "name": "point_model_classification",
+        "passed": true
+      },
+      "ppfd_component_readiness": {
+        "detail": "First-down sampling present in joint draws; live PPFD still needs league shadow confirmation",
+        "evidence": {},
+        "name": "ppfd_component_readiness",
+        "passed": true
+      }
+    },
+    "joint_draw_classification": "NO-GO",
+    "manual_trained_shadow_publication": "NO-GO",
+    "notes": [
+      "auto_publish_allowed forced false: unchanged point-dispersion gate failed"
+    ],
+    "point_model_classification": true,
+    "public_internet_deployment": "NO-GO",
+    "start_sit_use": "NO-GO"
+  },
+  "shadow_partition": {
+    "path": "output\\weekly_v2\\experiments\\joint_usage_draws_20260831\\shadow_partition\\joint_stat_partition.json",
+    "schema": 2,
+    "sha256": "f9549c2861a9c79bae09c04a43aee667521501c8cbaae0dd6bbaec8464bba652"
+  },
+  "teammate_corr_mean": 0.01205252240166279,
+  "volume_tune_ref": {
+    "best_relative_candidate": "legacy_direct",
+    "path": "output\\weekly_v2\\experiments\\volume_tune_20260831_v2\\tuning_selection.json",
+    "promote": false,
+    "selected": null
+  }
+}

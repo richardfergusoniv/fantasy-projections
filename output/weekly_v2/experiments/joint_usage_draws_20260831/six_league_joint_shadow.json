@@ -1,0 +1,784 @@
+{
+  "corrupt_reasons": [],
+  "distinct_contract_hashes": 6,
+  "leagues": [
+    {
+      "contract_hash": "02926f62ff1f7d63531ca683654bd39d97badd484c4c50a2b88ed1f4cc1e6923",
+      "display_name": "The NY Sack Exchange I",
+      "league_id": "1389344450517430272",
+      "mean_of_means": 7.85415625,
+      "samples": [
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 7.578125,
+          "player_id": "00-0035228",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 21,
+          "mean_points": 9.421875,
+          "player_id": "00-0034857",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 13.26875,
+          "player_id": "00-0034796",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 7,
+          "mean_points": 6.5525,
+          "player_id": "00-0033873",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 4.163125,
+          "player_id": "00-0039150",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.066875,
+          "player_id": "00-0027973",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 1.88625,
+          "player_id": "00-0031280",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 6,
+          "mean_points": 2.75375,
+          "player_id": "00-0038998",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 11.68375,
+          "player_id": "00-0033537",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 4,
+          "mean_points": 2.740625,
+          "player_id": "00-0033077",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.72,
+          "player_id": "00-0033662",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 11.404375,
+          "player_id": "00-0039732",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 9.078125,
+          "player_id": "00-0030565",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 19,
+          "mean_points": 7.143750000000001,
+          "player_id": "00-0036264",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 4.509375,
+          "player_id": "00-0038128",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 18,
+          "mean_points": 14.206875,
+          "player_id": "00-0036389",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 21.903125,
+          "player_id": "00-0034844",
+          "position": "RB"
+        },
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 9.185625,
+          "player_id": "00-0039163",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 20,
+          "mean_points": 7.157500000000001,
+          "player_id": "00-0039164",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 5.65875,
+          "player_id": "00-0036971",
+          "position": "QB"
+        }
+      ]
+    },
+    {
+      "contract_hash": "8a9013fc80724ba95c3e6a9e9019bc4fffb9a9edbb6f340b0570bf16d33b774a",
+      "display_name": "Tits Out for The Ladz XII (TWELVE\ud83d\ude24)",
+      "league_id": "1355920300633513984",
+      "mean_of_means": 7.85415625,
+      "samples": [
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 7.578125,
+          "player_id": "00-0035228",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 21,
+          "mean_points": 9.421875,
+          "player_id": "00-0034857",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 13.26875,
+          "player_id": "00-0034796",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 7,
+          "mean_points": 6.5525,
+          "player_id": "00-0033873",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 4.163125,
+          "player_id": "00-0039150",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.066875,
+          "player_id": "00-0027973",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 1.88625,
+          "player_id": "00-0031280",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 6,
+          "mean_points": 2.75375,
+          "player_id": "00-0038998",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 11.68375,
+          "player_id": "00-0033537",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 4,
+          "mean_points": 2.740625,
+          "player_id": "00-0033077",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.72,
+          "player_id": "00-0033662",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 11.404375,
+          "player_id": "00-0039732",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 9.078125,
+          "player_id": "00-0030565",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 19,
+          "mean_points": 7.143750000000001,
+          "player_id": "00-0036264",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 4.509375,
+          "player_id": "00-0038128",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 18,
+          "mean_points": 14.206875,
+          "player_id": "00-0036389",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 21.903125,
+          "player_id": "00-0034844",
+          "position": "RB"
+        },
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 9.185625,
+          "player_id": "00-0039163",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 20,
+          "mean_points": 7.157500000000001,
+          "player_id": "00-0039164",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 5.65875,
+          "player_id": "00-0036971",
+          "position": "QB"
+        }
+      ]
+    },
+    {
+      "contract_hash": "10f670d3c67a9ac25a37a1c40f75f6a2ca30d8a1af5b5dae087b066a6c261814",
+      "display_name": "C2C. The real superconference",
+      "league_id": "1317270144682070016",
+      "mean_of_means": 8.16821875,
+      "samples": [
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 7.765625,
+          "player_id": "00-0035228",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 21,
+          "mean_points": 9.421875,
+          "player_id": "00-0034857",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 13.83125,
+          "player_id": "00-0034796",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 7,
+          "mean_points": 6.64625,
+          "player_id": "00-0033873",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 4.163125,
+          "player_id": "00-0039150",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.066875,
+          "player_id": "00-0027973",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 1.88625,
+          "player_id": "00-0031280",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 6,
+          "mean_points": 2.75375,
+          "player_id": "00-0038998",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 13.18375,
+          "player_id": "00-0033537",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 4,
+          "mean_points": 2.740625,
+          "player_id": "00-0033077",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.72,
+          "player_id": "00-0033662",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 12.060625,
+          "player_id": "00-0039732",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 9.078125,
+          "player_id": "00-0030565",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 19,
+          "mean_points": 7.143750000000001,
+          "player_id": "00-0036264",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 4.509375,
+          "player_id": "00-0038128",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 18,
+          "mean_points": 14.675625,
+          "player_id": "00-0036389",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 24.528125,
+          "player_id": "00-0034844",
+          "position": "RB"
+        },
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 9.373125,
+          "player_id": "00-0039163",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 20,
+          "mean_points": 7.157500000000001,
+          "player_id": "00-0039164",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 5.65875,
+          "player_id": "00-0036971",
+          "position": "QB"
+        }
+      ]
+    },
+    {
+      "contract_hash": "f182f4b7500ab75aefcbf869d34aa2c4dec6cad26a874a949652926d1ca12f8b",
+      "display_name": "Dynastical Cucks",
+      "league_id": "1306489414548979712",
+      "mean_of_means": 8.52525,
+      "samples": [
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 7.84375,
+          "player_id": "00-0035228",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 21,
+          "mean_points": 10.28125,
+          "player_id": "00-0034857",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 14.64375,
+          "player_id": "00-0034796",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 7,
+          "mean_points": 6.70875,
+          "player_id": "00-0033873",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 4.506875,
+          "player_id": "00-0039150",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.145,
+          "player_id": "00-0027973",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 1.9175,
+          "player_id": "00-0031280",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 6,
+          "mean_points": 2.8475,
+          "player_id": "00-0038998",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 12.011875,
+          "player_id": "00-0033537",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 4,
+          "mean_points": 2.803125,
+          "player_id": "00-0033077",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.766875,
+          "player_id": "00-0033662",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 11.82625,
+          "player_id": "00-0039732",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 9.46875,
+          "player_id": "00-0030565",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 19,
+          "mean_points": 8.58125,
+          "player_id": "00-0036264",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 5.4625,
+          "player_id": "00-0038128",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 18,
+          "mean_points": 17.12875,
+          "player_id": "00-0036389",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 24.6375,
+          "player_id": "00-0034844",
+          "position": "RB"
+        },
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 9.45125,
+          "player_id": "00-0039163",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 20,
+          "mean_points": 7.782500000000001,
+          "player_id": "00-0039164",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 5.69,
+          "player_id": "00-0036971",
+          "position": "QB"
+        }
+      ]
+    },
+    {
+      "contract_hash": "a1db76c42a50440680dabf09eb181c6a1da13a5b860ba1e38dfdb81336598791",
+      "display_name": "Hoe Ass Dynasty League",
+      "league_id": "1312127020972404736",
+      "mean_of_means": 8.0315,
+      "samples": [
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 7.578125,
+          "player_id": "00-0035228",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 21,
+          "mean_points": 9.421875,
+          "player_id": "00-0034857",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 13.26875,
+          "player_id": "00-0034796",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 7,
+          "mean_points": 6.5525,
+          "player_id": "00-0033873",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 4.163125,
+          "player_id": "00-0039150",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.066875,
+          "player_id": "00-0027973",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 1.88625,
+          "player_id": "00-0031280",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 6,
+          "mean_points": 2.75375,
+          "player_id": "00-0038998",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 11.68375,
+          "player_id": "00-0033537",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 4,
+          "mean_points": 2.740625,
+          "player_id": "00-0033077",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.72,
+          "player_id": "00-0033662",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 11.404375,
+          "player_id": "00-0039732",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 9.078125,
+          "player_id": "00-0030565",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 19,
+          "mean_points": 7.143750000000001,
+          "player_id": "00-0036264",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 4.509375,
+          "player_id": "00-0038128",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 18,
+          "mean_points": 14.206875,
+          "player_id": "00-0036389",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 25.45,
+          "player_id": "00-0034844",
+          "position": "RB"
+        },
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 9.185625,
+          "player_id": "00-0039163",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 20,
+          "mean_points": 7.157500000000001,
+          "player_id": "00-0039164",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 5.65875,
+          "player_id": "00-0036971",
+          "position": "QB"
+        }
+      ]
+    },
+    {
+      "contract_hash": "b215d0529dab64fb88feaa7ed248d7eeb810e5b84a1417ee55ab14b38174d481",
+      "display_name": "Tainticklers",
+      "league_id": "1311470531635052544",
+      "mean_of_means": 8.0315,
+      "samples": [
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 7.578125,
+          "player_id": "00-0035228",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 21,
+          "mean_points": 9.421875,
+          "player_id": "00-0034857",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 13.26875,
+          "player_id": "00-0034796",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 7,
+          "mean_points": 6.5525,
+          "player_id": "00-0033873",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 4.163125,
+          "player_id": "00-0039150",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.066875,
+          "player_id": "00-0027973",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 1.88625,
+          "player_id": "00-0031280",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 6,
+          "mean_points": 2.75375,
+          "player_id": "00-0038998",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 11.68375,
+          "player_id": "00-0033537",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 4,
+          "mean_points": 2.740625,
+          "player_id": "00-0033077",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 3,
+          "mean_points": 3.72,
+          "player_id": "00-0033662",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 11.404375,
+          "player_id": "00-0039732",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 9.078125,
+          "player_id": "00-0030565",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 19,
+          "mean_points": 7.143750000000001,
+          "player_id": "00-0036264",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 15,
+          "mean_points": 4.509375,
+          "player_id": "00-0038128",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 18,
+          "mean_points": 14.206875,
+          "player_id": "00-0036389",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 16,
+          "mean_points": 25.45,
+          "player_id": "00-0034844",
+          "position": "RB"
+        },
+        {
+          "draws_with_first_downs": 12,
+          "mean_points": 9.185625,
+          "player_id": "00-0039163",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 20,
+          "mean_points": 7.157500000000001,
+          "player_id": "00-0039164",
+          "position": "QB"
+        },
+        {
+          "draws_with_first_downs": 2,
+          "mean_points": 5.65875,
+          "player_id": "00-0036971",
+          "position": "QB"
+        }
+      ]
+    }
+  ],
+  "n_leagues": 6,
+  "notes": [
+    "owner config lacked inline scoring_settings; using six_league_scoring_shadow.json",
+    "inline scoring_settings unavailable; using six fixture contracts mapped to live league IDs (exact live blobs not in static artifacts)"
+  ],
+  "partition_hash": "f9549c2861a9c79bae09c04a43aee667521501c8cbaae0dd6bbaec8464bba652",
+  "partition_ok": true,
+  "pointer_advanced": false,
+  "ppfd_nonzero_players": 20,
+  "tamper_validated_blocked": true
+}

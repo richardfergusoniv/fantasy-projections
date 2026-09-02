@@ -1,0 +1,3626 @@
+{
+  "schema_version": 2,
+  "created_at_utc": "2026-09-01T03:26:16.652495+00:00",
+  "experiment_id": "volume_tune_20260831_v2",
+  "panel_hash": "b09a8ac0299d9bd18255c9a7e436a7982d34c9509f74a732ac79a7051afbae3c",
+  "code_revision": "ca922db83ac7623ffabe2ecdb21822c2d1f9351e",
+  "selected": null,
+  "volume_options": {},
+  "promote": false,
+  "best_relative_candidate": "legacy_direct",
+  "best_relative_options": {
+    "two_stage": false,
+    "model_type": "hgb",
+    "participation_model_type": "hgb",
+    "participation_threshold": 1e-06,
+    "min_participation_rows": 20,
+    "recency_half_life_seasons": null
+  },
+  "selection_rule": "lexicographic: selection_gate(dispersion), mae_vs_baseline, rank_delta, dispersion_distance; train only if full PromotionPolicy passes",
+  "candidate_grid": [
+    "baseline_two_stage",
+    "two_stage_half_life_6",
+    "two_stage_half_life_4",
+    "two_stage_half_life_2",
+    "two_stage_participation_ridge",
+    "two_stage_conditional_ridge",
+    "two_stage_conservative_hgb",
+    "legacy_direct"
+  ],
+  "global_pareto_table": [
+    {
+      "name": "legacy_direct",
+      "options": {
+        "two_stage": false,
+        "model_type": "hgb",
+        "participation_model_type": "hgb",
+        "participation_threshold": 1e-06,
+        "min_participation_rows": 20,
+        "recency_half_life_seasons": null
+      },
+      "rank_key": [
+        0,
+        0,
+        0.00016945547197314004,
+        0.08833615398669155,
+        -0.2554656536306103,
+        0.6915385335692429
+      ],
+      "full_promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "aggregate": {
+        "n_seasons": 3,
+        "mean_mae_improvement": 0.14264609928725028,
+        "mean_rank_delta": 0.08833615398669155,
+        "mean_dispersion": 0.7445343463693898,
+        "mean_dispersion_distance": 0.2554656536306103,
+        "min_dispersion": 0.6915385335692429,
+        "max_dispersion": 0.8394181122282801,
+        "mean_interval_coverage": 0.7907703258105307,
+        "reports": [
+          {
+            "season": 2023,
+            "mae": 4.007855717233708,
+            "rank_corr": 0.4614164356557294,
+            "dispersion_ratio": 0.6915385335692429,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9945,
+              "coverage": 0.7864253393665158,
+              "mean_width": 10.766347859214463
+            },
+            "by_position": {
+              "QB": {
+                "n": 1428,
+                "mae": 5.659541776987284,
+                "rmse": 8.694803079574726,
+                "rank_corr": 0.4172155418793361,
+                "dispersion_ratio": 0.9231764240495898,
+                "interval_coverage": 0.7633053221288515
+              },
+              "WR": {
+                "n": 3808,
+                "mae": 3.925624622685521,
+                "rmse": 5.9488165364377155,
+                "rank_corr": 0.5236608361942069,
+                "dispersion_ratio": 0.5394453278885244,
+                "interval_coverage": 0.8169642857142857
+              },
+              "RB": {
+                "n": 2465,
+                "mae": 4.198250014974199,
+                "rmse": 6.35845657508082,
+                "rank_corr": 0.47179857676315257,
+                "dispersion_ratio": 0.6684231540450754,
+                "interval_coverage": 0.7963488843813388
+              },
+              "TE": {
+                "n": 2244,
+                "mae": 2.8871811944088774,
+                "rmse": 4.37087807234456,
+                "rank_corr": 0.40086314265052897,
+                "dispersion_ratio": 0.5316527212291393,
+                "interval_coverage": 0.7384135472370766
+              }
+            }
+          },
+          {
+            "season": 2024,
+            "mae": 4.234845931601773,
+            "rank_corr": 0.4424945895587529,
+            "dispersion_ratio": 0.702646393310646,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9673,
+              "coverage": 0.7773183086943037,
+              "mean_width": 10.921397498003515
+            },
+            "by_position": {
+              "RB": {
+                "n": 2380,
+                "mae": 4.347210482853667,
+                "rmse": 6.460030401605671,
+                "rank_corr": 0.4645286306498468,
+                "dispersion_ratio": 0.6984550772117912,
+                "interval_coverage": 0.7840336134453781
+              },
+              "WR": {
+                "n": 3774,
+                "mae": 4.332988859427846,
+                "rmse": 6.271138773771411,
+                "rank_corr": 0.45533308925372956,
+                "dispersion_ratio": 0.56509108749339,
+                "interval_coverage": 0.775039745627981
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 5.712339996551244,
+                "rmse": 8.901074115320615,
+                "rank_corr": 0.4617041945415446,
+                "dispersion_ratio": 0.8802287731906546,
+                "interval_coverage": 0.7661064425770309
+              },
+              "TE": {
+                "n": 2091,
+                "mae": 2.920794967305762,
+                "rmse": 4.687732208891562,
+                "rank_corr": 0.44552890986791704,
+                "dispersion_ratio": 0.5591245045961472,
+                "interval_coverage": 0.7814442850310857
+              }
+            }
+          },
+          {
+            "season": 2025,
+            "mae": 3.703986248767363,
+            "rank_corr": 0.5382160208611574,
+            "dispersion_ratio": 0.8394181122282801,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9758,
+              "coverage": 0.8085673293707727,
+              "mean_width": 10.841256092731104
+            },
+            "by_position": {
+              "WR": {
+                "n": 3672,
+                "mae": 3.80308808346346,
+                "rmse": 5.734904643480593,
+                "rank_corr": 0.5161279240550799,
+                "dispersion_ratio": 0.7223214306213757,
+                "interval_coverage": 0.8137254901960784
+              },
+              "RB": {
+                "n": 2516,
+                "mae": 3.7481135773892107,
+                "rmse": 5.9338145162333396,
+                "rank_corr": 0.511956078834412,
+                "dispersion_ratio": 0.7477223907143662,
+                "interval_coverage": 0.8267090620031796
+              },
+              "QB": {
+                "n": 1445,
+                "mae": 4.296601347513571,
+                "rmse": 7.564986904504097,
+                "rank_corr": 0.6470859639723315,
+                "dispersion_ratio": 1.0609651363287098,
+                "interval_coverage": 0.827681660899654
+              },
+              "TE": {
+                "n": 2125,
+                "mae": 3.0775132541768153,
+                "rmse": 4.767086953960282,
+                "rank_corr": 0.48964258306922914,
+                "dispersion_ratio": 0.7539006407568017,
+                "interval_coverage": 0.7651764705882353
+              }
+            }
+          }
+        ]
+      },
+      "mae_vs_baseline": 0.00016945547197314004
+    },
+    {
+      "name": "two_stage_conservative_hgb",
+      "options": {
+        "two_stage": true,
+        "model_type": "hgb",
+        "participation_model_type": "hgb",
+        "participation_threshold": 1e-06,
+        "min_participation_rows": 20,
+        "recency_half_life_seasons": null
+      },
+      "rank_key": [
+        0,
+        0,
+        1.5504880277489308e-05,
+        0.08446371383514713,
+        -0.2628331905985631,
+        0.6879812241303026
+      ],
+      "full_promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "aggregate": {
+        "n_seasons": 3,
+        "mean_mae_improvement": 0.14249214869555463,
+        "mean_rank_delta": 0.08446371383514713,
+        "mean_dispersion": 0.7371668094014369,
+        "mean_dispersion_distance": 0.2628331905985631,
+        "min_dispersion": 0.6879812241303026,
+        "max_dispersion": 0.8348048641520491,
+        "mean_interval_coverage": 0.789477768324344,
+        "reports": [
+          {
+            "season": 2023,
+            "mae": 4.004159330013024,
+            "rank_corr": 0.45559684709808,
+            "dispersion_ratio": 0.6887143399219591,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9945,
+              "coverage": 0.7854198089492207,
+              "mean_width": 10.729503661407087
+            },
+            "by_position": {
+              "RB": {
+                "n": 2465,
+                "mae": 4.183412822802608,
+                "rmse": 6.344748229804051,
+                "rank_corr": 0.4645520676522203,
+                "dispersion_ratio": 0.6711755901422238,
+                "interval_coverage": 0.7967545638945234
+              },
+              "TE": {
+                "n": 2244,
+                "mae": 2.890603119563046,
+                "rmse": 4.368000909991927,
+                "rank_corr": 0.38062307543921586,
+                "dispersion_ratio": 0.5223261355953221,
+                "interval_coverage": 0.7352941176470589
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 5.568921947615106,
+                "rmse": 8.420003252406582,
+                "rank_corr": 0.44957062780172274,
+                "dispersion_ratio": 0.932857989571796,
+                "interval_coverage": 0.7373949579831933
+              },
+              "WR": {
+                "n": 3808,
+                "mae": 3.957541488255579,
+                "rmse": 5.951534505355782,
+                "rank_corr": 0.5117032660009795,
+                "dispersion_ratio": 0.5178618343022209,
+                "interval_coverage": 0.8256302521008403
+              }
+            }
+          },
+          {
+            "season": 2024,
+            "mae": 4.233824852866463,
+            "rank_corr": 0.4439275127230837,
+            "dispersion_ratio": 0.6879812241303026,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9673,
+              "coverage": 0.7770081670629587,
+              "mean_width": 10.886993605750282
+            },
+            "by_position": {
+              "RB": {
+                "n": 2380,
+                "mae": 4.34465400314648,
+                "rmse": 6.432094198703027,
+                "rank_corr": 0.45793599223334736,
+                "dispersion_ratio": 0.6802250185958292,
+                "interval_coverage": 0.7865546218487395
+              },
+              "WR": {
+                "n": 3774,
+                "mae": 4.356964169429373,
+                "rmse": 6.256316549192129,
+                "rank_corr": 0.4497907090190618,
+                "dispersion_ratio": 0.5452939461344838,
+                "interval_coverage": 0.7782193958664547
+              },
+              "TE": {
+                "n": 2091,
+                "mae": 2.9369674809201802,
+                "rmse": 4.678806634622431,
+                "rank_corr": 0.44538588411544555,
+                "dispersion_ratio": 0.545202207235858,
+                "interval_coverage": 0.7800095648015304
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 5.622639703261989,
+                "rmse": 8.716193172155501,
+                "rank_corr": 0.4609002887987203,
+                "dispersion_ratio": 0.8730158555292556,
+                "interval_coverage": 0.7535014005602241
+              }
+            }
+          },
+          {
+            "season": 2025,
+            "mae": 3.710860016019792,
+            "rank_corr": 0.5375877807767425,
+            "dispersion_ratio": 0.8348048641520491,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9758,
+              "coverage": 0.8060053289608526,
+              "mean_width": 10.775321712001736
+            },
+            "by_position": {
+              "WR": {
+                "n": 3672,
+                "mae": 3.8098033245037537,
+                "rmse": 5.722895319915089,
+                "rank_corr": 0.5222291935660258,
+                "dispersion_ratio": 0.711946107437294,
+                "interval_coverage": 0.8145424836601307
+              },
+              "TE": {
+                "n": 2125,
+                "mae": 3.10550660576215,
+                "rmse": 4.783603867732114,
+                "rank_corr": 0.4794276974657699,
+                "dispersion_ratio": 0.754427024370343,
+                "interval_coverage": 0.7585882352941177
+              },
+              "RB": {
+                "n": 2516,
+                "mae": 3.763184287856473,
+                "rmse": 5.943297188120524,
+                "rank_corr": 0.5040970685811575,
+                "dispersion_ratio": 0.7402952241350639,
+                "interval_coverage": 0.8239268680445151
+              },
+              "QB": {
+                "n": 1445,
+                "mae": 4.258547420935559,
+                "rmse": 7.521212015724299,
+                "rank_corr": 0.6621822069499307,
+                "dispersion_ratio": 1.0615875871460432,
+                "interval_coverage": 0.8228373702422145
+              }
+            }
+          }
+        ]
+      },
+      "mae_vs_baseline": 1.5504880277489308e-05
+    },
+    {
+      "name": "baseline_two_stage",
+      "options": {
+        "two_stage": true,
+        "model_type": "hgb",
+        "participation_model_type": "hgb",
+        "participation_threshold": 1e-06,
+        "min_participation_rows": 20,
+        "recency_half_life_seasons": null
+      },
+      "rank_key": [
+        0,
+        0,
+        0.0,
+        0.08422170864866341,
+        -0.2628344119673649,
+        0.6879812241303026
+      ],
+      "full_promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "aggregate": {
+        "n_seasons": 3,
+        "mean_mae_improvement": 0.14247664381527714,
+        "mean_rank_delta": 0.08422170864866341,
+        "mean_dispersion": 0.7371655880326351,
+        "mean_dispersion_distance": 0.2628344119673649,
+        "min_dispersion": 0.6879812241303026,
+        "max_dispersion": 0.8348012000456436,
+        "mean_interval_coverage": 0.789477768324344,
+        "reports": [
+          {
+            "season": 2023,
+            "mae": 4.004159330013024,
+            "rank_corr": 0.4578843190363094,
+            "dispersion_ratio": 0.6887143399219591,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9945,
+              "coverage": 0.7854198089492207,
+              "mean_width": 10.729503661407087
+            },
+            "by_position": {
+              "RB": {
+                "n": 2465,
+                "mae": 4.183412822802609,
+                "rmse": 6.344748229804051,
+                "rank_corr": 0.4710963954490095,
+                "dispersion_ratio": 0.6711755901422238,
+                "interval_coverage": 0.7967545638945234
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 5.568921947615106,
+                "rmse": 8.420003252406582,
+                "rank_corr": 0.4443468394000926,
+                "dispersion_ratio": 0.932857989571796,
+                "interval_coverage": 0.7373949579831933
+              },
+              "TE": {
+                "n": 2244,
+                "mae": 2.890603119563046,
+                "rmse": 4.368000909991927,
+                "rank_corr": 0.38050822005865154,
+                "dispersion_ratio": 0.5223261355953221,
+                "interval_coverage": 0.7352941176470589
+              },
+              "WR": {
+                "n": 3808,
+                "mae": 3.957541488255579,
+                "rmse": 5.951534505355782,
+                "rank_corr": 0.5251470364965468,
+                "dispersion_ratio": 0.5178618343022207,
+                "interval_coverage": 0.8256302521008403
+              }
+            }
+          },
+          {
+            "season": 2024,
+            "mae": 4.233824852866463,
+            "rank_corr": 0.441621197768141,
+            "dispersion_ratio": 0.6879812241303026,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9673,
+              "coverage": 0.7770081670629587,
+              "mean_width": 10.886993605750282
+            },
+            "by_position": {
+              "WR": {
+                "n": 3774,
+                "mae": 4.356964169429373,
+                "rmse": 6.256316549192128,
+                "rank_corr": 0.45640903030311697,
+                "dispersion_ratio": 0.5452939461344838,
+                "interval_coverage": 0.7782193958664547
+              },
+              "RB": {
+                "n": 2380,
+                "mae": 4.34465400314648,
+                "rmse": 6.432094198703027,
+                "rank_corr": 0.45779842358793954,
+                "dispersion_ratio": 0.6802250185958292,
+                "interval_coverage": 0.7865546218487395
+              },
+              "TE": {
+                "n": 2091,
+                "mae": 2.9369674809201802,
+                "rmse": 4.678806634622431,
+                "rank_corr": 0.41881615098558894,
+                "dispersion_ratio": 0.545202207235858,
+                "interval_coverage": 0.7800095648015304
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 5.6226397032619895,
+                "rmse": 8.716193172155501,
+                "rank_corr": 0.4788131803173069,
+                "dispersion_ratio": 0.8730158555292556,
+                "interval_coverage": 0.7535014005602241
+              }
+            }
+          },
+          {
+            "season": 2025,
+            "mae": 3.711075795831444,
+            "rank_corr": 0.5313973889388817,
+            "dispersion_ratio": 0.8348012000456436,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9758,
+              "coverage": 0.8060053289608526,
+              "mean_width": 10.77544939957056
+            },
+            "by_position": {
+              "RB": {
+                "n": 2516,
+                "mae": 3.7630435651522185,
+                "rmse": 5.943082268505584,
+                "rank_corr": 0.49752934364607937,
+                "dispersion_ratio": 0.7402637803014882,
+                "interval_coverage": 0.8239268680445151
+              },
+              "TE": {
+                "n": 2125,
+                "mae": 3.105426081984005,
+                "rmse": 4.783582549234762,
+                "rank_corr": 0.4814081418335134,
+                "dispersion_ratio": 0.7544276566688247,
+                "interval_coverage": 0.7585882352941177
+              },
+              "WR": {
+                "n": 3672,
+                "mae": 3.809830980573371,
+                "rmse": 5.723127416035359,
+                "rank_corr": 0.51197606511369,
+                "dispersion_ratio": 0.7119500529612242,
+                "interval_coverage": 0.8145424836601307
+              },
+              "QB": {
+                "n": 1445,
+                "mae": 4.260297730739665,
+                "rmse": 7.52229027637284,
+                "rank_corr": 0.6219167110555791,
+                "dispersion_ratio": 1.0615365695189651,
+                "interval_coverage": 0.8228373702422145
+              }
+            }
+          }
+        ]
+      },
+      "mae_vs_baseline": 0.0
+    },
+    {
+      "name": "two_stage_participation_ridge",
+      "options": {
+        "two_stage": true,
+        "model_type": "hgb",
+        "participation_model_type": "ridge",
+        "participation_threshold": 1e-06,
+        "min_participation_rows": 20,
+        "recency_half_life_seasons": null
+      },
+      "rank_key": [
+        0,
+        0,
+        -0.0003016908629656645,
+        0.08837970289115177,
+        -0.2661990267600319,
+        0.681939760450033
+      ],
+      "full_promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "aggregate": {
+        "n_seasons": 3,
+        "mean_mae_improvement": 0.14217495295231147,
+        "mean_rank_delta": 0.08837970289115177,
+        "mean_dispersion": 0.7338009732399682,
+        "mean_dispersion_distance": 0.2661990267600319,
+        "min_dispersion": 0.681939760450033,
+        "max_dispersion": 0.8297426393303922,
+        "mean_interval_coverage": 0.7900963764521619,
+        "reports": [
+          {
+            "season": 2023,
+            "mae": 4.017155638752604,
+            "rank_corr": 0.4568635921212032,
+            "dispersion_ratio": 0.681939760450033,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9945,
+              "coverage": 0.7851181498240322,
+              "mean_width": 10.73285531676688
+            },
+            "by_position": {
+              "RB": {
+                "n": 2465,
+                "mae": 4.2003209954095055,
+                "rmse": 6.334067481076236,
+                "rank_corr": 0.46937811495098786,
+                "dispersion_ratio": 0.6660239948340071,
+                "interval_coverage": 0.7983772819472617
+              },
+              "TE": {
+                "n": 2244,
+                "mae": 2.8980288078870053,
+                "rmse": 4.3832976705272895,
+                "rank_corr": 0.38561186927925567,
+                "dispersion_ratio": 0.5224293012597605,
+                "interval_coverage": 0.732174688057041
+              },
+              "WR": {
+                "n": 3808,
+                "mae": 3.9597008017530215,
+                "rmse": 5.961832624006084,
+                "rank_corr": 0.5281679208136973,
+                "dispersion_ratio": 0.5123031373419767,
+                "interval_coverage": 0.8298319327731093
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 5.612818120263497,
+                "rmse": 8.43637272723329,
+                "rank_corr": 0.39577869827146805,
+                "dispersion_ratio": 0.9208883383084066,
+                "interval_coverage": 0.7261904761904762
+              }
+            }
+          },
+          {
+            "season": 2024,
+            "mae": 4.23070638042906,
+            "rank_corr": 0.44506664920392963,
+            "dispersion_ratio": 0.6897205199394792,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9673,
+              "coverage": 0.7776284503256488,
+              "mean_width": 10.906647061466368
+            },
+            "by_position": {
+              "WR": {
+                "n": 3774,
+                "mae": 4.363383708294622,
+                "rmse": 6.266161201072546,
+                "rank_corr": 0.45529025695852604,
+                "dispersion_ratio": 0.5491511716703065,
+                "interval_coverage": 0.7782193958664547
+              },
+              "TE": {
+                "n": 2091,
+                "mae": 2.957868630215074,
+                "rmse": 4.679001931839626,
+                "rank_corr": 0.43574846825203406,
+                "dispersion_ratio": 0.5487652876650466,
+                "interval_coverage": 0.7804878048780488
+              },
+              "RB": {
+                "n": 2380,
+                "mae": 4.327313782410125,
+                "rmse": 6.399144877067955,
+                "rank_corr": 0.4659228726262935,
+                "dispersion_ratio": 0.6680816726288317,
+                "interval_coverage": 0.7907563025210084
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 5.582844954391157,
+                "rmse": 8.728168154858961,
+                "rank_corr": 0.47328250512850367,
+                "dispersion_ratio": 0.8845331758275443,
+                "interval_coverage": 0.75
+              }
+            }
+          },
+          {
+            "season": 2025,
+            "mae": 3.7052838880538443,
+            "rank_corr": 0.5255279287640298,
+            "dispersion_ratio": 0.8297426393303922,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9758,
+              "coverage": 0.8075425292068047,
+              "mean_width": 10.797351355176147
+            },
+            "by_position": {
+              "RB": {
+                "n": 2516,
+                "mae": 3.726157517865856,
+                "rmse": 5.902482838239535,
+                "rank_corr": 0.5019537059841527,
+                "dispersion_ratio": 0.7211045383052357,
+                "interval_coverage": 0.8302861685214626
+              },
+              "WR": {
+                "n": 3672,
+                "mae": 3.8110533426583575,
+                "rmse": 5.708807191133035,
+                "rank_corr": 0.5125805874762533,
+                "dispersion_ratio": 0.7079613591330539,
+                "interval_coverage": 0.8161764705882353
+              },
+              "QB": {
+                "n": 1445,
+                "mae": 4.227938209389587,
+                "rmse": 7.515737022847566,
+                "rank_corr": 0.6883839222466048,
+                "dispersion_ratio": 1.065530244012545,
+                "interval_coverage": 0.8207612456747405
+              },
+              "TE": {
+                "n": 2125,
+                "mae": 3.1423949542915173,
+                "rmse": 4.794217838716469,
+                "rank_corr": 0.4756293177538552,
+                "dispersion_ratio": 0.7510332978550419,
+                "interval_coverage": 0.7567058823529412
+              }
+            }
+          }
+        ]
+      },
+      "mae_vs_baseline": -0.0003016908629656645
+    },
+    {
+      "name": "two_stage_half_life_6",
+      "options": {
+        "two_stage": true,
+        "model_type": "hgb",
+        "participation_model_type": "hgb",
+        "participation_threshold": 1e-06,
+        "min_participation_rows": 20,
+        "recency_half_life_seasons": 6.0
+      },
+      "rank_key": [
+        0,
+        0,
+        -0.00293394044966791,
+        0.08397455132572057,
+        -0.265142375305999,
+        0.6801570134531641
+      ],
+      "full_promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "aggregate": {
+        "n_seasons": 3,
+        "mean_mae_improvement": 0.13954270336560923,
+        "mean_rank_delta": 0.08397455132572057,
+        "mean_dispersion": 0.734857624694001,
+        "mean_dispersion_distance": 0.265142375305999,
+        "min_dispersion": 0.6801570134531641,
+        "max_dispersion": 0.8331514686448871,
+        "mean_interval_coverage": 0.7889977691663551,
+        "reports": [
+          {
+            "season": 2023,
+            "mae": 4.01959777198568,
+            "rank_corr": 0.4569001267494942,
+            "dispersion_ratio": 0.6801570134531641,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9945,
+              "coverage": 0.7853192559074912,
+              "mean_width": 10.701223219062816
+            },
+            "by_position": {
+              "WR": {
+                "n": 3808,
+                "mae": 3.9671296294756306,
+                "rmse": 5.959111733118489,
+                "rank_corr": 0.5145886444016138,
+                "dispersion_ratio": 0.5144985181592313,
+                "interval_coverage": 0.8269432773109243
+              },
+              "TE": {
+                "n": 2244,
+                "mae": 2.909238419354218,
+                "rmse": 4.386847917866213,
+                "rank_corr": 0.38538519894192064,
+                "dispersion_ratio": 0.5138067853908928,
+                "interval_coverage": 0.7312834224598931
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 5.591995806577842,
+                "rmse": 8.584610728049123,
+                "rank_corr": 0.4001134133563448,
+                "dispersion_ratio": 0.9179335365423135,
+                "interval_coverage": 0.7485994397759104
+              },
+              "RB": {
+                "n": 2465,
+                "mae": 4.200555451736454,
+                "rmse": 6.349463152616985,
+                "rank_corr": 0.4647014670454124,
+                "dispersion_ratio": 0.6647720918175628,
+                "interval_coverage": 0.7914807302231237
+              }
+            }
+          },
+          {
+            "season": 2024,
+            "mae": 4.252576179586195,
+            "rank_corr": 0.4433950360276647,
+            "dispersion_ratio": 0.6912643919839518,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9673,
+              "coverage": 0.7761811227127055,
+              "mean_width": 10.876522840528523
+            },
+            "by_position": {
+              "WR": {
+                "n": 3774,
+                "mae": 4.3545295023643185,
+                "rmse": 6.250839576368263,
+                "rank_corr": 0.4631181056449964,
+                "dispersion_ratio": 0.5492292768639973,
+                "interval_coverage": 0.7768945416004239
+              },
+              "TE": {
+                "n": 2091,
+                "mae": 2.93312047332825,
+                "rmse": 4.682295278008233,
+                "rank_corr": 0.4428197960178981,
+                "dispersion_ratio": 0.5421056938215599,
+                "interval_coverage": 0.7828790052606408
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 5.732821842488695,
+                "rmse": 8.868176468347832,
+                "rank_corr": 0.4548998052552553,
+                "dispersion_ratio": 0.8772916905488567,
+                "interval_coverage": 0.7478991596638656
+              },
+              "RB": {
+                "n": 2380,
+                "mae": 4.36199602622315,
+                "rmse": 6.45528257880393,
+                "rank_corr": 0.4549155615804665,
+                "dispersion_ratio": 0.6818064188547526,
+                "interval_coverage": 0.7861344537815126
+              }
+            }
+          },
+          {
+            "season": 2025,
+            "mae": 3.7177984212065134,
+            "rank_corr": 0.5300485031530124,
+            "dispersion_ratio": 0.8331514686448871,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9758,
+              "coverage": 0.8054929288788686,
+              "mean_width": 10.799254799369374
+            },
+            "by_position": {
+              "WR": {
+                "n": 3672,
+                "mae": 3.803627332329585,
+                "rmse": 5.718407275718044,
+                "rank_corr": 0.5175374042457128,
+                "dispersion_ratio": 0.7141144873773895,
+                "interval_coverage": 0.8164488017429193
+              },
+              "QB": {
+                "n": 1445,
+                "mae": 4.3059741916806855,
+                "rmse": 7.575362629630206,
+                "rank_corr": 0.6378572787354876,
+                "dispersion_ratio": 1.0611881019010025,
+                "interval_coverage": 0.8200692041522492
+              },
+              "TE": {
+                "n": 2125,
+                "mae": 3.107850773387096,
+                "rmse": 4.780452597993075,
+                "rank_corr": 0.47949001912418754,
+                "dispersion_ratio": 0.7495025598155163,
+                "interval_coverage": 0.756235294117647
+              },
+              "RB": {
+                "n": 2516,
+                "mae": 3.7698894393452904,
+                "rmse": 5.9354657774182,
+                "rank_corr": 0.5037040510122218,
+                "dispersion_ratio": 0.7336345608740094,
+                "interval_coverage": 0.8227344992050875
+              }
+            }
+          }
+        ]
+      },
+      "mae_vs_baseline": -0.00293394044966791
+    },
+    {
+      "name": "two_stage_half_life_4",
+      "options": {
+        "two_stage": true,
+        "model_type": "hgb",
+        "participation_model_type": "hgb",
+        "participation_threshold": 1e-06,
+        "min_participation_rows": 20,
+        "recency_half_life_seasons": 4.0
+      },
+      "rank_key": [
+        0,
+        0,
+        -0.005629005909221135,
+        0.08393440346396884,
+        -0.2641712098142341,
+        0.6823732421821357
+      ],
+      "full_promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "aggregate": {
+        "n_seasons": 3,
+        "mean_mae_improvement": 0.136847637906056,
+        "mean_rank_delta": 0.08393440346396884,
+        "mean_dispersion": 0.7358287901857659,
+        "mean_dispersion_distance": 0.2641712098142341,
+        "min_dispersion": 0.6823732421821357,
+        "max_dispersion": 0.8342441552858334,
+        "mean_interval_coverage": 0.7875858660943118,
+        "reports": [
+          {
+            "season": 2023,
+            "mae": 4.028117813779051,
+            "rank_corr": 0.4585481045070844,
+            "dispersion_ratio": 0.6823732421821357,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9945,
+              "coverage": 0.7809954751131222,
+              "mean_width": 10.683704286950976
+            },
+            "by_position": {
+              "WR": {
+                "n": 3808,
+                "mae": 3.9598351499352624,
+                "rmse": 5.9491899341982295,
+                "rank_corr": 0.5186028520967237,
+                "dispersion_ratio": 0.5156167494542852,
+                "interval_coverage": 0.8251050420168067
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 5.680000302689706,
+                "rmse": 8.749683176760993,
+                "rank_corr": 0.43133446873889314,
+                "dispersion_ratio": 0.9233756339307314,
+                "interval_coverage": 0.7310924369747899
+              },
+              "TE": {
+                "n": 2244,
+                "mae": 2.9240349966728294,
+                "rmse": 4.399506060994934,
+                "rank_corr": 0.3919281410332264,
+                "dispersion_ratio": 0.5185775070465276,
+                "interval_coverage": 0.7210338680926917
+              },
+              "RB": {
+                "n": 2465,
+                "mae": 4.181746224058603,
+                "rmse": 6.350877941191259,
+                "rank_corr": 0.4692179877465469,
+                "dispersion_ratio": 0.6654203885645945,
+                "interval_coverage": 0.7963488843813388
+              }
+            }
+          },
+          {
+            "season": 2024,
+            "mae": 4.279470623603055,
+            "rank_corr": 0.43579436297086543,
+            "dispersion_ratio": 0.6908689730893286,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9673,
+              "coverage": 0.7745270340121989,
+              "mean_width": 10.904711290233497
+            },
+            "by_position": {
+              "QB": {
+                "n": 1428,
+                "mae": 5.90880987736017,
+                "rmse": 9.134785878934792,
+                "rank_corr": 0.43909011640462464,
+                "dispersion_ratio": 0.8696434404563579,
+                "interval_coverage": 0.738795518207283
+              },
+              "TE": {
+                "n": 2091,
+                "mae": 2.929855793513107,
+                "rmse": 4.6887913154683085,
+                "rank_corr": 0.4415438653893847,
+                "dispersion_ratio": 0.5441384008960733,
+                "interval_coverage": 0.7824007651841224
+              },
+              "RB": {
+                "n": 2380,
+                "mae": 4.358485647601797,
+                "rmse": 6.471884682978269,
+                "rank_corr": 0.4633864290298187,
+                "dispersion_ratio": 0.6875200046565257,
+                "interval_coverage": 0.7852941176470588
+              },
+              "WR": {
+                "n": 3774,
+                "mae": 4.36089415254739,
+                "rmse": 6.254370152330085,
+                "rank_corr": 0.4548215354938036,
+                "dispersion_ratio": 0.551504336058013,
+                "interval_coverage": 0.7768945416004239
+              }
+            }
+          },
+          {
+            "season": 2025,
+            "mae": 3.7200939504545265,
+            "rank_corr": 0.5421386810294004,
+            "dispersion_ratio": 0.8342441552858334,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9758,
+              "coverage": 0.8072350891576142,
+              "mean_width": 10.858294361103475
+            },
+            "by_position": {
+              "TE": {
+                "n": 2125,
+                "mae": 3.102103565745484,
+                "rmse": 4.780745220833186,
+                "rank_corr": 0.4906648195895209,
+                "dispersion_ratio": 0.7494932459736683,
+                "interval_coverage": 0.764235294117647
+              },
+              "QB": {
+                "n": 1445,
+                "mae": 4.311418533520425,
+                "rmse": 7.580752067773469,
+                "rank_corr": 0.6409001901063905,
+                "dispersion_ratio": 1.0628056221672773,
+                "interval_coverage": 0.8228373702422145
+              },
+              "RB": {
+                "n": 2516,
+                "mae": 3.776530849404105,
+                "rmse": 5.94943664624825,
+                "rank_corr": 0.5139201201491681,
+                "dispersion_ratio": 0.7345971026033682,
+                "interval_coverage": 0.8223370429252782
+              },
+              "WR": {
+                "n": 3672,
+                "mae": 3.8063603739892096,
+                "rmse": 5.720859723184893,
+                "rank_corr": 0.5147753026482523,
+                "dispersion_ratio": 0.714792329257512,
+                "interval_coverage": 0.815631808278867
+              }
+            }
+          }
+        ]
+      },
+      "mae_vs_baseline": -0.005629005909221135
+    },
+    {
+      "name": "two_stage_half_life_2",
+      "options": {
+        "two_stage": true,
+        "model_type": "hgb",
+        "participation_model_type": "hgb",
+        "participation_threshold": 1e-06,
+        "min_participation_rows": 20,
+        "recency_half_life_seasons": 2.0
+      },
+      "rank_key": [
+        0,
+        0,
+        -0.012401222135510703,
+        0.07068123258307289,
+        -0.2668501066734818,
+        0.6758440455106975
+      ],
+      "full_promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "aggregate": {
+        "n_seasons": 3,
+        "mean_mae_improvement": 0.13007542167976643,
+        "mean_rank_delta": 0.07068123258307289,
+        "mean_dispersion": 0.7331498933265181,
+        "mean_dispersion_distance": 0.2668501066734818,
+        "min_dispersion": 0.6758440455106975,
+        "max_dispersion": 0.8324531561134563,
+        "mean_interval_coverage": 0.7883816135517502,
+        "reports": [
+          {
+            "season": 2023,
+            "mae": 4.079548313068898,
+            "rank_corr": 0.4443503332659955,
+            "dispersion_ratio": 0.6758440455106975,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9945,
+              "coverage": 0.7798893916540975,
+              "mean_width": 10.734697400685455
+            },
+            "by_position": {
+              "RB": {
+                "n": 2465,
+                "mae": 4.207303521708576,
+                "rmse": 6.373902656990356,
+                "rank_corr": 0.46944525951240257,
+                "dispersion_ratio": 0.6752225890815072,
+                "interval_coverage": 0.7963488843813388
+              },
+              "WR": {
+                "n": 3808,
+                "mae": 3.9417638286755436,
+                "rmse": 5.942461027080218,
+                "rank_corr": 0.5184117425640524,
+                "dispersion_ratio": 0.5217330960430889,
+                "interval_coverage": 0.8266806722689075
+              },
+              "TE": {
+                "n": 2244,
+                "mae": 2.9303904191365966,
+                "rmse": 4.394982192343359,
+                "rank_corr": 0.3866105619448131,
+                "dispersion_ratio": 0.522251093168921,
+                "interval_coverage": 0.7174688057040999
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 6.032263327954872,
+                "rmse": 9.107482244332857,
+                "rank_corr": 0.33533074996500023,
+                "dispersion_ratio": 0.8915063555126556,
+                "interval_coverage": 0.7247899159663865
+              }
+            }
+          },
+          {
+            "season": 2024,
+            "mae": 4.321572476551989,
+            "rank_corr": 0.4224323259538436,
+            "dispersion_ratio": 0.6911524783554007,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9673,
+              "coverage": 0.7755608394500155,
+              "mean_width": 11.041608845016423
+            },
+            "by_position": {
+              "TE": {
+                "n": 2091,
+                "mae": 2.9346585106297867,
+                "rmse": 4.691950880425117,
+                "rank_corr": 0.4389378977738425,
+                "dispersion_ratio": 0.5497826725520829,
+                "interval_coverage": 0.7833572453371592
+              },
+              "WR": {
+                "n": 3774,
+                "mae": 4.344057349280998,
+                "rmse": 6.247033720596028,
+                "rank_corr": 0.4605797396864544,
+                "dispersion_ratio": 0.5573585181649632,
+                "interval_coverage": 0.7763645998940116
+              },
+              "RB": {
+                "n": 2380,
+                "mae": 4.367329828041565,
+                "rmse": 6.4609232279558935,
+                "rank_corr": 0.45418307775080174,
+                "dispersion_ratio": 0.6909388510033169,
+                "interval_coverage": 0.7865546218487395
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 6.216724224814495,
+                "rmse": 9.535967318558757,
+                "rank_corr": 0.40795763249671996,
+                "dispersion_ratio": 0.8617533219112494,
+                "interval_coverage": 0.7436974789915967
+              }
+            }
+          },
+          {
+            "season": 2025,
+            "mae": 3.7208849454934665,
+            "rank_corr": 0.5318211841040378,
+            "dispersion_ratio": 0.8324531561134563,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9758,
+              "coverage": 0.8096946095511375,
+              "mean_width": 11.04332664449355
+            },
+            "by_position": {
+              "TE": {
+                "n": 2125,
+                "mae": 3.1211636625399986,
+                "rmse": 4.7890077168315806,
+                "rank_corr": 0.4757723393006916,
+                "dispersion_ratio": 0.7441114914425138,
+                "interval_coverage": 0.7618823529411765
+              },
+              "RB": {
+                "n": 2516,
+                "mae": 3.768633568059371,
+                "rmse": 5.942308424685918,
+                "rank_corr": 0.4918416893467229,
+                "dispersion_ratio": 0.7317274772926669,
+                "interval_coverage": 0.8239268680445151
+              },
+              "WR": {
+                "n": 3672,
+                "mae": 3.8015685063646156,
+                "rmse": 5.71648196600743,
+                "rank_corr": 0.5158403099522519,
+                "dispersion_ratio": 0.7112523085347828,
+                "interval_coverage": 0.8164488017429193
+              },
+              "QB": {
+                "n": 1445,
+                "mae": 4.31465806409654,
+                "rmse": 7.5894431150434745,
+                "rank_corr": 0.6813712955373464,
+                "dispersion_ratio": 1.0638270517318205,
+                "interval_coverage": 0.8380622837370242
+              }
+            }
+          }
+        ]
+      },
+      "mae_vs_baseline": -0.012401222135510703
+    },
+    {
+      "name": "two_stage_conditional_ridge",
+      "options": {
+        "two_stage": true,
+        "model_type": "ridge",
+        "participation_model_type": "hgb",
+        "participation_threshold": 1e-06,
+        "min_participation_rows": 20,
+        "recency_half_life_seasons": null
+      },
+      "rank_key": [
+        0,
+        0,
+        -0.028317979799361723,
+        0.05877048031218468,
+        -0.2854092763543773,
+        0.646883357432822
+      ],
+      "full_promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: rank improvement below threshold",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "promotion": {
+        "promote": false,
+        "failures": [
+          "2023: dispersion outside policy",
+          "2024: rank improvement below threshold",
+          "2024: dispersion outside policy"
+        ],
+        "policy": {
+          "min_coverage": 0.95,
+          "min_mae_improvement": 0.02,
+          "min_rank_improvement": 0.0,
+          "min_dispersion_ratio": 0.7,
+          "max_dispersion_ratio": 1.3,
+          "min_seasons": 3,
+          "min_interval_coverage": 0.72,
+          "max_interval_coverage": 0.9
+        }
+      },
+      "aggregate": {
+        "n_seasons": 3,
+        "mean_mae_improvement": 0.11415866401591541,
+        "mean_rank_delta": 0.05877048031218468,
+        "mean_dispersion": 0.7145907236456227,
+        "mean_dispersion_distance": 0.2854092763543773,
+        "min_dispersion": 0.646883357432822,
+        "max_dispersion": 0.8299567016636111,
+        "mean_interval_coverage": 0.7966819218263393,
+        "reports": [
+          {
+            "season": 2023,
+            "mae": 4.185589590737491,
+            "rank_corr": 0.4215649348779754,
+            "dispersion_ratio": 0.646883357432822,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9945,
+              "coverage": 0.7980894922071393,
+              "mean_width": 11.45475366333931
+            },
+            "by_position": {
+              "QB": {
+                "n": 1428,
+                "mae": 6.720845937039159,
+                "rmse": 9.726472345478602,
+                "rank_corr": 0.2807463255891103,
+                "dispersion_ratio": 0.8520965795166757,
+                "interval_coverage": 0.7661064425770309
+              },
+              "WR": {
+                "n": 3808,
+                "mae": 3.9769178020069584,
+                "rmse": 5.975661648479537,
+                "rank_corr": 0.5130064363390355,
+                "dispersion_ratio": 0.49701239929476465,
+                "interval_coverage": 0.8392857142857143
+              },
+              "RB": {
+                "n": 2465,
+                "mae": 4.2339967576946576,
+                "rmse": 6.332711220549197,
+                "rank_corr": 0.4583998665937771,
+                "dispersion_ratio": 0.6382373354023293,
+                "interval_coverage": 0.788235294117647
+              },
+              "TE": {
+                "n": 2244,
+                "mae": 2.87317980571863,
+                "rmse": 4.35881709682281,
+                "rank_corr": 0.39903207901444304,
+                "dispersion_ratio": 0.508361447805625,
+                "interval_coverage": 0.7593582887700535
+              }
+            }
+          },
+          {
+            "season": 2024,
+            "mae": 4.404755815620606,
+            "rank_corr": 0.4114795823817422,
+            "dispersion_ratio": 0.666932111840435,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9673,
+              "coverage": 0.7801095833764086,
+              "mean_width": 11.606824821487617
+            },
+            "by_position": {
+              "WR": {
+                "n": 3774,
+                "mae": 4.4378216810726645,
+                "rmse": 6.286191248487144,
+                "rank_corr": 0.43827800577854165,
+                "dispersion_ratio": 0.5194564800007789,
+                "interval_coverage": 0.7705352411234764
+              },
+              "TE": {
+                "n": 2091,
+                "mae": 2.931798319416396,
+                "rmse": 4.675082408864728,
+                "rank_corr": 0.44020791794356207,
+                "dispersion_ratio": 0.5158950097950284,
+                "interval_coverage": 0.7847919655667145
+              },
+              "RB": {
+                "n": 2380,
+                "mae": 4.378201705001544,
+                "rmse": 6.426327732708657,
+                "rank_corr": 0.4598066356305083,
+                "dispersion_ratio": 0.6446184831316597,
+                "interval_coverage": 0.7857142857142857
+              },
+              "QB": {
+                "n": 1428,
+                "mae": 6.518454927399526,
+                "rmse": 9.92772814226243,
+                "rank_corr": 0.330140897546885,
+                "dispersion_ratio": 0.8582793178200441,
+                "interval_coverage": 0.7892156862745098
+              }
+            }
+          },
+          {
+            "season": 2025,
+            "mae": 3.753292393986973,
+            "rank_corr": 0.526878587965256,
+            "dispersion_ratio": 0.8299567016636111,
+            "coverage": 1.0,
+            "interval": {
+              "n": 9758,
+              "coverage": 0.8118466898954704,
+              "mean_width": 11.415999893025292
+            },
+            "by_position": {
+              "RB": {
+                "n": 2516,
+                "mae": 3.812195313852493,
+                "rmse": 5.946361501363458,
+                "rank_corr": 0.4868492277714836,
+                "dispersion_ratio": 0.7334631016596225,
+                "interval_coverage": 0.8231319554848967
+              },
+              "WR": {
+                "n": 3672,
+                "mae": 3.82133015102372,
+                "rmse": 5.7216951565598775,
+                "rank_corr": 0.5053337823286298,
+                "dispersion_ratio": 0.7018942451378265,
+                "interval_coverage": 0.8175381263616558
+              },
+              "TE": {
+                "n": 2125,
+                "mae": 3.147252863106622,
+                "rmse": 4.784669425237909,
+                "rank_corr": 0.4867890764833112,
+                "dispersion_ratio": 0.7523862422208805,
+                "interval_coverage": 0.7515294117647059
+              },
+              "QB": {
+                "n": 1445,
+                "mae": 4.36907067281062,
+                "rmse": 7.6127759380966085,
+                "rank_corr": 0.6410464319127032,
+                "dispersion_ratio": 1.0614306975691292,
+                "interval_coverage": 0.8664359861591695
+              }
+            }
+          }
+        ]
+      },
+      "mae_vs_baseline": -0.028317979799361723
+    }
+  ],
+  "honest_outer_promotion": {
+    "promote": false,
+    "failures": [
+      "requires 3 seasons, got 2",
+      "2024: dispersion outside policy"
+    ],
+    "policy": {
+      "min_coverage": 0.95,
+      "min_mae_improvement": 0.02,
+      "min_rank_improvement": 0.0,
+      "min_dispersion_ratio": 0.7,
+      "max_dispersion_ratio": 1.3,
+      "min_seasons": 3,
+      "min_interval_coverage": 0.72,
+      "max_interval_coverage": 0.9
+    }
+  },
+  "fold_selections": [
+    {
+      "outer_season": 2022,
+      "status": "warmup",
+      "inner_seasons": [],
+      "selected": null,
+      "reason": "insufficient_inner_calibrated_seasons"
+    },
+    {
+      "outer_season": 2023,
+      "status": "warmup",
+      "inner_seasons": [
+        2022
+      ],
+      "selected": null,
+      "reason": "insufficient_inner_calibrated_seasons"
+    },
+    {
+      "outer_season": 2024,
+      "status": "selected",
+      "inner_seasons": [
+        2022,
+        2023
+      ],
+      "inner_calibrated_seasons": [
+        2023
+      ],
+      "selected": "two_stage_conservative_hgb",
+      "selected_options": {
+        "two_stage": true,
+        "model_type": "hgb",
+        "participation_model_type": "hgb",
+        "participation_threshold": 1e-06,
+        "min_participation_rows": 20,
+        "recency_half_life_seasons": null
+      },
+      "pareto_table": [
+        {
+          "name": "two_stage_conservative_hgb",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": null
+          },
+          "rank_key": [
+            0,
+            0,
+            1.6653345369377348e-16,
+            0.08362945334891081,
+            -0.3112856600780409,
+            0.6887143399219591
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 1,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 1,
+            "mean_mae_improvement": 0.13134100920891167,
+            "mean_rank_delta": 0.08362945334891081,
+            "mean_dispersion": 0.6887143399219591,
+            "mean_dispersion_distance": 0.3112856600780409,
+            "min_dispersion": 0.6887143399219591,
+            "max_dispersion": 0.6887143399219591,
+            "mean_interval_coverage": 0.7854198089492207,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.004159330013024,
+                "rank_corr": 0.45559684709808,
+                "dispersion_ratio": 0.6887143399219591,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7854198089492207,
+                  "mean_width": 10.729503661407087
+                },
+                "by_position": {
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.183412822802608,
+                    "rmse": 6.344748229804051,
+                    "rank_corr": 0.4645520676522203,
+                    "dispersion_ratio": 0.6711755901422238,
+                    "interval_coverage": 0.7967545638945234
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.890603119563046,
+                    "rmse": 4.368000909991927,
+                    "rank_corr": 0.38062307543921586,
+                    "dispersion_ratio": 0.5223261355953221,
+                    "interval_coverage": 0.7352941176470589
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.568921947615106,
+                    "rmse": 8.420003252406582,
+                    "rank_corr": 0.44957062780172274,
+                    "dispersion_ratio": 0.932857989571796,
+                    "interval_coverage": 0.7373949579831933
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.957541488255579,
+                    "rmse": 5.951534505355782,
+                    "rank_corr": 0.5117032660009795,
+                    "dispersion_ratio": 0.5178618343022209,
+                    "interval_coverage": 0.8256302521008403
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": 1.6653345369377348e-16
+        },
+        {
+          "name": "baseline_two_stage",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": null
+          },
+          "rank_key": [
+            0,
+            0,
+            0.0,
+            0.08005723177418156,
+            -0.3112856600780409,
+            0.6887143399219591
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 1,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 1,
+            "mean_mae_improvement": 0.1313410092089115,
+            "mean_rank_delta": 0.08005723177418156,
+            "mean_dispersion": 0.6887143399219591,
+            "mean_dispersion_distance": 0.3112856600780409,
+            "min_dispersion": 0.6887143399219591,
+            "max_dispersion": 0.6887143399219591,
+            "mean_interval_coverage": 0.7854198089492207,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.004159330013024,
+                "rank_corr": 0.4578843190363094,
+                "dispersion_ratio": 0.6887143399219591,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7854198089492207,
+                  "mean_width": 10.729503661407087
+                },
+                "by_position": {
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.183412822802609,
+                    "rmse": 6.344748229804051,
+                    "rank_corr": 0.4710963954490095,
+                    "dispersion_ratio": 0.6711755901422238,
+                    "interval_coverage": 0.7967545638945234
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.568921947615106,
+                    "rmse": 8.420003252406582,
+                    "rank_corr": 0.4443468394000926,
+                    "dispersion_ratio": 0.932857989571796,
+                    "interval_coverage": 0.7373949579831933
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.890603119563046,
+                    "rmse": 4.368000909991927,
+                    "rank_corr": 0.38050822005865154,
+                    "dispersion_ratio": 0.5223261355953221,
+                    "interval_coverage": 0.7352941176470589
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.957541488255579,
+                    "rmse": 5.951534505355782,
+                    "rank_corr": 0.5251470364965468,
+                    "dispersion_ratio": 0.5178618343022207,
+                    "interval_coverage": 0.8256302521008403
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": 0.0
+        },
+        {
+          "name": "legacy_direct",
+          "options": {
+            "two_stage": false,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": null
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.0008018911656750838,
+            0.08325005702488553,
+            -0.3084614664307571,
+            0.6915385335692429
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 1,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 1,
+            "mean_mae_improvement": 0.13053911804323642,
+            "mean_rank_delta": 0.08325005702488553,
+            "mean_dispersion": 0.6915385335692429,
+            "mean_dispersion_distance": 0.3084614664307571,
+            "min_dispersion": 0.6915385335692429,
+            "max_dispersion": 0.6915385335692429,
+            "mean_interval_coverage": 0.7864253393665158,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.007855717233708,
+                "rank_corr": 0.4614164356557294,
+                "dispersion_ratio": 0.6915385335692429,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7864253393665158,
+                  "mean_width": 10.766347859214463
+                },
+                "by_position": {
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.659541776987284,
+                    "rmse": 8.694803079574726,
+                    "rank_corr": 0.4172155418793361,
+                    "dispersion_ratio": 0.9231764240495898,
+                    "interval_coverage": 0.7633053221288515
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.925624622685521,
+                    "rmse": 5.9488165364377155,
+                    "rank_corr": 0.5236608361942069,
+                    "dispersion_ratio": 0.5394453278885244,
+                    "interval_coverage": 0.8169642857142857
+                  },
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.198250014974199,
+                    "rmse": 6.35845657508082,
+                    "rank_corr": 0.47179857676315257,
+                    "dispersion_ratio": 0.6684231540450754,
+                    "interval_coverage": 0.7963488843813388
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.8871811944088774,
+                    "rmse": 4.37087807234456,
+                    "rank_corr": 0.40086314265052897,
+                    "dispersion_ratio": 0.5316527212291393,
+                    "interval_coverage": 0.7384135472370766
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.0008018911656750838
+        },
+        {
+          "name": "two_stage_participation_ridge",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "ridge",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": null
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.002819408395943357,
+            0.08402995297806665,
+            -0.318060239549967,
+            0.681939760450033
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 1,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 1,
+            "mean_mae_improvement": 0.12852160081296815,
+            "mean_rank_delta": 0.08402995297806665,
+            "mean_dispersion": 0.681939760450033,
+            "mean_dispersion_distance": 0.318060239549967,
+            "min_dispersion": 0.681939760450033,
+            "max_dispersion": 0.681939760450033,
+            "mean_interval_coverage": 0.7851181498240322,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.017155638752604,
+                "rank_corr": 0.4568635921212032,
+                "dispersion_ratio": 0.681939760450033,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7851181498240322,
+                  "mean_width": 10.73285531676688
+                },
+                "by_position": {
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.2003209954095055,
+                    "rmse": 6.334067481076236,
+                    "rank_corr": 0.46937811495098786,
+                    "dispersion_ratio": 0.6660239948340071,
+                    "interval_coverage": 0.7983772819472617
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.8980288078870053,
+                    "rmse": 4.3832976705272895,
+                    "rank_corr": 0.38561186927925567,
+                    "dispersion_ratio": 0.5224293012597605,
+                    "interval_coverage": 0.732174688057041
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.9597008017530215,
+                    "rmse": 5.961832624006084,
+                    "rank_corr": 0.5281679208136973,
+                    "dispersion_ratio": 0.5123031373419767,
+                    "interval_coverage": 0.8298319327731093
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.612818120263497,
+                    "rmse": 8.43637272723329,
+                    "rank_corr": 0.39577869827146805,
+                    "dispersion_ratio": 0.9208883383084066,
+                    "interval_coverage": 0.7261904761904762
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.002819408395943357
+        },
+        {
+          "name": "two_stage_half_life_6",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": 6.0
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.0033492027459633422,
+            0.08567305773247003,
+            -0.31984298654683585,
+            0.6801570134531641
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 1,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 1,
+            "mean_mae_improvement": 0.12799180646294817,
+            "mean_rank_delta": 0.08567305773247003,
+            "mean_dispersion": 0.6801570134531641,
+            "mean_dispersion_distance": 0.31984298654683585,
+            "min_dispersion": 0.6801570134531641,
+            "max_dispersion": 0.6801570134531641,
+            "mean_interval_coverage": 0.7853192559074912,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.01959777198568,
+                "rank_corr": 0.4569001267494942,
+                "dispersion_ratio": 0.6801570134531641,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7853192559074912,
+                  "mean_width": 10.701223219062816
+                },
+                "by_position": {
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.9671296294756306,
+                    "rmse": 5.959111733118489,
+                    "rank_corr": 0.5145886444016138,
+                    "dispersion_ratio": 0.5144985181592313,
+                    "interval_coverage": 0.8269432773109243
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.909238419354218,
+                    "rmse": 4.386847917866213,
+                    "rank_corr": 0.38538519894192064,
+                    "dispersion_ratio": 0.5138067853908928,
+                    "interval_coverage": 0.7312834224598931
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.591995806577842,
+                    "rmse": 8.584610728049123,
+                    "rank_corr": 0.4001134133563448,
+                    "dispersion_ratio": 0.9179335365423135,
+                    "interval_coverage": 0.7485994397759104
+                  },
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.200555451736454,
+                    "rmse": 6.349463152616985,
+                    "rank_corr": 0.4647014670454124,
+                    "dispersion_ratio": 0.6647720918175628,
+                    "interval_coverage": 0.7914807302231237
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.0033492027459633422
+        },
+        {
+          "name": "two_stage_half_life_4",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": 4.0
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.0051975335179818005,
+            0.08635810720938703,
+            -0.3176267578178643,
+            0.6823732421821357
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 1,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 1,
+            "mean_mae_improvement": 0.1261434756909297,
+            "mean_rank_delta": 0.08635810720938703,
+            "mean_dispersion": 0.6823732421821357,
+            "mean_dispersion_distance": 0.3176267578178643,
+            "min_dispersion": 0.6823732421821357,
+            "max_dispersion": 0.6823732421821357,
+            "mean_interval_coverage": 0.7809954751131222,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.028117813779051,
+                "rank_corr": 0.4585481045070844,
+                "dispersion_ratio": 0.6823732421821357,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7809954751131222,
+                  "mean_width": 10.683704286950976
+                },
+                "by_position": {
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.9598351499352624,
+                    "rmse": 5.9491899341982295,
+                    "rank_corr": 0.5186028520967237,
+                    "dispersion_ratio": 0.5156167494542852,
+                    "interval_coverage": 0.8251050420168067
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.680000302689706,
+                    "rmse": 8.749683176760993,
+                    "rank_corr": 0.43133446873889314,
+                    "dispersion_ratio": 0.9233756339307314,
+                    "interval_coverage": 0.7310924369747899
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.9240349966728294,
+                    "rmse": 4.399506060994934,
+                    "rank_corr": 0.3919281410332264,
+                    "dispersion_ratio": 0.5185775070465276,
+                    "interval_coverage": 0.7210338680926917
+                  },
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.181746224058603,
+                    "rmse": 6.350877941191259,
+                    "rank_corr": 0.4692179877465469,
+                    "dispersion_ratio": 0.6654203885645945,
+                    "interval_coverage": 0.7963488843813388
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.0051975335179818005
+        },
+        {
+          "name": "two_stage_half_life_2",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": 2.0
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.016354823207764102,
+            0.06172096579257236,
+            -0.32415595448930246,
+            0.6758440455106975
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 1,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 1,
+            "mean_mae_improvement": 0.1149861860011474,
+            "mean_rank_delta": 0.06172096579257236,
+            "mean_dispersion": 0.6758440455106975,
+            "mean_dispersion_distance": 0.32415595448930246,
+            "min_dispersion": 0.6758440455106975,
+            "max_dispersion": 0.6758440455106975,
+            "mean_interval_coverage": 0.7798893916540975,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.079548313068898,
+                "rank_corr": 0.4443503332659955,
+                "dispersion_ratio": 0.6758440455106975,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7798893916540975,
+                  "mean_width": 10.734697400685455
+                },
+                "by_position": {
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.207303521708576,
+                    "rmse": 6.373902656990356,
+                    "rank_corr": 0.46944525951240257,
+                    "dispersion_ratio": 0.6752225890815072,
+                    "interval_coverage": 0.7963488843813388
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.9417638286755436,
+                    "rmse": 5.942461027080218,
+                    "rank_corr": 0.5184117425640524,
+                    "dispersion_ratio": 0.5217330960430889,
+                    "interval_coverage": 0.8266806722689075
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.9303904191365966,
+                    "rmse": 4.394982192343359,
+                    "rank_corr": 0.3866105619448131,
+                    "dispersion_ratio": 0.522251093168921,
+                    "interval_coverage": 0.7174688057040999
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 6.032263327954872,
+                    "rmse": 9.107482244332857,
+                    "rank_corr": 0.33533074996500023,
+                    "dispersion_ratio": 0.8915063555126556,
+                    "interval_coverage": 0.7247899159663865
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.016354823207764102
+        },
+        {
+          "name": "two_stage_conditional_ridge",
+          "options": {
+            "two_stage": true,
+            "model_type": "ridge",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": null
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.03935932968465754,
+            0.046334629020984286,
+            -0.353116642567178,
+            0.646883357432822
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 1,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 1,
+            "mean_mae_improvement": 0.09198167952425397,
+            "mean_rank_delta": 0.046334629020984286,
+            "mean_dispersion": 0.646883357432822,
+            "mean_dispersion_distance": 0.353116642567178,
+            "min_dispersion": 0.646883357432822,
+            "max_dispersion": 0.646883357432822,
+            "mean_interval_coverage": 0.7980894922071393,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.185589590737491,
+                "rank_corr": 0.4215649348779754,
+                "dispersion_ratio": 0.646883357432822,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7980894922071393,
+                  "mean_width": 11.45475366333931
+                },
+                "by_position": {
+                  "QB": {
+                    "n": 1428,
+                    "mae": 6.720845937039159,
+                    "rmse": 9.726472345478602,
+                    "rank_corr": 0.2807463255891103,
+                    "dispersion_ratio": 0.8520965795166757,
+                    "interval_coverage": 0.7661064425770309
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.9769178020069584,
+                    "rmse": 5.975661648479537,
+                    "rank_corr": 0.5130064363390355,
+                    "dispersion_ratio": 0.49701239929476465,
+                    "interval_coverage": 0.8392857142857143
+                  },
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.2339967576946576,
+                    "rmse": 6.332711220549197,
+                    "rank_corr": 0.4583998665937771,
+                    "dispersion_ratio": 0.6382373354023293,
+                    "interval_coverage": 0.788235294117647
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.87317980571863,
+                    "rmse": 4.35881709682281,
+                    "rank_corr": 0.39903207901444304,
+                    "dispersion_ratio": 0.508361447805625,
+                    "interval_coverage": 0.7593582887700535
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.03935932968465754
+        }
+      ]
+    },
+    {
+      "outer_season": 2025,
+      "status": "selected",
+      "inner_seasons": [
+        2022,
+        2023,
+        2024
+      ],
+      "inner_calibrated_seasons": [
+        2023,
+        2024
+      ],
+      "selected": "two_stage_conservative_hgb",
+      "selected_options": {
+        "two_stage": true,
+        "model_type": "hgb",
+        "participation_model_type": "hgb",
+        "participation_threshold": 1e-06,
+        "min_participation_rows": 20,
+        "recency_half_life_seasons": null
+      },
+      "pareto_table": [
+        {
+          "name": "two_stage_conservative_hgb",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": null
+          },
+          "rank_key": [
+            0,
+            0,
+            8.326672684688674e-17,
+            0.057230511003108414,
+            -0.31165221797386916,
+            0.6879812241303026
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy",
+              "2024: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 2,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 2,
+            "mean_mae_improvement": 0.11370455794370665,
+            "mean_rank_delta": 0.057230511003108414,
+            "mean_dispersion": 0.6883477820261308,
+            "mean_dispersion_distance": 0.31165221797386916,
+            "min_dispersion": 0.6879812241303026,
+            "max_dispersion": 0.6887143399219591,
+            "mean_interval_coverage": 0.7812139880060898,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.004159330013024,
+                "rank_corr": 0.45559684709808,
+                "dispersion_ratio": 0.6887143399219591,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7854198089492207,
+                  "mean_width": 10.729503661407087
+                },
+                "by_position": {
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.183412822802608,
+                    "rmse": 6.344748229804051,
+                    "rank_corr": 0.4645520676522203,
+                    "dispersion_ratio": 0.6711755901422238,
+                    "interval_coverage": 0.7967545638945234
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.890603119563046,
+                    "rmse": 4.368000909991927,
+                    "rank_corr": 0.38062307543921586,
+                    "dispersion_ratio": 0.5223261355953221,
+                    "interval_coverage": 0.7352941176470589
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.568921947615106,
+                    "rmse": 8.420003252406582,
+                    "rank_corr": 0.44957062780172274,
+                    "dispersion_ratio": 0.932857989571796,
+                    "interval_coverage": 0.7373949579831933
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.957541488255579,
+                    "rmse": 5.951534505355782,
+                    "rank_corr": 0.5117032660009795,
+                    "dispersion_ratio": 0.5178618343022209,
+                    "interval_coverage": 0.8256302521008403
+                  }
+                }
+              },
+              {
+                "season": 2024,
+                "mae": 4.233824852866463,
+                "rank_corr": 0.4439275127230837,
+                "dispersion_ratio": 0.6879812241303026,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9673,
+                  "coverage": 0.7770081670629587,
+                  "mean_width": 10.886993605750282
+                },
+                "by_position": {
+                  "RB": {
+                    "n": 2380,
+                    "mae": 4.34465400314648,
+                    "rmse": 6.432094198703027,
+                    "rank_corr": 0.45793599223334736,
+                    "dispersion_ratio": 0.6802250185958292,
+                    "interval_coverage": 0.7865546218487395
+                  },
+                  "WR": {
+                    "n": 3774,
+                    "mae": 4.356964169429373,
+                    "rmse": 6.256316549192129,
+                    "rank_corr": 0.4497907090190618,
+                    "dispersion_ratio": 0.5452939461344838,
+                    "interval_coverage": 0.7782193958664547
+                  },
+                  "TE": {
+                    "n": 2091,
+                    "mae": 2.9369674809201802,
+                    "rmse": 4.678806634622431,
+                    "rank_corr": 0.44538588411544555,
+                    "dispersion_ratio": 0.545202207235858,
+                    "interval_coverage": 0.7800095648015304
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.622639703261989,
+                    "rmse": 8.716193172155501,
+                    "rank_corr": 0.4609002887987203,
+                    "dispersion_ratio": 0.8730158555292556,
+                    "interval_coverage": 0.7535014005602241
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": 8.326672684688674e-17
+        },
+        {
+          "name": "baseline_two_stage",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": null
+          },
+          "rank_key": [
+            0,
+            0,
+            0.0,
+            0.06170359872025116,
+            -0.31165221797386916,
+            0.6879812241303026
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy",
+              "2024: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 2,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 2,
+            "mean_mae_improvement": 0.11370455794370657,
+            "mean_rank_delta": 0.06170359872025116,
+            "mean_dispersion": 0.6883477820261308,
+            "mean_dispersion_distance": 0.31165221797386916,
+            "min_dispersion": 0.6879812241303026,
+            "max_dispersion": 0.6887143399219591,
+            "mean_interval_coverage": 0.7812139880060898,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.004159330013024,
+                "rank_corr": 0.4578843190363094,
+                "dispersion_ratio": 0.6887143399219591,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7854198089492207,
+                  "mean_width": 10.729503661407087
+                },
+                "by_position": {
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.183412822802609,
+                    "rmse": 6.344748229804051,
+                    "rank_corr": 0.4710963954490095,
+                    "dispersion_ratio": 0.6711755901422238,
+                    "interval_coverage": 0.7967545638945234
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.568921947615106,
+                    "rmse": 8.420003252406582,
+                    "rank_corr": 0.4443468394000926,
+                    "dispersion_ratio": 0.932857989571796,
+                    "interval_coverage": 0.7373949579831933
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.890603119563046,
+                    "rmse": 4.368000909991927,
+                    "rank_corr": 0.38050822005865154,
+                    "dispersion_ratio": 0.5223261355953221,
+                    "interval_coverage": 0.7352941176470589
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.957541488255579,
+                    "rmse": 5.951534505355782,
+                    "rank_corr": 0.5251470364965468,
+                    "dispersion_ratio": 0.5178618343022207,
+                    "interval_coverage": 0.8256302521008403
+                  }
+                }
+              },
+              {
+                "season": 2024,
+                "mae": 4.233824852866463,
+                "rank_corr": 0.441621197768141,
+                "dispersion_ratio": 0.6879812241303026,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9673,
+                  "coverage": 0.7770081670629587,
+                  "mean_width": 10.886993605750282
+                },
+                "by_position": {
+                  "WR": {
+                    "n": 3774,
+                    "mae": 4.356964169429373,
+                    "rmse": 6.256316549192128,
+                    "rank_corr": 0.45640903030311697,
+                    "dispersion_ratio": 0.5452939461344838,
+                    "interval_coverage": 0.7782193958664547
+                  },
+                  "RB": {
+                    "n": 2380,
+                    "mae": 4.34465400314648,
+                    "rmse": 6.432094198703027,
+                    "rank_corr": 0.45779842358793954,
+                    "dispersion_ratio": 0.6802250185958292,
+                    "interval_coverage": 0.7865546218487395
+                  },
+                  "TE": {
+                    "n": 2091,
+                    "mae": 2.9369674809201802,
+                    "rmse": 4.678806634622431,
+                    "rank_corr": 0.41881615098558894,
+                    "dispersion_ratio": 0.545202207235858,
+                    "interval_coverage": 0.7800095648015304
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.6226397032619895,
+                    "rmse": 8.716193172155501,
+                    "rank_corr": 0.4788131803173069,
+                    "dispersion_ratio": 0.8730158555292556,
+                    "interval_coverage": 0.7535014005602241
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": 0.0
+        },
+        {
+          "name": "legacy_direct",
+          "options": {
+            "two_stage": false,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": null
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.0005099469783267641,
+            0.05724283309725661,
+            -0.30290753656005553,
+            0.6915385335692429
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 2,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 2,
+            "mean_mae_improvement": 0.1131946109653798,
+            "mean_rank_delta": 0.05724283309725661,
+            "mean_dispersion": 0.6970924634399445,
+            "mean_dispersion_distance": 0.30290753656005553,
+            "min_dispersion": 0.6915385335692429,
+            "max_dispersion": 0.702646393310646,
+            "mean_interval_coverage": 0.7818718240304098,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.007855717233708,
+                "rank_corr": 0.4614164356557294,
+                "dispersion_ratio": 0.6915385335692429,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7864253393665158,
+                  "mean_width": 10.766347859214463
+                },
+                "by_position": {
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.659541776987284,
+                    "rmse": 8.694803079574726,
+                    "rank_corr": 0.4172155418793361,
+                    "dispersion_ratio": 0.9231764240495898,
+                    "interval_coverage": 0.7633053221288515
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.925624622685521,
+                    "rmse": 5.9488165364377155,
+                    "rank_corr": 0.5236608361942069,
+                    "dispersion_ratio": 0.5394453278885244,
+                    "interval_coverage": 0.8169642857142857
+                  },
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.198250014974199,
+                    "rmse": 6.35845657508082,
+                    "rank_corr": 0.47179857676315257,
+                    "dispersion_ratio": 0.6684231540450754,
+                    "interval_coverage": 0.7963488843813388
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.8871811944088774,
+                    "rmse": 4.37087807234456,
+                    "rank_corr": 0.40086314265052897,
+                    "dispersion_ratio": 0.5316527212291393,
+                    "interval_coverage": 0.7384135472370766
+                  }
+                }
+              },
+              {
+                "season": 2024,
+                "mae": 4.234845931601773,
+                "rank_corr": 0.4424945895587529,
+                "dispersion_ratio": 0.702646393310646,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9673,
+                  "coverage": 0.7773183086943037,
+                  "mean_width": 10.921397498003515
+                },
+                "by_position": {
+                  "RB": {
+                    "n": 2380,
+                    "mae": 4.347210482853667,
+                    "rmse": 6.460030401605671,
+                    "rank_corr": 0.4645286306498468,
+                    "dispersion_ratio": 0.6984550772117912,
+                    "interval_coverage": 0.7840336134453781
+                  },
+                  "WR": {
+                    "n": 3774,
+                    "mae": 4.332988859427846,
+                    "rmse": 6.271138773771411,
+                    "rank_corr": 0.45533308925372956,
+                    "dispersion_ratio": 0.56509108749339,
+                    "interval_coverage": 0.775039745627981
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.712339996551244,
+                    "rmse": 8.901074115320615,
+                    "rank_corr": 0.4617041945415446,
+                    "dispersion_ratio": 0.8802287731906546,
+                    "interval_coverage": 0.7661064425770309
+                  },
+                  "TE": {
+                    "n": 2091,
+                    "mae": 2.920794967305762,
+                    "rmse": 4.687732208891562,
+                    "rank_corr": 0.44552890986791704,
+                    "dispersion_ratio": 0.5591245045961472,
+                    "interval_coverage": 0.7814442850310857
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.0005099469783267641
+        },
+        {
+          "name": "two_stage_participation_ridge",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "ridge",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": null
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.0010768034766884538,
+            0.06376489912031258,
+            -0.31416985980524387,
+            0.681939760450033
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy",
+              "2024: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 2,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 2,
+            "mean_mae_improvement": 0.11262775446701812,
+            "mean_rank_delta": 0.06376489912031258,
+            "mean_dispersion": 0.6858301401947562,
+            "mean_dispersion_distance": 0.31416985980524387,
+            "min_dispersion": 0.681939760450033,
+            "max_dispersion": 0.6897205199394792,
+            "mean_interval_coverage": 0.7813733000748404,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.017155638752604,
+                "rank_corr": 0.4568635921212032,
+                "dispersion_ratio": 0.681939760450033,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7851181498240322,
+                  "mean_width": 10.73285531676688
+                },
+                "by_position": {
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.2003209954095055,
+                    "rmse": 6.334067481076236,
+                    "rank_corr": 0.46937811495098786,
+                    "dispersion_ratio": 0.6660239948340071,
+                    "interval_coverage": 0.7983772819472617
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.8980288078870053,
+                    "rmse": 4.3832976705272895,
+                    "rank_corr": 0.38561186927925567,
+                    "dispersion_ratio": 0.5224293012597605,
+                    "interval_coverage": 0.732174688057041
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.9597008017530215,
+                    "rmse": 5.961832624006084,
+                    "rank_corr": 0.5281679208136973,
+                    "dispersion_ratio": 0.5123031373419767,
+                    "interval_coverage": 0.8298319327731093
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.612818120263497,
+                    "rmse": 8.43637272723329,
+                    "rank_corr": 0.39577869827146805,
+                    "dispersion_ratio": 0.9208883383084066,
+                    "interval_coverage": 0.7261904761904762
+                  }
+                }
+              },
+              {
+                "season": 2024,
+                "mae": 4.23070638042906,
+                "rank_corr": 0.44506664920392963,
+                "dispersion_ratio": 0.6897205199394792,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9673,
+                  "coverage": 0.7776284503256488,
+                  "mean_width": 10.906647061466368
+                },
+                "by_position": {
+                  "WR": {
+                    "n": 3774,
+                    "mae": 4.363383708294622,
+                    "rmse": 6.266161201072546,
+                    "rank_corr": 0.45529025695852604,
+                    "dispersion_ratio": 0.5491511716703065,
+                    "interval_coverage": 0.7782193958664547
+                  },
+                  "TE": {
+                    "n": 2091,
+                    "mae": 2.957868630215074,
+                    "rmse": 4.679001931839626,
+                    "rank_corr": 0.43574846825203406,
+                    "dispersion_ratio": 0.5487652876650466,
+                    "interval_coverage": 0.7804878048780488
+                  },
+                  "RB": {
+                    "n": 2380,
+                    "mae": 4.327313782410125,
+                    "rmse": 6.399144877067955,
+                    "rank_corr": 0.4659228726262935,
+                    "dispersion_ratio": 0.6680816726288317,
+                    "interval_coverage": 0.7907563025210084
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.582844954391157,
+                    "rmse": 8.728168154858961,
+                    "rank_corr": 0.47328250512850367,
+                    "dispersion_ratio": 0.8845331758275443,
+                    "interval_coverage": 0.75
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.0010768034766884538
+        },
+        {
+          "name": "two_stage_half_life_6",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": 6.0
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.0036763282810494124,
+            0.06014905094534828,
+            -0.314289297281442,
+            0.6801570134531641
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy",
+              "2024: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 2,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 2,
+            "mean_mae_improvement": 0.11002822966265716,
+            "mean_rank_delta": 0.06014905094534828,
+            "mean_dispersion": 0.685710702718558,
+            "mean_dispersion_distance": 0.314289297281442,
+            "min_dispersion": 0.6801570134531641,
+            "max_dispersion": 0.6912643919839518,
+            "mean_interval_coverage": 0.7807501893100983,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.01959777198568,
+                "rank_corr": 0.4569001267494942,
+                "dispersion_ratio": 0.6801570134531641,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7853192559074912,
+                  "mean_width": 10.701223219062816
+                },
+                "by_position": {
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.9671296294756306,
+                    "rmse": 5.959111733118489,
+                    "rank_corr": 0.5145886444016138,
+                    "dispersion_ratio": 0.5144985181592313,
+                    "interval_coverage": 0.8269432773109243
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.909238419354218,
+                    "rmse": 4.386847917866213,
+                    "rank_corr": 0.38538519894192064,
+                    "dispersion_ratio": 0.5138067853908928,
+                    "interval_coverage": 0.7312834224598931
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.591995806577842,
+                    "rmse": 8.584610728049123,
+                    "rank_corr": 0.4001134133563448,
+                    "dispersion_ratio": 0.9179335365423135,
+                    "interval_coverage": 0.7485994397759104
+                  },
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.200555451736454,
+                    "rmse": 6.349463152616985,
+                    "rank_corr": 0.4647014670454124,
+                    "dispersion_ratio": 0.6647720918175628,
+                    "interval_coverage": 0.7914807302231237
+                  }
+                }
+              },
+              {
+                "season": 2024,
+                "mae": 4.252576179586195,
+                "rank_corr": 0.4433950360276647,
+                "dispersion_ratio": 0.6912643919839518,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9673,
+                  "coverage": 0.7761811227127055,
+                  "mean_width": 10.876522840528523
+                },
+                "by_position": {
+                  "WR": {
+                    "n": 3774,
+                    "mae": 4.3545295023643185,
+                    "rmse": 6.250839576368263,
+                    "rank_corr": 0.4631181056449964,
+                    "dispersion_ratio": 0.5492292768639973,
+                    "interval_coverage": 0.7768945416004239
+                  },
+                  "TE": {
+                    "n": 2091,
+                    "mae": 2.93312047332825,
+                    "rmse": 4.682295278008233,
+                    "rank_corr": 0.4428197960178981,
+                    "dispersion_ratio": 0.5421056938215599,
+                    "interval_coverage": 0.7828790052606408
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.732821842488695,
+                    "rmse": 8.868176468347832,
+                    "rank_corr": 0.4548998052552553,
+                    "dispersion_ratio": 0.8772916905488567,
+                    "interval_coverage": 0.7478991596638656
+                  },
+                  "RB": {
+                    "n": 2380,
+                    "mae": 4.36199602622315,
+                    "rmse": 6.45528257880393,
+                    "rank_corr": 0.4549155615804665,
+                    "dispersion_ratio": 0.6818064188547526,
+                    "interval_coverage": 0.7861344537815126
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.0036763282810494124
+        },
+        {
+          "name": "two_stage_half_life_4",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": 4.0
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.007471508239559221,
+            0.05461153387051035,
+            -0.31337889236426786,
+            0.6823732421821357
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy",
+              "2024: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 2,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 2,
+            "mean_mae_improvement": 0.10623304970414735,
+            "mean_rank_delta": 0.05461153387051035,
+            "mean_dispersion": 0.6866211076357321,
+            "mean_dispersion_distance": 0.31337889236426786,
+            "min_dispersion": 0.6823732421821357,
+            "max_dispersion": 0.6908689730893286,
+            "mean_interval_coverage": 0.7777612545626605,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.028117813779051,
+                "rank_corr": 0.4585481045070844,
+                "dispersion_ratio": 0.6823732421821357,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7809954751131222,
+                  "mean_width": 10.683704286950976
+                },
+                "by_position": {
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.9598351499352624,
+                    "rmse": 5.9491899341982295,
+                    "rank_corr": 0.5186028520967237,
+                    "dispersion_ratio": 0.5156167494542852,
+                    "interval_coverage": 0.8251050420168067
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.680000302689706,
+                    "rmse": 8.749683176760993,
+                    "rank_corr": 0.43133446873889314,
+                    "dispersion_ratio": 0.9233756339307314,
+                    "interval_coverage": 0.7310924369747899
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.9240349966728294,
+                    "rmse": 4.399506060994934,
+                    "rank_corr": 0.3919281410332264,
+                    "dispersion_ratio": 0.5185775070465276,
+                    "interval_coverage": 0.7210338680926917
+                  },
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.181746224058603,
+                    "rmse": 6.350877941191259,
+                    "rank_corr": 0.4692179877465469,
+                    "dispersion_ratio": 0.6654203885645945,
+                    "interval_coverage": 0.7963488843813388
+                  }
+                }
+              },
+              {
+                "season": 2024,
+                "mae": 4.279470623603055,
+                "rank_corr": 0.43579436297086543,
+                "dispersion_ratio": 0.6908689730893286,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9673,
+                  "coverage": 0.7745270340121989,
+                  "mean_width": 10.904711290233497
+                },
+                "by_position": {
+                  "QB": {
+                    "n": 1428,
+                    "mae": 5.90880987736017,
+                    "rmse": 9.134785878934792,
+                    "rank_corr": 0.43909011640462464,
+                    "dispersion_ratio": 0.8696434404563579,
+                    "interval_coverage": 0.738795518207283
+                  },
+                  "TE": {
+                    "n": 2091,
+                    "mae": 2.929855793513107,
+                    "rmse": 4.6887913154683085,
+                    "rank_corr": 0.4415438653893847,
+                    "dispersion_ratio": 0.5441384008960733,
+                    "interval_coverage": 0.7824007651841224
+                  },
+                  "RB": {
+                    "n": 2380,
+                    "mae": 4.358485647601797,
+                    "rmse": 6.471884682978269,
+                    "rank_corr": 0.4633864290298187,
+                    "dispersion_ratio": 0.6875200046565257,
+                    "interval_coverage": 0.7852941176470588
+                  },
+                  "WR": {
+                    "n": 3774,
+                    "mae": 4.36089415254739,
+                    "rmse": 6.254370152330085,
+                    "rank_corr": 0.4548215354938036,
+                    "dispersion_ratio": 0.551504336058013,
+                    "interval_coverage": 0.7768945416004239
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.007471508239559221
+        },
+        {
+          "name": "two_stage_half_life_2",
+          "options": {
+            "two_stage": true,
+            "model_type": "hgb",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": 2.0
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.017544577035727732,
+            0.03695853750964495,
+            -0.31650173806695087,
+            0.6758440455106975
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy",
+              "2024: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 2,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 2,
+            "mean_mae_improvement": 0.09615998090797884,
+            "mean_rank_delta": 0.03695853750964495,
+            "mean_dispersion": 0.6834982619330492,
+            "mean_dispersion_distance": 0.31650173806695087,
+            "min_dispersion": 0.6758440455106975,
+            "max_dispersion": 0.6911524783554007,
+            "mean_interval_coverage": 0.7777251155520566,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.079548313068898,
+                "rank_corr": 0.4443503332659955,
+                "dispersion_ratio": 0.6758440455106975,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7798893916540975,
+                  "mean_width": 10.734697400685455
+                },
+                "by_position": {
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.207303521708576,
+                    "rmse": 6.373902656990356,
+                    "rank_corr": 0.46944525951240257,
+                    "dispersion_ratio": 0.6752225890815072,
+                    "interval_coverage": 0.7963488843813388
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.9417638286755436,
+                    "rmse": 5.942461027080218,
+                    "rank_corr": 0.5184117425640524,
+                    "dispersion_ratio": 0.5217330960430889,
+                    "interval_coverage": 0.8266806722689075
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.9303904191365966,
+                    "rmse": 4.394982192343359,
+                    "rank_corr": 0.3866105619448131,
+                    "dispersion_ratio": 0.522251093168921,
+                    "interval_coverage": 0.7174688057040999
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 6.032263327954872,
+                    "rmse": 9.107482244332857,
+                    "rank_corr": 0.33533074996500023,
+                    "dispersion_ratio": 0.8915063555126556,
+                    "interval_coverage": 0.7247899159663865
+                  }
+                }
+              },
+              {
+                "season": 2024,
+                "mae": 4.321572476551989,
+                "rank_corr": 0.4224323259538436,
+                "dispersion_ratio": 0.6911524783554007,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9673,
+                  "coverage": 0.7755608394500155,
+                  "mean_width": 11.041608845016423
+                },
+                "by_position": {
+                  "TE": {
+                    "n": 2091,
+                    "mae": 2.9346585106297867,
+                    "rmse": 4.691950880425117,
+                    "rank_corr": 0.4389378977738425,
+                    "dispersion_ratio": 0.5497826725520829,
+                    "interval_coverage": 0.7833572453371592
+                  },
+                  "WR": {
+                    "n": 3774,
+                    "mae": 4.344057349280998,
+                    "rmse": 6.247033720596028,
+                    "rank_corr": 0.4605797396864544,
+                    "dispersion_ratio": 0.5573585181649632,
+                    "interval_coverage": 0.7763645998940116
+                  },
+                  "RB": {
+                    "n": 2380,
+                    "mae": 4.367329828041565,
+                    "rmse": 6.4609232279558935,
+                    "rank_corr": 0.45418307775080174,
+                    "dispersion_ratio": 0.6909388510033169,
+                    "interval_coverage": 0.7865546218487395
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 6.216724224814495,
+                    "rmse": 9.535967318558757,
+                    "rank_corr": 0.40795763249671996,
+                    "dispersion_ratio": 0.8617533219112494,
+                    "interval_coverage": 0.7436974789915967
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.017544577035727732
+        },
+        {
+          "name": "two_stage_conditional_ridge",
+          "options": {
+            "two_stage": true,
+            "model_type": "ridge",
+            "participation_model_type": "hgb",
+            "participation_threshold": 1e-06,
+            "min_participation_rows": 20,
+            "recency_half_life_seasons": null
+          },
+          "rank_key": [
+            0,
+            0,
+            -0.03792675277807678,
+            0.021693890948656397,
+            -0.3430922653633715,
+            0.646883357432822
+          ],
+          "promotion": {
+            "promote": false,
+            "failures": [
+              "2023: dispersion outside policy",
+              "2024: rank improvement below threshold",
+              "2024: dispersion outside policy"
+            ],
+            "policy": {
+              "min_coverage": 0.95,
+              "min_mae_improvement": 0.02,
+              "min_rank_improvement": 0.0,
+              "min_dispersion_ratio": 0.7,
+              "max_dispersion_ratio": 1.3,
+              "min_seasons": 2,
+              "min_interval_coverage": 0.72,
+              "max_interval_coverage": 0.9
+            }
+          },
+          "aggregate": {
+            "n_seasons": 2,
+            "mean_mae_improvement": 0.07577780516562979,
+            "mean_rank_delta": 0.021693890948656397,
+            "mean_dispersion": 0.6569077346366285,
+            "mean_dispersion_distance": 0.3430922653633715,
+            "min_dispersion": 0.646883357432822,
+            "max_dispersion": 0.666932111840435,
+            "mean_interval_coverage": 0.789099537791774,
+            "reports": [
+              {
+                "season": 2023,
+                "mae": 4.185589590737491,
+                "rank_corr": 0.4215649348779754,
+                "dispersion_ratio": 0.646883357432822,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9945,
+                  "coverage": 0.7980894922071393,
+                  "mean_width": 11.45475366333931
+                },
+                "by_position": {
+                  "QB": {
+                    "n": 1428,
+                    "mae": 6.720845937039159,
+                    "rmse": 9.726472345478602,
+                    "rank_corr": 0.2807463255891103,
+                    "dispersion_ratio": 0.8520965795166757,
+                    "interval_coverage": 0.7661064425770309
+                  },
+                  "WR": {
+                    "n": 3808,
+                    "mae": 3.9769178020069584,
+                    "rmse": 5.975661648479537,
+                    "rank_corr": 0.5130064363390355,
+                    "dispersion_ratio": 0.49701239929476465,
+                    "interval_coverage": 0.8392857142857143
+                  },
+                  "RB": {
+                    "n": 2465,
+                    "mae": 4.2339967576946576,
+                    "rmse": 6.332711220549197,
+                    "rank_corr": 0.4583998665937771,
+                    "dispersion_ratio": 0.6382373354023293,
+                    "interval_coverage": 0.788235294117647
+                  },
+                  "TE": {
+                    "n": 2244,
+                    "mae": 2.87317980571863,
+                    "rmse": 4.35881709682281,
+                    "rank_corr": 0.39903207901444304,
+                    "dispersion_ratio": 0.508361447805625,
+                    "interval_coverage": 0.7593582887700535
+                  }
+                }
+              },
+              {
+                "season": 2024,
+                "mae": 4.404755815620606,
+                "rank_corr": 0.4114795823817422,
+                "dispersion_ratio": 0.666932111840435,
+                "coverage": 1.0,
+                "interval": {
+                  "n": 9673,
+                  "coverage": 0.7801095833764086,
+                  "mean_width": 11.606824821487617
+                },
+                "by_position": {
+                  "WR": {
+                    "n": 3774,
+                    "mae": 4.4378216810726645,
+                    "rmse": 6.286191248487144,
+                    "rank_corr": 0.43827800577854165,
+                    "dispersion_ratio": 0.5194564800007789,
+                    "interval_coverage": 0.7705352411234764
+                  },
+                  "TE": {
+                    "n": 2091,
+                    "mae": 2.931798319416396,
+                    "rmse": 4.675082408864728,
+                    "rank_corr": 0.44020791794356207,
+                    "dispersion_ratio": 0.5158950097950284,
+                    "interval_coverage": 0.7847919655667145
+                  },
+                  "RB": {
+                    "n": 2380,
+                    "mae": 4.378201705001544,
+                    "rmse": 6.426327732708657,
+                    "rank_corr": 0.4598066356305083,
+                    "dispersion_ratio": 0.6446184831316597,
+                    "interval_coverage": 0.7857142857142857
+                  },
+                  "QB": {
+                    "n": 1428,
+                    "mae": 6.518454927399526,
+                    "rmse": 9.92772814226243,
+                    "rank_corr": 0.330140897546885,
+                    "dispersion_ratio": 0.8582793178200441,
+                    "interval_coverage": 0.7892156862745098
+                  }
+                }
+              }
+            ]
+          },
+          "mae_vs_baseline": -0.03792675277807678
+        }
+      ]
+    }
+  ],
+  "nested_result_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\weekly_v2\\experiments\\volume_tune_20260831_v2\\nested_selection.json"
+}

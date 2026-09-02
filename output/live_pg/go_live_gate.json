@@ -1,0 +1,83 @@
+{
+  "started_at": "2026-09-02T02:13:50.489945+00:00",
+  "objectives": {
+    "1_sealed_bundle": {
+      "passed": true,
+      "namespace": "v2_baseline_20260830",
+      "caveats": []
+    },
+    "2_postgresql_sleeper_sync": {
+      "passed": true,
+      "imported_count": 6,
+      "database_url": "sqlite+pysqlite:///./ci_alembic_check.db",
+      "go_no_go": "go"
+    },
+    "3_scoring_contracts": {
+      "passed": true,
+      "league_count": 6,
+      "fidelity_counts": {
+        "modeled_approximation": 6
+      }
+    },
+    "4_daily_refresh_candidate": {
+      "passed": true,
+      "verdict": {
+        "first_live_overlay_promoted": true,
+        "blockers": []
+      }
+    },
+    "5_inspections": {
+      "passed": true,
+      "unresolved_count": 0,
+      "injury_mode": "disabled",
+      "conservation_exit_code": 0,
+      "projection_deltas": null
+    },
+    "6_live_overlay_promoted": {
+      "passed": true,
+      "overlay_hash": "ecd4f501a95f3e184d37cadfcdc1117f055c71a0cdaf0662cf86f4a96bff1a1e",
+      "fixture_citations": 0
+    },
+    "7_decision_flows": {
+      "passed": true,
+      "recommendation_count": 6,
+      "rostered_player_ids": null
+    },
+    "8_phone_access_infrastructure": {
+      "passed": true,
+      "blockers": [],
+      "postgresql_ok": true,
+      "backup_script": true,
+      "latest_backup": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\backups\\fantasy_app-test.sql",
+      "latest_backup_bytes": 54361822,
+      "nginx_tls_example": true,
+      "production_env_example": true,
+      "operator_actions": {
+        "https_public_url": "Set APP_PUBLIC_URL=https://your-domain",
+        "email_magic_link": "Set EMAIL_PROVIDER=resend or smtp with credentials",
+        "trusted_hosts": "Set TRUSTED_HOSTS to your API hostname",
+        "cors_origins": "Set APP_CORS_ORIGINS=https://your-domain",
+        "tls_termination": "Terminate TLS at reverse proxy; see docker/nginx.tls.conf.example",
+        "backups": "Schedule scripts/pg_backup.ps1 daily; rehearse restore before go-live",
+        "monitoring": "Poll GET /health/ready every 60s; alert on non-200"
+      }
+    }
+  },
+  "summary": {
+    "passed_count": 8,
+    "total": 8,
+    "passed_objectives": [
+      "1_sealed_bundle",
+      "2_postgresql_sleeper_sync",
+      "3_scoring_contracts",
+      "4_daily_refresh_candidate",
+      "5_inspections",
+      "6_live_overlay_promoted",
+      "7_decision_flows",
+      "8_phone_access_infrastructure"
+    ],
+    "failed_objectives": [],
+    "go_live_ready": true
+  },
+  "finished_at": "2026-09-02T02:13:54.452951+00:00"
+}

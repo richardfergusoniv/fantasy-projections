@@ -1,0 +1,223 @@
+{
+  "config": {
+    "feature_candidates": [
+      "play_prob",
+      "is_out",
+      "is_doubtful",
+      "is_questionable",
+      "depth_rank",
+      "age",
+      "is_rookie",
+      "games_played_prior",
+      "target_share_l5",
+      "carry_share_l5",
+      "snap_share_l5"
+    ],
+    "min_positive": 30,
+    "random_seed": 42
+  },
+  "fitted_keys": [
+    "participated_label:RB",
+    "participated_label:TE",
+    "participated_label:WR",
+    "positive_usage_label:QB",
+    "positive_usage_label:RB",
+    "positive_usage_label:TE",
+    "positive_usage_label:WR"
+  ],
+  "schema_version": 1,
+  "specs": [
+    {
+      "event": "is_active_label",
+      "feature_cols": [],
+      "n_positive": 1960,
+      "n_train": 1960,
+      "notes": "skipped: insufficient positive/negative examples",
+      "position": "QB",
+      "random_seed": 42
+    },
+    {
+      "event": "is_active_label",
+      "feature_cols": [],
+      "n_positive": 4868,
+      "n_train": 4868,
+      "notes": "skipped: insufficient positive/negative examples",
+      "position": "RB",
+      "random_seed": 42
+    },
+    {
+      "event": "is_active_label",
+      "feature_cols": [],
+      "n_positive": 7304,
+      "n_train": 7304,
+      "notes": "skipped: insufficient positive/negative examples",
+      "position": "WR",
+      "random_seed": 42
+    },
+    {
+      "event": "is_active_label",
+      "feature_cols": [],
+      "n_positive": 3618,
+      "n_train": 3618,
+      "notes": "skipped: insufficient positive/negative examples",
+      "position": "TE",
+      "random_seed": 42
+    },
+    {
+      "event": "participated_label",
+      "feature_cols": [],
+      "n_positive": 1960,
+      "n_train": 1960,
+      "notes": "skipped: insufficient positive/negative examples",
+      "position": "QB",
+      "random_seed": 42
+    },
+    {
+      "event": "participated_label",
+      "feature_cols": [
+        "play_prob",
+        "is_out",
+        "is_doubtful",
+        "is_questionable",
+        "depth_rank",
+        "age",
+        "is_rookie",
+        "games_played_prior",
+        "target_share_l5",
+        "carry_share_l5",
+        "snap_share_l5"
+      ],
+      "n_positive": 4583,
+      "n_train": 4868,
+      "notes": "",
+      "position": "RB",
+      "random_seed": 42
+    },
+    {
+      "event": "participated_label",
+      "feature_cols": [
+        "play_prob",
+        "is_out",
+        "is_doubtful",
+        "is_questionable",
+        "depth_rank",
+        "age",
+        "is_rookie",
+        "games_played_prior",
+        "target_share_l5",
+        "carry_share_l5",
+        "snap_share_l5"
+      ],
+      "n_positive": 7049,
+      "n_train": 7304,
+      "notes": "",
+      "position": "WR",
+      "random_seed": 42
+    },
+    {
+      "event": "participated_label",
+      "feature_cols": [
+        "play_prob",
+        "is_out",
+        "is_doubtful",
+        "is_questionable",
+        "depth_rank",
+        "age",
+        "is_rookie",
+        "games_played_prior",
+        "target_share_l5",
+        "carry_share_l5",
+        "snap_share_l5"
+      ],
+      "n_positive": 3586,
+      "n_train": 3618,
+      "notes": "",
+      "position": "TE",
+      "random_seed": 42
+    },
+    {
+      "event": "positive_usage_label",
+      "feature_cols": [
+        "play_prob",
+        "is_out",
+        "is_doubtful",
+        "is_questionable",
+        "depth_rank",
+        "age",
+        "is_rookie",
+        "games_played_prior",
+        "target_share_l5",
+        "carry_share_l5",
+        "snap_share_l5"
+      ],
+      "n_positive": 1957,
+      "n_train": 1960,
+      "notes": "",
+      "position": "QB",
+      "random_seed": 42
+    },
+    {
+      "event": "positive_usage_label",
+      "feature_cols": [
+        "play_prob",
+        "is_out",
+        "is_doubtful",
+        "is_questionable",
+        "depth_rank",
+        "age",
+        "is_rookie",
+        "games_played_prior",
+        "target_share_l5",
+        "carry_share_l5",
+        "snap_share_l5"
+      ],
+      "n_positive": 4317,
+      "n_train": 4868,
+      "notes": "",
+      "position": "RB",
+      "random_seed": 42
+    },
+    {
+      "event": "positive_usage_label",
+      "feature_cols": [
+        "play_prob",
+        "is_out",
+        "is_doubtful",
+        "is_questionable",
+        "depth_rank",
+        "age",
+        "is_rookie",
+        "games_played_prior",
+        "target_share_l5",
+        "carry_share_l5",
+        "snap_share_l5"
+      ],
+      "n_positive": 6471,
+      "n_train": 7304,
+      "notes": "",
+      "position": "WR",
+      "random_seed": 42
+    },
+    {
+      "event": "positive_usage_label",
+      "feature_cols": [
+        "play_prob",
+        "is_out",
+        "is_doubtful",
+        "is_questionable",
+        "depth_rank",
+        "age",
+        "is_rookie",
+        "games_played_prior",
+        "target_share_l5",
+        "carry_share_l5",
+        "snap_share_l5"
+      ],
+      "n_positive": 3247,
+      "n_train": 3618,
+      "notes": "",
+      "position": "TE",
+      "random_seed": 42
+    }
+  ]
+}

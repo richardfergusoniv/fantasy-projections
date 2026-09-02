@@ -1,0 +1,55 @@
+{
+  "started_at": "2026-09-01T20:01:34.079072+00:00",
+  "database_url": "postgresql+psycopg://fantasy:secret@localhost:5432/fantasy_app",
+  "api_base_url": null,
+  "env_file": "tmp_audit.env",
+  "configuration": {
+    "production_config_problems": [],
+    "production_ready": true,
+    "email_provider": "resend",
+    "app_public_url_https": true,
+    "artifact_backend": "local",
+    "trusted_hosts": [
+      "fantasy.realdomain.com"
+    ]
+  },
+  "runtime": {
+    "docker_available": false,
+    "postgresql": {
+      "status": "ok",
+      "exit_code": 0,
+      "stdout": "localhost:5432 - accepting connections",
+      "host": "localhost",
+      "port": 5432,
+      "database": "fantasy_app"
+    },
+    "backup_script": true,
+    "monitor_script": true,
+    "latest_backup": {
+      "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\backups\\fantasy_app-test.sql",
+      "bytes": 54361822,
+      "age_hours": 14.55
+    },
+    "compose_config_valid": true,
+    "nginx_tls_example": true,
+    "production_env_example": true
+  },
+  "health": {
+    "status": "skipped",
+    "reason": "no_api_base_url"
+  },
+  "phone_access_requirements": {
+    "https_public_url": "Set APP_PUBLIC_URL=https://your-domain",
+    "email_magic_link": "Set EMAIL_PROVIDER=resend or smtp with credentials",
+    "trusted_hosts": "Set TRUSTED_HOSTS to your API hostname",
+    "cors_origins": "Set APP_CORS_ORIGINS=https://your-domain",
+    "tls_termination": "Terminate TLS at reverse proxy; see docker/nginx.tls.conf.example",
+    "backups": "Schedule scripts/pg_backup.ps1 daily; rehearse restore before go-live",
+    "monitoring": "Poll GET /health/ready every 60s; alert on non-200"
+  },
+  "verdict": {
+    "phone_access_ready": true,
+    "blockers": []
+  },
+  "finished_at": "2026-09-01T20:01:34.225441+00:00"
+}

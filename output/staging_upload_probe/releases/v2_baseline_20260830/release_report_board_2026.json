@@ -1,0 +1,24 @@
+{
+  "schema_version": "release_report_v1",
+  "stage": "board",
+  "generated_at": "2026-08-30T07:23:41.434851+00:00",
+  "season": 2026,
+  "exported_board_hash": "091c8d8c9d476f7681498ffe33255643c682faf6313288c57adc3153c08c5513",
+  "exported_board_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\release_bundles\\season=2026\\namespace=v2_baseline_20260830\\players_2026.json",
+  "overlay_attachment": {
+    "finish_probabilities": null,
+    "simulated_vorp": null,
+    "v3_percentiles": {
+      "applied": true,
+      "source": "C:/Users/rdfer/Projects/fantasy-projections/output/model_v3/release_bundles/season=2026/namespace=v2_baseline_20260830/simulation_summary_2026.csv",
+      "gate_verdict": null,
+      "note": "Distributional overlay only; means/VORP/tiers unchanged"
+    },
+    "players_with_finish_probs": 778,
+    "players_with_sim_vorp": 0
+  },
+  "summary_risks": [
+    "p_finish_*: not_attached",
+    "sim_vorp_*: not_attached"
+  ]
+}

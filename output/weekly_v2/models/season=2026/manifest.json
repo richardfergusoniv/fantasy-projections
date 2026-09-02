@@ -1,0 +1,94 @@
+{
+  "schema_version": 2,
+  "target_season": 2026,
+  "model_version": "weekly_v2_2026_1a8d6f0598fa6ccc",
+  "trained_through_season": 2025,
+  "train_seasons": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "artifacts": {
+    "team_totals.joblib": {
+      "sha256": "0b7e7eb0e1fb1dce74ef2c889d62159b4faf331700a06ff66b8b832b2eb19b5f",
+      "size": 4797
+    },
+    "volume_QB.joblib": {
+      "sha256": "c4aa1cf5a04b62b6ac87139b2d0945d9fe5ad666d77510cd38be167e8c2b84c2",
+      "size": 1599041
+    },
+    "volume_RB.joblib": {
+      "sha256": "f892087604428b9e193331b5d84a56a5ee1a101b47214d16aebd51b12be93780",
+      "size": 2306829
+    },
+    "volume_WR.joblib": {
+      "sha256": "fef3dab263ac838bc3de2b0bf15f868ad449f047e26fe6c401373b1e6f8aa8b9",
+      "size": 2518989
+    },
+    "volume_TE.joblib": {
+      "sha256": "100ead2b798d8f3f81c1d79aafbf9fb8689510b6831f50ead3ddea6a9f3273ba",
+      "size": 2156749
+    },
+    "efficiency_QB.joblib": {
+      "sha256": "065e2977f4cfe7f8e338ecf59655027f3cdc8d59b42ea03db9bec74c825feefa",
+      "size": 17856
+    },
+    "efficiency_RB.joblib": {
+      "sha256": "5cb85344ef9fd7a1aed6ea3badd1a88c4bec95748151e84dd477707b4e59913a",
+      "size": 18968
+    },
+    "efficiency_WR.joblib": {
+      "sha256": "e70e54d8e4bea1b5960e78d4c21b402bda75fcc536712f64d36bfc9bb2ee9e00",
+      "size": 12034
+    },
+    "efficiency_TE.joblib": {
+      "sha256": "5d6d7853dc385ca48fbd6de4b65eb9d2e15b9fb543d6a772534ed071415d954d",
+      "size": 11626
+    }
+  },
+  "optional_artifacts": {
+    "calibration.json": {
+      "sha256": "9e653aab7868b9a9a95a39bdf066d52d318fb0875460858071b727f12184f0ae",
+      "size": 1182
+    },
+    "tuning_selection.json": {
+      "sha256": "08d1d82fe88dcb702fceae44fe4a5f0e06b28ccdc639011e8866faa6c1a66983",
+      "size": 140580
+    },
+    "rookie_QB.joblib": {
+      "sha256": "2fe6c384f0e1e29667157154078014c7ee86f8d3067f82d6dc69ef15e47d5dc7",
+      "size": 2214
+    },
+    "rookie_RB.joblib": {
+      "sha256": "5cdeb868991700660c5b9fba98d6dfe3ae10cca31a1cae2549fabc0634a68361",
+      "size": 2214
+    },
+    "rookie_WR.joblib": {
+      "sha256": "f7f5a8be26dfe24f27daa3863acc8ac8ab313a3f38a4256fe4d8fcf9002d158f",
+      "size": 2214
+    },
+    "rookie_TE.joblib": {
+      "sha256": "0d1770c6702f02db69d661fc5400fa6b5266578428b39169a09ea9894df69e61",
+      "size": 2214
+    }
+  },
+  "data_inputs": [
+    {
+      "relative_path": "data/processed/player_week_panel.parquet",
+      "sha256": "b09a8ac0299d9bd18255c9a7e436a7982d34c9509f74a732ac79a7051afbae3c",
+      "size": 49803893
+    }
+  ],
+  "code_revision": "ca922db83ac7623ffabe2ecdb21822c2d1f9351e",
+  "library_versions": {
+    "scikit-learn": "1.9.0",
+    "joblib": "1.5.3"
+  }
+}

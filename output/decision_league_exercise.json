@@ -1,0 +1,236 @@
+{
+  "started_at": "2026-09-01T16:02:07.874080+00:00",
+  "projection_source": "sealed_release",
+  "league_count": 6,
+  "leagues": [
+    {
+      "league_id": "fixture-standard",
+      "league_type": "redraft",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "projection_run_id": "preseason-v2_baseline_20260830",
+        "sealed_source": true,
+        "not_weekly_db_run": true,
+        "starter_count": 9,
+        "scoring_fidelity": "exact_component_rescore",
+        "matchup_win_probability_available": false,
+        "win_probability": null,
+        "opponent_modes_distinct": true,
+        "waiver_add_count": 15,
+        "waiver_rostered_overlap": [],
+        "trade_fair": true,
+        "draft_board_top": [
+          {
+            "name": "Ja'Marr Chase",
+            "vorp": 159.36,
+            "rank": 1
+          },
+          {
+            "name": "Bijan Robinson",
+            "vorp": 143.66,
+            "rank": 2
+          },
+          {
+            "name": "Amon-Ra St. Brown",
+            "vorp": 139.93,
+            "rank": 3
+          }
+        ]
+      },
+      "elapsed_seconds": 2.11
+    },
+    {
+      "league_id": "fixture-ppfd",
+      "league_type": "redraft",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "projection_run_id": "preseason-v2_baseline_20260830",
+        "sealed_source": true,
+        "not_weekly_db_run": true,
+        "starter_count": 7,
+        "scoring_fidelity": "modeled_approximation",
+        "matchup_win_probability_available": false,
+        "win_probability": null,
+        "opponent_modes_distinct": true,
+        "waiver_add_count": 23,
+        "waiver_rostered_overlap": [],
+        "trade_fair": true,
+        "draft_board_top": [
+          {
+            "name": "Ja'Marr Chase",
+            "vorp": 159.36,
+            "rank": 1
+          },
+          {
+            "name": "Bijan Robinson",
+            "vorp": 143.66,
+            "rank": 2
+          },
+          {
+            "name": "Amon-Ra St. Brown",
+            "vorp": 139.93,
+            "rank": 3
+          }
+        ]
+      },
+      "elapsed_seconds": 1.55
+    },
+    {
+      "league_id": "fixture-superflex",
+      "league_type": "dynasty",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "projection_run_id": "preseason-v2_baseline_20260830",
+        "sealed_source": true,
+        "not_weekly_db_run": true,
+        "starter_count": 10,
+        "scoring_fidelity": "exact_component_rescore",
+        "matchup_win_probability_available": false,
+        "win_probability": null,
+        "opponent_modes_distinct": true,
+        "waiver_add_count": 25,
+        "waiver_rostered_overlap": [],
+        "trade_fair": false,
+        "draft_board_top": [
+          {
+            "name": "Ja'Marr Chase",
+            "vorp": 159.36,
+            "rank": 1
+          },
+          {
+            "name": "Bijan Robinson",
+            "vorp": 143.66,
+            "rank": 2
+          },
+          {
+            "name": "Amon-Ra St. Brown",
+            "vorp": 139.93,
+            "rank": 3
+          }
+        ]
+      },
+      "elapsed_seconds": 1.74
+    },
+    {
+      "league_id": "fixture-dynasty",
+      "league_type": "dynasty",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "projection_run_id": "preseason-v2_baseline_20260830",
+        "sealed_source": true,
+        "not_weekly_db_run": true,
+        "starter_count": 10,
+        "scoring_fidelity": "exact_component_rescore",
+        "matchup_win_probability_available": false,
+        "win_probability": null,
+        "opponent_modes_distinct": true,
+        "waiver_add_count": 25,
+        "waiver_rostered_overlap": [],
+        "trade_fair": false,
+        "draft_board_top": [
+          {
+            "name": "Ja'Marr Chase",
+            "vorp": 159.36,
+            "rank": 1
+          },
+          {
+            "name": "Bijan Robinson",
+            "vorp": 143.66,
+            "rank": 2
+          },
+          {
+            "name": "Amon-Ra St. Brown",
+            "vorp": 139.93,
+            "rank": 3
+          }
+        ]
+      },
+      "elapsed_seconds": 2.08
+    },
+    {
+      "league_id": "fixture-yardage-bonus",
+      "league_type": "dynasty",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "projection_run_id": "preseason-v2_baseline_20260830",
+        "sealed_source": true,
+        "not_weekly_db_run": true,
+        "starter_count": 8,
+        "scoring_fidelity": "modeled_approximation",
+        "matchup_win_probability_available": false,
+        "win_probability": null,
+        "opponent_modes_distinct": true,
+        "waiver_add_count": 25,
+        "waiver_rostered_overlap": [],
+        "trade_fair": true,
+        "draft_board_top": [
+          {
+            "name": "Ja'Marr Chase",
+            "vorp": 159.36,
+            "rank": 1
+          },
+          {
+            "name": "Bijan Robinson",
+            "vorp": 143.66,
+            "rank": 2
+          },
+          {
+            "name": "Amon-Ra St. Brown",
+            "vorp": 139.93,
+            "rank": 3
+          }
+        ]
+      },
+      "elapsed_seconds": 1.65
+    },
+    {
+      "league_id": "fixture-k-dst",
+      "league_type": "dynasty",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "projection_run_id": "preseason-v2_baseline_20260830",
+        "sealed_source": true,
+        "not_weekly_db_run": true,
+        "starter_count": 9,
+        "scoring_fidelity": "modeled_approximation",
+        "matchup_win_probability_available": false,
+        "win_probability": null,
+        "opponent_modes_distinct": true,
+        "waiver_add_count": 25,
+        "waiver_rostered_overlap": [],
+        "trade_fair": true,
+        "draft_board_top": [
+          {
+            "name": "Ja'Marr Chase",
+            "vorp": 159.36,
+            "rank": 1
+          },
+          {
+            "name": "Bijan Robinson",
+            "vorp": 143.66,
+            "rank": 2
+          },
+          {
+            "name": "Amon-Ra St. Brown",
+            "vorp": 139.93,
+            "rank": 3
+          }
+        ]
+      },
+      "elapsed_seconds": 2.32
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "all_passed": true,
+    "all_sealed_source": true
+  },
+  "finished_at": "2026-09-01T16:02:19.324571+00:00"
+}

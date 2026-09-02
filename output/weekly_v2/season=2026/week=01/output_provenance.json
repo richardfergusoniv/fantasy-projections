@@ -1,0 +1,24 @@
+{
+  "season": 2026,
+  "week": 1,
+  "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\weekly_v2\\season=2026\\week=01\\weekly_projections.parquet",
+  "sha256": "c209ae4ee06132f29c25a44cf63e0c95bb964980d05df891b63d823cae3908f1",
+  "model_hashes": {
+    "team_totals.joblib": "0b7e7eb0e1fb1dce74ef2c889d62159b4faf331700a06ff66b8b832b2eb19b5f",
+    "volume_QB.joblib": "c4aa1cf5a04b62b6ac87139b2d0945d9fe5ad666d77510cd38be167e8c2b84c2",
+    "volume_RB.joblib": "f892087604428b9e193331b5d84a56a5ee1a101b47214d16aebd51b12be93780",
+    "volume_WR.joblib": "fef3dab263ac838bc3de2b0bf15f868ad449f047e26fe6c401373b1e6f8aa8b9",
+    "volume_TE.joblib": "100ead2b798d8f3f81c1d79aafbf9fb8689510b6831f50ead3ddea6a9f3273ba",
+    "efficiency_QB.joblib": "065e2977f4cfe7f8e338ecf59655027f3cdc8d59b42ea03db9bec74c825feefa",
+    "efficiency_RB.joblib": "5cb85344ef9fd7a1aed6ea3badd1a88c4bec95748151e84dd477707b4e59913a",
+    "efficiency_WR.joblib": "e70e54d8e4bea1b5960e78d4c21b402bda75fcc536712f64d36bfc9bb2ee9e00",
+    "efficiency_TE.joblib": "5d6d7853dc385ca48fbd6de4b65eb9d2e15b9fb543d6a772534ed071415d954d"
+  },
+  "observed_at": "2026-09-01T20:58:56.578515+00:00",
+  "output_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\weekly_v2\\season=2026\\week=01\\weekly_projections.parquet",
+  "model_version": "weekly_v2_2026_1a8d6f0598fa6ccc",
+  "input_hash": "c9f83f31f771776e6be3cd8be316883e7037076e9adc33ad9acd251887816a52",
+  "derivation": "weekly_v2_trained_inference",
+  "partition_sha256": "6cbe4d90ea49156e55f23cb41fa0d2ff2bae6e0b7dd9e0c35a72ac67c8fc31f5",
+  "partition_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\weekly_v2\\season=2026\\week=01\\stat_draw_partition.json"
+}

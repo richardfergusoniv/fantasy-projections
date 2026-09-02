@@ -1,0 +1,197 @@
+{
+  "started_at": "2026-09-01T16:05:10.320454+00:00",
+  "mode": "live_postgresql",
+  "database_url": "postgresql+psycopg://fantasy:fantasy@localhost:5432/fantasy_app",
+  "projection_source": "sealed_release",
+  "week": 1,
+  "league_count": 6,
+  "leagues": [
+    {
+      "league_id": "1389344450517430272",
+      "display_name": "The NY Sack Exchange I",
+      "league_type": "redraft",
+      "league_status": "pre_draft",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "skipped": "pre_draft_or_empty_roster"
+      }
+    },
+    {
+      "league_id": "1355920300633513984",
+      "display_name": "Tits Out for The Ladz XII (TWELVE\ud83d\ude24)",
+      "league_type": "redraft",
+      "league_status": "pre_draft",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "skipped": "pre_draft_or_empty_roster"
+      }
+    },
+    {
+      "league_id": "1317270144682070016",
+      "display_name": "C2C. The real superconference",
+      "league_type": "dynasty",
+      "league_status": "in_season",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "projection_run_id": "preseason-v2_baseline_20260830",
+        "sealed_source": true,
+        "not_weekly_db_run": true,
+        "starter_count": 5,
+        "scoring_fidelity": "modeled_approximation",
+        "matchup_win_probability_available": false,
+        "win_probability": null,
+        "opponent_modes_distinct": true,
+        "waiver_add_count": 25,
+        "waiver_rostered_overlap": [],
+        "trade_fair": true,
+        "draft_board_top": [
+          {
+            "name": "Ja'Marr Chase",
+            "vorp": 159.36,
+            "rank": 1
+          },
+          {
+            "name": "Bijan Robinson",
+            "vorp": 143.66,
+            "rank": 2
+          },
+          {
+            "name": "Amon-Ra St. Brown",
+            "vorp": 139.93,
+            "rank": 3
+          }
+        ]
+      },
+      "elapsed_seconds": 1.64
+    },
+    {
+      "league_id": "1306489414548979712",
+      "display_name": "Dynastical Cucks",
+      "league_type": "dynasty",
+      "league_status": "in_season",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "projection_run_id": "preseason-v2_baseline_20260830",
+        "sealed_source": true,
+        "not_weekly_db_run": true,
+        "starter_count": 4,
+        "scoring_fidelity": "modeled_approximation",
+        "matchup_win_probability_available": false,
+        "win_probability": null,
+        "opponent_modes_distinct": true,
+        "waiver_add_count": 25,
+        "waiver_rostered_overlap": [],
+        "trade_fair": true,
+        "draft_board_top": [
+          {
+            "name": "Ja'Marr Chase",
+            "vorp": 159.36,
+            "rank": 1
+          },
+          {
+            "name": "Bijan Robinson",
+            "vorp": 143.66,
+            "rank": 2
+          },
+          {
+            "name": "Amon-Ra St. Brown",
+            "vorp": 139.93,
+            "rank": 3
+          }
+        ]
+      },
+      "elapsed_seconds": 1.71
+    },
+    {
+      "league_id": "1312127020972404736",
+      "display_name": "Hoe Ass Dynasty League",
+      "league_type": "dynasty",
+      "league_status": "in_season",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "projection_run_id": "preseason-v2_baseline_20260830",
+        "sealed_source": true,
+        "not_weekly_db_run": true,
+        "starter_count": 6,
+        "scoring_fidelity": "modeled_approximation",
+        "matchup_win_probability_available": false,
+        "win_probability": null,
+        "opponent_modes_distinct": true,
+        "waiver_add_count": 25,
+        "waiver_rostered_overlap": [],
+        "trade_fair": true,
+        "draft_board_top": [
+          {
+            "name": "Ja'Marr Chase",
+            "vorp": 159.36,
+            "rank": 1
+          },
+          {
+            "name": "Bijan Robinson",
+            "vorp": 143.66,
+            "rank": 2
+          },
+          {
+            "name": "Amon-Ra St. Brown",
+            "vorp": 139.93,
+            "rank": 3
+          }
+        ]
+      },
+      "elapsed_seconds": 2.04
+    },
+    {
+      "league_id": "1311470531635052544",
+      "display_name": "Tainticklers",
+      "league_type": "dynasty",
+      "league_status": "in_season",
+      "ok": true,
+      "errors": [],
+      "checks": {
+        "projection_run_id": "preseason-v2_baseline_20260830",
+        "sealed_source": true,
+        "not_weekly_db_run": true,
+        "starter_count": 9,
+        "scoring_fidelity": "modeled_approximation",
+        "matchup_win_probability_available": false,
+        "win_probability": null,
+        "opponent_modes_distinct": true,
+        "waiver_add_count": 25,
+        "waiver_rostered_overlap": [],
+        "trade_fair": true,
+        "draft_board_top": [
+          {
+            "name": "Ja'Marr Chase",
+            "vorp": 159.36,
+            "rank": 1
+          },
+          {
+            "name": "Bijan Robinson",
+            "vorp": 143.66,
+            "rank": 2
+          },
+          {
+            "name": "Amon-Ra St. Brown",
+            "vorp": 139.93,
+            "rank": 3
+          }
+        ]
+      },
+      "elapsed_seconds": 2.31
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "exercised": 4,
+    "skipped": 2,
+    "all_passed": true,
+    "all_sealed_source": true
+  },
+  "finished_at": "2026-09-01T16:05:18.051309+00:00"
+}

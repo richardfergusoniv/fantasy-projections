@@ -1,0 +1,426 @@
+{
+  "generated_at": "2026-08-28T17:52:39.392698+00:00",
+  "seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "population": "player-seasons from output/fantasy_evaluation_<season>.csv with both a model forecast and a realised outcome",
+  "n_player_seasons": 1952,
+  "banding": "projected season-points rank within season (NOT board overall_rank)",
+  "admission_rule": {
+    "metric": "p_startable_100",
+    "threshold": 0.15,
+    "min_n": 30,
+    "rationale": "MAE and Spearman both improve as a band approaches the zero floor and cannot separate skill from a dead tail; the hit rate can."
+  },
+  "bands": {
+    "top60": {
+      "n": 180,
+      "points_mae": 73.913,
+      "spearman": 0.2502,
+      "spearman_p": 0.000706,
+      "mean_projected": 221.054,
+      "mean_actual": 207.233,
+      "p_startable_100": 0.8667,
+      "p_starter_150": 0.7222,
+      "thin_cell": false,
+      "rank_range": [
+        1,
+        60
+      ],
+      "per_season_n": {
+        "2023": 60,
+        "2024": 60,
+        "2025": 60
+      },
+      "by_position": {
+        "QB": {
+          "n": 81,
+          "points_mae": 83.1384,
+          "spearman": 0.1913,
+          "spearman_p": 0.08713,
+          "mean_projected": 245.964,
+          "mean_actual": 226.962,
+          "p_startable_100": 0.8889,
+          "p_starter_150": 0.716,
+          "thin_cell": false
+        },
+        "RB": {
+          "n": 56,
+          "points_mae": 67.575,
+          "spearman": 0.1384,
+          "spearman_p": 0.30899,
+          "mean_projected": 202.651,
+          "mean_actual": 198.399,
+          "p_startable_100": 0.875,
+          "p_starter_150": 0.7857,
+          "thin_cell": false
+        },
+        "WR": {
+          "n": 43,
+          "points_mae": 64.789,
+          "spearman": 0.2126,
+          "spearman_p": 0.171031,
+          "mean_projected": 198.096,
+          "mean_actual": 181.573,
+          "p_startable_100": 0.814,
+          "p_starter_150": 0.6512,
+          "thin_cell": false
+        },
+        "TE": {
+          "n": 0
+        }
+      },
+      "sleeper_population": {
+        "n": 99,
+        "points_mae": 66.3649,
+        "spearman": 0.1788,
+        "spearman_p": 0.076561,
+        "mean_projected": 200.672,
+        "mean_actual": 191.091,
+        "p_startable_100": 0.8485,
+        "p_starter_150": 0.7273,
+        "thin_cell": false
+      },
+      "admitted": true
+    },
+    "deep_core": {
+      "n": 180,
+      "points_mae": 51.6695,
+      "spearman": 0.2463,
+      "spearman_p": 0.000859,
+      "mean_projected": 142.912,
+      "mean_actual": 141.083,
+      "p_startable_100": 0.7333,
+      "p_starter_150": 0.4667,
+      "thin_cell": false,
+      "rank_range": [
+        61,
+        120
+      ],
+      "per_season_n": {
+        "2023": 60,
+        "2024": 60,
+        "2025": 60
+      },
+      "by_position": {
+        "QB": {
+          "n": 14,
+          "points_mae": 80.9679,
+          "spearman": -0.033,
+          "spearman_p": 0.910919,
+          "mean_projected": 151.184,
+          "mean_actual": 165.664,
+          "p_startable_100": 0.7143,
+          "p_starter_150": 0.5714,
+          "thin_cell": true
+        },
+        "RB": {
+          "n": 62,
+          "points_mae": 64.4015,
+          "spearman": 0.1342,
+          "spearman_p": 0.298223,
+          "mean_projected": 142.71,
+          "mean_actual": 141.359,
+          "p_startable_100": 0.7097,
+          "p_starter_150": 0.4677,
+          "thin_cell": false
+        },
+        "WR": {
+          "n": 71,
+          "points_mae": 43.3344,
+          "spearman": 0.2343,
+          "spearman_p": 0.049176,
+          "mean_projected": 146.436,
+          "mean_actual": 144.419,
+          "p_startable_100": 0.8028,
+          "p_starter_150": 0.5211,
+          "thin_cell": false
+        },
+        "TE": {
+          "n": 33,
+          "points_mae": 33.2522,
+          "spearman": 0.5617,
+          "spearman_p": 0.00067,
+          "mean_projected": 132.203,
+          "mean_actual": 122.958,
+          "p_startable_100": 0.6364,
+          "p_starter_150": 0.303,
+          "thin_cell": false
+        }
+      },
+      "sleeper_population": {
+        "n": 166,
+        "points_mae": 49.1986,
+        "spearman": 0.2642,
+        "spearman_p": 0.000583,
+        "mean_projected": 142.215,
+        "mean_actual": 139.01,
+        "p_startable_100": 0.7349,
+        "p_starter_150": 0.4578,
+        "thin_cell": false
+      },
+      "admitted": true
+    },
+    "deep_primary": {
+      "n": 240,
+      "points_mae": 48.3344,
+      "spearman": 0.2201,
+      "spearman_p": 0.000595,
+      "mean_projected": 86.99,
+      "mean_actual": 87.23,
+      "p_startable_100": 0.3583,
+      "p_starter_150": 0.1708,
+      "thin_cell": false,
+      "rank_range": [
+        121,
+        200
+      ],
+      "per_season_n": {
+        "2023": 80,
+        "2024": 80,
+        "2025": 80
+      },
+      "by_position": {
+        "QB": {
+          "n": 18,
+          "points_mae": 75.1153,
+          "spearman": 0.1727,
+          "spearman_p": 0.493169,
+          "mean_projected": 87.659,
+          "mean_actual": 79.133,
+          "p_startable_100": 0.3333,
+          "p_starter_150": 0.2222,
+          "thin_cell": true
+        },
+        "RB": {
+          "n": 75,
+          "points_mae": 47.5112,
+          "spearman": 0.212,
+          "spearman_p": 0.067883,
+          "mean_projected": 88.556,
+          "mean_actual": 65.665,
+          "p_startable_100": 0.2,
+          "p_starter_150": 0.1067,
+          "thin_cell": false
+        },
+        "WR": {
+          "n": 104,
+          "points_mae": 49.3816,
+          "spearman": 0.235,
+          "spearman_p": 0.016326,
+          "mean_projected": 87.345,
+          "mean_actual": 104.237,
+          "p_startable_100": 0.4904,
+          "p_starter_150": 0.25,
+          "thin_cell": false
+        },
+        "TE": {
+          "n": 43,
+          "points_mae": 36.0269,
+          "spearman": 0.3538,
+          "spearman_p": 0.019931,
+          "mean_projected": 83.12,
+          "mean_actual": 87.098,
+          "p_startable_100": 0.3256,
+          "p_starter_150": 0.0698,
+          "thin_cell": false
+        }
+      },
+      "sleeper_population": {
+        "n": 222,
+        "points_mae": 46.163,
+        "spearman": 0.2296,
+        "spearman_p": 0.000565,
+        "mean_projected": 86.936,
+        "mean_actual": 87.886,
+        "p_startable_100": 0.3604,
+        "p_starter_150": 0.1667,
+        "thin_cell": false
+      },
+      "admitted": true
+    },
+    "deep_speculative": {
+      "n": 300,
+      "points_mae": 38.2241,
+      "spearman": 0.1984,
+      "spearman_p": 0.000548,
+      "mean_projected": 50.194,
+      "mean_actual": 54.745,
+      "p_startable_100": 0.18,
+      "p_starter_150": 0.0567,
+      "thin_cell": false,
+      "rank_range": [
+        201,
+        300
+      ],
+      "per_season_n": {
+        "2023": 100,
+        "2024": 100,
+        "2025": 100
+      },
+      "by_position": {
+        "QB": {
+          "n": 38,
+          "points_mae": 54.1626,
+          "spearman": 0.1555,
+          "spearman_p": 0.35135,
+          "mean_projected": 47.374,
+          "mean_actual": 47.621,
+          "p_startable_100": 0.1842,
+          "p_starter_150": 0.1316,
+          "thin_cell": false
+        },
+        "RB": {
+          "n": 58,
+          "points_mae": 42.2252,
+          "spearman": 0.0383,
+          "spearman_p": 0.775257,
+          "mean_projected": 52.292,
+          "mean_actual": 58.721,
+          "p_startable_100": 0.1897,
+          "p_starter_150": 0.1034,
+          "thin_cell": false
+        },
+        "WR": {
+          "n": 126,
+          "points_mae": 33.9903,
+          "spearman": 0.1874,
+          "spearman_p": 0.035613,
+          "mean_projected": 50.172,
+          "mean_actual": 54.599,
+          "p_startable_100": 0.1746,
+          "p_starter_150": 0.0159,
+          "thin_cell": false
+        },
+        "TE": {
+          "n": 78,
+          "points_mae": 34.3232,
+          "spearman": 0.2873,
+          "spearman_p": 0.010758,
+          "mean_projected": 50.045,
+          "mean_actual": 55.497,
+          "p_startable_100": 0.1795,
+          "p_starter_150": 0.0513,
+          "thin_cell": false
+        }
+      },
+      "sleeper_population": {
+        "n": 262,
+        "points_mae": 35.9124,
+        "spearman": 0.179,
+        "spearman_p": 0.00365,
+        "mean_projected": 50.604,
+        "mean_actual": 55.779,
+        "p_startable_100": 0.1794,
+        "p_starter_150": 0.0458,
+        "thin_cell": false
+      },
+      "admitted": true
+    },
+    "tail": {
+      "n": 1052,
+      "points_mae": 15.9376,
+      "spearman": 0.4544,
+      "spearman_p": 0.0,
+      "mean_projected": 14.429,
+      "mean_actual": 15.434,
+      "p_startable_100": 0.0209,
+      "p_starter_150": 0.0029,
+      "thin_cell": false,
+      "rank_range": [
+        301,
+        null
+      ],
+      "per_season_n": {
+        "2023": 347,
+        "2024": 344,
+        "2025": 361
+      },
+      "by_position": {
+        "QB": {
+          "n": 121,
+          "points_mae": 22.0217,
+          "spearman": 0.2896,
+          "spearman_p": 0.001273,
+          "mean_projected": 13.784,
+          "mean_actual": 22.067,
+          "p_startable_100": 0.0579,
+          "p_starter_150": 0.0,
+          "thin_cell": false
+        },
+        "RB": {
+          "n": 204,
+          "points_mae": 19.5303,
+          "spearman": 0.2998,
+          "spearman_p": 1.3e-05,
+          "mean_projected": 18.249,
+          "mean_actual": 14.66,
+          "p_startable_100": 0.0294,
+          "p_starter_150": 0.0049,
+          "thin_cell": false
+        },
+        "WR": {
+          "n": 457,
+          "points_mae": 14.6208,
+          "spearman": 0.5281,
+          "spearman_p": 0.0,
+          "mean_projected": 13.065,
+          "mean_actual": 14.769,
+          "p_startable_100": 0.0131,
+          "p_starter_150": 0.0044,
+          "thin_cell": false
+        },
+        "TE": {
+          "n": 270,
+          "points_mae": 12.7254,
+          "spearman": 0.5628,
+          "spearman_p": 0.0,
+          "mean_projected": 14.142,
+          "mean_actual": 14.17,
+          "p_startable_100": 0.0111,
+          "p_starter_150": 0.0,
+          "thin_cell": false
+        }
+      },
+      "sleeper_population": {
+        "n": 931,
+        "points_mae": 15.1469,
+        "spearman": 0.4784,
+        "spearman_p": 0.0,
+        "mean_projected": 14.513,
+        "mean_actual": 14.572,
+        "p_startable_100": 0.0161,
+        "p_starter_150": 0.0032,
+        "thin_cell": false
+      },
+      "admitted": false
+    }
+  },
+  "sleeper_band": {
+    "admitted_bands": [
+      "deep_core",
+      "deep_primary",
+      "deep_speculative"
+    ],
+    "proj_rank_min": 61,
+    "proj_rank_max": 300,
+    "positions": [
+      "RB",
+      "WR",
+      "TE"
+    ],
+    "excluded_bands": [
+      "top60"
+    ]
+  },
+  "caveats": [
+    "The top-120 accuracy-first ensemble does not cover any band below top120; players outside the top 120 ADP carry the untouched incumbent forecast.",
+    "The tail band posts the lowest MAE and often the highest Spearman of any band while almost never producing a startable season. Its MAE is deflated by near-zero actuals and its Spearman is rank noise around a floor. Do not read either as evidence the tail is well projected.",
+    "Bands are cut on projected points rank so that measurement and board selection use the same ordering; the board's own overall_rank is VORP-based and is NOT interchangeable with it.",
+    "Cells with n < 30 are marked thin_cell and must not be read as a group difference.",
+    "The sleeper view shows RB/WR/TE only. Quarterbacks rank high on raw season points while being replacement-rich, so a points-rank band cannot compare them against flex positions coherently. Quote sleeper_population, not the pooled band rates, anywhere that page reports a hit rate.",
+    "top60 is the most accurate band measured and is still excluded: rank 1-60 is core draft-board territory, not a sleeper population. Accuracy admits a band; it does not make it a sleeper."
+  ]
+}

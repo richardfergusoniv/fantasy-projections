@@ -1,0 +1,317 @@
+{
+  "cells": {
+    "active_label:QB": {
+      "content_hash": "0a8f75b1b6bf60ab00ccc7c92cf2d63c8020373fffe0155971dea739090750a6",
+      "event": "active_label",
+      "kind": "depth_status_logistic",
+      "n_train": 3003,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "QB",
+      "prevalence": 0.7372627372627373,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "active_label:RB": {
+      "content_hash": "0c90a81fce64ecf7cecbd4eaa0b4feb8d31002f7dc8ae64113afb6e2cbfaa87d",
+      "event": "active_label",
+      "kind": "depth_status_logistic",
+      "n_train": 5124,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "RB",
+      "prevalence": 0.7453161592505855,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "active_label:TE": {
+      "content_hash": "9c30d98fa4091bb1201d0624cd0a4f58288dc42e4d993afb3a8c059dc133837c",
+      "event": "active_label",
+      "kind": "depth_status_logistic",
+      "n_train": 4430,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "TE",
+      "prevalence": 0.7589164785553048,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "active_label:WR": {
+      "content_hash": "2a9991bfa8d9f9d57bcf392c139cf4293cfe4b593162bd866c341da7c51d7877",
+      "event": "active_label",
+      "kind": "depth_status_logistic",
+      "n_train": 7639,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "WR",
+      "prevalence": 0.7389710695117162,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "participated_label:QB": {
+      "content_hash": "7f1d65149e373f0e17fea8051ee20f2bbaec25194dee8c1530704efc7f12e455",
+      "event": "participated_label",
+      "kind": "depth_status_logistic",
+      "n_train": 2214,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "QB",
+      "prevalence": 0.5948509485094851,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "participated_label:RB": {
+      "content_hash": "3296c25eb1a813917c556ba4595cc3665bfc27f3dfba5142269bdb306551b713",
+      "event": "participated_label",
+      "kind": "depth_status_logistic",
+      "n_train": 3819,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "RB",
+      "prevalence": 0.7965435978004713,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "participated_label:TE": {
+      "content_hash": "326b258c6d242975b5567358858f59ddbbe800ace99989ed103ee7ec3b1bae6c",
+      "event": "participated_label",
+      "kind": "depth_status_logistic",
+      "n_train": 3362,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "TE",
+      "prevalence": 0.7099940511600238,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "participated_label:WR": {
+      "content_hash": "0b880a13f4aa7dbc6df65b6674000520a3da57f652aed4d25ee117125de29c36",
+      "event": "participated_label",
+      "kind": "depth_status_logistic",
+      "n_train": 5645,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "WR",
+      "prevalence": 0.8325952170062002,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "positive_usage_label:QB": {
+      "content_hash": "36297c03a690296edde9a239fada40f2fcbbd439c02ecd0ffa6c65543cadd38c",
+      "event": "positive_usage_label",
+      "kind": "depth_status_logistic",
+      "n_train": 1317,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "QB",
+      "prevalence": 0.9962034927866363,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "positive_usage_label:RB": {
+      "content_hash": "e82978a81be02839536c4f5c2612437d661a4e56005963b530ea6636c9b1b2a1",
+      "event": "positive_usage_label",
+      "kind": "depth_status_logistic",
+      "n_train": 3042,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "RB",
+      "prevalence": 0.9460880999342538,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "positive_usage_label:TE": {
+      "content_hash": "8b539a7cfc32c7943673141401bc1ceeb7fbbbf4c4a7cf0b1f84486e72fa39e6",
+      "event": "positive_usage_label",
+      "kind": "depth_status_logistic",
+      "n_train": 2387,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "TE",
+      "prevalence": 0.8990364474235442,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    },
+    "positive_usage_label:WR": {
+      "content_hash": "973869eb89f129d70ebb75ed202b6d3f2616bc456366c7e06270cfa0002e3659",
+      "event": "positive_usage_label",
+      "kind": "depth_status_logistic",
+      "n_train": 4700,
+      "params": {
+        "feature_cols": [
+          "is_out",
+          "is_doubtful",
+          "is_questionable",
+          "depth_rank",
+          "age",
+          "is_rookie",
+          "games_played_prior",
+          "target_share_l5",
+          "carry_share_l5",
+          "snap_share_l5"
+        ]
+      },
+      "position": "WR",
+      "prevalence": 0.9097872340425532,
+      "train_seasons": [
+        2022,
+        2023
+      ]
+    }
+  },
+  "schema_version": 1
+}

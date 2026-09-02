@@ -1,0 +1,71 @@
+{
+  "schema_version": "release_report_v1",
+  "season": 2026,
+  "board": {
+    "selected_board_sha256": "c1ae777c260dc5f4663a72cf6f15ea7915adba1f75abeeaff6aee0c4386c26ee"
+  },
+  "overlay_coverage": {
+    "total_players": 778,
+    "fields": {
+      "fantasy_pts_p10": {
+        "non_null": 778
+      },
+      "fantasy_pts_p25": {
+        "non_null": 778
+      },
+      "fantasy_pts_p50": {
+        "non_null": 778
+      },
+      "fantasy_pts_p75": {
+        "non_null": 778
+      },
+      "fantasy_pts_p90": {
+        "non_null": 778
+      },
+      "volatility_flag": {
+        "non_null": 778
+      },
+      "p_finish_top6": {
+        "non_null": 778
+      },
+      "p_finish_top12": {
+        "non_null": 778
+      },
+      "p_finish_top24": {
+        "non_null": 778
+      },
+      "p_finish_top36": {
+        "non_null": 778
+      },
+      "p_finish_top48": {
+        "non_null": 778
+      },
+      "sim_vorp_p10": {
+        "non_null": 778
+      },
+      "sim_vorp_p50": {
+        "non_null": 778
+      },
+      "sim_vorp_p90": {
+        "non_null": 778
+      },
+      "p_vorp_positive": {
+        "non_null": 778
+      },
+      "expected_pos_rank": {
+        "non_null": 778
+      },
+      "median_pos_rank": {
+        "non_null": 778
+      }
+    }
+  },
+  "simulation": {
+    "profile_key": "publish",
+    "profile_label": "decision_stable_compromise_10000",
+    "draw_count": 10000,
+    "chunk_size": 250,
+    "configuration_hash": "5bd3dbe5a35513a944d0a4a0c2a14f52a88e36d0f319a3cde25c3e48c1706775",
+    "policy_hash": "1ea546b18e206276362211af5b103177499de5dc5904d9fbfecdc4021fce4d9b"
+  }
+}

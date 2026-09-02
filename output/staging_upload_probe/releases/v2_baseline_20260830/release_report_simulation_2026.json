@@ -1,0 +1,1274 @@
+{
+  "schema_version": "release_report_v1",
+  "stage": "simulation",
+  "generated_at": "2026-08-30T07:23:37.352409+00:00",
+  "season": 2026,
+  "provenance": {
+    "projection_run_id": "ef567492-9579-410a-be72-0baf4d7f602d",
+    "canonical_projection_run_id": "ef567492-9579-410a-be72-0baf4d7f602d",
+    "simulation_run_id": "ef567492-9579-410a-be72-0baf4d7f602d",
+    "selected_board_hash": "c1ae777c260dc5f4663a72cf6f15ea7915adba1f75abeeaff6aee0c4386c26ee",
+    "selected_board_model_id": "accuracy_first_ensemble",
+    "deterministic_board_version": null
+  },
+  "simulation": {
+    "draw_count": 10000,
+    "deterministic_seed": 1027914584,
+    "transform_version": "v1_median_correction",
+    "wr_calibration_version": "v1_wr_residual_scale",
+    "wr_residual_scale": 1.7,
+    "wr_calibration_artifact_hash": "9a1e986d844f06973a82398c1081a0b40f2d06af108448400a7a4a37996e2be8",
+    "partition_hashes": [
+      "ee13d9f91f494dd52620f776520c0c9318ce6e1954f663c5e1881fad8f168dcb",
+      "a3ef9ccc1efc527785a8b5dc457ccbac51ac9f13502e5b8743d623d2170d39f9",
+      "6e3467b5f62577cba9c14148ad37f79410955f3d4535c23ef94d547ef0aa1da9",
+      "66853aed43a2a7f5352e2cba3eae84508bc0afaffbd4c5475fa02d03a09ac9ab",
+      "48f4a6cf3fc0f818b1564b6a7b72e83bf01ca80ed4f3be9f4a913997ecc04170",
+      "9cc9675abb0b3ba7357dc636ad3dc99dc2790e33952c8807279586394cb98df8",
+      "4ea1d36a39ccbed66fd422a41d55d24bdf4c85e4b4f05c33b34224c778ab9ad8",
+      "1b83310e4e9e1ac8dd28acee7207691fd8e317943068c0395c05494369268154",
+      "e08e52bf337d6be4f9a9ca56aad04f5d96f0769fe3525baf08eeffa2e1d3ac83",
+      "a649b0e928c5c21466102b770845cbda3662efb5005ef6fc01af01837396b92f",
+      "3f3691a4606b53d6cfa403a11fa7e429a7dfa54079e36dca0df416f82a77dcec",
+      "93c74ccc7ad7288a6a814568b2c22bfc7047916acef86bda77318968f2f2173d",
+      "f621405a5216f4ca12d3a6f5802fa2b95a9ae7ac5e4ee861c90bda189cbb6a14",
+      "54d9ad76e795fa9dfd23bc259433f1f64104add7268de85bc6c323764b336a4d",
+      "6e871391a739338e45051c821e45dce4fbdbc18d74f3ea845c6cba7c870bae38",
+      "08878011b1f2c19515a0eab09f818b99ad050a3e2a07761bac2c9f0926b1d7cd",
+      "137b634ff4a6950f789b6c9d13e9aebf9a5eef81396fe94b2ac7b458a9b0115d",
+      "9add93663f8960b897f6e47f36cc9542b350263df642886f65f81830905c0b5e",
+      "5bd975b32c13777d84909ed1ffe488ca9d4bcaadbae960128193176627743cf1",
+      "9a55da614e4337cbdb5ac14e13477d1d33c146449f2d29d13e86052f97bb5e92",
+      "93c8fed61f2c5806eadae9feb86994b335ee9c3e74378d4500880eea30dcf525",
+      "a0ce486c4974ac259d6009025887dddb556d307674e4114c7b6f6e35c59ddc98",
+      "85159a1eb340dbe29f519bc8a38662f71a03ff2e2d8a5a0e23b93c3439306d3d",
+      "ab0fcdd0a38b04a1d5af495c0cd9ef54af15a419647e3bc0702480c8630f558e",
+      "69d782e01daee8c9698dd9f177f5de60f6e35ce312af748fddfc8b4f96339a56",
+      "531353d8eb877295d63839979aa72f635afa13630d6c59f2b73840c2db4f5fc2",
+      "7eba2b4c90ce089a82062b2998593cefd01154dbd06f81962249f1f6e6967f24",
+      "a52faf78de51766ea504a7e6e849505c31d1a0599805f6381992f1a388e326b5",
+      "6019b1f86dcb7487aba041559b9dbc390886b6507295ff9ead7fc52d00e40358",
+      "975385a49f3774788496c58a05e40ffe053a39f2c9bc7b67dc4fdc59d70cb452",
+      "b382929b715923a6ee5e0dd743fe21ce791a2e9110ba6613669a81dbdf877554",
+      "4713dfc4f5a56a7e32bfcb90bee2bd58c57f639c85bed17730f5295befaabed4",
+      "750ace899c62b2b92dc08f04d8fda4ea92eeafeb7a08fd8476be77fb007f73bb",
+      "777d97305b237cef8667469f5a6f81106d1ac353d31d4def14ec5b221b1f1259",
+      "0d09b38ffe014e6022e0caeb619802eac14859d1ff27523f1abb1695be169002",
+      "ffbebc79812b7fb5e81cfcdea2ea1e7bd1b3796f32c8087d014d1afdea911d0b",
+      "64bdf23822905314381a62ad4f101b49894f526005a1d5707babf7cb02bf9396",
+      "4cf53a507693449ef55d40f01427fbf70a6f1ac22ec5f8378e0e813c1ae93273",
+      "f8982e84075be28edaaf15f00f66eb1c57a2d323873092d003d6338403c13ddd",
+      "35bc49887a33e67a6d152049b714a7efbc13fde9f409d8c931e5f4cc97d2a530"
+    ]
+  },
+  "gates": {
+    "finish_probability": {
+      "generated_at": "2026-08-28T06:40:13.226704+00:00",
+      "state": "finish_probability_ready",
+      "verdict": "finish_probability_ready",
+      "passes": true,
+      "publication_verdict": "pass",
+      "reasons": [],
+      "distribution_acceptance": {
+        "verdict": "pass",
+        "source_state": "holdout_distribution_pass",
+        "acceptance": {
+          "coverage_ok": true,
+          "wr_coverage_ok": true,
+          "position_coverage_ok": true,
+          "p50_mae_ok": true,
+          "p50_spearman_ok": true,
+          "interval_score_ok": true,
+          "segment_gate_ok": true,
+          "passes": true
+        }
+      },
+      "finish_calibration": {
+        "verdict": "pass",
+        "holdout_season": 2025,
+        "holdout_population": "top_120_adp",
+        "n_scored": 117,
+        "baseline": "2024_preseason_rank_to_finish_rate",
+        "metrics": {
+          "top12": {
+            "candidate_brier": 0.144,
+            "baseline_brier": 0.329,
+            "brier_improvement": 0.185,
+            "calibration_intercept": 0.0,
+            "calibration_slope": 1.0,
+            "mean_predicted": 0.397,
+            "mean_observed": 0.397,
+            "n": 116,
+            "passes": true
+          },
+          "wr_top12": {
+            "n": 53,
+            "candidate_brier": 0.15,
+            "baseline_brier": 0.305,
+            "brier_improvement": 0.155,
+            "calibration_intercept": -0.005,
+            "calibration_slope": 1.02,
+            "mean_predicted": 0.226,
+            "mean_observed": 0.226,
+            "passes": true
+          },
+          "top24": {
+            "candidate_brier": 0.163,
+            "baseline_brier": 0.385,
+            "brier_improvement": 0.222,
+            "calibration_intercept": 0.049,
+            "calibration_slope": 0.923,
+            "mean_predicted": 0.638,
+            "mean_observed": 0.638,
+            "n": 116,
+            "passes": true
+          },
+          "top36": {
+            "candidate_brier": 0.091,
+            "baseline_brier": 0.238,
+            "brier_improvement": 0.146,
+            "calibration_intercept": -0.027,
+            "calibration_slope": 1.032,
+            "mean_predicted": 0.845,
+            "mean_observed": 0.845,
+            "n": 116,
+            "passes": true
+          }
+        },
+        "checks": [
+          {
+            "cutoff": 12,
+            "n": 116,
+            "brier": 0.14360524137931038,
+            "baseline_brier": 0.32907586206896555,
+            "brier_improvement": 0.18547062068965517,
+            "mean_predicted": 0.3965517241379311,
+            "mean_observed": 0.39655172413793105,
+            "calibration_intercept": 0.000150212925394113,
+            "calibration_slope": 0.9996212021881369,
+            "reliability_curve": [
+              {
+                "mean_prob": 0.043166666666666666,
+                "mean_outcome": 0.0,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.07275,
+                "mean_outcome": 0.08333333333333333,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.11945454545454547,
+                "mean_outcome": 0.2727272727272727,
+                "n": 11
+              },
+              {
+                "mean_prob": 0.19675,
+                "mean_outcome": 0.08333333333333333,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.2879090909090909,
+                "mean_outcome": 0.2727272727272727,
+                "n": 11
+              },
+              {
+                "mean_prob": 0.36525,
+                "mean_outcome": 0.25,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.4686363636363637,
+                "mean_outcome": 0.45454545454545453,
+                "n": 11
+              },
+              {
+                "mean_prob": 0.61925,
+                "mean_outcome": 0.8333333333333334,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.8139090909090908,
+                "mean_outcome": 0.8181818181818182,
+                "n": 11
+              },
+              {
+                "mean_prob": 0.9870833333333334,
+                "mean_outcome": 0.9166666666666666,
+                "n": 12
+              }
+            ],
+            "passes": true,
+            "by_position": {
+              "QB": {
+                "n": 16,
+                "brier": 0.1331405,
+                "baseline_brier": 0.375,
+                "brier_improvement": 0.2418595,
+                "mean_predicted": 0.75,
+                "mean_observed": 0.75,
+                "calibration_intercept": -0.2743943231232388,
+                "calibration_slope": 1.3658590974976517,
+                "reliability_curve": [
+                  {
+                    "mean_prob": 0.3265,
+                    "mean_outcome": 0.0,
+                    "n": 2
+                  },
+                  {
+                    "mean_prob": 0.7295,
+                    "mean_outcome": 1.0,
+                    "n": 2
+                  },
+                  {
+                    "mean_prob": 0.764,
+                    "mean_outcome": 1.0,
+                    "n": 1
+                  },
+                  {
+                    "mean_prob": 0.773,
+                    "mean_outcome": 1.0,
+                    "n": 2
+                  },
+                  {
+                    "mean_prob": 0.782,
+                    "mean_outcome": 1.0,
+                    "n": 2
+                  },
+                  {
+                    "mean_prob": 0.815,
+                    "mean_outcome": 0.0,
+                    "n": 1
+                  },
+                  {
+                    "mean_prob": 0.828,
+                    "mean_outcome": 1.0,
+                    "n": 1
+                  },
+                  {
+                    "mean_prob": 0.843,
+                    "mean_outcome": 0.5,
+                    "n": 2
+                  },
+                  {
+                    "mean_prob": 0.859,
+                    "mean_outcome": 1.0,
+                    "n": 1
+                  },
+                  {
+                    "mean_prob": 0.913,
+                    "mean_outcome": 1.0,
+                    "n": 2
+                  }
+                ],
+                "passes": true
+              },
+              "RB": {
+                "n": 37,
+                "brier": 0.17803227027027027,
+                "baseline_brier": 0.40540540540540543,
+                "brier_improvement": 0.22737313513513516,
+                "mean_predicted": 0.32432432432432434,
+                "mean_observed": 0.32432432432432434,
+                "calibration_intercept": 0.035637536139406845,
+                "calibration_slope": 0.8901175969034961,
+                "reliability_curve": [
+                  {
+                    "mean_prob": 0.03825,
+                    "mean_outcome": 0.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.06675,
+                    "mean_outcome": 0.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.10366666666666667,
+                    "mean_outcome": 0.3333333333333333,
+                    "n": 3
+                  },
+                  {
+                    "mean_prob": 0.16475,
+                    "mean_outcome": 0.25,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.258,
+                    "mean_outcome": 0.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.389,
+                    "mean_outcome": 0.0,
+                    "n": 3
+                  },
+                  {
+                    "mean_prob": 0.44625000000000004,
+                    "mean_outcome": 0.75,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.49866666666666665,
+                    "mean_outcome": 0.3333333333333333,
+                    "n": 3
+                  },
+                  {
+                    "mean_prob": 0.55525,
+                    "mean_outcome": 1.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.72725,
+                    "mean_outcome": 0.5,
+                    "n": 4
+                  }
+                ],
+                "passes": true
+              },
+              "TE": {
+                "n": 10,
+                "brier": 0.0,
+                "baseline_brier": 0.1,
+                "brier_improvement": 0.1,
+                "mean_predicted": 1.0,
+                "mean_observed": 1.0,
+                "calibration_intercept": 0.4999999999999999,
+                "calibration_slope": 0.49999999999999967,
+                "reliability_curve": [],
+                "passes": true
+              },
+              "WR": {
+                "n": 53,
+                "brier": 0.1498257735849057,
+                "baseline_brier": 0.30514716981132073,
+                "brier_improvement": 0.15532139622641503,
+                "mean_predicted": 0.22641509433962265,
+                "mean_observed": 0.22641509433962265,
+                "calibration_intercept": -0.004605243659327312,
+                "calibration_slope": 1.0203398261620287,
+                "reliability_curve": [
+                  {
+                    "mean_prob": 0.04471428571428571,
+                    "mean_outcome": 0.0,
+                    "n": 7
+                  },
+                  {
+                    "mean_prob": 0.05975,
+                    "mean_outcome": 0.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.0854,
+                    "mean_outcome": 0.0,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.11679999999999999,
+                    "mean_outcome": 0.4,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.1711666666666667,
+                    "mean_outcome": 0.16666666666666666,
+                    "n": 6
+                  },
+                  {
+                    "mean_prob": 0.2476,
+                    "mean_outcome": 0.4,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.2984,
+                    "mean_outcome": 0.2,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.3216,
+                    "mean_outcome": 0.2,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.3846,
+                    "mean_outcome": 0.4,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.5248333333333334,
+                    "mean_outcome": 0.5,
+                    "n": 6
+                  }
+                ],
+                "passes": true
+              }
+            }
+          },
+          {
+            "cutoff": 24,
+            "n": 116,
+            "brier": 0.16280631034482762,
+            "baseline_brier": 0.3852689655172413,
+            "brier_improvement": 0.2224626551724137,
+            "mean_predicted": 0.6379310344827587,
+            "mean_observed": 0.6379310344827587,
+            "calibration_intercept": 0.048820813499279254,
+            "calibration_slope": 0.9234700761362653,
+            "reliability_curve": [
+              {
+                "mean_prob": 0.15975,
+                "mean_outcome": 0.08333333333333333,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.32025,
+                "mean_outcome": 0.4166666666666667,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.41918181818181816,
+                "mean_outcome": 0.6363636363636364,
+                "n": 11
+              },
+              {
+                "mean_prob": 0.5024166666666666,
+                "mean_outcome": 0.4166666666666667,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.5672727272727273,
+                "mean_outcome": 0.45454545454545453,
+                "n": 11
+              },
+              {
+                "mean_prob": 0.6865,
+                "mean_outcome": 0.6666666666666666,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.8050909090909091,
+                "mean_outcome": 0.8181818181818182,
+                "n": 11
+              },
+              {
+                "mean_prob": 0.9790285714285714,
+                "mean_outcome": 0.9714285714285714,
+                "n": 35
+              }
+            ],
+            "passes": true,
+            "by_position": {
+              "QB": {
+                "n": 16,
+                "brier": 0.0,
+                "baseline_brier": 0.0,
+                "brier_improvement": 0.0,
+                "mean_predicted": 1.0,
+                "mean_observed": 1.0,
+                "calibration_intercept": 0.4999999999999999,
+                "calibration_slope": 0.5000000000000001,
+                "reliability_curve": [],
+                "passes": true
+              },
+              "RB": {
+                "n": 37,
+                "brier": 0.2191818918918919,
+                "baseline_brier": 0.4864864864864865,
+                "brier_improvement": 0.2673045945945946,
+                "mean_predicted": 0.6486486486486487,
+                "mean_observed": 0.6486486486486487,
+                "calibration_intercept": 0.27168262531162496,
+                "calibration_slope": 0.5811559526445786,
+                "reliability_curve": [
+                  {
+                    "mean_prob": 0.195,
+                    "mean_outcome": 0.5,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.40575,
+                    "mean_outcome": 0.5,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.4996666666666667,
+                    "mean_outcome": 0.6666666666666666,
+                    "n": 3
+                  },
+                  {
+                    "mean_prob": 0.577,
+                    "mean_outcome": 0.25,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.6495,
+                    "mean_outcome": 1.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.7456666666666667,
+                    "mean_outcome": 0.3333333333333333,
+                    "n": 3
+                  },
+                  {
+                    "mean_prob": 0.762,
+                    "mean_outcome": 0.75,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.839,
+                    "mean_outcome": 0.6666666666666666,
+                    "n": 3
+                  },
+                  {
+                    "mean_prob": 0.8875,
+                    "mean_outcome": 1.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.96,
+                    "mean_outcome": 0.75,
+                    "n": 4
+                  }
+                ],
+                "passes": true
+              },
+              "TE": {
+                "n": 10,
+                "brier": 0.0,
+                "baseline_brier": 0.0,
+                "brier_improvement": 0.0,
+                "mean_predicted": 1.0,
+                "mean_observed": 1.0,
+                "calibration_intercept": 0.4999999999999999,
+                "calibration_slope": 0.49999999999999967,
+                "reliability_curve": [],
+                "passes": true
+              },
+              "WR": {
+                "n": 53,
+                "brier": 0.2033170188679245,
+                "baseline_brier": 0.5036075471698113,
+                "brier_improvement": 0.30029052830188674,
+                "mean_predicted": 0.4528301886792453,
+                "mean_observed": 0.4528301886792453,
+                "calibration_intercept": -0.025248451080823485,
+                "calibration_slope": 1.055756996136818,
+                "reliability_curve": [
+                  {
+                    "mean_prob": 0.13533333333333333,
+                    "mean_outcome": 0.16666666666666666,
+                    "n": 6
+                  },
+                  {
+                    "mean_prob": 0.2224,
+                    "mean_outcome": 0.2,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.3186,
+                    "mean_outcome": 0.0,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.3778,
+                    "mean_outcome": 0.6,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.427,
+                    "mean_outcome": 0.6666666666666666,
+                    "n": 6
+                  },
+                  {
+                    "mean_prob": 0.4875999999999999,
+                    "mean_outcome": 0.6,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.5276666666666667,
+                    "mean_outcome": 0.16666666666666666,
+                    "n": 6
+                  },
+                  {
+                    "mean_prob": 0.559,
+                    "mean_outcome": 0.5,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.659,
+                    "mean_outcome": 0.8,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.8161666666666667,
+                    "mean_outcome": 0.8333333333333334,
+                    "n": 6
+                  }
+                ],
+                "passes": true
+              }
+            }
+          },
+          {
+            "cutoff": 36,
+            "n": 116,
+            "brier": 0.09116734482758619,
+            "baseline_brier": 0.2375448275862069,
+            "brier_improvement": 0.14637748275862073,
+            "mean_predicted": 0.8448275862068966,
+            "mean_observed": 0.8448275862068966,
+            "calibration_intercept": -0.02688899147279757,
+            "calibration_slope": 1.0318277858249443,
+            "reliability_curve": [
+              {
+                "mean_prob": 0.4345833333333333,
+                "mean_outcome": 0.3333333333333333,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.59975,
+                "mean_outcome": 0.75,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.7095454545454545,
+                "mean_outcome": 0.6363636363636364,
+                "n": 11
+              },
+              {
+                "mean_prob": 0.8423076923076922,
+                "mean_outcome": 0.8461538461538461,
+                "n": 13
+              },
+              {
+                "mean_prob": 0.9384,
+                "mean_outcome": 1.0,
+                "n": 10
+              },
+              {
+                "mean_prob": 0.9673333333333334,
+                "mean_outcome": 1.0,
+                "n": 12
+              },
+              {
+                "mean_prob": 0.9870909090909091,
+                "mean_outcome": 1.0,
+                "n": 11
+              },
+              {
+                "mean_prob": 0.9995142857142856,
+                "mean_outcome": 0.9714285714285714,
+                "n": 35
+              }
+            ],
+            "passes": true,
+            "by_position": {
+              "QB": {
+                "n": 16,
+                "brier": 0.0,
+                "baseline_brier": 0.0,
+                "brier_improvement": 0.0,
+                "mean_predicted": 1.0,
+                "mean_observed": 1.0,
+                "calibration_intercept": 0.4999999999999999,
+                "calibration_slope": 0.5000000000000001,
+                "reliability_curve": [],
+                "passes": true
+              },
+              "RB": {
+                "n": 37,
+                "brier": 0.02822827027027027,
+                "baseline_brier": 0.16216216216216217,
+                "brier_improvement": 0.1339338918918919,
+                "mean_predicted": 0.9729729729729731,
+                "mean_observed": 0.972972972972973,
+                "calibration_intercept": 1.9712083757452312,
+                "calibration_slope": -1.0259641639603754,
+                "reliability_curve": [
+                  {
+                    "mean_prob": 0.91525,
+                    "mean_outcome": 1.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.9565999999999999,
+                    "mean_outcome": 1.0,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.9615,
+                    "mean_outcome": 1.0,
+                    "n": 2
+                  },
+                  {
+                    "mean_prob": 0.9652499999999999,
+                    "mean_outcome": 1.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.976,
+                    "mean_outcome": 1.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.9836666666666667,
+                    "mean_outcome": 1.0,
+                    "n": 3
+                  },
+                  {
+                    "mean_prob": 0.98725,
+                    "mean_outcome": 1.0,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.9936666666666666,
+                    "mean_outcome": 1.0,
+                    "n": 3
+                  },
+                  {
+                    "mean_prob": 0.9975999999999999,
+                    "mean_outcome": 0.8,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.9996666666666667,
+                    "mean_outcome": 1.0,
+                    "n": 3
+                  }
+                ],
+                "passes": true
+              },
+              "TE": {
+                "n": 10,
+                "brier": 0.0,
+                "baseline_brier": 0.0,
+                "brier_improvement": 0.0,
+                "mean_predicted": 1.0,
+                "mean_observed": 1.0,
+                "calibration_intercept": 0.4999999999999999,
+                "calibration_slope": 0.49999999999999967,
+                "reliability_curve": [],
+                "passes": true
+              },
+              "WR": {
+                "n": 53,
+                "brier": 0.1798295471698113,
+                "baseline_brier": 0.40670188679245284,
+                "brier_improvement": 0.22687233962264153,
+                "mean_predicted": 0.6792452830188681,
+                "mean_observed": 0.6792452830188679,
+                "calibration_intercept": -0.07685661738589768,
+                "calibration_slope": 1.11315002004035,
+                "reliability_curve": [
+                  {
+                    "mean_prob": 0.3945,
+                    "mean_outcome": 0.3333333333333333,
+                    "n": 6
+                  },
+                  {
+                    "mean_prob": 0.46719999999999995,
+                    "mean_outcome": 0.4,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.5404,
+                    "mean_outcome": 0.6,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.6104,
+                    "mean_outcome": 0.6,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.6747142857142857,
+                    "mean_outcome": 0.8571428571428571,
+                    "n": 7
+                  },
+                  {
+                    "mean_prob": 0.71475,
+                    "mean_outcome": 0.5,
+                    "n": 4
+                  },
+                  {
+                    "mean_prob": 0.7402,
+                    "mean_outcome": 0.8,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.8286,
+                    "mean_outcome": 0.8,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.8768,
+                    "mean_outcome": 0.8,
+                    "n": 5
+                  },
+                  {
+                    "mean_prob": 0.9554999999999999,
+                    "mean_outcome": 1.0,
+                    "n": 6
+                  }
+                ],
+                "passes": true
+              }
+            }
+          }
+        ],
+        "wr_summary": {
+          "n": 53,
+          "brier": 0.1498257735849057,
+          "baseline_brier": 0.30514716981132073,
+          "brier_improvement": 0.15532139622641503,
+          "mean_predicted": 0.22641509433962265,
+          "mean_observed": 0.22641509433962265,
+          "calibration_intercept": -0.004605243659327312,
+          "calibration_slope": 1.0203398261620287,
+          "reliability_curve": [
+            {
+              "mean_prob": 0.04471428571428571,
+              "mean_outcome": 0.0,
+              "n": 7
+            },
+            {
+              "mean_prob": 0.05975,
+              "mean_outcome": 0.0,
+              "n": 4
+            },
+            {
+              "mean_prob": 0.0854,
+              "mean_outcome": 0.0,
+              "n": 5
+            },
+            {
+              "mean_prob": 0.11679999999999999,
+              "mean_outcome": 0.4,
+              "n": 5
+            },
+            {
+              "mean_prob": 0.1711666666666667,
+              "mean_outcome": 0.16666666666666666,
+              "n": 6
+            },
+            {
+              "mean_prob": 0.2476,
+              "mean_outcome": 0.4,
+              "n": 5
+            },
+            {
+              "mean_prob": 0.2984,
+              "mean_outcome": 0.2,
+              "n": 5
+            },
+            {
+              "mean_prob": 0.3216,
+              "mean_outcome": 0.2,
+              "n": 5
+            },
+            {
+              "mean_prob": 0.3846,
+              "mean_outcome": 0.4,
+              "n": 5
+            },
+            {
+              "mean_prob": 0.5248333333333334,
+              "mean_outcome": 0.5,
+              "n": 6
+            }
+          ],
+          "passes": true
+        }
+      },
+      "provenance": {
+        "board_model_id": "accuracy_first_ensemble",
+        "selected_pred_source": "evaluation_players.parquet",
+        "recenter_transform_version": "v1_median_correction",
+        "wr_transform_version": "v1_wr_residual_scale",
+        "wr_residual_scale": 1.7,
+        "wr_calibration_artifact": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\wr_calibration.json",
+        "holdout_population": "2025_top_120_adp",
+        "draws_sha256": "b985d114124d26bcbce748ff31fe77f617442c9e6f0eb4a2619a54617029c88e",
+        "segment_summary_hash": "8db2be7bf6ce89eeee59b4d2fc2a740e78e96c762fdfcd716c92af64b55f2e1d",
+        "wr_calibration_sha256": "9a1e986d844f06973a82398c1081a0b40f2d06af108448400a7a4a37996e2be8",
+        "wr_calibration_version": "v1_wr_residual_scale",
+        "calibration_hash": "4324d5609a8c80a9ebc53c11aee7e42e75c4e8e741afa461cb1dae06d658d6d4"
+      },
+      "segment_summary_hash": "8db2be7bf6ce89eeee59b4d2fc2a740e78e96c762fdfcd716c92af64b55f2e1d",
+      "top120_n": 117,
+      "holdout": {
+        "coverage_ok": true,
+        "wr_coverage_ok": true,
+        "position_coverage_ok": true,
+        "p50_mae_ok": true,
+        "p50_spearman_ok": true,
+        "interval_score_ok": true,
+        "segment_gate_ok": true,
+        "passes": true
+      }
+    },
+    "promotion": {
+      "generated_at": "2026-08-26T07:00:02.548255+00:00",
+      "season": 2026,
+      "verdict": "simulation_ready",
+      "rationale": "v3 simulation overlay is ready for percentiles/volatility UI only. Do not replace the v1 point engine; means backtest has not cleared promote_v3_means gates.",
+      "gates": {
+        "simulation_ready": true,
+        "season_distribution_calibration_passed": true,
+        "selected_distribution_mode": "joint_bootstrap",
+        "p10_p90_coverage": 0.7552213868003341,
+        "season_distribution_basis": "rolling_origin_exact_full_simulator_season_fantasy_points",
+        "season_distribution_n_scored": 1197,
+        "season_distribution_acceptance": {
+          "aggregate_coverage_75_85": true,
+          "fold_coverage_72_88": true,
+          "position_coverage_floor_70": true,
+          "interval_score_improves": true,
+          "p50_mae_no_material_regression": true,
+          "p50_spearman_no_material_regression": true
+        },
+        "uncertainty_manifest_matches_calibration": true,
+        "simulation_mode_full": true,
+        "simulation_distribution_matches": true,
+        "simulation_uncertainty_hash_matches": true,
+        "simulation_joint_donors_hash_matches": true,
+        "v3_simulation_exists": true,
+        "means_backtest_exists": true,
+        "interim_beats_v1_and_blend": false,
+        "generative_beats_v1_and_blend": false,
+        "blend_arm_usable": true,
+        "blend_unusable_folds": [],
+        "promote_v3_means": false,
+        "holdout_2025": {
+          "v1_mae": 27.714018153332695,
+          "blend_mae": 26.024804332250863,
+          "v3_interim_mae": 29.678169749402535,
+          "v3_generative_mae": 28.939110293525456,
+          "v1_spearman": 0.7583060301223868,
+          "blend_spearman": 0.772678110083588,
+          "v3_interim_spearman": 0.700686412515383,
+          "v3_generative_spearman": 0.7542932743121648
+        }
+      },
+      "architecture_rule": "v1 compose_board owns point rates/totals; optional v2 blend owns draft mean points when enabled; v3 owns distributional overlay until promote_v3_means."
+    },
+    "draw_stability_recommended": 10000,
+    "draw_count_decision": null
+  },
+  "quality_diagnostics": {
+    "segment_summary": null,
+    "holdout_acceptance": {
+      "coverage_ok": true,
+      "wr_coverage_ok": true,
+      "position_coverage_ok": true,
+      "p50_mae_ok": true,
+      "p50_spearman_ok": true,
+      "interval_score_ok": true,
+      "segment_gate_ok": true,
+      "passes": true
+    },
+    "tail_miss_rates": {
+      "miss_rate_below_p10": 0.14655172413793102,
+      "miss_rate_above_p90": 0.10344827586206896
+    },
+    "wr_calibration": {
+      "generated_at": "2026-08-28T06:14:46.624762+00:00",
+      "transform_version": "v1_wr_residual_scale",
+      "recenter_version": "v1_median_correction",
+      "training_folds": [
+        {
+          "source_season": 2023,
+          "target_season": 2024,
+          "holdout_n": 124,
+          "selected_col": "selected_pred"
+        }
+      ],
+      "fold_scores": [
+        {
+          "wr_scale": 1.0,
+          "wr_n": 50,
+          "wr_coverage": 0.62,
+          "wr_interval_score": 235.549154686608,
+          "overall_coverage": 0.6451612903225806,
+          "overall_interval_score": 290.0164758045183,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.05,
+          "wr_n": 50,
+          "wr_coverage": 0.68,
+          "wr_interval_score": 231.97423679458512,
+          "overall_coverage": 0.6693548387096774,
+          "overall_interval_score": 288.57497665450904,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.1,
+          "wr_n": 50,
+          "wr_coverage": 0.7,
+          "wr_interval_score": 229.54790698109616,
+          "overall_coverage": 0.6774193548387096,
+          "overall_interval_score": 287.5966178587474,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.15,
+          "wr_n": 50,
+          "wr_coverage": 0.72,
+          "wr_interval_score": 227.80322806534642,
+          "overall_coverage": 0.6854838709677419,
+          "overall_interval_score": 286.89311829594504,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.2,
+          "wr_n": 50,
+          "wr_coverage": 0.72,
+          "wr_interval_score": 226.1577141229024,
+          "overall_coverage": 0.6854838709677419,
+          "overall_interval_score": 286.2296046094757,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.25,
+          "wr_n": 50,
+          "wr_coverage": 0.74,
+          "wr_interval_score": 224.76000741992556,
+          "overall_coverage": 0.6935483870967742,
+          "overall_interval_score": 285.66601319698503,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.3,
+          "wr_n": 50,
+          "wr_coverage": 0.74,
+          "wr_interval_score": 223.65024044946603,
+          "overall_coverage": 0.6935483870967742,
+          "overall_interval_score": 285.2185265153481,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.4,
+          "wr_n": 50,
+          "wr_coverage": 0.78,
+          "wr_interval_score": 224.23123827357122,
+          "overall_coverage": 0.7096774193548387,
+          "overall_interval_score": 285.4527998315195,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.5,
+          "wr_n": 50,
+          "wr_coverage": 0.84,
+          "wr_interval_score": 226.4555070881934,
+          "overall_coverage": 0.7338709677419355,
+          "overall_interval_score": 286.3496824180608,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.6,
+          "wr_n": 50,
+          "wr_coverage": 0.86,
+          "wr_interval_score": 230.77096011784596,
+          "overall_coverage": 0.7419354838709677,
+          "overall_interval_score": 288.08978444614655,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.7,
+          "wr_n": 50,
+          "wr_coverage": 0.88,
+          "wr_interval_score": 235.41268020148266,
+          "overall_coverage": 0.75,
+          "overall_interval_score": 289.96144577019356,
+          "target_season": 2024,
+          "overall_n": 124
+        },
+        {
+          "wr_scale": 1.8,
+          "wr_n": 50,
+          "wr_coverage": 0.88,
+          "wr_interval_score": 240.54386035503492,
+          "overall_coverage": 0.75,
+          "overall_interval_score": 292.03047002565813,
+          "target_season": 2024,
+          "overall_n": 124
+        }
+      ],
+      "selected_wr_scale": 1.7,
+      "selection_metric": {
+        "target_coverage": 0.8,
+        "wr_coverage": 0.88,
+        "overall_coverage": 0.75,
+        "wr_interval_score": 235.41268020148266,
+        "distance_to_target": 0.07999999999999996,
+        "wr_floor": 0.7,
+        "overall_floor": 0.75,
+        "used_overall_floor": true
+      },
+      "grid": [
+        1.0,
+        1.05,
+        1.1,
+        1.15,
+        1.2,
+        1.25,
+        1.3,
+        1.4,
+        1.5,
+        1.6,
+        1.7,
+        1.8
+      ],
+      "candidates": [
+        {
+          "wr_scale": 1.4,
+          "wr_coverage": 0.78,
+          "overall_coverage": 0.7096774193548387,
+          "wr_interval_score": 224.23123827357122,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.5,
+          "wr_coverage": 0.84,
+          "overall_coverage": 0.7338709677419355,
+          "wr_interval_score": 226.4555070881934,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.6,
+          "wr_coverage": 0.86,
+          "overall_coverage": 0.7419354838709677,
+          "wr_interval_score": 230.77096011784596,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.3,
+          "wr_coverage": 0.74,
+          "overall_coverage": 0.6935483870967742,
+          "wr_interval_score": 223.65024044946603,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.25,
+          "wr_coverage": 0.74,
+          "overall_coverage": 0.6935483870967742,
+          "wr_interval_score": 224.76000741992556,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.7,
+          "wr_coverage": 0.88,
+          "overall_coverage": 0.75,
+          "wr_interval_score": 235.41268020148266,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.8,
+          "wr_coverage": 0.88,
+          "overall_coverage": 0.75,
+          "wr_interval_score": 240.54386035503492,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.2,
+          "wr_coverage": 0.72,
+          "overall_coverage": 0.6854838709677419,
+          "wr_interval_score": 226.1577141229024,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.15,
+          "wr_coverage": 0.72,
+          "overall_coverage": 0.6854838709677419,
+          "wr_interval_score": 227.80322806534642,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.1,
+          "wr_coverage": 0.7,
+          "overall_coverage": 0.6774193548387096,
+          "wr_interval_score": 229.54790698109616,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.05,
+          "wr_coverage": 0.68,
+          "overall_coverage": 0.6693548387096774,
+          "wr_interval_score": 231.97423679458512,
+          "folds": 1,
+          "wr_n": 50
+        },
+        {
+          "wr_scale": 1.0,
+          "wr_coverage": 0.62,
+          "overall_coverage": 0.6451612903225806,
+          "wr_interval_score": 235.549154686608,
+          "folds": 1,
+          "wr_n": 50
+        }
+      ],
+      "promotion_state": "wr_calibration_candidate"
+    },
+    "draw_stability_summary": {
+      "recommended_draw_count": 10000,
+      "reference_draws": 10000
+    },
+    "decision_change_diagnostics": {
+      "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\decision_change_diagnostics_2026.json",
+      "verdict": "ok",
+      "reason": null,
+      "category_summary": {
+        "material": 11
+      },
+      "core_player_events_requiring_review": 0,
+      "prominent_risk": true
+    },
+    "core_player_tail_stability": {
+      "status": "monitor",
+      "affected_output": "mostly p90 / upper-tail range",
+      "decision_threshold_impact": "none",
+      "tail_instability_core_rows": 6,
+      "required_action": "re-evaluate at selected production draw count and at next model refresh",
+      "source": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\model_v3\\player_stability_diagnostics_2026.parquet"
+    },
+    "intermediate_draw_sweep": {
+      "sweep_phase": "intermediate_v20k",
+      "reference_draws": 20000,
+      "selected_draw_count": null,
+      "production_recommendation": "decision_stable_sub20k_numerical_fail_schedule_rc_or_20k",
+      "policy_matrix_outcome": "all_candidates_failed",
+      "candidates_evaluated": [
+        7500,
+        10000,
+        15000,
+        20000
+      ],
+      "provenance_verdict": "ok"
+    }
+  },
+  "summary_risks": [
+    "decision_change_diagnostics: material_or_reference_instability"
+  ],
+  "artifact_namespace": "v2_baseline_20260830"
+}

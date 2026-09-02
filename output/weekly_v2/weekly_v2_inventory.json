@@ -1,0 +1,379 @@
+{
+  "generated_at_utc": "2026-09-01T00:02:13.378407+00:00",
+  "target_season": 2026,
+  "target_week": 1,
+  "required_model_artifacts": [
+    "team_totals.joblib",
+    "volume_QB.joblib",
+    "volume_RB.joblib",
+    "volume_WR.joblib",
+    "volume_TE.joblib",
+    "efficiency_QB.joblib",
+    "efficiency_RB.joblib",
+    "efficiency_WR.joblib",
+    "efficiency_TE.joblib"
+  ],
+  "optional_artifacts": [
+    "calibration.json",
+    "tuning_selection.json",
+    "rookie_QB.joblib",
+    "rookie_RB.joblib",
+    "rookie_WR.joblib",
+    "rookie_TE.joblib"
+  ],
+  "repos": {
+    "local": {
+      "label": "local_models",
+      "root": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\weekly_v2\\models",
+      "exists": false,
+      "artifacts": []
+    },
+    "local_outputs": {
+      "label": "local_outputs",
+      "root": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\weekly_v2",
+      "exists": false,
+      "artifacts": []
+    },
+    "sibling": {
+      "label": "sibling_models",
+      "root": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models",
+      "exists": true,
+      "artifacts": [
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\efficiency_QB.joblib",
+          "exists": true,
+          "required": true,
+          "size": 17856,
+          "sha256": "9642bb8334fa8a98f7bd01e2100d3f2650108fc1aa63c15484c8bcfb9092c210",
+          "mtime_utc": "2026-08-23T21:59:50.917777+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\efficiency_RB.joblib",
+          "exists": true,
+          "required": true,
+          "size": 18968,
+          "sha256": "c4ffe9dceec56f00ad2b3e1ca2184cce106cd02d67a944727b755dda0ea16122",
+          "mtime_utc": "2026-08-23T21:59:51.154743+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\efficiency_TE.joblib",
+          "exists": true,
+          "required": true,
+          "size": 11626,
+          "sha256": "c51be29399344ca0be5ce81e6810b97fa73a0bf81316355af81fefaf97aaae45",
+          "mtime_utc": "2026-08-23T21:59:51.575473+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\efficiency_WR.joblib",
+          "exists": true,
+          "required": true,
+          "size": 12034,
+          "sha256": "91bf5cabb7cb2728c17f7aa5ace5856e595d480edd2515340dd76c10bf820668",
+          "mtime_utc": "2026-08-23T21:59:51.427611+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\rookie_QB.joblib",
+          "exists": true,
+          "required": true,
+          "size": 4030,
+          "sha256": "24eb34205eb30d8c5a564063152f3dafa070196865036074bb85934af65a63cd",
+          "mtime_utc": "2026-08-23T00:24:34.810448+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\rookie_RB.joblib",
+          "exists": true,
+          "required": true,
+          "size": 4030,
+          "sha256": "f6e7179ef6bb62ae48d4492bba10aa6da41803f5c35d2792b3d0bd0c9eb356d2",
+          "mtime_utc": "2026-08-23T00:24:34.820137+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\rookie_TE.joblib",
+          "exists": true,
+          "required": true,
+          "size": 4030,
+          "sha256": "bdcecc67ac7c921c39c7905a2e4690c7a6007dc90ca0fd5ae90274cc00a0ec35",
+          "mtime_utc": "2026-08-23T00:24:34.841691+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\rookie_WR.joblib",
+          "exists": true,
+          "required": true,
+          "size": 4030,
+          "sha256": "bc93b5d1d792dff62f2ccf6a2c8032fc510f85b44ff74f70716d5289c3409977",
+          "mtime_utc": "2026-08-23T00:24:34.831177+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\team_totals.joblib",
+          "exists": true,
+          "required": true,
+          "size": 4781,
+          "sha256": "6f966f578a110af9ef1a3812ab6412c9497ccc90b38e601147a246d8fd848c47",
+          "mtime_utc": "2026-08-23T00:24:23.250891+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\volume_QB.joblib",
+          "exists": true,
+          "required": true,
+          "size": 1599025,
+          "sha256": "0e96856b98e18ff327802542426b2a0ce4861635bfe6034c2b982f00451373c5",
+          "mtime_utc": "2026-08-23T00:24:25.869680+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\volume_RB.joblib",
+          "exists": true,
+          "required": true,
+          "size": 2306797,
+          "sha256": "c31194eec4d981c7928e910e114809e829e965edae832464746471835931d1c5",
+          "mtime_utc": "2026-08-23T00:24:28.176098+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\volume_TE.joblib",
+          "exists": true,
+          "required": true,
+          "size": 2156733,
+          "sha256": "ba3c8fe25f6a5ae84ce2edbb54f8604998f05328c9a030f73fd680c2e9dc5041",
+          "mtime_utc": "2026-08-23T00:24:33.620234+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\volume_WR.joblib",
+          "exists": true,
+          "required": true,
+          "size": 2518973,
+          "sha256": "6d7163f0acbf4985878a321b55fe3966360d1401d560db5e555facf7ba4e6666",
+          "mtime_utc": "2026-08-23T00:24:31.548690+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\calibration.json",
+          "exists": true,
+          "required": true,
+          "size": 1172,
+          "sha256": "e9752b9875e206be6dda4017f0f7bd7befdcf5825720645b5b0902b321ca32c9",
+          "mtime_utc": "2026-08-23T22:00:09.047116+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\efficiency_QB.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 2046,
+          "sha256": "bda2bc4c52a03275c0f60d47daaf030dbe8adf22dfe05f24cf2de651e42d7b17",
+          "mtime_utc": "2026-08-23T21:59:50.918774+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\efficiency_RB.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 2237,
+          "sha256": "b6f1b1df3e2e5519c9fafdfac660b343dea96550dc34fe9502bc41b3448c4bf9",
+          "mtime_utc": "2026-08-23T21:59:51.155743+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\efficiency_TE.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 2032,
+          "sha256": "8ecef591c919d0d98ad972676b5121bb5548b1d28f75f50230951659848e8c71",
+          "mtime_utc": "2026-08-23T21:59:51.576471+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\efficiency_WR.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 2134,
+          "sha256": "9cbab70e41428d5c18a4d3097d67e65289a237d30cc0e4a825364aae2c8f8548",
+          "mtime_utc": "2026-08-23T21:59:51.428611+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\rookie_QB.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 1535,
+          "sha256": "70d39a303692d75a3237d8bd469bffd8a686bfef46f17e9bc054aab81781d934",
+          "mtime_utc": "2026-08-23T00:24:34.810448+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\rookie_RB.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 1536,
+          "sha256": "512483dfa8a09efd67f2a50c88cfccb6868a3417fec5ae67e74ad08e9bf9ac4d",
+          "mtime_utc": "2026-08-23T00:24:34.821138+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\rookie_TE.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 1536,
+          "sha256": "4d7dfa2156eb01ee905e978a57fb9a086a73f9eb6ec057563dcf073848cd83d4",
+          "mtime_utc": "2026-08-23T00:24:34.842676+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\rookie_WR.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 1536,
+          "sha256": "341094273f829b4e4ab6c1b81ab52f9670a3ea48c679845bd42bd30c052c0fd5",
+          "mtime_utc": "2026-08-23T00:24:34.832573+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\team_totals.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 576,
+          "sha256": "915623cfe872007ea8156a07a540f7430ca9c2d04d3c5eb6cc6f12c1783cd09d",
+          "mtime_utc": "2026-08-23T00:24:23.251893+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\training_manifest.json",
+          "exists": true,
+          "required": false,
+          "size": 7892,
+          "sha256": "042951bebffcbbc4f69efdaf068813fd81aac63b8feafd511c8ee17878a94761",
+          "mtime_utc": "2026-08-23T00:24:34.848861+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\tuning_selection.json",
+          "exists": true,
+          "required": true,
+          "size": 140580,
+          "sha256": "08d1d82fe88dcb702fceae44fe4a5f0e06b28ccdc639011e8866faa6c1a66983",
+          "mtime_utc": "2026-08-22T23:32:50.688605+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\volume_QB.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 3063,
+          "sha256": "27411c45a103e19bcea86b928ddb5a7932c3544b9fe848d0a645c6abe4ce8639",
+          "mtime_utc": "2026-08-23T00:24:25.870681+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\volume_RB.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 3109,
+          "sha256": "992df19191fb6b5baf76af68897842ee0071ad99a8aca512b0a1a6dec395fa13",
+          "mtime_utc": "2026-08-23T00:24:28.177100+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\volume_TE.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 3113,
+          "sha256": "4ced1fb2c9ccf51f15f4d6ccf4acc47ef9bed924029f8ca6a2297582afc16ad5",
+          "mtime_utc": "2026-08-23T00:24:33.621236+00:00"
+        },
+        {
+          "path": "C:\\Users\\rdfer\\Projects\\fantasy-projections-2\\models\\volume_WR.meta.json",
+          "exists": true,
+          "required": true,
+          "size": 3113,
+          "sha256": "16e0dd69f4f73c2ea8a2f0c7386dc5dee3c88ecb697234f393b96f2294335b0c",
+          "mtime_utc": "2026-08-23T00:24:31.549691+00:00"
+        }
+      ]
+    }
+  },
+  "sibling_training_manifest_exists": true,
+  "manifest_validation": {
+    "season": 2026,
+    "valid": false,
+    "schema_version": null,
+    "model_version": null,
+    "trained_through_season": null,
+    "missing_artifacts": [
+      "team_totals.joblib",
+      "volume_QB.joblib",
+      "volume_RB.joblib",
+      "volume_WR.joblib",
+      "volume_TE.joblib",
+      "efficiency_QB.joblib",
+      "efficiency_RB.joblib",
+      "efficiency_WR.joblib",
+      "efficiency_TE.joblib"
+    ],
+    "hash_mismatches": [],
+    "load_failures": [],
+    "failures": [
+      "manifest_missing"
+    ],
+    "artifact_hashes": {}
+  },
+  "readiness": {
+    "season": 2026,
+    "week": 1,
+    "state": "fixture",
+    "model_version": "weekly_v2_fixture",
+    "manifest_uri": "fixture://weekly-v2/C:/Users/rdfer/Projects/fantasy-projections/tests/fixtures/weekly_v2/season=2026/manifest.json",
+    "manifest_path": "C:\\Users\\rdfer\\Projects\\fantasy-projections\\tests\\fixtures\\weekly_v2\\season=2026\\manifest.json",
+    "missing_artifacts": [
+      "team_totals.joblib",
+      "volume_QB.joblib",
+      "volume_RB.joblib",
+      "volume_WR.joblib",
+      "volume_TE.joblib",
+      "efficiency_QB.joblib",
+      "efficiency_RB.joblib",
+      "efficiency_WR.joblib",
+      "efficiency_TE.joblib"
+    ],
+    "reasons": [
+      "manifest_missing",
+      "missing_model_artifacts:9",
+      "fixture_manifest_only"
+    ],
+    "auto_publish_allowed": false
+  },
+  "missing_reason": "All 9 required joblib files absent under C:\\Users\\rdfer\\Projects\\fantasy-projections\\output\\weekly_v2\\models",
+  "entrypoints": {
+    "ingest": {
+      "path": "scripts/weekly_v2_ingest.py",
+      "exists": true
+    },
+    "build_features": {
+      "path": "scripts/weekly_v2_build_features.py",
+      "exists": true
+    },
+    "train": {
+      "path": "scripts/weekly_v2_train.py",
+      "exists": true
+    },
+    "evaluate": {
+      "path": "scripts/weekly_v2_evaluate.py",
+      "exists": true
+    },
+    "project": {
+      "path": "scripts/weekly_v2_project.py",
+      "exists": true
+    },
+    "inventory": {
+      "path": "scripts/weekly_v2_inventory.py",
+      "exists": true
+    },
+    "audit_features": {
+      "path": "scripts/audit_weekly_features.py",
+      "exists": true
+    },
+    "app_weekly_promote": {
+      "path": "src/app/projections/weekly_run.py::WeeklyProjectionService.promote_week",
+      "exists": true
+    },
+    "app_inference": {
+      "path": "src/app/projections/weekly_inference.py::run_weekly_inference",
+      "exists": true
+    },
+    "readiness": {
+      "path": "src/app/projections/weekly_v2_bridge.py::weekly_v2_readiness",
+      "exists": true
+    }
+  },
+  "readiness_sites": [
+    "src/app/projections/weekly_v2_bridge.py",
+    "src/app/api/v1/operations.py",
+    "src/app/league/sleeper/shadow_sync.py",
+    "src/app/jobs/handlers.py",
+    "web/src/screens/Operations.tsx"
+  ],
+  "rookie_calibration_tuning_required_for_publication": false,
+  "rookie_calibration_tuning_notes": "Rookie models, calibration.json, and tuning_selection.json are optional/degraded for weekly publication; volume/efficiency/team_totals are required."
+}

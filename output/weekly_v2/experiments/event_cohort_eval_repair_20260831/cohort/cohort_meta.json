@@ -1,0 +1,127 @@
+{
+  "content_hash": "adcbccc4932cb61eabae38d5c275d2e8b78d43253807c1d28cf983b5c871f263",
+  "contract_version": "weekly_mixture_contract_v2",
+  "cutoff_policy": "weekly roster membership as-of nflverse snapshot; schedule REG games only",
+  "exclusion_summary": {
+    "aggregate_rates": {
+      "active_denominator": 40362,
+      "fantasy_point_zero_rate": 0.6329130306167726,
+      "missing_outcome_rate": 0.30552063304244936,
+      "observed_active_rate": 0.7448094742579654,
+      "participation_denominator": 30062,
+      "participation_rate_given_active": 0.7643536690838932,
+      "positive_usage_denominator": 22978,
+      "positive_usage_rate_given_participation": 0.9197493254417268,
+      "rows": 54088
+    },
+    "by_position": {
+      "QB": {
+        "active_denominator": 6016,
+        "fantasy_point_zero_rate": 0.6501004688546551,
+        "missing_outcome_rate": 0.44969859343603485,
+        "observed_active_rate": 0.7355385638297872,
+        "participation_denominator": 4425,
+        "participation_rate_given_active": 0.60045197740113,
+        "positive_usage_denominator": 2657,
+        "positive_usage_rate_given_participation": 0.9969890854347008,
+        "rows": 7465
+      },
+      "RB": {
+        "active_denominator": 10212,
+        "fantasy_point_zero_rate": 0.5791266177249679,
+        "missing_outcome_rate": 0.2852493756149247,
+        "observed_active_rate": 0.7375636506071289,
+        "participation_denominator": 7532,
+        "participation_rate_given_active": 0.8015135422198619,
+        "positive_usage_denominator": 6037,
+        "positive_usage_rate_given_participation": 0.942024184197449,
+        "rows": 13213
+      },
+      "TE": {
+        "active_denominator": 8873,
+        "fantasy_point_zero_rate": 0.6671797502992988,
+        "missing_outcome_rate": 0.3374380023943903,
+        "observed_active_rate": 0.7672714978023216,
+        "participation_denominator": 6808,
+        "participation_rate_given_active": 0.7160693301997649,
+        "positive_usage_denominator": 4875,
+        "positive_usage_rate_given_participation": 0.8910769230769231,
+        "rows": 11694
+      },
+      "WR": {
+        "active_denominator": 15261,
+        "fantasy_point_zero_rate": 0.6412783201326211,
+        "missing_outcome_rate": 0.25110517590716525,
+        "observed_active_rate": 0.7402529323111199,
+        "participation_denominator": 11297,
+        "participation_rate_given_active": 0.8328759847747189,
+        "positive_usage_denominator": 9409,
+        "positive_usage_rate_given_participation": 0.8985014347964715,
+        "rows": 21716
+      }
+    },
+    "by_season": {
+      "2022": {
+        "active_denominator": 10161,
+        "fantasy_point_zero_rate": 0.6339193381592554,
+        "missing_outcome_rate": 0.31341409366228395,
+        "observed_active_rate": 0.7412656234622577,
+        "participation_denominator": 7532,
+        "participation_rate_given_active": 0.7592936802973977,
+        "positive_usage_denominator": 5719,
+        "positive_usage_rate_given_participation": 0.9265605875152999,
+        "rows": 13538
+      },
+      "2023": {
+        "active_denominator": 10035,
+        "fantasy_point_zero_rate": 0.627051626380185,
+        "missing_outcome_rate": 0.30908683974932855,
+        "observed_active_rate": 0.748181365221724,
+        "participation_denominator": 7508,
+        "participation_rate_given_active": 0.7627863612147043,
+        "positive_usage_denominator": 5727,
+        "positive_usage_rate_given_participation": 0.927710843373494,
+        "rows": 13404
+      },
+      "2024": {
+        "active_denominator": 9898,
+        "fantasy_point_zero_rate": 0.6338927669686618,
+        "missing_outcome_rate": 0.29451953066983516,
+        "observed_active_rate": 0.7585370781976157,
+        "participation_denominator": 7508,
+        "participation_rate_given_active": 0.7619872136387853,
+        "positive_usage_denominator": 5721,
+        "positive_usage_rate_given_participation": 0.9180213249431918,
+        "rows": 13466
+      },
+      "2025": {
+        "active_denominator": 10268,
+        "fantasy_point_zero_rate": 0.6366959064327485,
+        "missing_outcome_rate": 0.3050438596491228,
+        "observed_active_rate": 0.7317880794701986,
+        "participation_denominator": 7514,
+        "participation_rate_given_active": 0.773356401384083,
+        "positive_usage_denominator": 5811,
+        "positive_usage_rate_given_participation": 0.9069007055584237,
+        "rows": 13680
+      }
+    },
+    "bye_or_unscheduled": 2690,
+    "row_state_counts": {
+      "active_no_offensive_participation": 859,
+      "bye_or_no_scheduled_game": 2690,
+      "not_on_recoverable_roster_at_cutoff": 13726,
+      "outcome_missing_or_source_incomplete": 16525,
+      "participated_zero_positive_usage": 1844,
+      "positive_usage": 21134
+    },
+    "rows": 56778,
+    "scheduled_rows": 54088
+  },
+  "file_hash": "adcbccc4932cb61eabae38d5c275d2e8b78d43253807c1d28cf983b5c871f263",
+  "row_count": 56778,
+  "schema_version": 2,
+  "source_hashes": {
+    "player_week_panel": "b09a8ac0299d9bd18255c9a7e436a7982d34c9509f74a732ac79a7051afbae3c"
+  }
+}

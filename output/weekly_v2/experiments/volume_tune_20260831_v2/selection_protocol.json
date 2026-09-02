@@ -1,0 +1,20 @@
+{
+  "candidate_grid": [
+    "baseline_two_stage",
+    "two_stage_half_life_6",
+    "two_stage_half_life_4",
+    "two_stage_half_life_2",
+    "two_stage_participation_ridge",
+    "two_stage_conditional_ridge",
+    "two_stage_conservative_hgb",
+    "legacy_direct"
+  ],
+  "selection_rule": "lexicographic: selection_gate(dispersion), mae_vs_baseline, rank_delta, dispersion_distance; train only if full PromotionPolicy passes",
+  "promotion_policy": "PromotionPolicy(min_coverage=0.95, min_mae_improvement=0.02, min_rank_improvement=0.0, min_dispersion_ratio=0.7, max_dispersion_ratio=1.3, min_seasons=3, min_interval_coverage=0.72, max_interval_coverage=0.9)",
+  "outer_range": [
+    2022,
+    2025
+  ],
+  "seed": 42,
+  "panel_hash": "b09a8ac0299d9bd18255c9a7e436a7982d34c9509f74a732ac79a7051afbae3c"
+}
