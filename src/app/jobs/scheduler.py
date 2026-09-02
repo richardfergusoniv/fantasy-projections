@@ -302,13 +302,14 @@ def enqueue_due_slots(
     return enqueued
 
 
-def process_outbox(*, max_jobs: int = 5) -> list[dict]:
+def process_outbox(*, max_jobs: int = 5, skip_long_jobs: bool = False) -> list[dict]:
     results: list[dict] = []
+    exclude = LONG_RUNNING_JOBS if skip_long_jobs else frozenset()
     with get_job_session() as session:
         outbox = JobOutboxService(session)
         outbox.recover_stale_running(stale_after=timedelta(hours=2))
         for _ in range(max_jobs):
-            row = outbox.claim_next()
+            row = outbox.claim_next(exclude_job_names=exclude)
             if row is None:
                 break
             outbox.mark_running(row)
@@ -355,7 +356,7 @@ def run_due(now_utc: datetime | None = None, *, grace: timedelta = DEFAULT_GRACE
 def main() -> None:
     configure_logging()
     parser = argparse.ArgumentParser(description="Fantasy app worker")
-    parser.add_argument("command", choices=["run-once", "run-due", "list"])
+    parser.add_argument("command", choices=["run-once", "run-due", "process-outbox", "list"])
     parser.add_argument("job_name", nargs="?")
     args = parser.parse_args()
     if args.command == "list":
@@ -364,6 +365,10 @@ def main() -> None:
         return
     if args.command == "run-due":
         for result in run_due():
+            print(result)
+        return
+    if args.command == "process-outbox":
+        for result in process_outbox():
             print(result)
         return
     if not args.job_name:

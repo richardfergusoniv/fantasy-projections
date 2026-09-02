@@ -1,0 +1,55 @@
+name: Production Jobs
+
+on:
+  schedule:
+    # Poll every 15 minutes; run-due only executes slots inside the scheduler grace window.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: production-jobs
+  cancel-in-progress: false
+
+jobs:
+  run-due:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra jobs
+
+      - name: Install Vercel CLI
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install -g vercel@latest
+
+      - name: Pull production environment
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel env pull .env.production.local --environment=production --yes --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Run due production jobs
+        run: |
+          set -a
+          # shellcheck disable=SC1091
+          source .env.production.local
+          set +a
+          export LONG_JOBS_EXTERNAL=false
+          uv run python -m src.app.jobs.scheduler run-due

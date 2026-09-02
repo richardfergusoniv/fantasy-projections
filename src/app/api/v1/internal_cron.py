@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from fastapi import APIRouter, Header, HTTPException
 
 from src.app.config import get_settings
@@ -33,5 +35,5 @@ def cron_process_outbox(authorization: str | None = Header(default=None)):
     expected = f"Bearer {settings.cron_secret}"
     if authorization != expected:
         raise HTTPException(status_code=401, detail="unauthorized")
-    results = process_outbox()
+    results = process_outbox(skip_long_jobs=bool(os.environ.get("VERCEL")))
     return {"status": "ok", "processed": len(results), "results": results}

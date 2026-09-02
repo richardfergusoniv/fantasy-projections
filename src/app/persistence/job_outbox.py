@@ -102,7 +102,12 @@ class JobOutboxService:
         self.session.flush()
         return row
 
-    def claim_next(self, *, job_name: str | None = None) -> JobOutbox | None:
+    def claim_next(
+        self,
+        *,
+        job_name: str | None = None,
+        exclude_job_names: frozenset[str] | None = None,
+    ) -> JobOutbox | None:
         now = utcnow()
         query = (
             self.session.query(JobOutbox)
@@ -112,6 +117,8 @@ class JobOutboxService:
         if job_name is not None:
             query = query.filter(JobOutbox.job_name == job_name)
         for row in query.limit(20):
+            if exclude_job_names and row.job_name in exclude_job_names:
+                continue
             scheduled_at = row.scheduled_at
             if scheduled_at is not None:
                 if scheduled_at.tzinfo is None:

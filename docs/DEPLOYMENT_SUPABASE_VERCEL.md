@@ -16,7 +16,9 @@ Production runtime and CI variable names are listed in the deployment plan. Neve
 
 ## Cron
 
-Apply `supabase/cron/run_due.sql` manually after storing `cron_secret` in Supabase Vault.
+Apply `supabase/cron/run_due.sql` and `supabase/cron/process_outbox.sql` manually after storing `cron_secret` in Supabase Vault.
+
+Long-running jobs (`daily-refresh`, Sunday slots, weekly close) execute via the **Production Jobs** GitHub Actions workflow (`.github/workflows/production-jobs.yml`), which pulls Vercel production env vars and runs `scheduler run-due` with `LONG_JOBS_EXTERNAL=false`. Vercel cron endpoints enqueue only and process short outbox jobs.
 
 ## Rollback
 
