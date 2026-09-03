@@ -63,8 +63,10 @@ def classify_archetype_h3(history: pd.DataFrame, *, player_id: str, target_seaso
         "scramble_per_dropback": scramble_db,
         "carries_per_active": carries,
     }
-    # Order: designed → scramble → carries dual-threat → pocket only when
-    # rush features are observed and low (None does NOT imply pocket).
+    # Order: designed → scramble → carries dual-threat evidence.
+    # Pocket requires *observed* low designed AND scramble — null is not pocket.
+    # Null/insufficient designed-run history → insufficient_history (or dual
+    # via carries), never pocket_passer.
     if designed is not None and designed >= DESIGNED_RUNNER_DESIGNED_PER_START:
         arch = "designed_runner"
     elif scramble_db is not None and scramble_db >= MOBILE_SCRAMBLER_SCRAMBLE_PER_DB:
@@ -77,8 +79,6 @@ def classify_archetype_h3(history: pd.DataFrame, *, player_id: str, target_seaso
         and designed <= POCKET_MAX_DESIGNED_PER_START
         and scramble_db <= POCKET_MAX_SCRAMBLE_PER_DB
     ):
-        arch = "pocket_passer"
-    elif carries is not None and carries < 5.5:
         arch = "pocket_passer"
     else:
         arch = "insufficient_history"

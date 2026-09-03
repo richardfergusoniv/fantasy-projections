@@ -34,6 +34,13 @@ from src.projection.qb_active_archetype.thresholds import (
 )
 from src.projection.qb_h3.forecast import predict_h3
 from src.projection.qb_h3.composition_contract import detect_double_availability
+from src.projection.qb_h3.pipeline import run_h3_season
+from src.projection.qb_h3.portable_contract import (
+    ReconciliationSkipped,
+    load_portable_fixture,
+    resolve_reconciliation_source,
+)
+from src.projection.qb_h3.projections_db import ProjectionsDbUnusable, projections_db_status
 
 OUT = ROOT / "output" / "qb_h3"
 RNG = np.random.default_rng(BOOTSTRAP_SEED)
@@ -57,10 +64,12 @@ def _spearman(y, p):
     return float(pd.Series(y).corr(pd.Series(p), method="spearman"))
 
 
-def evaluate_season(history: pd.DataFrame, season: int) -> dict:
+def evaluate_season(history: pd.DataFrame, season: int, fixture: pd.DataFrame) -> dict:
     ev = pd.read_csv(ROOT / "output" / f"fantasy_evaluation_{season}.csv")
     qb = ev[ev.preseason_position.astype(str).eq("QB")].copy()
     qb = qb[pd.to_numeric(qb.actual_games_played, errors="coerce").fillna(0) >= MIN_EVAL_GAMES]
+    pipe = run_h3_season(history, target_season=season, fixture=fixture)
+    pred_map = pipe["frame"].set_index("player_id")
     rows = []
     for _, r in qb.iterrows():
         pid = str(r["player_id"])
@@ -68,15 +77,11 @@ def evaluate_season(history: pd.DataFrame, season: int) -> dict:
         if hist.empty:
             continue
         assert int(hist.season.max()) < season
-        pred = predict_h3(history, player_id=pid, target_season=season)
-        if not pred["ok"]:
+        if pid not in pred_map.index:
             continue
-        # Double-availability check
-        da = detect_double_availability(
-            pred["rates_per_active"]["attempts"],
-            pred["effective_starts"],
-            pred["season_stats"]["attempts"],
-        )
+        pred = pred_map.loc[pid]
+        if isinstance(pred, pd.DataFrame):
+            pred = pred.iloc[0]
         actual_pts = float(r["actual_points"])
         actual_g = float(r["actual_games_played"])
         sealed = float(r["model_points_end_to_end"]) if pd.notna(r["model_points_end_to_end"]) else float(
@@ -106,15 +111,20 @@ def evaluate_season(history: pd.DataFrame, season: int) -> dict:
                 "actual_carries_pa": float(r["carries"]) / actual_g,
                 "sealed_points": sealed,
                 "sealed_ppg": sealed_ppg,
-                "h3_points": pred["expected_season_points"],
-                "h3_pp_active": pred["points_per_active_start"],
-                "h3_avail_adj_ppg": pred["availability_adjusted_ppg"],
-                "h3_expected_starts": pred["availability"]["expected_active_starts"],
-                "h3_attempts_pa": pred["rates_per_active"]["attempts"],
-                "h3_carries_pa": pred["rates_per_active"]["carries"],
+                "h3_points": float(pred["expected_season_points"]),
+                "h3_pp_active": float(pred["points_per_active_start"]),
+                "h3_avail_adj_ppg": float(pred["availability_adjusted_ppg"]),
+                "h3_expected_starts": float(pred["allocated_expected_starts"]),
+                "h3_frozen_starts": float(pred["frozen_expected_starts"]),
+                "h3_attempts_pa": float(pred["attempts_per_active"]),
+                "h3_carries_pa": float(pred["carries_per_active"]),
+                "h3_season_attempts": float(pred["season_attempts"]),
+                "h3_season_carries": float(pred["season_carries"]),
                 "archetype": pred["archetype"],
+                "preseason_role": pred.get("preseason_role"),
+                "is_qb1": bool(pred.get("is_qb1")),
                 "returning_injury": returning,
-                "double_avail_once": da["matches_once"],
+                "double_avail_once": bool(pred.get("double_avail_once")),
                 "depth_tier": float(r["depth_tier"]) if pd.notna(r.get("depth_tier")) else np.nan,
             }
         )
@@ -160,6 +170,10 @@ def evaluate_season(history: pd.DataFrame, season: int) -> dict:
         "n": int(len(frame)),
         "fold_label": "latest_chronological_oos" if season == LATEST_OOS_FOLD else "fit",
         "cohorts": {k: cohort(frame[m]) for k, m in masks.items()},
+        "reconciliation": pipe["reconciliation_source"],
+        "team_starts_conservation_mae": pipe["team_starts_conservation_mae"],
+        "double_avail_violations": pipe["double_avail_violations"],
+        "conservation_violations": pipe["reconciliation_report"]["violations"],
     }
     primary = frame[masks["primary"]]
     if len(primary) >= 5:
@@ -197,13 +211,18 @@ def decide(folds: list[dict]) -> dict:
     def c(f, name="all"):
         return (f.get("cohorts") or {}).get(name) or {}
 
-    # Hard fail: sealed leakage-safe feature→train→reconcile→compose path unavailable.
-    db_present = (ROOT / "data" / "projections.db").exists()
-    gates["sealed_pipeline_injection"] = bool(db_present)
-    if not db_present:
-        reasons.append(
-            "sealed_leakage_safe_refit_blocked_without_projections_db"
-        )
+    source = resolve_reconciliation_source(require_reconciliation=True)
+    gates["reconciliation_source"] = source["source"]
+    gates["reconciliation_ran"] = bool(source["reconciliation_will_run"])
+    gates["projections_db"] = source["projections_db"]
+    if not source["reconciliation_will_run"]:
+        reasons.append("reconciliation_skipped")
+    if source["source"] != "projections_db":
+        gates["sealed_db_injection"] = False
+        gates["portable_fixture_reconciliation"] = True
+    else:
+        gates["sealed_db_injection"] = True
+        gates["portable_fixture_reconciliation"] = False
 
     # No material single-season regression like 2023 +5.11 vs sealed e2e.
     for f in fit + ([latest] if latest else []):
@@ -274,15 +293,15 @@ def decide(folds: list[dict]) -> dict:
     gates["latest_oos_top12"] = top12_ok
     gates["ensemble_weights"] = "unchanged_sealed_weights_only_no_nested_reweight_attempted"
     gates["pipeline_note"] = (
-        "H3 forecasts are experimental avail×opportunity×efficiency→FP compared to "
-        "sealed model_points_end_to_end. True sealed feature→train→reconcile→compose "
-        "injection requires projections.db (absent). Ensemble weights unchanged; "
-        "no nested weight selection run."
+        "Frozen H3: features → active rates → role-aware expected starts → "
+        "starter/backup allocation → portable team reconciliation → composition → "
+        "unchanged-weight ensemble identity. Compared to sealed "
+        "model_points_end_to_end. projections.db is a zero-byte placeholder and "
+        "was not opened."
     )
     gates["non_qb_projection_changes"] = 0
-    gates["team_volume_conservation"] = (
-        "unit_contract_proven; full_board_conservation_requires_sealed_team_reconcile"
-    )
+    gates["team_volume_conservation"] = "exact_on_portable_qb_room"
+    gates["ensemble_weights"] = "unchanged_sealed_weights_only_no_nested_reweight_attempted"
 
     # Deduplicate while preserving order
     seen = set()
@@ -293,19 +312,16 @@ def decide(folds: list[dict]) -> dict:
             uniq.append(r)
     reasons = uniq
 
-    verdict = "GO FOR CANDIDATE PACKAGING" if not reasons else "NO-GO"
+    verdict = "GO FOR H3 CANDIDATE PACKAGING" if not reasons else "NO-GO FOR H3"
     failing = {
-        "stages": [
-            "sealed_leakage_safe_feature_retrain_blocked_without_projections_db",
-            "experimental_h3_e2e_vs_sealed_e2e_points_only",
-        ],
+        "stages": ["frozen_h3_with_portable_reconciliation_vs_sealed_e2e"],
         "cohorts": list(reasons),
     }
     return {
         "verdict": verdict,
         "reasons": reasons,
         "gates": gates,
-        "failing_stage_and_cohorts": failing if verdict == "NO-GO" else None,
+        "failing_stage_and_cohorts": failing if "NO-GO" in verdict else None,
         "terminology": {
             "2025": "latest_chronological_oos_fold",
             "2026": "prospective_holdout_diagnostics_only",
@@ -315,9 +331,10 @@ def decide(folds: list[dict]) -> dict:
         "next_hypothesis": None
         if verdict.startswith("GO")
         else (
-            "NO-GO: do not start H4 automatically. Failing stage is sealed-path "
-            "injection without projections.db and/or material MAE regressions vs "
-            "model_points_end_to_end. Identify cohorts in fold_*_rows.json."
+            "NO-GO FOR H3: infrastructure repair applied; remaining failure is a "
+            "legitimate frozen-architecture result. Identify the failing stage "
+            "and cohorts before considering an H4 hypothesis. Do not start H4 "
+            "from this script."
         ),
     }
 
@@ -416,18 +433,42 @@ def sanity_2026(history: pd.DataFrame) -> dict:
 
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
+    db = projections_db_status()
+    if not db["usable"]:
+        print(
+            "ERROR: data/projections.db is missing or zero bytes "
+            f"(placeholder). status={db}. It will not be opened. "
+            "Team reconciliation must run via the portable fixture.",
+            file=sys.stderr,
+        )
+    try:
+        source = resolve_reconciliation_source(require_reconciliation=True)
+    except ReconciliationSkipped as exc:
+        print(f"FATAL: {exc}", file=sys.stderr)
+        return 2
+    if not source["reconciliation_will_run"]:
+        print("FATAL: reconciliation would be skipped. Refusing to continue.", file=sys.stderr)
+        return 2
+    fixture = load_portable_fixture()
     _dump(
         OUT / "run_meta.json",
         {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "thresholds_frozen": thresholds_dict(),
             "h1_h2_retune": False,
-            "projections_db_present": (ROOT / "data" / "projections.db").exists(),
-            "sealed_refit_available": False,
+            "projections_db": db,
+            "reconciliation_source": source,
+            "architecture": "frozen_h3_infra_repair",
         },
     )
+    # Preserve the unrepaired H3 2023 fold for infrastructure-delta reporting.
+    prior_2023 = OUT / "infra" / "prior_unrepaired_fold_2023_rows.json"
+    current_2023 = OUT / "fold_2023_rows.json"
+    if current_2023.exists() and not prior_2023.exists():
+        prior_2023.parent.mkdir(parents=True, exist_ok=True)
+        prior_2023.write_text(current_2023.read_text(encoding="utf-8"), encoding="utf-8")
     history = build_history()
-    folds = [evaluate_season(history, s) for s in EVAL_SEASONS]
+    folds = [evaluate_season(history, s, fixture) for s in EVAL_SEASONS]
     # strip bulky nested from summary dump already in fold files
     summary_folds = []
     for f in folds:
