@@ -28,5 +28,11 @@ test.describe("screen smoke (production bundle)", () => {
       await openMoreScreen(page, screen.label);
       await expect(page.getByRole("heading", { name: screen.heading })).toBeVisible();
     }
+
+    // Draft checklist panes should be present on the Draft screen.
+    await openMoreScreen(page, "Draft");
+    await expect(page.getByRole("tab", { name: "Checklist" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "O-line" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /Ours/i })).toBeVisible();
   });
 });

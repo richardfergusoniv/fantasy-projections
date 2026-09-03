@@ -77,6 +77,25 @@ def test_draft_board_endpoint(client: TestClient):
         assert body["entries"][0]["replacement_rank"] > 1
 
 
+def test_draft_checklist_endpoint(client: TestClient):
+    token = (
+        client.post("/api/v1/auth/magic-link", json={"email": "owner@example.com"})
+        .json()["development_link"]
+        .split("token=")[-1]
+    )
+    client.post("/api/v1/auth/verify", json={"token": token})
+    response = client.get("/api/v1/leagues/fixture-standard/draft/checklist")
+    assert response.status_code == 200
+    body = response.json()
+    assert body.get("available") is True
+    assert body["entries"]
+    assert "vorp" not in body["entries"][0]
+    assert body["entries"][0]["rank_tier"] in {"adp", "ecr", "prior_pts", "none"}
+    assert body["meta"]["market_as_of"]["scoring"] == "half-ppr"
+    assert body["meta"]["market_as_of"]["teams"] == 12
+    assert "checks" in body["entries"][0]
+
+
 def test_draft_board_superflex_zero_vorp_qb_not_first():
     """A QB with 0 VORP must not outrank skill players on season-points fallback."""
     from src.app.decisions.draft_board import DraftBoardService, _draft_sort_value
