@@ -290,7 +290,9 @@ def test_auth_verify_route_reads_secure_flag_from_settings():
 
     source = inspect.getsource(auth_routes)
     assert "secure=False" not in source
-    assert "settings.session_cookie_secure" in source
+    # Cookie Secure follows Settings via the shared helper (used by set + clear).
+    assert "session_cookie_secure" in source
+    assert "secure=_cookie_secure()" in source
 
 
 def test_auth_verify_is_rate_limited(client: TestClient):
