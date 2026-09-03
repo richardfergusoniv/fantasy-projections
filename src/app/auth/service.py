@@ -17,6 +17,13 @@ logger = get_logger(__name__)
 
 RESEND_ENDPOINT = "https://api.resend.com/emails"
 
+#: Long-lived owner session. Cookie Max-Age/Expires and the server row must
+#: share this TTL so iOS cannot drop the cookie while the row is still valid
+#: (or keep a cookie after the row has expired).
+SESSION_TTL = timedelta(days=30)
+SESSION_MAX_AGE_SECONDS = int(SESSION_TTL.total_seconds())
+MAGIC_LINK_TTL = timedelta(minutes=15)
+
 #: Dialects that support ``SELECT ... FOR UPDATE``. SQLite does not.
 ROW_LOCK_DIALECTS = frozenset({"postgresql", "mysql", "mariadb", "oracle", "mssql"})
 
@@ -145,7 +152,7 @@ class AuthService:
         record = MagicLinkToken(
             email=email.lower(),
             token_hash=_hash_token(token),
-            expires_at=datetime.now(UTC) + timedelta(minutes=15),
+            expires_at=datetime.now(UTC) + MAGIC_LINK_TTL,
         )
         self.session.add(record)
         self.session.flush()
@@ -194,7 +201,7 @@ class AuthService:
             user_id=user.id,
             session_hash=_hash_token(session_token),
             csrf_token=secrets.token_urlsafe(16),
-            expires_at=datetime.now(UTC) + timedelta(days=30),
+            expires_at=datetime.now(UTC) + SESSION_TTL,
         )
         self.session.add(session_record)
         self.session.flush()

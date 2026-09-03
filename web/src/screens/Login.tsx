@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { readMagicLinkToken } from "../pwa/magicLink";
 
 export function LoginScreen() {
   const { user, loading, login, verify, sessionExpired, error: authError } = useAuth();
@@ -13,13 +14,7 @@ export function LoginScreen() {
   const autoVerified = useRef(false);
 
   const queryToken = searchParams.get("token");
-  const hashToken = (() => {
-    const raw = window.location.hash.startsWith("#")
-      ? window.location.hash.slice(1)
-      : window.location.hash;
-    return new URLSearchParams(raw).get("token");
-  })();
-  const linkToken = hashToken ?? queryToken;
+  const linkToken = readMagicLinkToken() ?? queryToken;
 
   useEffect(() => {
     // Arriving from the emailed magic link: verify without making the user

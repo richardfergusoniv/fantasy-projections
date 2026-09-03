@@ -11,6 +11,7 @@ import {
 import { api, ApiClientError } from "../api/client";
 import { clearRecommendationCache } from "../cache/recommendationsCache";
 import type { User } from "../api/types";
+import { readMagicLinkToken, stripMagicLinkTokenFromUrl } from "../pwa/magicLink";
 
 interface AuthContextValue {
   user: User | null;
@@ -30,6 +31,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Persisted across PWA kills on iOS (sessionStorage is not). */
 const CSRF_KEY = "fantasy-decisions:csrf";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -37,28 +39,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sessionExpired, setSessionExpired] = useState(false);
-  // Read inside the interceptor without re-subscribing on every user change.
   const userRef = useRef<User | null>(null);
   userRef.current = user;
 
+  const persistCsrf = useCallback((token: string) => {
+    localStorage.setItem(CSRF_KEY, token);
+    api.setCsrfToken(token);
+  }, []);
+
   const restoreCsrf = useCallback(() => {
-    const token = sessionStorage.getItem(CSRF_KEY);
-    if (token) {
-      api.setCsrfToken(token);
+    const stored = localStorage.getItem(CSRF_KEY);
+    if (stored) {
+      api.setCsrfToken(stored);
     }
   }, []);
 
-  const hasMagicLinkToken = useCallback(() => {
-    if (typeof window === "undefined") return false;
-    const rawHash = window.location.hash.startsWith("#")
-      ? window.location.hash.slice(1)
-      : window.location.hash;
-    if (new URLSearchParams(rawHash).get("token")) return true;
-    return new URLSearchParams(window.location.search).get("token") != null;
-  }, []);
-
   const clearLocalSession = useCallback(() => {
-    sessionStorage.removeItem(CSRF_KEY);
+    localStorage.removeItem(CSRF_KEY);
     api.setCsrfToken(undefined);
     setUser(null);
   }, []);
@@ -67,13 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const me = await api.getMe();
-      setUser(me);
+      setUser({ id: me.id, email: me.email });
       setSessionExpired(false);
+      if (me.csrf_token) {
+        persistCsrf(me.csrf_token);
+      }
     } catch (err) {
       setUser(null);
-      // A 401 means "not signed in", which is expected on a cold load and is
-      // handled by the interceptor. Anything else is a real failure the user
-      // needs to see rather than being bounced to a blank login screen.
       if (!(err instanceof ApiClientError) || err.status !== 401) {
         setError(
           err instanceof Error
@@ -82,12 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       }
     }
-  }, []);
+  }, [persistCsrf]);
 
   useEffect(() => {
-    // Central 401 handling. Any request from any screen that comes back
-    // unauthorized ends the session once, here, instead of surfacing as an
-    // unexplained per-screen error.
     return api.onUnauthorized(() => {
       if (userRef.current) {
         setSessionExpired(true);
@@ -99,17 +93,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     restoreCsrf();
-    // On the magic-link callback the LoginScreen verifies and then refreshes.
-    // Firing a cold getMe() here would 401 (no session yet) and its
-    // onUnauthorized handler would clear the CSRF token that verify races to
-    // set — leaving a valid session cookie but no CSRF token, so every later
-    // mutation 403s. Let verify be the sole auth path when a link token exists.
-    if (hasMagicLinkToken()) {
+    const linkToken = readMagicLinkToken();
+    if (linkToken) {
+      // LoginScreen verifies magic links and then refreshes.
       setLoading(false);
       return;
     }
     void refresh().finally(() => setLoading(false));
-  }, [refresh, restoreCsrf, hasMagicLinkToken]);
+  }, [refresh, restoreCsrf]);
 
   const login = useCallback(async (email: string) => {
     setError(null);
@@ -121,18 +112,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (token: string) => {
       setError(null);
       const result = await api.verifyMagicLink(token);
-      sessionStorage.setItem(CSRF_KEY, result.csrf_token);
-      api.setCsrfToken(result.csrf_token);
+      persistCsrf(result.csrf_token);
+      stripMagicLinkTokenFromUrl();
       setSessionExpired(false);
       await refresh();
     },
-    [refresh],
+    [persistCsrf, refresh],
   );
 
   const logout = useCallback(async () => {
     try {
-      // Best effort: revoke server-side so the cookie cannot be replayed. A
-      // failure here must still clear local state.
       await api.logout();
     } catch {
       // ignore — local teardown below is what the user asked for
