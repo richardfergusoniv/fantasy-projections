@@ -1,0 +1,14 @@
+# Sealed release-bundle artifacts are hashed with CRLF line endings because the
+# bundles are sealed and verified on Windows (CI runs on windows-latest; see
+# deploy-production.yml). Force CRLF on checkout for these text artifacts so
+# their sha256 hashes match the sealed manifests on Linux checkouts too, which
+# lets `seed`, the e2e suite, and the verify scripts run on Linux. Binary
+# artifacts (*.parquet) and the compact single-line manifests are unaffected.
+draft_assistant/data/releases/**/*.json text eol=crlf
+draft_assistant/data/releases/**/*.csv  text eol=crlf
+
+# Pinned consensus snapshots are hashed byte-for-byte against
+# output/accuracy_first_2026/freeze_manifest.json (see
+# src/projection/shadow/consensus_pin.py), and those hashes were frozen on
+# Windows with CRLF endings. Force CRLF so the pin check passes on Linux too.
+data/consensus/*.json text eol=crlf
