@@ -1,0 +1,905 @@
+{
+  "arm": "mobile_rush_prior",
+  "target_season": 2026,
+  "allocation_params": {
+    "starter_attempt_share": 0.8936535162950258,
+    "starter_yard_share": 0.9014499877119685,
+    "n_team_seasons": 255,
+    "fit_seasons": [
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "method": "preseason_depth_proxy_median"
+  },
+  "rate_prior_audit": [
+    {
+      "player_id": "00-0033119",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 37.0,
+      "weight": 0.7708333333333334,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 30.759928553806567,
+        "passing_yards_pg": 201.6237037269461,
+        "yards_per_attempt": 6.579096151432072,
+        "pass_td_rate": 0.03635824806431035,
+        "int_rate": 0.014921274311893952,
+        "designed_carries_pg": 1.5833627961715229,
+        "scramble_carries_pg": 1.385263990974627,
+        "carries_pg": 2.9655652889233615,
+        "rushing_yards_pg": 13.741851088523696,
+        "rush_td_rate": 0.029894874902662266
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0039917",
+      "archetype": "pocket",
+      "input_seasons": [
+        2024,
+        2025
+      ],
+      "sample_games": 14.0,
+      "weight": 0.0,
+      "applied": false,
+      "reason": "insufficient_history",
+      "components": {},
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0034796",
+      "archetype": "mobile",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 58.0,
+      "weight": 1.0,
+      "applied": true,
+      "reason": "established_multi_season",
+      "components": {
+        "attempts_pg": 27.53448275862069,
+        "passing_yards_pg": 217.94827586206895,
+        "yards_per_attempt": 7.903246633641151,
+        "pass_td_rate": 0.06447301318472796,
+        "int_rate": 0.01575607366422493,
+        "designed_carries_pg": 5.104350746112033,
+        "scramble_carries_pg": 3.6370285642327955,
+        "carries_pg": 8.03448275862069,
+        "rushing_yards_pg": 49.12068965517241,
+        "rush_td_rate": 0.029986852526813355
+      },
+      "adjustments": {
+        "carries": {
+          "before": 4.422580581350364,
+          "prior": 8.74137931034483,
+          "after": 8.74137931034483,
+          "weight": 1.0
+        },
+        "rushing_yards": {
+          "before": 26.67435986443961,
+          "prior": 49.12068965517241,
+          "after": 49.12068965517241,
+          "weight": 1.0
+        },
+        "rushing_tds": {
+          "before": 0.1130676329087628,
+          "prior": 0.26212645226024783,
+          "after": 0.26212645226024783,
+          "weight": 1.0
+        }
+      }
+    },
+    {
+      "player_id": "00-0034857",
+      "archetype": "mobile",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 66.0,
+      "weight": 1.0,
+      "applied": true,
+      "reason": "established_multi_season",
+      "components": {
+        "attempts_pg": 32.36363636363637,
+        "passing_yards_pg": 242.24242424242425,
+        "yards_per_attempt": 7.482929331172275,
+        "pass_td_rate": 0.05462004395505626,
+        "int_rate": 0.02208519123663252,
+        "designed_carries_pg": 4.337510835684908,
+        "scramble_carries_pg": 3.207943709769638,
+        "carries_pg": 6.803030303030303,
+        "rushing_yards_pg": 36.303030303030305,
+        "rush_td_rate": 0.10921024310493002
+      },
+      "adjustments": {
+        "carries": {
+          "before": 6.089131560753759,
+          "prior": 7.545454545454546,
+          "after": 7.545454545454546,
+          "weight": 1.0
+        },
+        "rushing_yards": {
+          "before": 34.23574737486391,
+          "prior": 36.303030303030305,
+          "after": 36.303030303030305,
+          "weight": 1.0
+        },
+        "rushing_tds": {
+          "before": 0.5665595214949763,
+          "prior": 0.8240409252462902,
+          "after": 0.8240409252462902,
+          "weight": 1.0
+        }
+      }
+    },
+    {
+      "player_id": "00-0039150",
+      "archetype": "pocket",
+      "input_seasons": [
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 46.0,
+      "weight": 0.9583333333333334,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 30.847826086956523,
+        "passing_yards_pg": 180.2391304347826,
+        "yards_per_attempt": 5.865027592307422,
+        "pass_td_rate": 0.034896745504808147,
+        "int_rate": 0.021264934913181845,
+        "designed_carries_pg": 0.9691312286644261,
+        "scramble_carries_pg": 2.0091296409007913,
+        "carries_pg": 2.9565217391304346,
+        "rushing_yards_pg": 15.608695652173912,
+        "rush_td_rate": 0.05534958618881773
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0039918",
+      "archetype": "pocket",
+      "input_seasons": [
+        2024,
+        2025
+      ],
+      "sample_games": 34.0,
+      "weight": 0.7083333333333334,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 33.528854536919056,
+        "passing_yards_pg": 219.76122493461202,
+        "yards_per_attempt": 6.554552024967997,
+        "pass_td_rate": 0.041128421611321755,
+        "int_rate": 0.012895464494783716,
+        "designed_carries_pg": 2.067203470761577,
+        "scramble_carries_pg": 2.3271195122710835,
+        "carries_pg": 4.388199986587083,
+        "rushing_yards_pg": 23.708445107638653,
+        "rush_td_rate": 0.02271152901380379
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0036442",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 51.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 37.44642857142857,
+        "passing_yards_pg": 268.3535714285714,
+        "yards_per_attempt": 7.152938731705785,
+        "pass_td_rate": 0.058154204904993796,
+        "int_rate": 0.016808653341775365,
+        "designed_carries_pg": 1.7220567776715068,
+        "scramble_carries_pg": 1.5386575080427785,
+        "carries_pg": 3.2607142857142857,
+        "rushing_yards_pg": 11.971428571428572,
+        "rush_td_rate": 0.04020408163265306
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0040668",
+      "archetype": "pocket",
+      "input_seasons": [
+        2025
+      ],
+      "sample_games": 8.0,
+      "weight": 0.0,
+      "applied": false,
+      "reason": "insufficient_history",
+      "components": {},
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0033077",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 54.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 35.23376623376623,
+        "passing_yards_pg": 258.05194805194805,
+        "yards_per_attempt": 7.328010313699528,
+        "pass_td_rate": 0.05351961737766453,
+        "int_rate": 0.02208112551082708,
+        "designed_carries_pg": 1.7210835421425805,
+        "scramble_carries_pg": 1.5841112630522247,
+        "carries_pg": 3.14935064935065,
+        "rushing_yards_pg": 12.409090909090908,
+        "rush_td_rate": 0.03772625316364595
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0039732",
+      "archetype": "pocket",
+      "input_seasons": [
+        2024,
+        2025
+      ],
+      "sample_games": 34.0,
+      "weight": 0.7083333333333334,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 34.72885453691905,
+        "passing_yards_pg": 225.33622493461206,
+        "yards_per_attempt": 6.509860005877414,
+        "pass_td_rate": 0.045115267186355223,
+        "int_rate": 0.019677315139032214,
+        "designed_carries_pg": 2.4493702388686978,
+        "scramble_carries_pg": 2.4699527441639626,
+        "carries_pg": 4.813199986587083,
+        "rushing_yards_pg": 21.433445107638654,
+        "rush_td_rate": 0.05023375796348166
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0033106",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 68.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 34.51470588235294,
+        "passing_yards_pg": 267.7352941176471,
+        "yards_per_attempt": 7.7799193853559,
+        "pass_td_rate": 0.055707742499762236,
+        "int_rate": 0.016752554288782966,
+        "designed_carries_pg": 1.1807847910923346,
+        "scramble_carries_pg": 0.6574505030253124,
+        "carries_pg": 1.6911764705882353,
+        "rushing_yards_pg": 2.8676470588235294,
+        "rush_td_rate": 0.015625
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0036264",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 51.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 30.47586206896552,
+        "passing_yards_pg": 227.46206896551726,
+        "yards_per_attempt": 7.528504280299676,
+        "pass_td_rate": 0.05445825933797431,
+        "int_rate": 0.018745057819772218,
+        "designed_carries_pg": 1.4881692446533887,
+        "scramble_carries_pg": 1.2290721346569566,
+        "carries_pg": 2.531034482758621,
+        "rushing_yards_pg": 10.937931034482759,
+        "rush_td_rate": 0.04055172413793104
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0039163",
+      "archetype": "pocket",
+      "input_seasons": [
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 46.0,
+      "weight": 0.9583333333333334,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 32.17391304347826,
+        "passing_yards_pg": 236.43478260869566,
+        "yards_per_attempt": 7.3348356025800285,
+        "pass_td_rate": 0.04180235058301016,
+        "int_rate": 0.01702614032491076,
+        "designed_carries_pg": 1.419420995527799,
+        "scramble_carries_pg": 1.9936224827330702,
+        "carries_pg": 3.0217391304347827,
+        "rushing_yards_pg": 13.021739130434783,
+        "rush_td_rate": 0.03142419175027871
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0035710",
+      "archetype": "mobile",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 45.0,
+      "weight": 0.9375,
+      "applied": true,
+      "reason": "established_multi_season",
+      "components": {
+        "attempts_pg": 30.921487603305785,
+        "passing_yards_pg": 210.38429752066114,
+        "yards_per_attempt": 6.802301311026233,
+        "pass_td_rate": 0.03328391488241632,
+        "int_rate": 0.01750657144463507,
+        "designed_carries_pg": 3.5838870640785103,
+        "scramble_carries_pg": 2.4078484731115726,
+        "carries_pg": 5.971074380165289,
+        "rushing_yards_pg": 29.574380165289252,
+        "rush_td_rate": 0.06698018173594834
+      },
+      "adjustments": {
+        "carries": {
+          "before": 2.964057620985912,
+          "prior": 5.991735537190083,
+          "after": 5.802505667427322,
+          "weight": 0.9375
+        },
+        "rushing_yards": {
+          "before": 12.328022503568851,
+          "prior": 29.574380165289252,
+          "after": 28.496482811431726,
+          "weight": 0.9375
+        },
+        "rushing_tds": {
+          "before": 0.0869765000203466,
+          "prior": 0.40132753519473185,
+          "after": 0.3816805954963328,
+          "weight": 0.9375
+        }
+      }
+    },
+    {
+      "player_id": "00-0036971",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 60.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 34.074285714285715,
+        "passing_yards_pg": 237.26,
+        "yards_per_attempt": 6.970791750667863,
+        "pass_td_rate": 0.042237139418275844,
+        "int_rate": 0.020121383170979137,
+        "designed_carries_pg": 2.044477871489436,
+        "scramble_carries_pg": 2.012664985653421,
+        "carries_pg": 4.057142857142857,
+        "rushing_yards_pg": 18.65428571428571,
+        "rush_td_rate": 0.08725997848689537
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0033873",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 63.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 37.53968253968254,
+        "passing_yards_pg": 269.015873015873,
+        "yards_per_attempt": 7.161581466189945,
+        "pass_td_rate": 0.04899477508750846,
+        "int_rate": 0.020296261435501332,
+        "designed_carries_pg": 2.118608043744988,
+        "scramble_carries_pg": 2.690915765778821,
+        "carries_pg": 4.095238095238095,
+        "rushing_yards_pg": 23.428571428571427,
+        "rush_td_rate": 0.04381314660780461
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0026498",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 57.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 34.4337899543379,
+        "passing_yards_pg": 255.69406392694063,
+        "yards_per_attempt": 7.418017893107689,
+        "pass_td_rate": 0.05103190866003909,
+        "int_rate": 0.01756810085754907,
+        "designed_carries_pg": 1.0634961661066598,
+        "scramble_carries_pg": 0.6488326010166279,
+        "carries_pg": 1.639269406392694,
+        "rushing_yards_pg": 2.077625570776256,
+        "rush_td_rate": 0.009483667017913594
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0036355",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 63.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 35.317460317460316,
+        "passing_yards_pg": 245.55555555555554,
+        "yards_per_attempt": 6.991964213848145,
+        "pass_td_rate": 0.04268195026137992,
+        "int_rate": 0.01446742259913513,
+        "designed_carries_pg": 2.1522766136278006,
+        "scramble_carries_pg": 1.9747075133563263,
+        "carries_pg": 4.111111111111111,
+        "rushing_yards_pg": 18.714285714285715,
+        "rush_td_rate": 0.025773111176837882
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0029604",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 49.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 34.47761194029851,
+        "passing_yards_pg": 247.23507462686567,
+        "yards_per_attempt": 7.1441258516295525,
+        "pass_td_rate": 0.043099674622378965,
+        "int_rate": 0.02456148647056119,
+        "designed_carries_pg": 1.1351913590901246,
+        "scramble_carries_pg": 0.5439131185218158,
+        "carries_pg": 1.6791044776119404,
+        "rushing_yards_pg": 2.675373134328358,
+        "rush_td_rate": 0.0378808721370108
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0038128",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 19.0,
+      "weight": 0.3958333333333333,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 20.15622897445478,
+        "passing_yards_pg": 146.37607298542784,
+        "yards_per_attempt": 7.4634586294474445,
+        "pass_td_rate": 0.03838869237458972,
+        "int_rate": 0.022684344573963212,
+        "designed_carries_pg": 1.862282909628246,
+        "scramble_carries_pg": 1.5340380071765423,
+        "carries_pg": 3.3748904292452684,
+        "rushing_yards_pg": 16.298486448163867,
+        "rush_td_rate": 0.04446862635992141
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0035228",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 41.0,
+      "weight": 0.8541666666666666,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 33.35990338164251,
+        "passing_yards_pg": 220.92270531400965,
+        "yards_per_attempt": 6.648086746078577,
+        "pass_td_rate": 0.03743424203729317,
+        "int_rate": 0.01917253102159335,
+        "designed_carries_pg": 2.857827527705005,
+        "scramble_carries_pg": 2.4610130520051396,
+        "carries_pg": 5.241545893719807,
+        "rushing_yards_pg": 34.490338164251206,
+        "rush_td_rate": 0.0572959875696567
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0039851",
+      "archetype": "pocket",
+      "input_seasons": [
+        2024,
+        2025
+      ],
+      "sample_games": 30.0,
+      "weight": 0.625,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 29.581424228198422,
+        "passing_yards_pg": 221.22704155768673,
+        "yards_per_attempt": 7.42296828083376,
+        "pass_td_rate": 0.050072076315360765,
+        "int_rate": 0.021522492925824206,
+        "designed_carries_pg": 2.045440558390414,
+        "scramble_carries_pg": 2.6450977466640198,
+        "carries_pg": 4.680333310978472,
+        "rushing_yards_pg": 24.747408512731095,
+        "rush_td_rate": 0.038638336642127936
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0040743",
+      "archetype": "pocket",
+      "input_seasons": [
+        2025
+      ],
+      "sample_games": 11.0,
+      "weight": 0.0,
+      "applied": false,
+      "reason": "insufficient_history",
+      "components": {},
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0040691",
+      "archetype": "mobile",
+      "input_seasons": [
+        2025
+      ],
+      "sample_games": 14.0,
+      "weight": 0.0,
+      "applied": false,
+      "reason": "insufficient_history",
+      "components": {},
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0030565",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 64.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 33.65625,
+        "passing_yards_pg": 238.296875,
+        "yards_per_attempt": 7.079850346744802,
+        "pass_td_rate": 0.04179397329507976,
+        "int_rate": 0.024118611323830405,
+        "designed_carries_pg": 1.6516851795496046,
+        "scramble_carries_pg": 1.4576898204503954,
+        "carries_pg": 3.109375,
+        "rushing_yards_pg": 14.09375,
+        "rush_td_rate": 0.02026429436511984
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0036389",
+      "archetype": "mobile",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 63.0,
+      "weight": 1.0,
+      "applied": true,
+      "reason": "established_multi_season",
+      "components": {
+        "attempts_pg": 29.317460317460316,
+        "passing_yards_pg": 217.23809523809524,
+        "yards_per_attempt": 7.443175119628087,
+        "pass_td_rate": 0.04780558210198418,
+        "int_rate": 0.01704932401972572,
+        "designed_carries_pg": 6.284129882425683,
+        "scramble_carries_pg": 3.493647895352095,
+        "carries_pg": 9.158730158730158,
+        "rushing_yards_pg": 38.34920634920635,
+        "rush_td_rate": 0.08611221623050559
+      },
+      "adjustments": {
+        "carries": {
+          "before": 4.309725888921528,
+          "prior": 9.777777777777779,
+          "after": 9.777777777777779,
+          "weight": 1.0
+        },
+        "rushing_yards": {
+          "before": 19.43939246099003,
+          "prior": 38.34920634920635,
+          "after": 38.34920634920635,
+          "weight": 1.0
+        },
+        "rushing_tds": {
+          "before": 0.3757540566584442,
+          "prior": 0.8419861142538325,
+          "after": 0.8419861142538325,
+          "weight": 1.0
+        }
+      }
+    },
+    {
+      "player_id": "00-0023459",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 51.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 33.04658901830283,
+        "passing_yards_pg": 217.91680532445926,
+        "yards_per_attempt": 6.585250042300576,
+        "pass_td_rate": 0.04705087325265524,
+        "int_rate": 0.01813596279799255,
+        "designed_carries_pg": 0.7213540427143643,
+        "scramble_carries_pg": 0.8160835612789802,
+        "carries_pg": 1.5374376039933446,
+        "rushing_yards_pg": 5.2312811980033285,
+        "rush_td_rate": 0.025238095238095237
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0034869",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 50.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 25.573529411764707,
+        "passing_yards_pg": 202.63235294117646,
+        "yards_per_attempt": 7.698933218081807,
+        "pass_td_rate": 0.05391138768666983,
+        "int_rate": 0.024046605714846406,
+        "designed_carries_pg": 1.8373536572267375,
+        "scramble_carries_pg": 1.1736757545379684,
+        "carries_pg": 2.922794117647059,
+        "rushing_yards_pg": 8.216911764705882,
+        "rush_td_rate": 0.01944101406348992
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0037834",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 49.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 28.089887640449437,
+        "passing_yards_pg": 242.69101123595505,
+        "yards_per_attempt": 8.65751603405427,
+        "pass_td_rate": 0.0617000984556,
+        "int_rate": 0.026456952551160692,
+        "designed_carries_pg": 1.6538395781900743,
+        "scramble_carries_pg": 1.9472840173155437,
+        "carries_pg": 3.2865168539325844,
+        "rushing_yards_pg": 13.191011235955056,
+        "rush_td_rate": 0.06465912364788769
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0034855",
+      "archetype": "pocket",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 63.0,
+      "weight": 1.0,
+      "applied": false,
+      "reason": "not_mobile",
+      "components": {
+        "attempts_pg": 32.63492063492063,
+        "passing_yards_pg": 228.57142857142858,
+        "yards_per_attempt": 6.991618564685163,
+        "pass_td_rate": 0.05043747504153304,
+        "int_rate": 0.021964628939425773,
+        "designed_carries_pg": 1.5890309055251233,
+        "scramble_carries_pg": 1.8871595706653528,
+        "carries_pg": 3.3015873015873014,
+        "rushing_yards_pg": 16.063492063492063,
+        "rush_td_rate": 0.028894940185262764
+      },
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0040676",
+      "archetype": "pocket",
+      "input_seasons": [
+        2025
+      ],
+      "sample_games": 17.0,
+      "weight": 0.0,
+      "applied": false,
+      "reason": "insufficient_history",
+      "components": {},
+      "adjustments": {}
+    },
+    {
+      "player_id": "00-0039910",
+      "archetype": "mobile",
+      "input_seasons": [
+        2024,
+        2025
+      ],
+      "sample_games": 24.0,
+      "weight": 0.5,
+      "applied": true,
+      "reason": "established_multi_season",
+      "components": {
+        "attempts_pg": 28.127889928119618,
+        "passing_yards_pg": 201.88541956414585,
+        "yards_per_attempt": 7.166055941835925,
+        "pass_td_rate": 0.04829694178317846,
+        "int_rate": 0.019397084365869163,
+        "designed_carries_pg": 5.122633185328806,
+        "scramble_carries_pg": 4.203423163921589,
+        "carries_pg": 8.189941912124711,
+        "rushing_yards_pg": 46.35324593684351,
+        "rush_td_rate": 0.04772891425836119
+      },
+      "adjustments": {
+        "carries": {
+          "before": 6.440275807116136,
+          "prior": 9.326056349250395,
+          "after": 7.883166078183265,
+          "weight": 0.5
+        },
+        "rushing_yards": {
+          "before": 29.03972067565226,
+          "prior": 46.35324593684351,
+          "after": 37.696483306247885,
+          "weight": 0.5
+        },
+        "rushing_tds": {
+          "before": 0.2120926979534429,
+          "prior": 0.4451225438620171,
+          "after": 0.32860762090773,
+          "weight": 0.5
+        }
+      }
+    }
+  ],
+  "team_volume": {
+    "mode": "shipped_reconcile_team_volume"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "arm": "allocation",
+  "target_season": 2026,
+  "allocation_params": {
+    "starter_attempt_share": 0.8936535162950258,
+    "starter_yard_share": 0.9014499877119685,
+    "n_team_seasons": 255,
+    "fit_seasons": [
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "method": "preseason_depth_proxy_median"
+  },
+  "team_volume": {
+    "allocation": {
+      "starter_attempt_share": 0.8936535162950258,
+      "starter_yard_share": 0.9014499877119685,
+      "n_team_seasons": 255,
+      "fit_seasons": [
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "method": "preseason_depth_proxy_median"
+    },
+    "conservation_violations": [],
+    "teams_adjusted": 64,
+    "starters_protected": 62,
+    "unclipped_factors": [
+      {
+        "team": "LV",
+        "stat": "attempts",
+        "starter_factor": 0.8000127814370236,
+        "bench_factor": 0.21381480897734947
+      },
+      {
+        "team": "CIN",
+        "stat": "passing_yards",
+        "starter_factor": 0.7356904731792105,
+        "bench_factor": 0.24808162972749337
+      },
+      {
+        "team": "KC",
+        "stat": "passing_yards",
+        "starter_factor": 0.6837905100113527,
+        "bench_factor": 0.24273604989324335
+      },
+      {
+        "team": "LV",
+        "stat": "passing_yards",
+        "starter_factor": 0.8811986790281765,
+        "bench_factor": 0.2208316078023008
+      }
+    ]
+  }
+}

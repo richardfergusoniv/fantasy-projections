@@ -1,0 +1,5982 @@
+{
+  "baseline": {
+    "non_qb_invariance": {
+      "pass": true,
+      "n_compared": 3271,
+      "n_changed": 0,
+      "max_abs_delta": 0.0
+    },
+    "conservation": {
+      "n_teams": 32,
+      "mean_abs_rel_error": 0.11194769245155886,
+      "violations": [
+        {
+          "team": "ARI",
+          "realized": 677.0344364210247,
+          "target": 579.3147799186061,
+          "rel_error": 0.16868144899763865
+        },
+        {
+          "team": "ATL",
+          "realized": 616.7099010694101,
+          "target": 529.5579591012455,
+          "rel_error": 0.164574888301324
+        },
+        {
+          "team": "BAL",
+          "realized": 564.0824259710894,
+          "target": 501.85281848744654,
+          "rel_error": 0.1239997170309794
+        },
+        {
+          "team": "BUF",
+          "realized": 600.7894357291422,
+          "target": 531.2607901559722,
+          "rel_error": 0.13087479230823165
+        },
+        {
+          "team": "CAR",
+          "realized": 560.969213831361,
+          "target": 529.2088440077071,
+          "rel_error": 0.06001481302378123
+        },
+        {
+          "team": "CHI",
+          "realized": 567.2231882849658,
+          "target": 539.7076467324134,
+          "rel_error": 0.050982308142457224
+        },
+        {
+          "team": "CIN",
+          "realized": 684.6797837967808,
+          "target": 572.0712079604236,
+          "rel_error": 0.19684363461995374
+        },
+        {
+          "team": "DAL",
+          "realized": 608.3814558190136,
+          "target": 557.4778558467696,
+          "rel_error": 0.09131053267564332
+        },
+        {
+          "team": "DEN",
+          "realized": 587.879953134154,
+          "target": 557.7480057787272,
+          "rel_error": 0.05402430316780165
+        },
+        {
+          "team": "DET",
+          "realized": 612.9572411252605,
+          "target": 542.7749645608528,
+          "rel_error": 0.12930271502332566
+        },
+        {
+          "team": "GB",
+          "realized": 570.829444618578,
+          "target": 522.1010901258048,
+          "rel_error": 0.09333126364672338
+        },
+        {
+          "team": "HOU",
+          "realized": 595.8283541736264,
+          "target": 549.0350438072371,
+          "rel_error": 0.0852282762169515
+        },
+        {
+          "team": "IND",
+          "realized": 599.8306848766592,
+          "target": 541.0135250818336,
+          "rel_error": 0.10871661625451785
+        },
+        {
+          "team": "JAX",
+          "realized": 594.0707679295508,
+          "target": 548.4029471188509,
+          "rel_error": 0.08327420749765359
+        },
+        {
+          "team": "KC",
+          "realized": 674.9846414636053,
+          "target": 562.5246139934734,
+          "rel_error": 0.19992018957491642
+        },
+        {
+          "team": "LA",
+          "realized": 616.0639643350017,
+          "target": 557.0779135387193,
+          "rel_error": 0.10588474136694113
+        },
+        {
+          "team": "LAC",
+          "realized": 594.7634887697337,
+          "target": 556.8680563201843,
+          "rel_error": 0.06805100780957801
+        },
+        {
+          "team": "LV",
+          "realized": 683.0307657152891,
+          "target": 541.5415761072045,
+          "rel_error": 0.2612711486072035
+        },
+        {
+          "team": "MIN",
+          "realized": 620.1370383960599,
+          "target": 532.9874152798646,
+          "rel_error": 0.1635115963674942
+        },
+        {
+          "team": "NO",
+          "realized": 643.3192583120135,
+          "target": 547.1142258765026,
+          "rel_error": 0.175840853491583
+        },
+        {
+          "team": "NYG",
+          "realized": 591.3055386962433,
+          "target": 531.7912821864289,
+          "rel_error": 0.11191280959914375
+        },
+        {
+          "team": "NYJ",
+          "realized": 583.229276803248,
+          "target": 518.4305495052397,
+          "rel_error": 0.12499017922429242
+        },
+        {
+          "team": "PHI",
+          "realized": 627.549215295693,
+          "target": 524.771705321586,
+          "rel_error": 0.1958518512562026
+        },
+        {
+          "team": "PIT",
+          "realized": 606.3438115824996,
+          "target": 536.3531559741234,
+          "rel_error": 0.13049360263623194
+        },
+        {
+          "team": "SEA",
+          "realized": 572.5419285970113,
+          "target": 515.5168546092797,
+          "rel_error": 0.11061728336884744
+        },
+        {
+          "team": "SF",
+          "realized": 585.7650190137822,
+          "target": 547.867142776752,
+          "rel_error": 0.0691734788929897
+        },
+        {
+          "team": "TB",
+          "realized": 588.0018652367842,
+          "target": 536.621694319409,
+          "rel_error": 0.09574747249557254
+        },
+        {
+          "team": "WAS",
+          "realized": 577.5688223301884,
+          "target": 522.6250552798651,
+          "rel_error": 0.10513037309491582
+        }
+      ]
+    },
+    "comparison": {
+      "n_qb": 96,
+      "ppg_thresholds": {
+        "ge_18": 0,
+        "ge_20": 0,
+        "ge_22": 0,
+        "ge_24": 0
+      },
+      "largest_positive": [
+        {
+          "display_name_new": "Fernando Mendoza",
+          "player_id": "00-0041562",
+          "season_delta": 133.88674933762132,
+          "rank_new": 26,
+          "rank_sealed": 34
+        },
+        {
+          "display_name_new": "Mac Jones",
+          "player_id": "00-0036972",
+          "season_delta": 120.55805211363608,
+          "rank_new": 31,
+          "rank_sealed": 56
+        },
+        {
+          "display_name_new": "Justin Fields",
+          "player_id": "00-0036945",
+          "season_delta": 104.39129490738597,
+          "rank_new": 33,
+          "rank_sealed": 42
+        },
+        {
+          "display_name_new": "Spencer Rattler",
+          "player_id": "00-0039376",
+          "season_delta": 100.04688069313443,
+          "rank_new": 35,
+          "rank_sealed": 45
+        },
+        {
+          "display_name_new": "Joe Flacco",
+          "player_id": "00-0026158",
+          "season_delta": 98.59283078555234,
+          "rank_new": 37,
+          "rank_sealed": 53
+        },
+        {
+          "display_name_new": "Dillon Gabriel",
+          "player_id": "00-0040704",
+          "season_delta": 96.06470948237185,
+          "rank_new": 38,
+          "rank_sealed": 50
+        },
+        {
+          "display_name_new": "Marcus Mariota",
+          "player_id": "00-0032268",
+          "season_delta": 95.3425302149268,
+          "rank_new": 34,
+          "rank_sealed": 38
+        },
+        {
+          "display_name_new": "Tyler Huntley",
+          "player_id": "00-0035993",
+          "season_delta": 85.50529953241666,
+          "rank_new": 40,
+          "rank_sealed": 44
+        },
+        {
+          "display_name_new": "Chris Oladokun",
+          "player_id": "00-0037324",
+          "season_delta": 83.96286114230658,
+          "rank_new": 46,
+          "rank_sealed": 91
+        },
+        {
+          "display_name_new": "Davis Mills",
+          "player_id": "00-0036898",
+          "season_delta": 81.1787078350489,
+          "rank_new": 45,
+          "rank_sealed": 55
+        }
+      ],
+      "largest_negative": [
+        {
+          "display_name_new": "Kyler Murray",
+          "player_id": "00-0035228",
+          "season_delta": -139.68449622336433,
+          "rank_new": 28,
+          "rank_sealed": 10
+        },
+        {
+          "display_name_new": "Brock Purdy",
+          "player_id": "00-0037834",
+          "season_delta": -135.044140440773,
+          "rank_new": 22,
+          "rank_sealed": 7
+        },
+        {
+          "display_name_new": "Patrick Mahomes",
+          "player_id": "00-0033873",
+          "season_delta": -123.25952466580105,
+          "rank_new": 15,
+          "rank_sealed": 4
+        },
+        {
+          "display_name_new": "Joe Burrow",
+          "player_id": "00-0036442",
+          "season_delta": -121.31765588016125,
+          "rank_new": 29,
+          "rank_sealed": 20
+        },
+        {
+          "display_name_new": "Tyler Shough",
+          "player_id": "00-0040743",
+          "season_delta": -114.60955353718953,
+          "rank_new": 23,
+          "rank_sealed": 12
+        },
+        {
+          "display_name_new": "Kirk Cousins",
+          "player_id": "00-0029604",
+          "season_delta": -109.57610619929164,
+          "rank_new": 39,
+          "rank_sealed": 30
+        },
+        {
+          "display_name_new": "Jared Goff",
+          "player_id": "00-0033106",
+          "season_delta": -99.77320192011408,
+          "rank_new": 18,
+          "rank_sealed": 15
+        },
+        {
+          "display_name_new": "Jayden Daniels",
+          "player_id": "00-0039910",
+          "season_delta": -97.39311210244381,
+          "rank_new": 16,
+          "rank_sealed": 14
+        },
+        {
+          "display_name_new": "Lamar Jackson",
+          "player_id": "00-0034796",
+          "season_delta": -95.71023595842885,
+          "rank_new": 20,
+          "rank_sealed": 18
+        },
+        {
+          "display_name_new": "Geno Smith",
+          "player_id": "00-0030565",
+          "season_delta": -93.93390591463884,
+          "rank_new": 30,
+          "rank_sealed": 29
+        }
+      ],
+      "rank_moves_gt_5": [
+        {
+          "display_name_new": "Joe Flacco",
+          "player_id": "00-0026158",
+          "rank_new": 37,
+          "rank_sealed": 53,
+          "rank_delta": 16,
+          "season_delta": 98.59283078555234
+        },
+        {
+          "display_name_new": "Josh Johnson",
+          "player_id": "00-0026300",
+          "rank_new": 47,
+          "rank_sealed": 76,
+          "rank_delta": 29,
+          "season_delta": 79.96432274227224
+        },
+        {
+          "display_name_new": "Matthew Stafford",
+          "player_id": "00-0026498",
+          "rank_new": 8,
+          "rank_sealed": 21,
+          "rank_delta": 13,
+          "season_delta": -42.404080138943954
+        },
+        {
+          "display_name_new": "Andy Dalton",
+          "player_id": "00-0027973",
+          "rank_new": 69,
+          "rank_sealed": 51,
+          "rank_delta": -18,
+          "season_delta": 44.15315628258924
+        },
+        {
+          "display_name_new": "Kirk Cousins",
+          "player_id": "00-0029604",
+          "rank_new": 39,
+          "rank_sealed": 30,
+          "rank_delta": -9,
+          "season_delta": -109.57610619929164
+        },
+        {
+          "display_name_new": "Teddy Bridgewater",
+          "player_id": "00-0031237",
+          "rank_new": 72,
+          "rank_sealed": 94,
+          "rank_delta": 22,
+          "season_delta": 47.05664596488209
+        },
+        {
+          "display_name_new": "Jameis Winston",
+          "player_id": "00-0031503",
+          "rank_new": 43,
+          "rank_sealed": 37,
+          "rank_delta": -6,
+          "season_delta": 71.98734658622541
+        },
+        {
+          "display_name_new": "Carson Wentz",
+          "player_id": "00-0032950",
+          "rank_new": 55,
+          "rank_sealed": 66,
+          "rank_delta": 11,
+          "season_delta": 64.87323886828946
+        },
+        {
+          "display_name_new": "Nick Mullens",
+          "player_id": "00-0033319",
+          "rank_new": 54,
+          "rank_sealed": 88,
+          "rank_delta": 34,
+          "season_delta": 69.09302108969618
+        },
+        {
+          "display_name_new": "Mitchell Trubisky",
+          "player_id": "00-0033869",
+          "rank_new": 59,
+          "rank_sealed": 67,
+          "rank_delta": 8,
+          "season_delta": 59.43730828175847
+        },
+        {
+          "display_name_new": "Patrick Mahomes",
+          "player_id": "00-0033873",
+          "rank_new": 15,
+          "rank_sealed": 4,
+          "rank_delta": -11,
+          "season_delta": -123.25952466580105
+        },
+        {
+          "display_name_new": "Joshua Dobbs",
+          "player_id": "00-0033949",
+          "rank_new": 60,
+          "rank_sealed": 47,
+          "rank_delta": -13,
+          "season_delta": 52.93205940417973
+        },
+        {
+          "display_name_new": "Baker Mayfield",
+          "player_id": "00-0034855",
+          "rank_new": 9,
+          "rank_sealed": 19,
+          "rank_delta": 10,
+          "season_delta": -53.93410163047372
+        },
+        {
+          "display_name_new": "Sam Darnold",
+          "player_id": "00-0034869",
+          "rank_new": 19,
+          "rank_sealed": 26,
+          "rank_delta": 7,
+          "season_delta": -70.72133331730174
+        },
+        {
+          "display_name_new": "Jake Browning",
+          "player_id": "00-0035100",
+          "rank_new": 74,
+          "rank_sealed": 48,
+          "rank_delta": -26,
+          "season_delta": 34.15200627391285
+        },
+        {
+          "display_name_new": "Kyler Murray",
+          "player_id": "00-0035228",
+          "rank_new": 28,
+          "rank_sealed": 10,
+          "rank_delta": -18,
+          "season_delta": -139.68449622336433
+        },
+        {
+          "display_name_new": "Jarrett Stidham",
+          "player_id": "00-0035264",
+          "rank_new": 77,
+          "rank_sealed": 96,
+          "rank_delta": 19,
+          "season_delta": 42.23364747924058
+        },
+        {
+          "display_name_new": "Gardner Minshew",
+          "player_id": "00-0035289",
+          "rank_new": 90,
+          "rank_sealed": 80,
+          "rank_delta": -10,
+          "season_delta": 19.126387659105873
+        },
+        {
+          "display_name_new": "Drew Lock",
+          "player_id": "00-0035704",
+          "rank_new": 78,
+          "rank_sealed": 70,
+          "rank_delta": -8,
+          "season_delta": 33.59579238896872
+        },
+        {
+          "display_name_new": "Jordan Love",
+          "player_id": "00-0036264",
+          "rank_new": 14,
+          "rank_sealed": 27,
+          "rank_delta": 13,
+          "season_delta": -42.78383548264955
+        },
+        {
+          "display_name_new": "Joe Burrow",
+          "player_id": "00-0036442",
+          "rank_new": 29,
+          "rank_sealed": 20,
+          "rank_delta": -9,
+          "season_delta": -121.31765588016125
+        },
+        {
+          "display_name_new": "Shane Buechele",
+          "player_id": "00-0036679",
+          "rank_new": 61,
+          "rank_sealed": 82,
+          "rank_delta": 21,
+          "season_delta": 61.005670808085085
+        },
+        {
+          "display_name_new": "Davis Mills",
+          "player_id": "00-0036898",
+          "rank_new": 45,
+          "rank_sealed": 55,
+          "rank_delta": 10,
+          "season_delta": 81.1787078350489
+        },
+        {
+          "display_name_new": "Justin Fields",
+          "player_id": "00-0036945",
+          "rank_new": 33,
+          "rank_sealed": 42,
+          "rank_delta": 9,
+          "season_delta": 104.39129490738597
+        },
+        {
+          "display_name_new": "Mac Jones",
+          "player_id": "00-0036972",
+          "rank_new": 31,
+          "rank_sealed": 56,
+          "rank_delta": 25,
+          "season_delta": 120.55805211363608
+        },
+        {
+          "display_name_new": "Trey Lance",
+          "player_id": "00-0037012",
+          "rank_new": 49,
+          "rank_sealed": 95,
+          "rank_delta": 46,
+          "season_delta": 76.46213815389618
+        },
+        {
+          "display_name_new": "Zach Wilson",
+          "player_id": "00-0037013",
+          "rank_new": 75,
+          "rank_sealed": 69,
+          "rank_delta": -6,
+          "season_delta": 39.27180086610125
+        },
+        {
+          "display_name_new": "Chris Oladokun",
+          "player_id": "00-0037324",
+          "rank_new": 46,
+          "rank_sealed": 91,
+          "rank_delta": 45,
+          "season_delta": 83.96286114230658
+        },
+        {
+          "display_name_new": "Brock Purdy",
+          "player_id": "00-0037834",
+          "rank_new": 22,
+          "rank_sealed": 7,
+          "rank_delta": -15,
+          "season_delta": -135.044140440773
+        },
+        {
+          "display_name_new": "Kenny Pickett",
+          "player_id": "00-0038102",
+          "rank_new": 71,
+          "rank_sealed": 61,
+          "rank_delta": -10,
+          "season_delta": 41.618004613657746
+        },
+        {
+          "display_name_new": "Tanner McKee",
+          "player_id": "00-0038400",
+          "rank_new": 56,
+          "rank_sealed": 73,
+          "rank_delta": 17,
+          "season_delta": 63.954448715251814
+        },
+        {
+          "display_name_new": "Aidan O'Connell",
+          "player_id": "00-0038579",
+          "rank_new": 76,
+          "rank_sealed": 89,
+          "rank_delta": 13,
+          "season_delta": 42.525131925844235
+        },
+        {
+          "display_name_new": "C.J. Stroud",
+          "player_id": "00-0039163",
+          "rank_new": 10,
+          "rank_sealed": 16,
+          "rank_delta": 6,
+          "season_delta": -59.741048865200895
+        },
+        {
+          "display_name_new": "Anthony Richardson",
+          "player_id": "00-0039164",
+          "rank_new": 70,
+          "rank_sealed": 39,
+          "rank_delta": -31,
+          "season_delta": 35.05167034236827
+        },
+        {
+          "display_name_new": "Spencer Rattler",
+          "player_id": "00-0039376",
+          "rank_new": 35,
+          "rank_sealed": 45,
+          "rank_delta": 10,
+          "season_delta": 100.04688069313443
+        },
+        {
+          "display_name_new": "Joe Milton III",
+          "player_id": "00-0039398",
+          "rank_new": 58,
+          "rank_sealed": 85,
+          "rank_delta": 27,
+          "season_delta": 63.918676510779925
+        },
+        {
+          "display_name_new": "Kedon Slovis",
+          "player_id": "00-0039577",
+          "rank_new": 83,
+          "rank_sealed": 93,
+          "rank_delta": 10,
+          "season_delta": 30.807276308586133
+        },
+        {
+          "display_name_new": "Caleb Williams",
+          "player_id": "00-0039918",
+          "rank_new": 7,
+          "rank_sealed": 13,
+          "rank_delta": 6,
+          "season_delta": -44.82672588494546
+        },
+        {
+          "display_name_new": "J.J. McCarthy",
+          "player_id": "00-0039923",
+          "rank_new": 52,
+          "rank_sealed": 72,
+          "rank_delta": 20,
+          "season_delta": 67.74330292175267
+        },
+        {
+          "display_name_new": "Riley Leonard",
+          "player_id": "00-0040206",
+          "rank_new": 51,
+          "rank_sealed": 59,
+          "rank_delta": 8,
+          "season_delta": 67.9859635243254
+        },
+        {
+          "display_name_new": "Quinn Ewers",
+          "player_id": "00-0040234",
+          "rank_new": 64,
+          "rank_sealed": 49,
+          "rank_delta": -15,
+          "season_delta": 46.425100785519604
+        },
+        {
+          "display_name_new": "Brady Cook",
+          "player_id": "00-0040398",
+          "rank_new": 57,
+          "rank_sealed": 63,
+          "rank_delta": 6,
+          "season_delta": 60.16208140319572
+        },
+        {
+          "display_name_new": "Max Brosmer",
+          "player_id": "00-0040494",
+          "rank_new": 66,
+          "rank_sealed": 90,
+          "rank_delta": 24,
+          "season_delta": 55.74460518261328
+        },
+        {
+          "display_name_new": "Shedeur Sanders",
+          "player_id": "00-0040668",
+          "rank_new": 41,
+          "rank_sealed": 32,
+          "rank_delta": -9,
+          "season_delta": 17.2545653351588
+        },
+        {
+          "display_name_new": "Jalen Milroe",
+          "player_id": "00-0040673",
+          "rank_new": 68,
+          "rank_sealed": 77,
+          "rank_delta": 9,
+          "season_delta": 50.65295751419611
+        },
+        {
+          "display_name_new": "Dillon Gabriel",
+          "player_id": "00-0040704",
+          "rank_new": 38,
+          "rank_sealed": 50,
+          "rank_delta": 12,
+          "season_delta": 96.06470948237185
+        },
+        {
+          "display_name_new": "Tyler Shough",
+          "player_id": "00-0040743",
+          "rank_new": 23,
+          "rank_sealed": 12,
+          "rank_delta": -11,
+          "season_delta": -114.60955353718953
+        },
+        {
+          "display_name_new": "Cole Payton",
+          "player_id": "00-0040891",
+          "rank_new": 85,
+          "rank_sealed": 78,
+          "rank_delta": -7,
+          "season_delta": 22.93520214617492
+        },
+        {
+          "display_name_new": "Garrett Nussmeier",
+          "player_id": "00-0040906",
+          "rank_new": 89,
+          "rank_sealed": 71,
+          "rank_delta": -18,
+          "season_delta": 19.93713666191622
+        },
+        {
+          "display_name_new": "Kyron Drones",
+          "player_id": "00-0040942",
+          "rank_new": 88,
+          "rank_sealed": 81,
+          "rank_delta": -7,
+          "season_delta": 22.600231605096734
+        },
+        {
+          "display_name_new": "Joe Fagnano",
+          "player_id": "00-0040981",
+          "rank_new": 86,
+          "rank_sealed": 57,
+          "rank_delta": -29,
+          "season_delta": 17.87925027182842
+        },
+        {
+          "display_name_new": "Diego Pavia",
+          "player_id": "00-0040985",
+          "rank_new": 87,
+          "rank_sealed": 46,
+          "rank_delta": -41,
+          "season_delta": 13.697384458669108
+        },
+        {
+          "display_name_new": "Jacob Clark",
+          "player_id": "00-0040996",
+          "rank_new": 65,
+          "rank_sealed": 92,
+          "rank_delta": 27,
+          "season_delta": 57.013559529738615
+        },
+        {
+          "display_name_new": "Cade Klubnik",
+          "player_id": "00-0041056",
+          "rank_new": 42,
+          "rank_sealed": 35,
+          "rank_delta": -7,
+          "season_delta": 62.95103107214996
+        },
+        {
+          "display_name_new": "Taylen Green",
+          "player_id": "00-0041092",
+          "rank_new": 82,
+          "rank_sealed": 74,
+          "rank_delta": -8,
+          "season_delta": 28.793792387581096
+        },
+        {
+          "display_name_new": "Behren Morton",
+          "player_id": "00-0041123",
+          "rank_new": 84,
+          "rank_sealed": 60,
+          "rank_delta": -24,
+          "season_delta": 24.168365670478575
+        },
+        {
+          "display_name_new": "Haynes King",
+          "player_id": "00-0041149",
+          "rank_new": 94,
+          "rank_sealed": 58,
+          "rank_delta": -36,
+          "season_delta": 11.629651397415252
+        },
+        {
+          "display_name_new": "Mark Gronowski",
+          "player_id": "00-0041156",
+          "rank_new": 50,
+          "rank_sealed": 68,
+          "rank_delta": 18,
+          "season_delta": 69.81001193815757
+        },
+        {
+          "display_name_new": "Jack Strand",
+          "player_id": "00-0041194",
+          "rank_new": 63,
+          "rank_sealed": 54,
+          "rank_delta": -9,
+          "season_delta": 52.289612832677584
+        },
+        {
+          "display_name_new": "Joey Aguilar",
+          "player_id": "00-0041203",
+          "rank_new": 95,
+          "rank_sealed": 87,
+          "rank_delta": -8,
+          "season_delta": 16.082079156544154
+        },
+        {
+          "display_name_new": "Jalon Daniels",
+          "player_id": "00-0041251",
+          "rank_new": 93,
+          "rank_sealed": 84,
+          "rank_delta": -9,
+          "season_delta": 16.953477234545456
+        },
+        {
+          "display_name_new": "Matthew Caldwell",
+          "player_id": "00-0041414",
+          "rank_new": 96,
+          "rank_sealed": 62,
+          "rank_delta": -34,
+          "season_delta": 11.259856397341746
+        },
+        {
+          "display_name_new": "Luke Altmyer",
+          "player_id": "00-0041453",
+          "rank_new": 92,
+          "rank_sealed": 36,
+          "rank_delta": -56,
+          "season_delta": -6.278477380703325
+        },
+        {
+          "display_name_new": "Fernando Mendoza",
+          "player_id": "00-0041562",
+          "rank_new": 26,
+          "rank_sealed": 34,
+          "rank_delta": 8,
+          "season_delta": 133.88674933762132
+        },
+        {
+          "display_name_new": "Drew Allar",
+          "player_id": "00-0041565",
+          "rank_new": 79,
+          "rank_sealed": 65,
+          "rank_delta": -14,
+          "season_delta": 29.676987048783715
+        },
+        {
+          "display_name_new": "Ty Simpson",
+          "player_id": "00-0041568",
+          "rank_new": 62,
+          "rank_sealed": 40,
+          "rank_delta": -22,
+          "season_delta": 43.520897467177974
+        }
+      ],
+      "focus_players": [
+        {
+          "player_id": "00-0033873",
+          "position": "QB",
+          "attempts": 17.86395650646035,
+          "carries": 4.563030519281061,
+          "completions": 11.489733683967126,
+          "interceptions": 0.369921398949596,
+          "passing_tds": 1.071837390387621,
+          "passing_yards": 127.71345183627399,
+          "rushing_tds": 0.1903404248771213,
+          "rushing_yards": 25.55235837289885,
+          "display_name_new": "Patrick Mahomes",
+          "team": "KC",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 12.353323223654865,
+          "fantasy_pts_season_new": 210.0064948021327,
+          "rank_new": 15,
+          "display_name_sealed": "Patrick Mahomes",
+          "fantasy_pts_sealed": 19.60388349811375,
+          "fantasy_pts_season_sealed": 333.26601946793375,
+          "rank_sealed": 4,
+          "pg_attempts": 31.332556714565364,
+          "pg_passing_yards": 204.89724806112528,
+          "pg_carries": 3.814779437034475,
+          "pg_rushing_yards": 21.567076002220727,
+          "pg_rushing_tds": 0.2027180678413673,
+          "season_delta": -123.25952466580105,
+          "rank_delta": -11
+        },
+        {
+          "player_id": "00-0034796",
+          "position": "QB",
+          "attempts": 15.727597062314073,
+          "carries": 4.422580581350364,
+          "completions": 9.198828307797974,
+          "interceptions": 0.34975317710307036,
+          "passing_tds": 0.9436558237388444,
+          "passing_yards": 116.68273529490627,
+          "rushing_tds": 0.1130676329087628,
+          "rushing_yards": 26.67435986443961,
+          "display_name_new": "Lamar Jackson",
+          "team": "BAL",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 11.088268136442027,
+          "fantasy_pts_season_new": 188.50055831951445,
+          "rank_new": 20,
+          "display_name_sealed": "Lamar Jackson",
+          "fantasy_pts_sealed": 16.718282016349605,
+          "fantasy_pts_season_sealed": 284.2107942779433,
+          "rank_sealed": 18,
+          "pg_attempts": 23.27111048390881,
+          "pg_passing_yards": 164.3780360322704,
+          "pg_carries": 4.505757534866991,
+          "pg_rushing_yards": 21.806181658398327,
+          "pg_rushing_tds": 0.132264046622744,
+          "season_delta": -95.71023595842885,
+          "rank_delta": -2
+        },
+        {
+          "player_id": "00-0034857",
+          "position": "QB",
+          "attempts": 18.877516526975327,
+          "carries": 6.089131560753759,
+          "completions": 11.370031374837586,
+          "interceptions": 0.39506683485769234,
+          "passing_tds": 1.1326509916185197,
+          "passing_yards": 144.92197648303957,
+          "rushing_tds": 0.5665595214949763,
+          "rushing_yards": 34.23574737486391,
+          "display_name_new": "Josh Allen",
+          "team": "BUF",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 16.360281222536525,
+          "fantasy_pts_season_new": 278.1247807831209,
+          "rank_new": 3,
+          "display_name_sealed": "Josh Allen",
+          "fantasy_pts_sealed": 21.022766426750437,
+          "fantasy_pts_season_sealed": 357.3870292547573,
+          "rank_sealed": 1,
+          "pg_attempts": 27.0270600138102,
+          "pg_passing_yards": 186.1346698990766,
+          "pg_carries": 5.623690956288139,
+          "pg_rushing_yards": 28.85473069203882,
+          "pg_rushing_tds": 0.5217846453793454,
+          "season_delta": -79.26224847163638,
+          "rank_delta": -2
+        },
+        {
+          "player_id": "00-0036389",
+          "position": "QB",
+          "attempts": 17.473710673470322,
+          "carries": 4.309725888921528,
+          "completions": 10.801386432901694,
+          "interceptions": 0.37213097590229943,
+          "passing_tds": 1.0484226404082193,
+          "passing_yards": 126.98875091724335,
+          "rushing_tds": 0.3757540566584442,
+          "rushing_yards": 19.43939246099003,
+          "display_name_new": "Jalen Hurts",
+          "team": "PHI",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 12.72744223256768,
+          "fantasy_pts_season_new": 216.36651795365057,
+          "rank_new": 12,
+          "display_name_sealed": "Jalen Hurts",
+          "fantasy_pts_sealed": 18.170378769776736,
+          "fantasy_pts_season_sealed": 308.8964390862045,
+          "rank_sealed": 8,
+          "pg_attempts": 25.081630356605963,
+          "pg_passing_yards": 171.91080716781892,
+          "pg_carries": 5.331816853470477,
+          "pg_rushing_yards": 26.649502530172263,
+          "pg_rushing_tds": 0.4395578146301786,
+          "season_delta": -92.52992113255394,
+          "rank_delta": -4
+        },
+        {
+          "player_id": "00-0036442",
+          "position": "QB",
+          "attempts": 17.97066823591866,
+          "carries": 1.8944483377122696,
+          "completions": 11.661581230555713,
+          "interceptions": 0.46290111717309546,
+          "passing_tds": 1.0782400941551196,
+          "passing_yards": 126.72102877393483,
+          "rushing_tds": 0.0704522996543137,
+          "rushing_yards": 4.899491474405198,
+          "display_name_new": "Joe Burrow",
+          "team": "CIN",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 9.36866223859808,
+          "fantasy_pts_season_new": 159.26725805616738,
+          "rank_new": 29,
+          "display_name_sealed": "Joe Burrow",
+          "fantasy_pts_sealed": 16.504994937431096,
+          "fantasy_pts_season_sealed": 280.58491393632863,
+          "rank_sealed": 20,
+          "pg_attempts": 30.387954173959443,
+          "pg_passing_yards": 203.4539787344203,
+          "pg_carries": 2.0136794674652294,
+          "pg_rushing_yards": 6.906191069797209,
+          "pg_rushing_tds": 0.046503731967124,
+          "season_delta": -121.31765588016125,
+          "rank_delta": -9
+        },
+        {
+          "player_id": "00-0039732",
+          "position": "QB",
+          "attempts": 26.11208030970387,
+          "carries": 4.040699263198057,
+          "completions": 17.719335729828124,
+          "interceptions": 0.5342783122809145,
+          "passing_tds": 1.5667248185822322,
+          "passing_yards": 193.26338404598536,
+          "rushing_tds": 0.2037408006315235,
+          "rushing_yards": 18.54685639244647,
+          "display_name_new": "Bo Nix",
+          "team": "DEN",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 16.006008454640302,
+          "fantasy_pts_season_new": 272.10214372888515,
+          "rank_new": 4,
+          "display_name_sealed": "Bo Nix",
+          "fantasy_pts_sealed": 19.161776299214264,
+          "fantasy_pts_season_sealed": 325.75019708664246,
+          "rank_sealed": 6,
+          "pg_attempts": 32.443220122423824,
+          "pg_passing_yards": 216.5553301096904,
+          "pg_carries": 4.174199218208693,
+          "pg_rushing_yards": 26.20537640692175,
+          "pg_rushing_tds": 0.1740560504223096,
+          "season_delta": -53.648053357757306,
+          "rank_delta": 2
+        },
+        {
+          "player_id": "00-0039851",
+          "position": "QB",
+          "attempts": 27.369577073770362,
+          "carries": 5.01393504386697,
+          "completions": 18.56697343621214,
+          "interceptions": 0.5838876771090529,
+          "passing_tds": 1.56344477700341,
+          "passing_yards": 206.26289884753234,
+          "rushing_tds": 0.2165582433448286,
+          "rushing_yards": 28.92223032141193,
+          "display_name_new": "Drake Maye",
+          "team": "NE",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 17.528092199906993,
+          "fantasy_pts_season_new": 297.9775673984189,
+          "rank_new": 1,
+          "display_name_sealed": "Drake Maye",
+          "fantasy_pts_sealed": 20.641046053224745,
+          "fantasy_pts_season_sealed": 350.89778290482064,
+          "rank_sealed": 2,
+          "pg_attempts": 28.671330384579925,
+          "pg_passing_yards": 215.73964609595987,
+          "pg_carries": 4.33955298477633,
+          "pg_rushing_yards": 25.64998945825593,
+          "pg_rushing_tds": 0.2345171382072747,
+          "season_delta": -52.920215506401746,
+          "rank_delta": 1
+        },
+        {
+          "player_id": "00-0039910",
+          "position": "QB",
+          "attempts": 17.738117331388697,
+          "carries": 6.440275807116136,
+          "completions": 10.580227878463903,
+          "interceptions": 0.3693604725735413,
+          "passing_tds": 0.8649427744424528,
+          "passing_yards": 116.28570905808267,
+          "rushing_tds": 0.2120926979534429,
+          "rushing_yards": 29.03972067565226,
+          "display_name_new": "Jayden Daniels",
+          "team": "WAS",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 11.54900677023192,
+          "fantasy_pts_season_new": 196.33311509394264,
+          "rank_new": 16,
+          "display_name_sealed": "Jayden Daniels",
+          "fantasy_pts_sealed": 17.27801336449332,
+          "fantasy_pts_season_sealed": 293.72622719638645,
+          "rank_sealed": 14,
+          "pg_attempts": 22.833864521983912,
+          "pg_passing_yards": 151.465146247807,
+          "pg_carries": 5.9414626217075,
+          "pg_rushing_yards": 29.24170030669615,
+          "pg_rushing_tds": 0.2011793584800882,
+          "season_delta": -97.39311210244381,
+          "rank_delta": -2
+        }
+      ],
+      "top15_new": [
+        {
+          "rank": 1,
+          "display_name": "Drake Maye",
+          "team": "NE",
+          "fantasy_pts": 17.528092199906993,
+          "fantasy_pts_season": 297.9775673984189,
+          "attempts": 27.369577073770362,
+          "passing_yards": 206.26289884753234,
+          "carries": 5.01393504386697,
+          "rushing_yards": 28.92223032141193,
+          "rushing_tds": 0.2165582433448286
+        },
+        {
+          "rank": 2,
+          "display_name": "Justin Herbert",
+          "team": "LAC",
+          "fantasy_pts": 16.774040229470334,
+          "fantasy_pts_season": 285.1586839009957,
+          "attempts": 26.218660410667027,
+          "passing_yards": 186.87025447241038,
+          "carries": 4.5597396963381165,
+          "rushing_yards": 22.40624614495683,
+          "rushing_tds": 0.2924659152792569
+        },
+        {
+          "rank": 3,
+          "display_name": "Josh Allen",
+          "team": "BUF",
+          "fantasy_pts": 16.360281222536525,
+          "fantasy_pts_season": 278.1247807831209,
+          "attempts": 18.877516526975327,
+          "passing_yards": 144.92197648303957,
+          "carries": 6.089131560753759,
+          "rushing_yards": 34.23574737486391,
+          "rushing_tds": 0.5665595214949763
+        },
+        {
+          "rank": 4,
+          "display_name": "Bo Nix",
+          "team": "DEN",
+          "fantasy_pts": 16.006008454640302,
+          "fantasy_pts_season": 272.10214372888515,
+          "attempts": 26.11208030970387,
+          "passing_yards": 193.26338404598536,
+          "carries": 4.040699263198057,
+          "rushing_yards": 18.54685639244647,
+          "rushing_tds": 0.2037408006315235
+        },
+        {
+          "rank": 5,
+          "display_name": "Trevor Lawrence",
+          "team": "JAX",
+          "fantasy_pts": 15.684269883244994,
+          "fantasy_pts_season": 266.6325880151649,
+          "attempts": 24.381549163358695,
+          "passing_yards": 178.2393034864175,
+          "carries": 3.871564184360902,
+          "rushing_yards": 18.78970102917523,
+          "rushing_tds": 0.2975997285789055
+        },
+        {
+          "rank": 6,
+          "display_name": "Dak Prescott",
+          "team": "DAL",
+          "fantasy_pts": 15.244385669093408,
+          "fantasy_pts_season": 259.1545563745879,
+          "attempts": 26.695654113248008,
+          "passing_yards": 202.4669574271075,
+          "carries": 2.8175673092169427,
+          "rushing_yards": 12.302359188588548,
+          "rushing_tds": 0.09245879429666
+        },
+        {
+          "rank": 7,
+          "display_name": "Caleb Williams",
+          "team": "CHI",
+          "fantasy_pts": 14.667810855140022,
+          "fantasy_pts_season": 249.3527845373804,
+          "attempts": 24.533378093234557,
+          "passing_yards": 175.91884308493658,
+          "carries": 3.93038776895004,
+          "rushing_yards": 19.137837163647816,
+          "rushing_tds": 0.1274095600400328
+        },
+        {
+          "rank": 8,
+          "display_name": "Matthew Stafford",
+          "team": "LA",
+          "fantasy_pts": 13.972224690738633,
+          "fantasy_pts_season": 237.52781974255677,
+          "attempts": 26.72069987782679,
+          "passing_yards": 197.67212194980064,
+          "carries": 2.0064633369997167,
+          "rushing_yards": 4.781168295094186,
+          "rushing_tds": 0.0611169343628801
+        },
+        {
+          "rank": 9,
+          "display_name": "Baker Mayfield",
+          "team": "TB",
+          "fantasy_pts": 13.364739548447222,
+          "fantasy_pts_season": 227.20057232360278,
+          "attempts": 24.422700703023747,
+          "passing_yards": 167.9661125846682,
+          "carries": 2.719482870807961,
+          "rushing_yards": 13.528250858046151,
+          "rushing_tds": 0.1838230590438108
+        },
+        {
+          "rank": 10,
+          "display_name": "C.J. Stroud",
+          "team": "HOU",
+          "fantasy_pts": 13.34167014166445,
+          "fantasy_pts_season": 226.80839240829565,
+          "attempts": 23.496988225633594,
+          "passing_yards": 165.76597199782583,
+          "carries": 3.1030564389822497,
+          "rushing_yards": 12.944681869748182,
+          "rushing_tds": 0.1430186358383651
+        },
+        {
+          "rank": 11,
+          "display_name": "Jaxson Dart",
+          "team": "NYG",
+          "fantasy_pts": 13.31279960606681,
+          "fantasy_pts_season": 226.31759330313577,
+          "attempts": 14.345912122899893,
+          "passing_yards": 103.62534189700607,
+          "carries": 6.909550971029029,
+          "rushing_yards": 37.52810019467572,
+          "rushing_tds": 0.4656261314942325
+        },
+        {
+          "rank": 12,
+          "display_name": "Jalen Hurts",
+          "team": "PHI",
+          "fantasy_pts": 12.72744223256768,
+          "fantasy_pts_season": 216.36651795365057,
+          "attempts": 17.473710673470322,
+          "passing_yards": 126.98875091724335,
+          "carries": 4.309725888921528,
+          "rushing_yards": 19.43939246099003,
+          "rushing_tds": 0.3757540566584442
+        },
+        {
+          "rank": 13,
+          "display_name": "Jacoby Brissett",
+          "team": "ARI",
+          "fantasy_pts": 12.478293033482982,
+          "fantasy_pts_season": 212.1309815692107,
+          "attempts": 21.212303931131828,
+          "passing_yards": 163.30380820436477,
+          "carries": 2.5788963219590406,
+          "rushing_yards": 12.282000858031786,
+          "rushing_tds": 0.076012194053566
+        },
+        {
+          "rank": 14,
+          "display_name": "Jordan Love",
+          "team": "GB",
+          "fantasy_pts": 12.390392039479385,
+          "fantasy_pts_season": 210.63666467114956,
+          "attempts": 22.09776375324896,
+          "passing_yards": 154.92671826859436,
+          "carries": 2.863657806451861,
+          "rushing_yards": 12.357317223521717,
+          "rushing_tds": 0.0894843336491625
+        },
+        {
+          "rank": 15,
+          "display_name": "Patrick Mahomes",
+          "team": "KC",
+          "fantasy_pts": 12.353323223654865,
+          "fantasy_pts_season": 210.0064948021327,
+          "attempts": 17.86395650646035,
+          "passing_yards": 127.71345183627399,
+          "carries": 4.563030519281061,
+          "rushing_yards": 25.55235837289885,
+          "rushing_tds": 0.1903404248771213
+        }
+      ]
+    },
+    "provenance_keys": [
+      "allocation_params",
+      "arm",
+      "target_season",
+      "team_volume"
+    ]
+  },
+  "allocation": {
+    "non_qb_invariance": {
+      "pass": true,
+      "n_compared": 3271,
+      "n_changed": 0,
+      "max_abs_delta": 0.0
+    },
+    "conservation": {
+      "n_teams": 32,
+      "mean_abs_rel_error": 5.615147918444407e-17,
+      "violations": []
+    },
+    "comparison": {
+      "n_qb": 96,
+      "ppg_thresholds": {
+        "ge_18": 1,
+        "ge_20": 0,
+        "ge_22": 0,
+        "ge_24": 0
+      },
+      "largest_positive": [
+        {
+          "display_name_new": "Shedeur Sanders",
+          "player_id": "00-0040668",
+          "season_delta": 71.24210437595659,
+          "rank_new": 30,
+          "rank_sealed": 32
+        },
+        {
+          "display_name_new": "Mark Gronowski",
+          "player_id": "00-0041156",
+          "season_delta": 68.40178057558353,
+          "rank_new": 35,
+          "rank_sealed": 68
+        },
+        {
+          "display_name_new": "Justin Fields",
+          "player_id": "00-0036945",
+          "season_delta": 66.67572388111353,
+          "rank_new": 34,
+          "rank_sealed": 42
+        },
+        {
+          "display_name_new": "Fernando Mendoza",
+          "player_id": "00-0041562",
+          "season_delta": 65.55279689022427,
+          "rank_new": 33,
+          "rank_sealed": 34
+        },
+        {
+          "display_name_new": "Michael Penix Jr.",
+          "player_id": "00-0039917",
+          "season_delta": 61.68079617936294,
+          "rank_new": 31,
+          "rank_sealed": 33
+        },
+        {
+          "display_name_new": "Trey Lance",
+          "player_id": "00-0037012",
+          "season_delta": 60.69320069085482,
+          "rank_new": 44,
+          "rank_sealed": 95
+        },
+        {
+          "display_name_new": "Mac Jones",
+          "player_id": "00-0036972",
+          "season_delta": 59.430069067405164,
+          "rank_new": 39,
+          "rank_sealed": 56
+        },
+        {
+          "display_name_new": "Tyler Huntley",
+          "player_id": "00-0035993",
+          "season_delta": 55.903660777950776,
+          "rank_new": 37,
+          "rank_sealed": 44
+        },
+        {
+          "display_name_new": "Spencer Rattler",
+          "player_id": "00-0039376",
+          "season_delta": 55.42116865164377,
+          "rank_new": 38,
+          "rank_sealed": 45
+        },
+        {
+          "display_name_new": "Davis Mills",
+          "player_id": "00-0036898",
+          "season_delta": 52.97502437698144,
+          "rank_new": 43,
+          "rank_sealed": 55
+        }
+      ],
+      "largest_negative": [
+        {
+          "display_name_new": "Tua Tagovailoa",
+          "player_id": "00-0036212",
+          "season_delta": -113.73215984317903,
+          "rank_new": 46,
+          "rank_sealed": 31
+        },
+        {
+          "display_name_new": "Kyler Murray",
+          "player_id": "00-0035228",
+          "season_delta": -105.76353718213946,
+          "rank_new": 25,
+          "rank_sealed": 10
+        },
+        {
+          "display_name_new": "Brock Purdy",
+          "player_id": "00-0037834",
+          "season_delta": -101.83404206960282,
+          "rank_new": 20,
+          "rank_sealed": 7
+        },
+        {
+          "display_name_new": "Malik Willis",
+          "player_id": "00-0038128",
+          "season_delta": -92.16087366300766,
+          "rank_new": 28,
+          "rank_sealed": 25
+        },
+        {
+          "display_name_new": "Tyler Shough",
+          "player_id": "00-0040743",
+          "season_delta": -88.79404168391181,
+          "rank_new": 21,
+          "rank_sealed": 12
+        },
+        {
+          "display_name_new": "Patrick Mahomes",
+          "player_id": "00-0033873",
+          "season_delta": -83.79303905057122,
+          "rank_new": 10,
+          "rank_sealed": 4
+        },
+        {
+          "display_name_new": "Cam Ward",
+          "player_id": "00-0040676",
+          "season_delta": -80.6034813058802,
+          "rank_new": 26,
+          "rank_sealed": 24
+        },
+        {
+          "display_name_new": "Kirk Cousins",
+          "player_id": "00-0029604",
+          "season_delta": -77.8593590719409,
+          "rank_new": 32,
+          "rank_sealed": 30
+        },
+        {
+          "display_name_new": "Joe Burrow",
+          "player_id": "00-0036442",
+          "season_delta": -77.7608844955605,
+          "rank_new": 24,
+          "rank_sealed": 20
+        },
+        {
+          "display_name_new": "Jayden Daniels",
+          "player_id": "00-0039910",
+          "season_delta": -73.9865000994613,
+          "rank_new": 19,
+          "rank_sealed": 14
+        }
+      ],
+      "rank_moves_gt_5": [
+        {
+          "display_name_new": "Josh Johnson",
+          "player_id": "00-0026300",
+          "rank_new": 47,
+          "rank_sealed": 76,
+          "rank_delta": 29,
+          "season_delta": 49.324405177916155
+        },
+        {
+          "display_name_new": "Matthew Stafford",
+          "player_id": "00-0026498",
+          "rank_new": 11,
+          "rank_sealed": 21,
+          "rank_delta": 10,
+          "season_delta": -37.27641300856857
+        },
+        {
+          "display_name_new": "Andy Dalton",
+          "player_id": "00-0027973",
+          "rank_new": 79,
+          "rank_sealed": 51,
+          "rank_delta": -28,
+          "season_delta": 15.193105073699083
+        },
+        {
+          "display_name_new": "Tyrod Taylor",
+          "player_id": "00-0028118",
+          "rank_new": 50,
+          "rank_sealed": 43,
+          "rank_delta": -7,
+          "season_delta": 33.32611821349112
+        },
+        {
+          "display_name_new": "Teddy Bridgewater",
+          "player_id": "00-0031237",
+          "rank_new": 80,
+          "rank_sealed": 94,
+          "rank_delta": 14,
+          "season_delta": 24.589717497811662
+        },
+        {
+          "display_name_new": "Jameis Winston",
+          "player_id": "00-0031503",
+          "rank_new": 51,
+          "rank_sealed": 37,
+          "rank_delta": -14,
+          "season_delta": 23.374455647809015
+        },
+        {
+          "display_name_new": "Brandon Allen",
+          "player_id": "00-0032434",
+          "rank_new": 73,
+          "rank_sealed": 52,
+          "rank_delta": -21,
+          "season_delta": 21.020879852312255
+        },
+        {
+          "display_name_new": "Nick Mullens",
+          "player_id": "00-0033319",
+          "rank_new": 52,
+          "rank_sealed": 88,
+          "rank_delta": 36,
+          "season_delta": 43.24676554038937
+        },
+        {
+          "display_name_new": "Mitchell Trubisky",
+          "player_id": "00-0033869",
+          "rank_new": 57,
+          "rank_sealed": 67,
+          "rank_delta": 10,
+          "season_delta": 36.40795660774422
+        },
+        {
+          "display_name_new": "Patrick Mahomes",
+          "player_id": "00-0033873",
+          "rank_new": 10,
+          "rank_sealed": 4,
+          "rank_delta": -6,
+          "season_delta": -83.79303905057122
+        },
+        {
+          "display_name_new": "Joshua Dobbs",
+          "player_id": "00-0033949",
+          "rank_new": 63,
+          "rank_sealed": 47,
+          "rank_delta": -16,
+          "season_delta": 26.265752627432846
+        },
+        {
+          "display_name_new": "Jake Browning",
+          "player_id": "00-0035100",
+          "rank_new": 70,
+          "rank_sealed": 48,
+          "rank_delta": -22,
+          "season_delta": 22.227423210153276
+        },
+        {
+          "display_name_new": "Kyler Murray",
+          "player_id": "00-0035228",
+          "rank_new": 25,
+          "rank_sealed": 10,
+          "rank_delta": -15,
+          "season_delta": -105.76353718213946
+        },
+        {
+          "display_name_new": "Jarrett Stidham",
+          "player_id": "00-0035264",
+          "rank_new": 69,
+          "rank_sealed": 96,
+          "rank_delta": 27,
+          "season_delta": 35.91815751599204
+        },
+        {
+          "display_name_new": "Gardner Minshew",
+          "player_id": "00-0035289",
+          "rank_new": 86,
+          "rank_sealed": 80,
+          "rank_delta": -6,
+          "season_delta": 15.790032032435846
+        },
+        {
+          "display_name_new": "Drew Lock",
+          "player_id": "00-0035704",
+          "rank_new": 83,
+          "rank_sealed": 70,
+          "rank_delta": -13,
+          "season_delta": 16.934525034967038
+        },
+        {
+          "display_name_new": "Daniel Jones",
+          "player_id": "00-0035710",
+          "rank_new": 17,
+          "rank_sealed": 23,
+          "rank_delta": 6,
+          "season_delta": -47.49391450220085
+        },
+        {
+          "display_name_new": "Tyler Huntley",
+          "player_id": "00-0035993",
+          "rank_new": 37,
+          "rank_sealed": 44,
+          "rank_delta": 7,
+          "season_delta": 55.903660777950776
+        },
+        {
+          "display_name_new": "Tua Tagovailoa",
+          "player_id": "00-0036212",
+          "rank_new": 46,
+          "rank_sealed": 31,
+          "rank_delta": -15,
+          "season_delta": -113.73215984317903
+        },
+        {
+          "display_name_new": "Jordan Love",
+          "player_id": "00-0036264",
+          "rank_new": 14,
+          "rank_sealed": 27,
+          "rank_delta": 13,
+          "season_delta": -20.511555247356824
+        },
+        {
+          "display_name_new": "Shane Buechele",
+          "player_id": "00-0036679",
+          "rank_new": 61,
+          "rank_sealed": 82,
+          "rank_delta": 21,
+          "season_delta": 36.39339279687205
+        },
+        {
+          "display_name_new": "Davis Mills",
+          "player_id": "00-0036898",
+          "rank_new": 43,
+          "rank_sealed": 55,
+          "rank_delta": 12,
+          "season_delta": 52.97502437698144
+        },
+        {
+          "display_name_new": "Justin Fields",
+          "player_id": "00-0036945",
+          "rank_new": 34,
+          "rank_sealed": 42,
+          "rank_delta": 8,
+          "season_delta": 66.67572388111353
+        },
+        {
+          "display_name_new": "Mac Jones",
+          "player_id": "00-0036972",
+          "rank_new": 39,
+          "rank_sealed": 56,
+          "rank_delta": 17,
+          "season_delta": 59.430069067405164
+        },
+        {
+          "display_name_new": "Trey Lance",
+          "player_id": "00-0037012",
+          "rank_new": 44,
+          "rank_sealed": 95,
+          "rank_delta": 51,
+          "season_delta": 60.69320069085482
+        },
+        {
+          "display_name_new": "Chris Oladokun",
+          "player_id": "00-0037324",
+          "rank_new": 53,
+          "rank_sealed": 91,
+          "rank_delta": 38,
+          "season_delta": 43.997016094725204
+        },
+        {
+          "display_name_new": "Brock Purdy",
+          "player_id": "00-0037834",
+          "rank_new": 20,
+          "rank_sealed": 7,
+          "rank_delta": -13,
+          "season_delta": -101.83404206960282
+        },
+        {
+          "display_name_new": "Kenny Pickett",
+          "player_id": "00-0038102",
+          "rank_new": 71,
+          "rank_sealed": 61,
+          "rank_delta": -10,
+          "season_delta": 25.84576814014403
+        },
+        {
+          "display_name_new": "Tanner McKee",
+          "player_id": "00-0038400",
+          "rank_new": 60,
+          "rank_sealed": 73,
+          "rank_delta": 13,
+          "season_delta": 34.83266374457905
+        },
+        {
+          "display_name_new": "Aidan O'Connell",
+          "player_id": "00-0038579",
+          "rank_new": 72,
+          "rank_sealed": 89,
+          "rank_delta": 17,
+          "season_delta": 30.53119665203379
+        },
+        {
+          "display_name_new": "Anthony Richardson",
+          "player_id": "00-0039164",
+          "rank_new": 68,
+          "rank_sealed": 39,
+          "rank_delta": -29,
+          "season_delta": 15.711952026403996
+        },
+        {
+          "display_name_new": "Spencer Rattler",
+          "player_id": "00-0039376",
+          "rank_new": 38,
+          "rank_sealed": 45,
+          "rank_delta": 7,
+          "season_delta": 55.42116865164377
+        },
+        {
+          "display_name_new": "Joe Milton III",
+          "player_id": "00-0039398",
+          "rank_new": 48,
+          "rank_sealed": 85,
+          "rank_delta": 37,
+          "season_delta": 49.09987807307359
+        },
+        {
+          "display_name_new": "Kedon Slovis",
+          "player_id": "00-0039577",
+          "rank_new": 78,
+          "rank_sealed": 93,
+          "rank_delta": 15,
+          "season_delta": 25.067936385434834
+        },
+        {
+          "display_name_new": "Caleb Williams",
+          "player_id": "00-0039918",
+          "rank_new": 7,
+          "rank_sealed": 13,
+          "rank_delta": 6,
+          "season_delta": -36.973013222697375
+        },
+        {
+          "display_name_new": "J.J. McCarthy",
+          "player_id": "00-0039923",
+          "rank_new": 59,
+          "rank_sealed": 72,
+          "rank_delta": 13,
+          "season_delta": 34.5619492915318
+        },
+        {
+          "display_name_new": "Brady Cook",
+          "player_id": "00-0040398",
+          "rank_new": 55,
+          "rank_sealed": 63,
+          "rank_delta": 8,
+          "season_delta": 36.813822916274404
+        },
+        {
+          "display_name_new": "Max Brosmer",
+          "player_id": "00-0040494",
+          "rank_new": 66,
+          "rank_sealed": 90,
+          "rank_delta": 24,
+          "season_delta": 35.19092330622118
+        },
+        {
+          "display_name_new": "Jalen Milroe",
+          "player_id": "00-0040673",
+          "rank_new": 65,
+          "rank_sealed": 77,
+          "rank_delta": 12,
+          "season_delta": 33.73478887150613
+        },
+        {
+          "display_name_new": "Dillon Gabriel",
+          "player_id": "00-0040704",
+          "rank_new": 41,
+          "rank_sealed": 50,
+          "rank_delta": 9,
+          "season_delta": 51.993877044135345
+        },
+        {
+          "display_name_new": "Tyler Shough",
+          "player_id": "00-0040743",
+          "rank_new": 21,
+          "rank_sealed": 12,
+          "rank_delta": -9,
+          "season_delta": -88.79404168391181
+        },
+        {
+          "display_name_new": "Cole Payton",
+          "player_id": "00-0040891",
+          "rank_new": 89,
+          "rank_sealed": 78,
+          "rank_delta": -11,
+          "season_delta": 12.498013353361088
+        },
+        {
+          "display_name_new": "Garrett Nussmeier",
+          "player_id": "00-0040906",
+          "rank_new": 90,
+          "rank_sealed": 71,
+          "rank_delta": -19,
+          "season_delta": 9.972751483094033
+        },
+        {
+          "display_name_new": "Joe Fagnano",
+          "player_id": "00-0040981",
+          "rank_new": 88,
+          "rank_sealed": 57,
+          "rank_delta": -31,
+          "season_delta": 9.222780347605058
+        },
+        {
+          "display_name_new": "Diego Pavia",
+          "player_id": "00-0040985",
+          "rank_new": 87,
+          "rank_sealed": 46,
+          "rank_delta": -41,
+          "season_delta": 5.040914534445745
+        },
+        {
+          "display_name_new": "Jacob Clark",
+          "player_id": "00-0040996",
+          "rank_new": 67,
+          "rank_sealed": 92,
+          "rank_delta": 25,
+          "season_delta": 35.32667532405352
+        },
+        {
+          "display_name_new": "Cade Klubnik",
+          "player_id": "00-0041056",
+          "rank_new": 42,
+          "rank_sealed": 35,
+          "rank_delta": -7,
+          "season_delta": 28.454081965763237
+        },
+        {
+          "display_name_new": "Taylen Green",
+          "player_id": "00-0041092",
+          "rank_new": 84,
+          "rank_sealed": 74,
+          "rank_delta": -10,
+          "season_delta": 16.697743345951885
+        },
+        {
+          "display_name_new": "Behren Morton",
+          "player_id": "00-0041123",
+          "rank_new": 75,
+          "rank_sealed": 60,
+          "rank_delta": -15,
+          "season_delta": 21.70784453156372
+        },
+        {
+          "display_name_new": "Haynes King",
+          "player_id": "00-0041149",
+          "rank_new": 95,
+          "rank_sealed": 58,
+          "rank_delta": -37,
+          "season_delta": 6.8458029487153915
+        },
+        {
+          "display_name_new": "Mark Gronowski",
+          "player_id": "00-0041156",
+          "rank_new": 35,
+          "rank_sealed": 68,
+          "rank_delta": 33,
+          "season_delta": 68.40178057558353
+        },
+        {
+          "display_name_new": "Joey Aguilar",
+          "player_id": "00-0041203",
+          "rank_new": 93,
+          "rank_sealed": 87,
+          "rank_delta": -6,
+          "season_delta": 12.309753422176724
+        },
+        {
+          "display_name_new": "Jalon Daniels",
+          "player_id": "00-0041251",
+          "rank_new": 92,
+          "rank_sealed": 84,
+          "rank_delta": -8,
+          "season_delta": 12.64424269009346
+        },
+        {
+          "display_name_new": "Matthew Caldwell",
+          "player_id": "00-0041414",
+          "rank_new": 94,
+          "rank_sealed": 62,
+          "rank_delta": -32,
+          "season_delta": 7.610836687465067
+        },
+        {
+          "display_name_new": "Luke Altmyer",
+          "player_id": "00-0041453",
+          "rank_new": 96,
+          "rank_sealed": 36,
+          "rank_delta": -60,
+          "season_delta": -12.580018133085392
+        },
+        {
+          "display_name_new": "Drew Allar",
+          "player_id": "00-0041565",
+          "rank_new": 81,
+          "rank_sealed": 65,
+          "rank_delta": -16,
+          "season_delta": 18.040684299730145
+        },
+        {
+          "display_name_new": "Ty Simpson",
+          "player_id": "00-0041568",
+          "rank_new": 56,
+          "rank_sealed": 40,
+          "rank_delta": -16,
+          "season_delta": 25.382165908652464
+        }
+      ],
+      "focus_players": [
+        {
+          "player_id": "00-0033873",
+          "position": "QB",
+          "attempts": 23.570619421428894,
+          "carries": 4.563030519281061,
+          "completions": 15.160143265038819,
+          "interceptions": 0.48809324559932954,
+          "passing_tds": 1.4142371652857335,
+          "passing_yards": 157.42101611311094,
+          "rushing_tds": 0.1903404248771213,
+          "rushing_yards": 25.55235837289885,
+          "display_name_new": "Patrick Mahomes",
+          "team": "KC",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 14.674881201021325,
+          "fantasy_pts_season_new": 249.47298041736252,
+          "rank_new": 10,
+          "display_name_sealed": "Patrick Mahomes",
+          "fantasy_pts_sealed": 19.60388349811375,
+          "fantasy_pts_season_sealed": 333.26601946793375,
+          "rank_sealed": 4,
+          "pg_attempts": 31.332556714565364,
+          "pg_passing_yards": 204.89724806112528,
+          "pg_carries": 3.814779437034475,
+          "pg_rushing_yards": 21.567076002220727,
+          "pg_rushing_tds": 0.2027180678413673,
+          "season_delta": -83.79303905057122,
+          "rank_delta": -6
+        },
+        {
+          "player_id": "00-0034796",
+          "position": "QB",
+          "attempts": 22.07900399211793,
+          "carries": 4.422580581350364,
+          "completions": 12.913668001918897,
+          "interceptions": 0.49099692489059843,
+          "passing_tds": 1.1693004410553465,
+          "passing_yards": 155.3457919971476,
+          "rushing_tds": 0.1130676329087628,
+          "rushing_yards": 26.67435986443961,
+          "display_name_new": "Lamar Jackson",
+          "team": "BAL",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 13.25488137822263,
+          "fantasy_pts_season_new": 225.3329834297847,
+          "rank_new": 16,
+          "display_name_sealed": "Lamar Jackson",
+          "fantasy_pts_sealed": 16.718282016349605,
+          "fantasy_pts_season_sealed": 284.2107942779433,
+          "rank_sealed": 18,
+          "pg_attempts": 23.27111048390881,
+          "pg_passing_yards": 164.3780360322704,
+          "pg_carries": 4.505757534866991,
+          "pg_rushing_yards": 21.806181658398327,
+          "pg_rushing_tds": 0.132264046622744,
+          "season_delta": -58.87781084815862,
+          "rank_delta": 2
+        },
+        {
+          "player_id": "00-0034857",
+          "position": "QB",
+          "attempts": 23.963468580332346,
+          "carries": 6.089131560753759,
+          "completions": 14.433328092652957,
+          "interceptions": 0.5015051461200096,
+          "passing_tds": 1.3594063925709845,
+          "passing_yards": 175.0703750810329,
+          "rushing_tds": 0.5665595214949763,
+          "rushing_yards": 34.23574737486391,
+          "display_name_new": "Josh Allen",
+          "team": "BUF",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 18.260362147741485,
+          "fantasy_pts_season_new": 310.42615651160526,
+          "rank_new": 1,
+          "display_name_sealed": "Josh Allen",
+          "fantasy_pts_sealed": 21.022766426750437,
+          "fantasy_pts_season_sealed": 357.3870292547573,
+          "rank_sealed": 1,
+          "pg_attempts": 27.0270600138102,
+          "pg_passing_yards": 186.1346698990766,
+          "pg_carries": 5.623690956288139,
+          "pg_rushing_yards": 28.85473069203882,
+          "pg_rushing_tds": 0.5217846453793454,
+          "season_delta": -46.96087274315204,
+          "rank_delta": 0
+        },
+        {
+          "player_id": "00-0036389",
+          "position": "QB",
+          "attempts": 22.326895386453828,
+          "carries": 4.309725888921528,
+          "completions": 13.801385946157625,
+          "interceptions": 0.4754874064410451,
+          "passing_tds": 1.3269388372794115,
+          "passing_yards": 154.27186612404947,
+          "rushing_tds": 0.3757540566584442,
+          "rushing_yards": 19.43939246099003,
+          "display_name_new": "Jalen Hurts",
+          "team": "PHI",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 14.726118767247202,
+          "fantasy_pts_season_new": 250.34401904320245,
+          "rank_new": 9,
+          "display_name_sealed": "Jalen Hurts",
+          "fantasy_pts_sealed": 18.170378769776736,
+          "fantasy_pts_season_sealed": 308.8964390862045,
+          "rank_sealed": 8,
+          "pg_attempts": 25.081630356605963,
+          "pg_passing_yards": 171.91080716781892,
+          "pg_carries": 5.331816853470477,
+          "pg_rushing_yards": 26.649502530172263,
+          "pg_rushing_tds": 0.4395578146301786,
+          "season_delta": -58.55242004300206,
+          "rank_delta": -1
+        },
+        {
+          "player_id": "00-0036442",
+          "position": "QB",
+          "attempts": 23.956793734816813,
+          "carries": 1.8944483377122696,
+          "completions": 15.546116176350015,
+          "interceptions": 0.6170959498081913,
+          "passing_tds": 1.4374076240890088,
+          "passing_yards": 162.56809297789002,
+          "rushing_tds": 0.0704522996543137,
+          "rushing_yards": 4.899491474405198,
+          "display_name_new": "Joe Burrow",
+          "team": "CIN",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 11.930825261221655,
+          "fantasy_pts_season_new": 202.82402944076813,
+          "rank_new": 24,
+          "display_name_sealed": "Joe Burrow",
+          "fantasy_pts_sealed": 16.504994937431096,
+          "fantasy_pts_season_sealed": 280.58491393632863,
+          "rank_sealed": 20,
+          "pg_attempts": 30.387954173959443,
+          "pg_passing_yards": 203.4539787344203,
+          "pg_carries": 2.0136794674652294,
+          "pg_rushing_yards": 6.906191069797209,
+          "pg_rushing_tds": 0.046503731967124,
+          "season_delta": -77.7608844955605,
+          "rank_delta": -4
+        },
+        {
+          "player_id": "00-0039732",
+          "position": "QB",
+          "attempts": 27.994518570940052,
+          "carries": 4.040699263198057,
+          "completions": 18.996735122978816,
+          "interceptions": 0.5727948121253381,
+          "passing_tds": 1.616233432609742,
+          "passing_yards": 191.959911614131,
+          "rushing_tds": 0.2037408006315235,
+          "rushing_yards": 18.54685639244647,
+          "display_name_new": "Bo Nix",
+          "team": "DEN",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 16.07487101378732,
+          "fantasy_pts_season_new": 273.27280723438446,
+          "rank_new": 5,
+          "display_name_sealed": "Bo Nix",
+          "fantasy_pts_sealed": 19.161776299214264,
+          "fantasy_pts_season_sealed": 325.75019708664246,
+          "rank_sealed": 6,
+          "pg_attempts": 32.443220122423824,
+          "pg_passing_yards": 216.5553301096904,
+          "pg_carries": 4.174199218208693,
+          "pg_rushing_yards": 26.20537640692175,
+          "pg_rushing_tds": 0.1740560504223096,
+          "season_delta": -52.477389852258,
+          "rank_delta": 1
+        },
+        {
+          "player_id": "00-0039851",
+          "position": "QB",
+          "attempts": 28.036820802314214,
+          "carries": 5.01393504386697,
+          "completions": 19.019618230465305,
+          "interceptions": 0.598122292049392,
+          "passing_tds": 1.56344477700341,
+          "passing_yards": 205.23507658066967,
+          "rushing_tds": 0.2165582433448286,
+          "rushing_yards": 28.92223032141193,
+          "display_name_new": "Drake Maye",
+          "team": "NE",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 17.458510079351807,
+          "fantasy_pts_season_new": 296.7946713489807,
+          "rank_new": 2,
+          "display_name_sealed": "Drake Maye",
+          "fantasy_pts_sealed": 20.641046053224745,
+          "fantasy_pts_season_sealed": 350.89778290482064,
+          "rank_sealed": 2,
+          "pg_attempts": 28.671330384579925,
+          "pg_passing_yards": 215.73964609595987,
+          "pg_carries": 4.33955298477633,
+          "pg_rushing_yards": 25.64998945825593,
+          "pg_rushing_tds": 0.2345171382072747,
+          "season_delta": -54.10311155583992,
+          "rank_delta": 0
+        },
+        {
+          "player_id": "00-0039910",
+          "position": "QB",
+          "attempts": 23.679983589237256,
+          "carries": 6.440275807116136,
+          "completions": 14.124363812222077,
+          "interceptions": 0.49308783822153396,
+          "passing_tds": 0.8649427744424528,
+          "passing_yards": 156.8935655801625,
+          "rushing_tds": 0.2120926979534429,
+          "rushing_yards": 29.03972067565226,
+          "display_name_new": "Jayden Daniels",
+          "team": "WAS",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 12.925866299819127,
+          "fantasy_pts_season_new": 219.73972709692515,
+          "rank_new": 19,
+          "display_name_sealed": "Jayden Daniels",
+          "fantasy_pts_sealed": 17.27801336449332,
+          "fantasy_pts_season_sealed": 293.72622719638645,
+          "rank_sealed": 14,
+          "pg_attempts": 22.833864521983912,
+          "pg_passing_yards": 151.465146247807,
+          "pg_carries": 5.9414626217075,
+          "pg_rushing_yards": 29.24170030669615,
+          "pg_rushing_tds": 0.2011793584800882,
+          "season_delta": -73.9865000994613,
+          "rank_delta": -5
+        }
+      ],
+      "top15_new": [
+        {
+          "rank": 1,
+          "display_name": "Josh Allen",
+          "team": "BUF",
+          "fantasy_pts": 18.260362147741485,
+          "fantasy_pts_season": 310.42615651160526,
+          "attempts": 23.963468580332346,
+          "passing_yards": 175.0703750810329,
+          "carries": 6.089131560753759,
+          "rushing_yards": 34.23574737486391,
+          "rushing_tds": 0.5665595214949763
+        },
+        {
+          "rank": 2,
+          "display_name": "Drake Maye",
+          "team": "NE",
+          "fantasy_pts": 17.458510079351807,
+          "fantasy_pts_season": 296.7946713489807,
+          "attempts": 28.036820802314214,
+          "passing_yards": 205.23507658066967,
+          "carries": 5.01393504386697,
+          "rushing_yards": 28.92223032141193,
+          "rushing_tds": 0.2165582433448286
+        },
+        {
+          "rank": 3,
+          "display_name": "Justin Herbert",
+          "team": "LAC",
+          "fantasy_pts": 17.173143239665947,
+          "fantasy_pts_season": 291.9434350743211,
+          "attempts": 27.84382800681383,
+          "passing_yards": 188.6288933640821,
+          "carries": 4.5597396963381165,
+          "rushing_yards": 22.40624614495683,
+          "rushing_tds": 0.2924659152792569
+        },
+        {
+          "rank": 4,
+          "display_name": "Trevor Lawrence",
+          "team": "JAX",
+          "fantasy_pts": 16.490658893767627,
+          "fantasy_pts_season": 280.34120119404963,
+          "attempts": 26.839694717304216,
+          "passing_yards": 186.07346912112612,
+          "carries": 3.871564184360902,
+          "rushing_yards": 18.78970102917523,
+          "rushing_tds": 0.2975997285789055
+        },
+        {
+          "rank": 5,
+          "display_name": "Bo Nix",
+          "team": "DEN",
+          "fantasy_pts": 16.07487101378732,
+          "fantasy_pts_season": 273.27280723438446,
+          "attempts": 27.994518570940052,
+          "passing_yards": 191.959911614131,
+          "carries": 4.040699263198057,
+          "rushing_yards": 18.54685639244647,
+          "rushing_tds": 0.2037408006315235
+        },
+        {
+          "rank": 6,
+          "display_name": "Dak Prescott",
+          "team": "DAL",
+          "fantasy_pts": 15.541584416572636,
+          "fantasy_pts_season": 264.2069350817348,
+          "attempts": 27.750593463280733,
+          "passing_yards": 204.60090202738462,
+          "carries": 2.8175673092169427,
+          "rushing_yards": 12.302359188588548,
+          "rushing_tds": 0.09245879429666
+        },
+        {
+          "rank": 7,
+          "display_name": "Caleb Williams",
+          "team": "CHI",
+          "fantasy_pts": 15.129793952919323,
+          "fantasy_pts_season": 257.2064971996285,
+          "attempts": 26.917631604978073,
+          "passing_yards": 188.33996239510293,
+          "carries": 3.93038776895004,
+          "rushing_yards": 19.137837163647816,
+          "rushing_tds": 0.1274095600400328
+        },
+        {
+          "rank": 8,
+          "display_name": "Jaxson Dart",
+          "team": "NYG",
+          "fantasy_pts": 15.120765002236734,
+          "fantasy_pts_season": 257.0530050380245,
+          "attempts": 22.87412837349367,
+          "passing_yards": 157.44976987890516,
+          "carries": 6.909550971029029,
+          "rushing_yards": 37.52810019467572,
+          "rushing_tds": 0.4656261314942325
+        },
+        {
+          "rank": 9,
+          "display_name": "Jalen Hurts",
+          "team": "PHI",
+          "fantasy_pts": 14.726118767247202,
+          "fantasy_pts_season": 250.34401904320245,
+          "attempts": 22.326895386453828,
+          "passing_yards": 154.27186612404947,
+          "carries": 4.309725888921528,
+          "rushing_yards": 19.43939246099003,
+          "rushing_tds": 0.3757540566584442
+        },
+        {
+          "rank": 10,
+          "display_name": "Patrick Mahomes",
+          "team": "KC",
+          "fantasy_pts": 14.674881201021325,
+          "fantasy_pts_season": 249.47298041736252,
+          "attempts": 23.570619421428894,
+          "passing_yards": 157.42101611311094,
+          "carries": 4.563030519281061,
+          "rushing_yards": 25.55235837289885,
+          "rushing_tds": 0.1903404248771213
+        },
+        {
+          "rank": 11,
+          "display_name": "Matthew Stafford",
+          "team": "LA",
+          "fantasy_pts": 14.27385216899601,
+          "fantasy_pts_season": 242.65548687293216,
+          "attempts": 27.580300447934455,
+          "passing_yards": 201.0142258110147,
+          "carries": 2.0064633369997167,
+          "rushing_yards": 4.781168295094186,
+          "rushing_tds": 0.0611169343628801
+        },
+        {
+          "rank": 12,
+          "display_name": "C.J. Stroud",
+          "team": "HOU",
+          "fantasy_pts": 14.230095186631296,
+          "fantasy_pts_season": 241.91161817273203,
+          "attempts": 26.58206115998637,
+          "passing_yards": 180.9352944669963,
+          "carries": 3.1030564389822497,
+          "rushing_yards": 12.944681869748182,
+          "rushing_tds": 0.1430186358383651
+        },
+        {
+          "rank": 13,
+          "display_name": "Jacoby Brissett",
+          "team": "ARI",
+          "fantasy_pts": 14.075985072347299,
+          "fantasy_pts_season": 239.29174622990408,
+          "attempts": 25.736378680505677,
+          "passing_yards": 180.5222610242428,
+          "carries": 2.5788963219590406,
+          "rushing_yards": 12.282000858031786,
+          "rushing_tds": 0.076012194053566
+        },
+        {
+          "rank": 14,
+          "display_name": "Jordan Love",
+          "team": "GB",
+          "fantasy_pts": 13.700526170967194,
+          "fantasy_pts_season": 232.9089449064423,
+          "attempts": 25.111697572960683,
+          "passing_yards": 176.3658497323409,
+          "carries": 2.863657806451861,
+          "rushing_yards": 12.357317223521717,
+          "rushing_tds": 0.0894843336491625
+        },
+        {
+          "rank": 15,
+          "display_name": "Baker Mayfield",
+          "team": "TB",
+          "fantasy_pts": 13.667238325365084,
+          "fantasy_pts_season": 232.3430515312064,
+          "attempts": 26.287479124573682,
+          "passing_yards": 177.49245430845772,
+          "carries": 2.719482870807961,
+          "rushing_yards": 13.528250858046151,
+          "rushing_tds": 0.1838230590438108
+        }
+      ]
+    },
+    "provenance_keys": [
+      "allocation_params",
+      "arm",
+      "target_season",
+      "team_volume"
+    ]
+  },
+  "multi_season_prior": {
+    "non_qb_invariance": {
+      "pass": true,
+      "n_compared": 3271,
+      "n_changed": 0,
+      "max_abs_delta": 0.0
+    },
+    "conservation": {
+      "n_teams": 32,
+      "mean_abs_rel_error": 0.12789933834257672,
+      "violations": [
+        {
+          "team": "ARI",
+          "realized": 670.5819113613602,
+          "target": 579.3147799186061,
+          "rel_error": 0.1575432469642449
+        },
+        {
+          "team": "ATL",
+          "realized": 616.7099010694101,
+          "target": 529.5579591012455,
+          "rel_error": 0.164574888301324
+        },
+        {
+          "team": "BAL",
+          "realized": 579.0420439346296,
+          "target": 501.85281848744654,
+          "rel_error": 0.15380849245766254
+        },
+        {
+          "team": "BUF",
+          "realized": 615.1422687407617,
+          "target": 531.2607901559722,
+          "rel_error": 0.15789134101194022
+        },
+        {
+          "team": "CAR",
+          "realized": 580.0433337584961,
+          "target": 529.2088440077071,
+          "rel_error": 0.09605752119677118
+        },
+        {
+          "team": "CHI",
+          "realized": 579.8850862249795,
+          "target": 539.7076467324134,
+          "rel_error": 0.07444296877358504
+        },
+        {
+          "team": "CIN",
+          "realized": 700.5722309604657,
+          "target": 572.0712079604236,
+          "rel_error": 0.22462417477394162
+        },
+        {
+          "team": "DAL",
+          "realized": 610.1307574062755,
+          "target": 557.4778558467696,
+          "rel_error": 0.09444841800851426
+        },
+        {
+          "team": "DEN",
+          "realized": 598.2749990574255,
+          "target": 557.7480057787272,
+          "rel_error": 0.0726618344822488
+        },
+        {
+          "team": "DET",
+          "realized": 625.008317141545,
+          "target": 542.7749645608528,
+          "rel_error": 0.15150542664992922
+        },
+        {
+          "team": "GB",
+          "realized": 575.9483263506147,
+          "target": 522.1010901258048,
+          "rel_error": 0.10313565177930373
+        },
+        {
+          "team": "HOU",
+          "realized": 602.5416203150539,
+          "target": 549.0350438072371,
+          "rel_error": 0.09745566719526678
+        },
+        {
+          "team": "IND",
+          "realized": 615.0740066718737,
+          "target": 541.0135250818336,
+          "rel_error": 0.1368921074179019
+        },
+        {
+          "team": "JAX",
+          "realized": 604.1118613886449,
+          "target": 548.4029471188509,
+          "rel_error": 0.10158390753089935
+        },
+        {
+          "team": "KC",
+          "realized": 690.8421357508679,
+          "target": 562.5246139934734,
+          "rel_error": 0.2281100569918942
+        },
+        {
+          "team": "LA",
+          "realized": 610.6338269361239,
+          "target": 557.0779135387193,
+          "rel_error": 0.09613720468148176
+        },
+        {
+          "team": "LAC",
+          "realized": 606.1978436516971,
+          "target": 556.8680563201843,
+          "rel_error": 0.08858433657963215
+        },
+        {
+          "team": "LV",
+          "realized": 702.3977780428881,
+          "target": 541.5415761072045,
+          "rel_error": 0.2970338918241068
+        },
+        {
+          "team": "MIN",
+          "realized": 649.350655656478,
+          "target": 532.9874152798646,
+          "rel_error": 0.21832267899892638
+        },
+        {
+          "team": "NO",
+          "realized": 643.3192583120135,
+          "target": 547.1142258765026,
+          "rel_error": 0.175840853491583
+        },
+        {
+          "team": "NYG",
+          "realized": 591.3055386962433,
+          "target": 531.7912821864289,
+          "rel_error": 0.11191280959914375
+        },
+        {
+          "team": "NYJ",
+          "realized": 613.2890578513261,
+          "target": 518.4305495052397,
+          "rel_error": 0.18297245105755036
+        },
+        {
+          "team": "PHI",
+          "realized": 626.1401947134107,
+          "target": 524.771705321586,
+          "rel_error": 0.19316683495674555
+        },
+        {
+          "team": "PIT",
+          "realized": 613.2448839101874,
+          "target": 536.3531559741234,
+          "rel_error": 0.14336026008164968
+        },
+        {
+          "team": "SEA",
+          "realized": 567.308082483984,
+          "target": 515.5168546092797,
+          "rel_error": 0.10046466456263178
+        },
+        {
+          "team": "SF",
+          "realized": 603.009796597533,
+          "target": 547.867142776752,
+          "rel_error": 0.1006496822227772
+        },
+        {
+          "team": "TB",
+          "realized": 589.6228101214416,
+          "target": 536.621694319409,
+          "rel_error": 0.0987681198190343
+        },
+        {
+          "team": "WAS",
+          "realized": 584.0502893370531,
+          "target": 522.6250552798651,
+          "rel_error": 0.11753212640043595
+        }
+      ]
+    },
+    "comparison": {
+      "n_qb": 96,
+      "ppg_thresholds": {
+        "ge_18": 1,
+        "ge_20": 0,
+        "ge_22": 0,
+        "ge_24": 0
+      },
+      "largest_positive": [
+        {
+          "display_name_new": "Fernando Mendoza",
+          "player_id": "00-0041562",
+          "season_delta": 120.61087563101013,
+          "rank_new": 30,
+          "rank_sealed": 34
+        },
+        {
+          "display_name_new": "Mac Jones",
+          "player_id": "00-0036972",
+          "season_delta": 114.04794455760961,
+          "rank_new": 33,
+          "rank_sealed": 56
+        },
+        {
+          "display_name_new": "Justin Fields",
+          "player_id": "00-0036945",
+          "season_delta": 100.27153092750248,
+          "rank_new": 34,
+          "rank_sealed": 42
+        },
+        {
+          "display_name_new": "Spencer Rattler",
+          "player_id": "00-0039376",
+          "season_delta": 100.04688069313443,
+          "rank_new": 36,
+          "rank_sealed": 45
+        },
+        {
+          "display_name_new": "Dillon Gabriel",
+          "player_id": "00-0040704",
+          "season_delta": 96.06470948237185,
+          "rank_new": 38,
+          "rank_sealed": 50
+        },
+        {
+          "display_name_new": "Marcus Mariota",
+          "player_id": "00-0032268",
+          "season_delta": 92.8557237289576,
+          "rank_new": 35,
+          "rank_sealed": 38
+        },
+        {
+          "display_name_new": "Joe Flacco",
+          "player_id": "00-0026158",
+          "season_delta": 91.88973406080318,
+          "rank_new": 39,
+          "rank_sealed": 53
+        },
+        {
+          "display_name_new": "Chris Oladokun",
+          "player_id": "00-0037324",
+          "season_delta": 82.05407160618981,
+          "rank_new": 46,
+          "rank_sealed": 91
+        },
+        {
+          "display_name_new": "Tyler Huntley",
+          "player_id": "00-0035993",
+          "season_delta": 81.3820363087062,
+          "rank_new": 41,
+          "rank_sealed": 44
+        },
+        {
+          "display_name_new": "Davis Mills",
+          "player_id": "00-0036898",
+          "season_delta": 79.96358809777372,
+          "rank_new": 45,
+          "rank_sealed": 55
+        }
+      ],
+      "largest_negative": [
+        {
+          "display_name_new": "Tyler Shough",
+          "player_id": "00-0040743",
+          "season_delta": -114.60955353718953,
+          "rank_new": 27,
+          "rank_sealed": 12
+        },
+        {
+          "display_name_new": "Patrick Mahomes",
+          "player_id": "00-0033873",
+          "season_delta": -107.54727491882113,
+          "rank_new": 16,
+          "rank_sealed": 4
+        },
+        {
+          "display_name_new": "Malik Willis",
+          "player_id": "00-0038128",
+          "season_delta": -96.79132357434713,
+          "rank_new": 29,
+          "rank_sealed": 25
+        },
+        {
+          "display_name_new": "Brock Purdy",
+          "player_id": "00-0037834",
+          "season_delta": -95.76124763537103,
+          "rank_new": 17,
+          "rank_sealed": 7
+        },
+        {
+          "display_name_new": "Cam Ward",
+          "player_id": "00-0040676",
+          "season_delta": -90.27644093406371,
+          "rank_new": 28,
+          "rank_sealed": 24
+        },
+        {
+          "display_name_new": "Jared Goff",
+          "player_id": "00-0033106",
+          "season_delta": -82.94149156202309,
+          "rank_new": 20,
+          "rank_sealed": 15
+        },
+        {
+          "display_name_new": "Jaxson Dart",
+          "player_id": "00-0040691",
+          "season_delta": -82.19790626087246,
+          "rank_new": 15,
+          "rank_sealed": 9
+        },
+        {
+          "display_name_new": "Jacoby Brissett",
+          "player_id": "00-0033119",
+          "season_delta": -80.85600059115896,
+          "rank_new": 21,
+          "rank_sealed": 17
+        },
+        {
+          "display_name_new": "Bryce Young",
+          "player_id": "00-0039150",
+          "season_delta": -78.45909172872365,
+          "rank_new": 23,
+          "rank_sealed": 22
+        },
+        {
+          "display_name_new": "Joe Burrow",
+          "player_id": "00-0036442",
+          "season_delta": -77.92646330450037,
+          "rank_new": 22,
+          "rank_sealed": 20
+        }
+      ],
+      "rank_moves_gt_5": [
+        {
+          "display_name_new": "Joe Flacco",
+          "player_id": "00-0026158",
+          "rank_new": 39,
+          "rank_sealed": 53,
+          "rank_delta": 14,
+          "season_delta": 91.88973406080318
+        },
+        {
+          "display_name_new": "Josh Johnson",
+          "player_id": "00-0026300",
+          "rank_new": 47,
+          "rank_sealed": 76,
+          "rank_delta": 29,
+          "season_delta": 77.77846240509494
+        },
+        {
+          "display_name_new": "Matthew Stafford",
+          "player_id": "00-0026498",
+          "rank_new": 13,
+          "rank_sealed": 21,
+          "rank_delta": 8,
+          "season_delta": -51.39939967332458
+        },
+        {
+          "display_name_new": "Andy Dalton",
+          "player_id": "00-0027973",
+          "rank_new": 67,
+          "rank_sealed": 51,
+          "rank_delta": -16,
+          "season_delta": 43.978201262543564
+        },
+        {
+          "display_name_new": "Teddy Bridgewater",
+          "player_id": "00-0031237",
+          "rank_new": 75,
+          "rank_sealed": 94,
+          "rank_delta": 19,
+          "season_delta": 43.66001527075386
+        },
+        {
+          "display_name_new": "Jameis Winston",
+          "player_id": "00-0031503",
+          "rank_new": 43,
+          "rank_sealed": 37,
+          "rank_delta": -6,
+          "season_delta": 71.98734658622541
+        },
+        {
+          "display_name_new": "Carson Wentz",
+          "player_id": "00-0032950",
+          "rank_new": 58,
+          "rank_sealed": 66,
+          "rank_delta": 8,
+          "season_delta": 56.893292160850635
+        },
+        {
+          "display_name_new": "Nick Mullens",
+          "player_id": "00-0033319",
+          "rank_new": 53,
+          "rank_sealed": 88,
+          "rank_delta": 35,
+          "season_delta": 67.05426867429526
+        },
+        {
+          "display_name_new": "Mitchell Trubisky",
+          "player_id": "00-0033869",
+          "rank_new": 56,
+          "rank_sealed": 67,
+          "rank_delta": 11,
+          "season_delta": 59.43730828175847
+        },
+        {
+          "display_name_new": "Patrick Mahomes",
+          "player_id": "00-0033873",
+          "rank_new": 16,
+          "rank_sealed": 4,
+          "rank_delta": -12,
+          "season_delta": -107.54727491882113
+        },
+        {
+          "display_name_new": "Joshua Dobbs",
+          "player_id": "00-0033949",
+          "rank_new": 61,
+          "rank_sealed": 47,
+          "rank_delta": -14,
+          "season_delta": 49.59409318597344
+        },
+        {
+          "display_name_new": "Mason Rudolph",
+          "player_id": "00-0034771",
+          "rank_new": 70,
+          "rank_sealed": 64,
+          "rank_delta": -6,
+          "season_delta": 46.079020434600444
+        },
+        {
+          "display_name_new": "Lamar Jackson",
+          "player_id": "00-0034796",
+          "rank_new": 6,
+          "rank_sealed": 18,
+          "rank_delta": 12,
+          "season_delta": -15.99829904217745
+        },
+        {
+          "display_name_new": "Baker Mayfield",
+          "player_id": "00-0034855",
+          "rank_new": 12,
+          "rank_sealed": 19,
+          "rank_delta": 7,
+          "season_delta": -46.678706817062135
+        },
+        {
+          "display_name_new": "Jake Browning",
+          "player_id": "00-0035100",
+          "rank_new": 72,
+          "rank_sealed": 48,
+          "rank_delta": -24,
+          "season_delta": 34.00825301018526
+        },
+        {
+          "display_name_new": "Kyler Murray",
+          "player_id": "00-0035228",
+          "rank_new": 18,
+          "rank_sealed": 10,
+          "rank_delta": -8,
+          "season_delta": -77.44710117466045
+        },
+        {
+          "display_name_new": "Jarrett Stidham",
+          "player_id": "00-0035264",
+          "rank_new": 77,
+          "rank_sealed": 96,
+          "rank_delta": 19,
+          "season_delta": 42.59265699824096
+        },
+        {
+          "display_name_new": "Gardner Minshew",
+          "player_id": "00-0035289",
+          "rank_new": 90,
+          "rank_sealed": 80,
+          "rank_delta": -10,
+          "season_delta": 19.898118061421545
+        },
+        {
+          "display_name_new": "Drew Lock",
+          "player_id": "00-0035704",
+          "rank_new": 78,
+          "rank_sealed": 70,
+          "rank_delta": -8,
+          "season_delta": 33.18308473655354
+        },
+        {
+          "display_name_new": "Daniel Jones",
+          "player_id": "00-0035710",
+          "rank_new": 10,
+          "rank_sealed": 23,
+          "rank_delta": 13,
+          "season_delta": -25.798004530712262
+        },
+        {
+          "display_name_new": "Jordan Love",
+          "player_id": "00-0036264",
+          "rank_new": 19,
+          "rank_sealed": 27,
+          "rank_delta": 8,
+          "season_delta": -34.35567472288909
+        },
+        {
+          "display_name_new": "Jalen Hurts",
+          "player_id": "00-0036389",
+          "rank_new": 2,
+          "rank_sealed": 8,
+          "rank_delta": 6,
+          "season_delta": -9.412450693319045
+        },
+        {
+          "display_name_new": "Shane Buechele",
+          "player_id": "00-0036679",
+          "rank_new": 63,
+          "rank_sealed": 82,
+          "rank_delta": 19,
+          "season_delta": 57.28156235343229
+        },
+        {
+          "display_name_new": "Davis Mills",
+          "player_id": "00-0036898",
+          "rank_new": 45,
+          "rank_sealed": 55,
+          "rank_delta": 10,
+          "season_delta": 79.96358809777372
+        },
+        {
+          "display_name_new": "Justin Fields",
+          "player_id": "00-0036945",
+          "rank_new": 34,
+          "rank_sealed": 42,
+          "rank_delta": 8,
+          "season_delta": 100.27153092750248
+        },
+        {
+          "display_name_new": "Mac Jones",
+          "player_id": "00-0036972",
+          "rank_new": 33,
+          "rank_sealed": 56,
+          "rank_delta": 23,
+          "season_delta": 114.04794455760961
+        },
+        {
+          "display_name_new": "Trey Lance",
+          "player_id": "00-0037012",
+          "rank_new": 50,
+          "rank_sealed": 95,
+          "rank_delta": 45,
+          "season_delta": 75.08591894962572
+        },
+        {
+          "display_name_new": "Chris Oladokun",
+          "player_id": "00-0037324",
+          "rank_new": 46,
+          "rank_sealed": 91,
+          "rank_delta": 45,
+          "season_delta": 82.05407160618981
+        },
+        {
+          "display_name_new": "Brock Purdy",
+          "player_id": "00-0037834",
+          "rank_new": 17,
+          "rank_sealed": 7,
+          "rank_delta": -10,
+          "season_delta": -95.76124763537103
+        },
+        {
+          "display_name_new": "Kenny Pickett",
+          "player_id": "00-0038102",
+          "rank_new": 71,
+          "rank_sealed": 61,
+          "rank_delta": -10,
+          "season_delta": 41.14906629001876
+        },
+        {
+          "display_name_new": "Tanner McKee",
+          "player_id": "00-0038400",
+          "rank_new": 54,
+          "rank_sealed": 73,
+          "rank_delta": 19,
+          "season_delta": 63.44874553389445
+        },
+        {
+          "display_name_new": "Aidan O'Connell",
+          "player_id": "00-0038579",
+          "rank_new": 76,
+          "rank_sealed": 89,
+          "rank_delta": 13,
+          "season_delta": 40.33268645376292
+        },
+        {
+          "display_name_new": "Anthony Richardson",
+          "player_id": "00-0039164",
+          "rank_new": 66,
+          "rank_sealed": 39,
+          "rank_delta": -27,
+          "season_delta": 35.45227680393367
+        },
+        {
+          "display_name_new": "Spencer Rattler",
+          "player_id": "00-0039376",
+          "rank_new": 36,
+          "rank_sealed": 45,
+          "rank_delta": 9,
+          "season_delta": 100.04688069313443
+        },
+        {
+          "display_name_new": "Joe Milton III",
+          "player_id": "00-0039398",
+          "rank_new": 55,
+          "rank_sealed": 85,
+          "rank_delta": 30,
+          "season_delta": 63.56115042244269
+        },
+        {
+          "display_name_new": "Kedon Slovis",
+          "player_id": "00-0039577",
+          "rank_new": 83,
+          "rank_sealed": 93,
+          "rank_delta": 10,
+          "season_delta": 31.974254745669214
+        },
+        {
+          "display_name_new": "J.J. McCarthy",
+          "player_id": "00-0039923",
+          "rank_new": 57,
+          "rank_sealed": 72,
+          "rank_delta": 15,
+          "season_delta": 59.5921370009452
+        },
+        {
+          "display_name_new": "Riley Leonard",
+          "player_id": "00-0040206",
+          "rank_new": 49,
+          "rank_sealed": 59,
+          "rank_delta": 10,
+          "season_delta": 68.7818488853042
+        },
+        {
+          "display_name_new": "Quinn Ewers",
+          "player_id": "00-0040234",
+          "rank_new": 64,
+          "rank_sealed": 49,
+          "rank_delta": -15,
+          "season_delta": 44.50740954084469
+        },
+        {
+          "display_name_new": "Max Brosmer",
+          "player_id": "00-0040494",
+          "rank_new": 69,
+          "rank_sealed": 90,
+          "rank_delta": 21,
+          "season_delta": 51.51719896399602
+        },
+        {
+          "display_name_new": "Shedeur Sanders",
+          "player_id": "00-0040668",
+          "rank_new": 40,
+          "rank_sealed": 32,
+          "rank_delta": -8,
+          "season_delta": 17.2545653351588
+        },
+        {
+          "display_name_new": "Jalen Milroe",
+          "player_id": "00-0040673",
+          "rank_new": 68,
+          "rank_sealed": 77,
+          "rank_delta": 9,
+          "season_delta": 49.83991446434112
+        },
+        {
+          "display_name_new": "Jaxson Dart",
+          "player_id": "00-0040691",
+          "rank_new": 15,
+          "rank_sealed": 9,
+          "rank_delta": -6,
+          "season_delta": -82.19790626087246
+        },
+        {
+          "display_name_new": "Dillon Gabriel",
+          "player_id": "00-0040704",
+          "rank_new": 38,
+          "rank_sealed": 50,
+          "rank_delta": 12,
+          "season_delta": 96.06470948237185
+        },
+        {
+          "display_name_new": "Tyler Shough",
+          "player_id": "00-0040743",
+          "rank_new": 27,
+          "rank_sealed": 12,
+          "rank_delta": -15,
+          "season_delta": -114.60955353718953
+        },
+        {
+          "display_name_new": "Cole Payton",
+          "player_id": "00-0040891",
+          "rank_new": 85,
+          "rank_sealed": 78,
+          "rank_delta": -7,
+          "season_delta": 22.74748503880407
+        },
+        {
+          "display_name_new": "Garrett Nussmeier",
+          "player_id": "00-0040906",
+          "rank_new": 87,
+          "rank_sealed": 71,
+          "rank_delta": -16,
+          "season_delta": 19.478323351295234
+        },
+        {
+          "display_name_new": "Joe Fagnano",
+          "player_id": "00-0040981",
+          "rank_new": 89,
+          "rank_sealed": 57,
+          "rank_delta": -32,
+          "season_delta": 16.361045656121547
+        },
+        {
+          "display_name_new": "Diego Pavia",
+          "player_id": "00-0040985",
+          "rank_new": 88,
+          "rank_sealed": 46,
+          "rank_delta": -42,
+          "season_delta": 12.179179842962236
+        },
+        {
+          "display_name_new": "Jacob Clark",
+          "player_id": "00-0040996",
+          "rank_new": 65,
+          "rank_sealed": 92,
+          "rank_delta": 27,
+          "season_delta": 53.93911946630379
+        },
+        {
+          "display_name_new": "Cade Klubnik",
+          "player_id": "00-0041056",
+          "rank_new": 44,
+          "rank_sealed": 35,
+          "rank_delta": -9,
+          "season_delta": 56.52155345488896
+        },
+        {
+          "display_name_new": "Taylen Green",
+          "player_id": "00-0041092",
+          "rank_new": 82,
+          "rank_sealed": 74,
+          "rank_delta": -8,
+          "season_delta": 28.793792387581096
+        },
+        {
+          "display_name_new": "Behren Morton",
+          "player_id": "00-0041123",
+          "rank_new": 84,
+          "rank_sealed": 60,
+          "rank_delta": -24,
+          "season_delta": 24.39265149580589
+        },
+        {
+          "display_name_new": "Haynes King",
+          "player_id": "00-0041149",
+          "rank_new": 93,
+          "rank_sealed": 58,
+          "rank_delta": -35,
+          "season_delta": 11.80265982013523
+        },
+        {
+          "display_name_new": "Mark Gronowski",
+          "player_id": "00-0041156",
+          "rank_new": 51,
+          "rank_sealed": 68,
+          "rank_delta": 17,
+          "season_delta": 65.62800542272254
+        },
+        {
+          "display_name_new": "Miller Moss",
+          "player_id": "00-0041172",
+          "rank_new": 92,
+          "rank_sealed": 86,
+          "rank_delta": -6,
+          "season_delta": 16.87426199800496
+        },
+        {
+          "display_name_new": "Jack Strand",
+          "player_id": "00-0041194",
+          "rank_new": 62,
+          "rank_sealed": 54,
+          "rank_delta": -8,
+          "season_delta": 52.289612832677584
+        },
+        {
+          "display_name_new": "Joey Aguilar",
+          "player_id": "00-0041203",
+          "rank_new": 95,
+          "rank_sealed": 87,
+          "rank_delta": -8,
+          "season_delta": 15.968070013912234
+        },
+        {
+          "display_name_new": "Jalon Daniels",
+          "player_id": "00-0041251",
+          "rank_new": 91,
+          "rank_sealed": 84,
+          "rank_delta": -7,
+          "season_delta": 16.896694759085733
+        },
+        {
+          "display_name_new": "Matthew Caldwell",
+          "player_id": "00-0041414",
+          "rank_new": 96,
+          "rank_sealed": 62,
+          "rank_delta": -34,
+          "season_delta": 11.413949152456475
+        },
+        {
+          "display_name_new": "Luke Altmyer",
+          "player_id": "00-0041453",
+          "rank_new": 94,
+          "rank_sealed": 36,
+          "rank_delta": -58,
+          "season_delta": -7.325630829446602
+        },
+        {
+          "display_name_new": "Drew Allar",
+          "player_id": "00-0041565",
+          "rank_new": 79,
+          "rank_sealed": 65,
+          "rank_delta": -14,
+          "season_delta": 28.462869677483624
+        },
+        {
+          "display_name_new": "Ty Simpson",
+          "player_id": "00-0041568",
+          "rank_new": 60,
+          "rank_sealed": 40,
+          "rank_delta": -20,
+          "season_delta": 44.018858526690536
+        }
+      ],
+      "focus_players": [
+        {
+          "player_id": "00-0033873",
+          "position": "QB",
+          "attempts": 20.266499026167303,
+          "carries": 4.809523809523809,
+          "completions": 13.03500019342472,
+          "interceptions": 0.4113341626174247,
+          "passing_tds": 1.2159899415700381,
+          "passing_yards": 140.727559854663,
+          "rushing_tds": 0.2107203717803936,
+          "rushing_yards": 23.428571428571427,
+          "display_name_new": "Patrick Mahomes",
+          "team": "KC",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 13.27757320877133,
+          "fantasy_pts_season_new": 225.7187445491126,
+          "rank_new": 16,
+          "display_name_sealed": "Patrick Mahomes",
+          "fantasy_pts_sealed": 19.60388349811375,
+          "fantasy_pts_season_sealed": 333.26601946793375,
+          "rank_sealed": 4,
+          "pg_attempts": 31.332556714565364,
+          "pg_passing_yards": 204.89724806112528,
+          "pg_carries": 3.814779437034475,
+          "pg_rushing_yards": 21.567076002220727,
+          "pg_rushing_tds": 0.2027180678413673,
+          "season_delta": -107.54727491882113,
+          "rank_delta": -12
+        },
+        {
+          "player_id": "00-0034796",
+          "position": "QB",
+          "attempts": 17.92568369887114,
+          "carries": 8.74137931034483,
+          "completions": 10.48445518997463,
+          "interceptions": 0.2824383928410097,
+          "passing_tds": 1.0755410219322683,
+          "passing_yards": 138.8772655244522,
+          "rushing_tds": 0.26212645226024783,
+          "rushing_yards": 49.12068965517241,
+          "display_name_new": "Lamar Jackson",
+          "team": "BAL",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 15.777205602103873,
+          "fantasy_pts_season_new": 268.21249523576586,
+          "rank_new": 6,
+          "display_name_sealed": "Lamar Jackson",
+          "fantasy_pts_sealed": 16.718282016349605,
+          "fantasy_pts_season_sealed": 284.2107942779433,
+          "rank_sealed": 18,
+          "pg_attempts": 23.27111048390881,
+          "pg_passing_yards": 164.3780360322704,
+          "pg_carries": 4.505757534866991,
+          "pg_rushing_yards": 21.806181658398327,
+          "pg_rushing_tds": 0.132264046622744,
+          "season_delta": -15.99829904217745,
+          "rank_delta": 12
+        },
+        {
+          "player_id": "00-0034857",
+          "position": "QB",
+          "attempts": 20.847495763771295,
+          "carries": 7.545454545454546,
+          "completions": 12.556560635619414,
+          "interceptions": 0.4604209307477754,
+          "passing_tds": 1.2508497458262777,
+          "passing_yards": 162.21222234552323,
+          "rushing_tds": 0.7545454545454546,
+          "rushing_yards": 36.303030303030305,
+          "display_name_new": "Josh Allen",
+          "team": "BUF",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 18.728621773206246,
+          "fantasy_pts_season_new": 318.3865701445062,
+          "rank_new": 1,
+          "display_name_sealed": "Josh Allen",
+          "fantasy_pts_sealed": 21.022766426750437,
+          "fantasy_pts_season_sealed": 357.3870292547573,
+          "rank_sealed": 1,
+          "pg_attempts": 27.0270600138102,
+          "pg_passing_yards": 186.1346698990766,
+          "pg_carries": 5.623690956288139,
+          "pg_rushing_yards": 28.85473069203882,
+          "pg_rushing_tds": 0.5217846453793454,
+          "season_delta": -39.000459110251086,
+          "rank_delta": 0
+        },
+        {
+          "player_id": "00-0036389",
+          "position": "QB",
+          "attempts": 17.259286028282858,
+          "carries": 9.777777777777779,
+          "completions": 10.668839689013799,
+          "interceptions": 0.2942591598453194,
+          "passing_tds": 1.0355571616969714,
+          "passing_yards": 129.40393880101556,
+          "rushing_tds": 0.8419861142538325,
+          "rushing_yards": 38.34920634920635,
+          "display_name_new": "Jalen Hurts",
+          "team": "PHI",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 17.6167051995815,
+          "fantasy_pts_season_new": 299.48398839288546,
+          "rank_new": 2,
+          "display_name_sealed": "Jalen Hurts",
+          "fantasy_pts_sealed": 18.170378769776736,
+          "fantasy_pts_season_sealed": 308.8964390862045,
+          "rank_sealed": 8,
+          "pg_attempts": 25.081630356605963,
+          "pg_passing_yards": 171.91080716781892,
+          "pg_carries": 5.331816853470477,
+          "pg_rushing_yards": 26.649502530172263,
+          "pg_rushing_tds": 0.4395578146301786,
+          "season_delta": -9.412450693319045,
+          "rank_delta": 6
+        },
+        {
+          "player_id": "00-0036442",
+          "position": "QB",
+          "attempts": 20.389281328654015,
+          "carries": 3.2607142857142852,
+          "completions": 13.231075067732272,
+          "interceptions": 0.3427163617412783,
+          "passing_tds": 1.223356879719241,
+          "passing_yards": 143.23458847012648,
+          "rushing_tds": 0.13109402332361514,
+          "rushing_yards": 11.971428571428572,
+          "display_name_new": "Joe Burrow",
+          "team": "CIN",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 11.921085331284015,
+          "fantasy_pts_season_new": 202.65845063182826,
+          "rank_new": 22,
+          "display_name_sealed": "Joe Burrow",
+          "fantasy_pts_sealed": 16.504994937431096,
+          "fantasy_pts_season_sealed": 280.58491393632863,
+          "rank_sealed": 20,
+          "pg_attempts": 30.387954173959443,
+          "pg_passing_yards": 203.4539787344203,
+          "pg_carries": 2.0136794674652294,
+          "pg_rushing_yards": 6.906191069797209,
+          "pg_rushing_tds": 0.046503731967124,
+          "season_delta": -77.92646330450037,
+          "rank_delta": -2
+        },
+        {
+          "player_id": "00-0039732",
+          "position": "QB",
+          "attempts": 27.157380027131307,
+          "carries": 4.663057731414234,
+          "completions": 18.428663229273198,
+          "interceptions": 0.5400468833619545,
+          "passing_tds": 1.5812191834968352,
+          "passing_yards": 193.2574588986472,
+          "rushing_tds": 0.23446495690317518,
+          "rushing_yards": 20.591523399040934,
+          "display_name_new": "Bo Nix",
+          "team": "DEN",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 16.441023404532466,
+          "fantasy_pts_season_new": 279.4973978770519,
+          "rank_new": 4,
+          "display_name_sealed": "Bo Nix",
+          "fantasy_pts_sealed": 19.161776299214264,
+          "fantasy_pts_season_sealed": 325.75019708664246,
+          "rank_sealed": 6,
+          "pg_attempts": 32.443220122423824,
+          "pg_passing_yards": 216.5553301096904,
+          "pg_carries": 4.174199218208693,
+          "pg_rushing_yards": 26.20537640692175,
+          "pg_rushing_tds": 0.1740560504223096,
+          "season_delta": -46.252799209590535,
+          "rank_delta": 2
+        },
+        {
+          "player_id": "00-0039851",
+          "position": "QB",
+          "attempts": 27.63937996783496,
+          "carries": 4.811812082109134,
+          "completions": 18.750002320933614,
+          "interceptions": 0.592961752474144,
+          "passing_tds": 1.5120438735459119,
+          "passing_yards": 205.6205483589189,
+          "rushing_tds": 0.1944809650439916,
+          "rushing_yards": 26.312966690986407,
+          "display_name_new": "Drake Maye",
+          "team": "NE",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 16.885256382954704,
+          "fantasy_pts_season_new": 287.04935851023,
+          "rank_new": 3,
+          "display_name_sealed": "Drake Maye",
+          "fantasy_pts_sealed": 20.641046053224745,
+          "fantasy_pts_season_sealed": 350.89778290482064,
+          "rank_sealed": 2,
+          "pg_attempts": 28.671330384579925,
+          "pg_passing_yards": 215.73964609595987,
+          "pg_carries": 4.33955298477633,
+          "pg_rushing_yards": 25.64998945825593,
+          "pg_rushing_tds": 0.2345171382072747,
+          "season_delta": -63.848424394590666,
+          "rank_delta": -1
+        },
+        {
+          "player_id": "00-0039910",
+          "position": "QB",
+          "attempts": 18.653955268755436,
+          "carries": 7.883166078183265,
+          "completions": 11.126496340671885,
+          "interceptions": 0.37406232942183887,
+          "passing_tds": 1.1117169183922488,
+          "passing_yards": 126.01587968645518,
+          "rushing_tds": 0.32860762090773,
+          "rushing_yards": 37.696483306247885,
+          "display_name_new": "Jayden Daniels",
+          "team": "WAS",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 14.480672258254693,
+          "fantasy_pts_season_new": 246.17142839032977,
+          "rank_new": 11,
+          "display_name_sealed": "Jayden Daniels",
+          "fantasy_pts_sealed": 17.27801336449332,
+          "fantasy_pts_season_sealed": 293.72622719638645,
+          "rank_sealed": 14,
+          "pg_attempts": 22.833864521983912,
+          "pg_passing_yards": 151.465146247807,
+          "pg_carries": 5.9414626217075,
+          "pg_rushing_yards": 29.24170030669615,
+          "pg_rushing_tds": 0.2011793584800882,
+          "season_delta": -47.55479880605668,
+          "rank_delta": 3
+        }
+      ],
+      "top15_new": [
+        {
+          "rank": 1,
+          "display_name": "Josh Allen",
+          "team": "BUF",
+          "fantasy_pts": 18.728621773206246,
+          "fantasy_pts_season": 318.3865701445062,
+          "attempts": 20.847495763771295,
+          "passing_yards": 162.21222234552323,
+          "carries": 7.545454545454546,
+          "rushing_yards": 36.303030303030305,
+          "rushing_tds": 0.7545454545454546
+        },
+        {
+          "rank": 2,
+          "display_name": "Jalen Hurts",
+          "team": "PHI",
+          "fantasy_pts": 17.6167051995815,
+          "fantasy_pts_season": 299.48398839288546,
+          "attempts": 17.259286028282858,
+          "passing_yards": 129.40393880101556,
+          "carries": 9.777777777777779,
+          "rushing_yards": 38.34920634920635,
+          "rushing_tds": 0.8419861142538325
+        },
+        {
+          "rank": 3,
+          "display_name": "Drake Maye",
+          "team": "NE",
+          "fantasy_pts": 16.885256382954704,
+          "fantasy_pts_season": 287.04935851023,
+          "attempts": 27.63937996783496,
+          "passing_yards": 205.6205483589189,
+          "carries": 4.811812082109134,
+          "rushing_yards": 26.312966690986407,
+          "rushing_tds": 0.1944809650439916
+        },
+        {
+          "rank": 4,
+          "display_name": "Bo Nix",
+          "team": "DEN",
+          "fantasy_pts": 16.441023404532466,
+          "fantasy_pts_season": 279.4973978770519,
+          "attempts": 27.157380027131307,
+          "passing_yards": 193.2574588986472,
+          "carries": 4.663057731414234,
+          "rushing_yards": 20.591523399040934,
+          "rushing_tds": 0.23446495690317518
+        },
+        {
+          "rank": 5,
+          "display_name": "Trevor Lawrence",
+          "team": "JAX",
+          "fantasy_pts": 15.985058824159566,
+          "fantasy_pts_season": 271.74600001071263,
+          "attempts": 25.49024512937478,
+          "passing_yards": 181.61174039266444,
+          "carries": 4.057142857142857,
+          "rushing_yards": 18.65428571428571,
+          "rushing_tds": 0.3540261984325469
+        },
+        {
+          "rank": 6,
+          "display_name": "Lamar Jackson",
+          "team": "BAL",
+          "fantasy_pts": 15.777205602103873,
+          "fantasy_pts_season": 268.21249523576586,
+          "attempts": 17.92568369887114,
+          "passing_yards": 138.8772655244522,
+          "carries": 8.74137931034483,
+          "rushing_yards": 49.12068965517241,
+          "rushing_tds": 0.26212645226024783
+        },
+        {
+          "rank": 7,
+          "display_name": "Dak Prescott",
+          "team": "DAL",
+          "fantasy_pts": 15.391989661291216,
+          "fantasy_pts_season": 261.6638242419507,
+          "attempts": 26.876528662052266,
+          "passing_yards": 203.48715002495345,
+          "carries": 3.3051948051948052,
+          "rushing_yards": 12.409090909090908,
+          "rushing_tds": 0.12469261597594669
+        },
+        {
+          "rank": 8,
+          "display_name": "Justin Herbert",
+          "team": "LAC",
+          "fantasy_pts": 15.31153680252973,
+          "fantasy_pts_season": 260.29612564300544,
+          "attempts": 27.378094784599227,
+          "passing_yards": 189.11063756564656,
+          "carries": 4.1269841269841265,
+          "rushing_yards": 18.714285714285715,
+          "rushing_tds": 0.10636522072980713
+        },
+        {
+          "rank": 9,
+          "display_name": "Caleb Williams",
+          "team": "CHI",
+          "fantasy_pts": 14.98211179885413,
+          "fantasy_pts_season": 254.6959005805202,
+          "attempts": 25.84424431398915,
+          "passing_yards": 180.14375836817462,
+          "carries": 4.259008545591897,
+          "rushing_yards": 22.37535112397466,
+          "rushing_tds": 0.10785405904200573
+        },
+        {
+          "rank": 10,
+          "display_name": "Daniel Jones",
+          "team": "IND",
+          "fantasy_pts": 14.508087120558386,
+          "fantasy_pts_season": 246.63748104949258,
+          "attempts": 20.81238817305303,
+          "passing_yards": 147.17166900196804,
+          "carries": 5.802505667427322,
+          "rushing_yards": 28.496482811431726,
+          "rushing_tds": 0.3816805954963328
+        },
+        {
+          "rank": 11,
+          "display_name": "Jayden Daniels",
+          "team": "WAS",
+          "fantasy_pts": 14.480672258254693,
+          "fantasy_pts_season": 246.17142839032977,
+          "attempts": 18.653955268755436,
+          "passing_yards": 126.01587968645518,
+          "carries": 7.883166078183265,
+          "rushing_yards": 37.696483306247885,
+          "rushing_tds": 0.32860762090773
+        },
+        {
+          "rank": 12,
+          "display_name": "Baker Mayfield",
+          "team": "TB",
+          "fantasy_pts": 13.791527478647904,
+          "fantasy_pts_season": 234.45596713701437,
+          "attempts": 24.60165990884163,
+          "passing_yards": 168.97116653168473,
+          "carries": 3.4761904761904763,
+          "rushing_yards": 16.063492063492063,
+          "rushing_tds": 0.1004443158821039
+        },
+        {
+          "rank": 13,
+          "display_name": "Matthew Stafford",
+          "team": "LA",
+          "fantasy_pts": 13.443088247539773,
+          "fantasy_pts_season": 228.53250020817615,
+          "attempts": 26.145085714292133,
+          "passing_yards": 194.54272973580962,
+          "carries": 1.7123287671232876,
+          "rushing_yards": 2.077625570776256,
+          "rushing_tds": 0.01623915585259177
+        },
+        {
+          "rank": 14,
+          "display_name": "C.J. Stroud",
+          "team": "HOU",
+          "fantasy_pts": 13.352198624680316,
+          "fantasy_pts_season": 226.98737661956537,
+          "attempts": 24.273714174590463,
+          "passing_yards": 170.68836094051701,
+          "carries": 3.40012735162426,
+          "rushing_yards": 13.018528411239508,
+          "rushing_tds": 0.10874240367646848
+        },
+        {
+          "rank": 15,
+          "display_name": "Jaxson Dart",
+          "team": "NYG",
+          "fantasy_pts": 13.31279960606681,
+          "fantasy_pts_season": 226.31759330313577,
+          "attempts": 14.345912122899893,
+          "passing_yards": 103.62534189700607,
+          "carries": 6.909550971029029,
+          "rushing_yards": 37.52810019467572,
+          "rushing_tds": 0.4656261314942325
+        }
+      ]
+    },
+    "provenance_keys": [
+      "allocation_params",
+      "arm",
+      "rate_prior_audit",
+      "target_season",
+      "team_volume"
+    ]
+  },
+  "mobile_rush_prior": {
+    "non_qb_invariance": {
+      "pass": true,
+      "n_compared": 3271,
+      "n_changed": 0,
+      "max_abs_delta": 0.0
+    },
+    "conservation": {
+      "n_teams": 32,
+      "mean_abs_rel_error": 0.11194769245155886,
+      "violations": [
+        {
+          "team": "ARI",
+          "realized": 677.0344364210247,
+          "target": 579.3147799186061,
+          "rel_error": 0.16868144899763865
+        },
+        {
+          "team": "ATL",
+          "realized": 616.7099010694101,
+          "target": 529.5579591012455,
+          "rel_error": 0.164574888301324
+        },
+        {
+          "team": "BAL",
+          "realized": 564.0824259710894,
+          "target": 501.85281848744654,
+          "rel_error": 0.1239997170309794
+        },
+        {
+          "team": "BUF",
+          "realized": 600.7894357291422,
+          "target": 531.2607901559722,
+          "rel_error": 0.13087479230823165
+        },
+        {
+          "team": "CAR",
+          "realized": 560.969213831361,
+          "target": 529.2088440077071,
+          "rel_error": 0.06001481302378123
+        },
+        {
+          "team": "CHI",
+          "realized": 567.2231882849658,
+          "target": 539.7076467324134,
+          "rel_error": 0.050982308142457224
+        },
+        {
+          "team": "CIN",
+          "realized": 684.6797837967808,
+          "target": 572.0712079604236,
+          "rel_error": 0.19684363461995374
+        },
+        {
+          "team": "DAL",
+          "realized": 608.3814558190136,
+          "target": 557.4778558467696,
+          "rel_error": 0.09131053267564332
+        },
+        {
+          "team": "DEN",
+          "realized": 587.879953134154,
+          "target": 557.7480057787272,
+          "rel_error": 0.05402430316780165
+        },
+        {
+          "team": "DET",
+          "realized": 612.9572411252605,
+          "target": 542.7749645608528,
+          "rel_error": 0.12930271502332566
+        },
+        {
+          "team": "GB",
+          "realized": 570.829444618578,
+          "target": 522.1010901258048,
+          "rel_error": 0.09333126364672338
+        },
+        {
+          "team": "HOU",
+          "realized": 595.8283541736264,
+          "target": 549.0350438072371,
+          "rel_error": 0.0852282762169515
+        },
+        {
+          "team": "IND",
+          "realized": 599.8306848766592,
+          "target": 541.0135250818336,
+          "rel_error": 0.10871661625451785
+        },
+        {
+          "team": "JAX",
+          "realized": 594.0707679295508,
+          "target": 548.4029471188509,
+          "rel_error": 0.08327420749765359
+        },
+        {
+          "team": "KC",
+          "realized": 674.9846414636053,
+          "target": 562.5246139934734,
+          "rel_error": 0.19992018957491642
+        },
+        {
+          "team": "LA",
+          "realized": 616.0639643350017,
+          "target": 557.0779135387193,
+          "rel_error": 0.10588474136694113
+        },
+        {
+          "team": "LAC",
+          "realized": 594.7634887697337,
+          "target": 556.8680563201843,
+          "rel_error": 0.06805100780957801
+        },
+        {
+          "team": "LV",
+          "realized": 683.0307657152891,
+          "target": 541.5415761072045,
+          "rel_error": 0.2612711486072035
+        },
+        {
+          "team": "MIN",
+          "realized": 620.1370383960599,
+          "target": 532.9874152798646,
+          "rel_error": 0.1635115963674942
+        },
+        {
+          "team": "NO",
+          "realized": 643.3192583120135,
+          "target": 547.1142258765026,
+          "rel_error": 0.175840853491583
+        },
+        {
+          "team": "NYG",
+          "realized": 591.3055386962433,
+          "target": 531.7912821864289,
+          "rel_error": 0.11191280959914375
+        },
+        {
+          "team": "NYJ",
+          "realized": 583.229276803248,
+          "target": 518.4305495052397,
+          "rel_error": 0.12499017922429242
+        },
+        {
+          "team": "PHI",
+          "realized": 627.549215295693,
+          "target": 524.771705321586,
+          "rel_error": 0.1958518512562026
+        },
+        {
+          "team": "PIT",
+          "realized": 606.3438115824996,
+          "target": 536.3531559741234,
+          "rel_error": 0.13049360263623194
+        },
+        {
+          "team": "SEA",
+          "realized": 572.5419285970113,
+          "target": 515.5168546092797,
+          "rel_error": 0.11061728336884744
+        },
+        {
+          "team": "SF",
+          "realized": 585.7650190137822,
+          "target": 547.867142776752,
+          "rel_error": 0.0691734788929897
+        },
+        {
+          "team": "TB",
+          "realized": 588.0018652367842,
+          "target": 536.621694319409,
+          "rel_error": 0.09574747249557254
+        },
+        {
+          "team": "WAS",
+          "realized": 577.5688223301884,
+          "target": 522.6250552798651,
+          "rel_error": 0.10513037309491582
+        }
+      ]
+    },
+    "comparison": {
+      "n_qb": 96,
+      "ppg_thresholds": {
+        "ge_18": 0,
+        "ge_20": 0,
+        "ge_22": 0,
+        "ge_24": 0
+      },
+      "largest_positive": [
+        {
+          "display_name_new": "Fernando Mendoza",
+          "player_id": "00-0041562",
+          "season_delta": 133.88674933762132,
+          "rank_new": 26,
+          "rank_sealed": 34
+        },
+        {
+          "display_name_new": "Mac Jones",
+          "player_id": "00-0036972",
+          "season_delta": 120.55805211363608,
+          "rank_new": 31,
+          "rank_sealed": 56
+        },
+        {
+          "display_name_new": "Justin Fields",
+          "player_id": "00-0036945",
+          "season_delta": 104.39129490738597,
+          "rank_new": 33,
+          "rank_sealed": 42
+        },
+        {
+          "display_name_new": "Spencer Rattler",
+          "player_id": "00-0039376",
+          "season_delta": 100.04688069313443,
+          "rank_new": 35,
+          "rank_sealed": 45
+        },
+        {
+          "display_name_new": "Joe Flacco",
+          "player_id": "00-0026158",
+          "season_delta": 98.59283078555234,
+          "rank_new": 37,
+          "rank_sealed": 53
+        },
+        {
+          "display_name_new": "Dillon Gabriel",
+          "player_id": "00-0040704",
+          "season_delta": 96.06470948237185,
+          "rank_new": 38,
+          "rank_sealed": 50
+        },
+        {
+          "display_name_new": "Marcus Mariota",
+          "player_id": "00-0032268",
+          "season_delta": 95.3425302149268,
+          "rank_new": 34,
+          "rank_sealed": 38
+        },
+        {
+          "display_name_new": "Tyler Huntley",
+          "player_id": "00-0035993",
+          "season_delta": 85.50529953241666,
+          "rank_new": 40,
+          "rank_sealed": 44
+        },
+        {
+          "display_name_new": "Chris Oladokun",
+          "player_id": "00-0037324",
+          "season_delta": 83.96286114230658,
+          "rank_new": 46,
+          "rank_sealed": 91
+        },
+        {
+          "display_name_new": "Davis Mills",
+          "player_id": "00-0036898",
+          "season_delta": 81.1787078350489,
+          "rank_new": 45,
+          "rank_sealed": 55
+        }
+      ],
+      "largest_negative": [
+        {
+          "display_name_new": "Kyler Murray",
+          "player_id": "00-0035228",
+          "season_delta": -139.68449622336433,
+          "rank_new": 28,
+          "rank_sealed": 10
+        },
+        {
+          "display_name_new": "Brock Purdy",
+          "player_id": "00-0037834",
+          "season_delta": -135.044140440773,
+          "rank_new": 22,
+          "rank_sealed": 7
+        },
+        {
+          "display_name_new": "Patrick Mahomes",
+          "player_id": "00-0033873",
+          "season_delta": -123.25952466580105,
+          "rank_new": 18,
+          "rank_sealed": 4
+        },
+        {
+          "display_name_new": "Joe Burrow",
+          "player_id": "00-0036442",
+          "season_delta": -121.31765588016125,
+          "rank_new": 29,
+          "rank_sealed": 20
+        },
+        {
+          "display_name_new": "Tyler Shough",
+          "player_id": "00-0040743",
+          "season_delta": -114.60955353718953,
+          "rank_new": 23,
+          "rank_sealed": 12
+        },
+        {
+          "display_name_new": "Kirk Cousins",
+          "player_id": "00-0029604",
+          "season_delta": -109.57610619929164,
+          "rank_new": 39,
+          "rank_sealed": 30
+        },
+        {
+          "display_name_new": "Jared Goff",
+          "player_id": "00-0033106",
+          "season_delta": -99.77320192011408,
+          "rank_new": 20,
+          "rank_sealed": 15
+        },
+        {
+          "display_name_new": "Geno Smith",
+          "player_id": "00-0030565",
+          "season_delta": -93.93390591463884,
+          "rank_new": 30,
+          "rank_sealed": 29
+        },
+        {
+          "display_name_new": "Cam Ward",
+          "player_id": "00-0040676",
+          "season_delta": -90.27644093406371,
+          "rank_new": 24,
+          "rank_sealed": 24
+        },
+        {
+          "display_name_new": "Malik Willis",
+          "player_id": "00-0038128",
+          "season_delta": -89.99868546245068,
+          "rank_new": 25,
+          "rank_sealed": 25
+        }
+      ],
+      "rank_moves_gt_5": [
+        {
+          "display_name_new": "Joe Flacco",
+          "player_id": "00-0026158",
+          "rank_new": 37,
+          "rank_sealed": 53,
+          "rank_delta": 16,
+          "season_delta": 98.59283078555234
+        },
+        {
+          "display_name_new": "Josh Johnson",
+          "player_id": "00-0026300",
+          "rank_new": 47,
+          "rank_sealed": 76,
+          "rank_delta": 29,
+          "season_delta": 79.96432274227224
+        },
+        {
+          "display_name_new": "Matthew Stafford",
+          "player_id": "00-0026498",
+          "rank_new": 11,
+          "rank_sealed": 21,
+          "rank_delta": 10,
+          "season_delta": -42.404080138943954
+        },
+        {
+          "display_name_new": "Andy Dalton",
+          "player_id": "00-0027973",
+          "rank_new": 69,
+          "rank_sealed": 51,
+          "rank_delta": -18,
+          "season_delta": 44.15315628258924
+        },
+        {
+          "display_name_new": "Kirk Cousins",
+          "player_id": "00-0029604",
+          "rank_new": 39,
+          "rank_sealed": 30,
+          "rank_delta": -9,
+          "season_delta": -109.57610619929164
+        },
+        {
+          "display_name_new": "Teddy Bridgewater",
+          "player_id": "00-0031237",
+          "rank_new": 72,
+          "rank_sealed": 94,
+          "rank_delta": 22,
+          "season_delta": 47.05664596488209
+        },
+        {
+          "display_name_new": "Jameis Winston",
+          "player_id": "00-0031503",
+          "rank_new": 43,
+          "rank_sealed": 37,
+          "rank_delta": -6,
+          "season_delta": 71.98734658622541
+        },
+        {
+          "display_name_new": "Carson Wentz",
+          "player_id": "00-0032950",
+          "rank_new": 55,
+          "rank_sealed": 66,
+          "rank_delta": 11,
+          "season_delta": 64.87323886828946
+        },
+        {
+          "display_name_new": "Nick Mullens",
+          "player_id": "00-0033319",
+          "rank_new": 54,
+          "rank_sealed": 88,
+          "rank_delta": 34,
+          "season_delta": 69.09302108969618
+        },
+        {
+          "display_name_new": "Mitchell Trubisky",
+          "player_id": "00-0033869",
+          "rank_new": 59,
+          "rank_sealed": 67,
+          "rank_delta": 8,
+          "season_delta": 59.43730828175847
+        },
+        {
+          "display_name_new": "Patrick Mahomes",
+          "player_id": "00-0033873",
+          "rank_new": 18,
+          "rank_sealed": 4,
+          "rank_delta": -14,
+          "season_delta": -123.25952466580105
+        },
+        {
+          "display_name_new": "Joshua Dobbs",
+          "player_id": "00-0033949",
+          "rank_new": 60,
+          "rank_sealed": 47,
+          "rank_delta": -13,
+          "season_delta": 52.93205940417973
+        },
+        {
+          "display_name_new": "Lamar Jackson",
+          "player_id": "00-0034796",
+          "rank_new": 10,
+          "rank_sealed": 18,
+          "rank_delta": 8,
+          "season_delta": -42.34747574033159
+        },
+        {
+          "display_name_new": "Baker Mayfield",
+          "player_id": "00-0034855",
+          "rank_new": 12,
+          "rank_sealed": 19,
+          "rank_delta": 7,
+          "season_delta": -53.93410163047372
+        },
+        {
+          "display_name_new": "Jake Browning",
+          "player_id": "00-0035100",
+          "rank_new": 74,
+          "rank_sealed": 48,
+          "rank_delta": -26,
+          "season_delta": 34.15200627391285
+        },
+        {
+          "display_name_new": "Kyler Murray",
+          "player_id": "00-0035228",
+          "rank_new": 28,
+          "rank_sealed": 10,
+          "rank_delta": -18,
+          "season_delta": -139.68449622336433
+        },
+        {
+          "display_name_new": "Jarrett Stidham",
+          "player_id": "00-0035264",
+          "rank_new": 77,
+          "rank_sealed": 96,
+          "rank_delta": 19,
+          "season_delta": 42.23364747924058
+        },
+        {
+          "display_name_new": "Gardner Minshew",
+          "player_id": "00-0035289",
+          "rank_new": 90,
+          "rank_sealed": 80,
+          "rank_delta": -10,
+          "season_delta": 19.126387659105873
+        },
+        {
+          "display_name_new": "Drew Lock",
+          "player_id": "00-0035704",
+          "rank_new": 78,
+          "rank_sealed": 70,
+          "rank_delta": -8,
+          "season_delta": 33.59579238896872
+        },
+        {
+          "display_name_new": "Daniel Jones",
+          "player_id": "00-0035710",
+          "rank_new": 9,
+          "rank_sealed": 23,
+          "rank_delta": 14,
+          "season_delta": -27.15915545358982
+        },
+        {
+          "display_name_new": "Jordan Love",
+          "player_id": "00-0036264",
+          "rank_new": 17,
+          "rank_sealed": 27,
+          "rank_delta": 10,
+          "season_delta": -42.78383548264955
+        },
+        {
+          "display_name_new": "Joe Burrow",
+          "player_id": "00-0036442",
+          "rank_new": 29,
+          "rank_sealed": 20,
+          "rank_delta": -9,
+          "season_delta": -121.31765588016125
+        },
+        {
+          "display_name_new": "Shane Buechele",
+          "player_id": "00-0036679",
+          "rank_new": 61,
+          "rank_sealed": 82,
+          "rank_delta": 21,
+          "season_delta": 61.005670808085085
+        },
+        {
+          "display_name_new": "Davis Mills",
+          "player_id": "00-0036898",
+          "rank_new": 45,
+          "rank_sealed": 55,
+          "rank_delta": 10,
+          "season_delta": 81.1787078350489
+        },
+        {
+          "display_name_new": "Justin Fields",
+          "player_id": "00-0036945",
+          "rank_new": 33,
+          "rank_sealed": 42,
+          "rank_delta": 9,
+          "season_delta": 104.39129490738597
+        },
+        {
+          "display_name_new": "Mac Jones",
+          "player_id": "00-0036972",
+          "rank_new": 31,
+          "rank_sealed": 56,
+          "rank_delta": 25,
+          "season_delta": 120.55805211363608
+        },
+        {
+          "display_name_new": "Trey Lance",
+          "player_id": "00-0037012",
+          "rank_new": 49,
+          "rank_sealed": 95,
+          "rank_delta": 46,
+          "season_delta": 76.46213815389618
+        },
+        {
+          "display_name_new": "Zach Wilson",
+          "player_id": "00-0037013",
+          "rank_new": 75,
+          "rank_sealed": 69,
+          "rank_delta": -6,
+          "season_delta": 39.27180086610125
+        },
+        {
+          "display_name_new": "Chris Oladokun",
+          "player_id": "00-0037324",
+          "rank_new": 46,
+          "rank_sealed": 91,
+          "rank_delta": 45,
+          "season_delta": 83.96286114230658
+        },
+        {
+          "display_name_new": "Brock Purdy",
+          "player_id": "00-0037834",
+          "rank_new": 22,
+          "rank_sealed": 7,
+          "rank_delta": -15,
+          "season_delta": -135.044140440773
+        },
+        {
+          "display_name_new": "Kenny Pickett",
+          "player_id": "00-0038102",
+          "rank_new": 71,
+          "rank_sealed": 61,
+          "rank_delta": -10,
+          "season_delta": 41.618004613657746
+        },
+        {
+          "display_name_new": "Tanner McKee",
+          "player_id": "00-0038400",
+          "rank_new": 56,
+          "rank_sealed": 73,
+          "rank_delta": 17,
+          "season_delta": 63.954448715251814
+        },
+        {
+          "display_name_new": "Aidan O'Connell",
+          "player_id": "00-0038579",
+          "rank_new": 76,
+          "rank_sealed": 89,
+          "rank_delta": 13,
+          "season_delta": 42.525131925844235
+        },
+        {
+          "display_name_new": "Anthony Richardson",
+          "player_id": "00-0039164",
+          "rank_new": 70,
+          "rank_sealed": 39,
+          "rank_delta": -31,
+          "season_delta": 35.05167034236827
+        },
+        {
+          "display_name_new": "Spencer Rattler",
+          "player_id": "00-0039376",
+          "rank_new": 35,
+          "rank_sealed": 45,
+          "rank_delta": 10,
+          "season_delta": 100.04688069313443
+        },
+        {
+          "display_name_new": "Joe Milton III",
+          "player_id": "00-0039398",
+          "rank_new": 58,
+          "rank_sealed": 85,
+          "rank_delta": 27,
+          "season_delta": 63.918676510779925
+        },
+        {
+          "display_name_new": "Kedon Slovis",
+          "player_id": "00-0039577",
+          "rank_new": 83,
+          "rank_sealed": 93,
+          "rank_delta": 10,
+          "season_delta": 30.807276308586133
+        },
+        {
+          "display_name_new": "J.J. McCarthy",
+          "player_id": "00-0039923",
+          "rank_new": 52,
+          "rank_sealed": 72,
+          "rank_delta": 20,
+          "season_delta": 67.74330292175267
+        },
+        {
+          "display_name_new": "Riley Leonard",
+          "player_id": "00-0040206",
+          "rank_new": 51,
+          "rank_sealed": 59,
+          "rank_delta": 8,
+          "season_delta": 67.9859635243254
+        },
+        {
+          "display_name_new": "Quinn Ewers",
+          "player_id": "00-0040234",
+          "rank_new": 64,
+          "rank_sealed": 49,
+          "rank_delta": -15,
+          "season_delta": 46.425100785519604
+        },
+        {
+          "display_name_new": "Brady Cook",
+          "player_id": "00-0040398",
+          "rank_new": 57,
+          "rank_sealed": 63,
+          "rank_delta": 6,
+          "season_delta": 60.16208140319572
+        },
+        {
+          "display_name_new": "Max Brosmer",
+          "player_id": "00-0040494",
+          "rank_new": 66,
+          "rank_sealed": 90,
+          "rank_delta": 24,
+          "season_delta": 55.74460518261328
+        },
+        {
+          "display_name_new": "Shedeur Sanders",
+          "player_id": "00-0040668",
+          "rank_new": 41,
+          "rank_sealed": 32,
+          "rank_delta": -9,
+          "season_delta": 17.2545653351588
+        },
+        {
+          "display_name_new": "Jalen Milroe",
+          "player_id": "00-0040673",
+          "rank_new": 68,
+          "rank_sealed": 77,
+          "rank_delta": 9,
+          "season_delta": 50.65295751419611
+        },
+        {
+          "display_name_new": "Dillon Gabriel",
+          "player_id": "00-0040704",
+          "rank_new": 38,
+          "rank_sealed": 50,
+          "rank_delta": 12,
+          "season_delta": 96.06470948237185
+        },
+        {
+          "display_name_new": "Tyler Shough",
+          "player_id": "00-0040743",
+          "rank_new": 23,
+          "rank_sealed": 12,
+          "rank_delta": -11,
+          "season_delta": -114.60955353718953
+        },
+        {
+          "display_name_new": "Cole Payton",
+          "player_id": "00-0040891",
+          "rank_new": 85,
+          "rank_sealed": 78,
+          "rank_delta": -7,
+          "season_delta": 22.93520214617492
+        },
+        {
+          "display_name_new": "Garrett Nussmeier",
+          "player_id": "00-0040906",
+          "rank_new": 89,
+          "rank_sealed": 71,
+          "rank_delta": -18,
+          "season_delta": 19.93713666191622
+        },
+        {
+          "display_name_new": "Kyron Drones",
+          "player_id": "00-0040942",
+          "rank_new": 88,
+          "rank_sealed": 81,
+          "rank_delta": -7,
+          "season_delta": 22.600231605096734
+        },
+        {
+          "display_name_new": "Joe Fagnano",
+          "player_id": "00-0040981",
+          "rank_new": 86,
+          "rank_sealed": 57,
+          "rank_delta": -29,
+          "season_delta": 17.87925027182842
+        },
+        {
+          "display_name_new": "Diego Pavia",
+          "player_id": "00-0040985",
+          "rank_new": 87,
+          "rank_sealed": 46,
+          "rank_delta": -41,
+          "season_delta": 13.697384458669108
+        },
+        {
+          "display_name_new": "Jacob Clark",
+          "player_id": "00-0040996",
+          "rank_new": 65,
+          "rank_sealed": 92,
+          "rank_delta": 27,
+          "season_delta": 57.013559529738615
+        },
+        {
+          "display_name_new": "Cade Klubnik",
+          "player_id": "00-0041056",
+          "rank_new": 42,
+          "rank_sealed": 35,
+          "rank_delta": -7,
+          "season_delta": 62.95103107214996
+        },
+        {
+          "display_name_new": "Taylen Green",
+          "player_id": "00-0041092",
+          "rank_new": 82,
+          "rank_sealed": 74,
+          "rank_delta": -8,
+          "season_delta": 28.793792387581096
+        },
+        {
+          "display_name_new": "Behren Morton",
+          "player_id": "00-0041123",
+          "rank_new": 84,
+          "rank_sealed": 60,
+          "rank_delta": -24,
+          "season_delta": 24.168365670478575
+        },
+        {
+          "display_name_new": "Haynes King",
+          "player_id": "00-0041149",
+          "rank_new": 94,
+          "rank_sealed": 58,
+          "rank_delta": -36,
+          "season_delta": 11.629651397415252
+        },
+        {
+          "display_name_new": "Mark Gronowski",
+          "player_id": "00-0041156",
+          "rank_new": 50,
+          "rank_sealed": 68,
+          "rank_delta": 18,
+          "season_delta": 69.81001193815757
+        },
+        {
+          "display_name_new": "Jack Strand",
+          "player_id": "00-0041194",
+          "rank_new": 63,
+          "rank_sealed": 54,
+          "rank_delta": -9,
+          "season_delta": 52.289612832677584
+        },
+        {
+          "display_name_new": "Joey Aguilar",
+          "player_id": "00-0041203",
+          "rank_new": 95,
+          "rank_sealed": 87,
+          "rank_delta": -8,
+          "season_delta": 16.082079156544154
+        },
+        {
+          "display_name_new": "Jalon Daniels",
+          "player_id": "00-0041251",
+          "rank_new": 93,
+          "rank_sealed": 84,
+          "rank_delta": -9,
+          "season_delta": 16.953477234545456
+        },
+        {
+          "display_name_new": "Matthew Caldwell",
+          "player_id": "00-0041414",
+          "rank_new": 96,
+          "rank_sealed": 62,
+          "rank_delta": -34,
+          "season_delta": 11.259856397341746
+        },
+        {
+          "display_name_new": "Luke Altmyer",
+          "player_id": "00-0041453",
+          "rank_new": 92,
+          "rank_sealed": 36,
+          "rank_delta": -56,
+          "season_delta": -6.278477380703325
+        },
+        {
+          "display_name_new": "Fernando Mendoza",
+          "player_id": "00-0041562",
+          "rank_new": 26,
+          "rank_sealed": 34,
+          "rank_delta": 8,
+          "season_delta": 133.88674933762132
+        },
+        {
+          "display_name_new": "Drew Allar",
+          "player_id": "00-0041565",
+          "rank_new": 79,
+          "rank_sealed": 65,
+          "rank_delta": -14,
+          "season_delta": 29.676987048783715
+        },
+        {
+          "display_name_new": "Ty Simpson",
+          "player_id": "00-0041568",
+          "rank_new": 62,
+          "rank_sealed": 40,
+          "rank_delta": -22,
+          "season_delta": 43.520897467177974
+        }
+      ],
+      "focus_players": [
+        {
+          "player_id": "00-0033873",
+          "position": "QB",
+          "attempts": 17.86395650646035,
+          "carries": 4.563030519281061,
+          "completions": 11.489733683967126,
+          "interceptions": 0.369921398949596,
+          "passing_tds": 1.071837390387621,
+          "passing_yards": 127.71345183627399,
+          "rushing_tds": 0.1903404248771213,
+          "rushing_yards": 25.55235837289885,
+          "display_name_new": "Patrick Mahomes",
+          "team": "KC",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 12.353323223654865,
+          "fantasy_pts_season_new": 210.0064948021327,
+          "rank_new": 18,
+          "display_name_sealed": "Patrick Mahomes",
+          "fantasy_pts_sealed": 19.60388349811375,
+          "fantasy_pts_season_sealed": 333.26601946793375,
+          "rank_sealed": 4,
+          "pg_attempts": 31.332556714565364,
+          "pg_passing_yards": 204.89724806112528,
+          "pg_carries": 3.814779437034475,
+          "pg_rushing_yards": 21.567076002220727,
+          "pg_rushing_tds": 0.2027180678413673,
+          "season_delta": -123.25952466580105,
+          "rank_delta": -14
+        },
+        {
+          "player_id": "00-0034796",
+          "position": "QB",
+          "attempts": 15.727597062314073,
+          "carries": 8.74137931034483,
+          "completions": 9.198828307797974,
+          "interceptions": 0.34975317710307036,
+          "passing_tds": 0.9436558237388444,
+          "passing_yards": 116.68273529490627,
+          "rushing_tds": 0.26212645226024783,
+          "rushing_yards": 49.12068965517241,
+          "display_name_new": "Lamar Jackson",
+          "team": "BAL",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 14.227254031624218,
+          "fantasy_pts_season_new": 241.86331853761172,
+          "rank_new": 10,
+          "display_name_sealed": "Lamar Jackson",
+          "fantasy_pts_sealed": 16.718282016349605,
+          "fantasy_pts_season_sealed": 284.2107942779433,
+          "rank_sealed": 18,
+          "pg_attempts": 23.27111048390881,
+          "pg_passing_yards": 164.3780360322704,
+          "pg_carries": 4.505757534866991,
+          "pg_rushing_yards": 21.806181658398327,
+          "pg_rushing_tds": 0.132264046622744,
+          "season_delta": -42.34747574033159,
+          "rank_delta": 8
+        },
+        {
+          "player_id": "00-0034857",
+          "position": "QB",
+          "attempts": 18.877516526975327,
+          "carries": 7.545454545454546,
+          "completions": 11.370031374837586,
+          "interceptions": 0.39506683485769234,
+          "passing_tds": 1.1326509916185197,
+          "passing_yards": 144.92197648303957,
+          "rushing_tds": 0.7545454545454546,
+          "rushing_yards": 36.303030303030305,
+          "display_name_new": "Josh Allen",
+          "team": "BUF",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 17.694925113656033,
+          "fantasy_pts_season_new": 300.8137269321526,
+          "rank_new": 1,
+          "display_name_sealed": "Josh Allen",
+          "fantasy_pts_sealed": 21.022766426750437,
+          "fantasy_pts_season_sealed": 357.3870292547573,
+          "rank_sealed": 1,
+          "pg_attempts": 27.0270600138102,
+          "pg_passing_yards": 186.1346698990766,
+          "pg_carries": 5.623690956288139,
+          "pg_rushing_yards": 28.85473069203882,
+          "pg_rushing_tds": 0.5217846453793454,
+          "season_delta": -56.57330232260472,
+          "rank_delta": 0
+        },
+        {
+          "player_id": "00-0036389",
+          "position": "QB",
+          "attempts": 17.473710673470322,
+          "carries": 9.777777777777779,
+          "completions": 10.801386432901694,
+          "interceptions": 0.37213097590229943,
+          "passing_tds": 1.0484226404082193,
+          "passing_yards": 126.98875091724335,
+          "rushing_tds": 0.8419861142538325,
+          "rushing_yards": 38.34920634920635,
+          "display_name_new": "Jalen Hurts",
+          "team": "PHI",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 17.415815966961645,
+          "fantasy_pts_season_new": 296.06887143834797,
+          "rank_new": 3,
+          "display_name_sealed": "Jalen Hurts",
+          "fantasy_pts_sealed": 18.170378769776736,
+          "fantasy_pts_season_sealed": 308.8964390862045,
+          "rank_sealed": 8,
+          "pg_attempts": 25.081630356605963,
+          "pg_passing_yards": 171.91080716781892,
+          "pg_carries": 5.331816853470477,
+          "pg_rushing_yards": 26.649502530172263,
+          "pg_rushing_tds": 0.4395578146301786,
+          "season_delta": -12.82756764785654,
+          "rank_delta": 5
+        },
+        {
+          "player_id": "00-0036442",
+          "position": "QB",
+          "attempts": 17.97066823591866,
+          "carries": 1.8944483377122696,
+          "completions": 11.661581230555713,
+          "interceptions": 0.46290111717309546,
+          "passing_tds": 1.0782400941551196,
+          "passing_yards": 126.72102877393483,
+          "rushing_tds": 0.0704522996543137,
+          "rushing_yards": 4.899491474405198,
+          "display_name_new": "Joe Burrow",
+          "team": "CIN",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 9.36866223859808,
+          "fantasy_pts_season_new": 159.26725805616738,
+          "rank_new": 29,
+          "display_name_sealed": "Joe Burrow",
+          "fantasy_pts_sealed": 16.504994937431096,
+          "fantasy_pts_season_sealed": 280.58491393632863,
+          "rank_sealed": 20,
+          "pg_attempts": 30.387954173959443,
+          "pg_passing_yards": 203.4539787344203,
+          "pg_carries": 2.0136794674652294,
+          "pg_rushing_yards": 6.906191069797209,
+          "pg_rushing_tds": 0.046503731967124,
+          "season_delta": -121.31765588016125,
+          "rank_delta": -9
+        },
+        {
+          "player_id": "00-0039732",
+          "position": "QB",
+          "attempts": 26.11208030970387,
+          "carries": 4.040699263198057,
+          "completions": 17.719335729828124,
+          "interceptions": 0.5342783122809145,
+          "passing_tds": 1.5667248185822322,
+          "passing_yards": 193.26338404598536,
+          "rushing_tds": 0.2037408006315235,
+          "rushing_yards": 18.54685639244647,
+          "display_name_new": "Bo Nix",
+          "team": "DEN",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 16.006008454640302,
+          "fantasy_pts_season_new": 272.10214372888515,
+          "rank_new": 5,
+          "display_name_sealed": "Bo Nix",
+          "fantasy_pts_sealed": 19.161776299214264,
+          "fantasy_pts_season_sealed": 325.75019708664246,
+          "rank_sealed": 6,
+          "pg_attempts": 32.443220122423824,
+          "pg_passing_yards": 216.5553301096904,
+          "pg_carries": 4.174199218208693,
+          "pg_rushing_yards": 26.20537640692175,
+          "pg_rushing_tds": 0.1740560504223096,
+          "season_delta": -53.648053357757306,
+          "rank_delta": 1
+        },
+        {
+          "player_id": "00-0039851",
+          "position": "QB",
+          "attempts": 27.369577073770362,
+          "carries": 5.01393504386697,
+          "completions": 18.56697343621214,
+          "interceptions": 0.5838876771090529,
+          "passing_tds": 1.56344477700341,
+          "passing_yards": 206.26289884753234,
+          "rushing_tds": 0.2165582433448286,
+          "rushing_yards": 28.92223032141193,
+          "display_name_new": "Drake Maye",
+          "team": "NE",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 17.528092199906993,
+          "fantasy_pts_season_new": 297.9775673984189,
+          "rank_new": 2,
+          "display_name_sealed": "Drake Maye",
+          "fantasy_pts_sealed": 20.641046053224745,
+          "fantasy_pts_season_sealed": 350.89778290482064,
+          "rank_sealed": 2,
+          "pg_attempts": 28.671330384579925,
+          "pg_passing_yards": 215.73964609595987,
+          "pg_carries": 4.33955298477633,
+          "pg_rushing_yards": 25.64998945825593,
+          "pg_rushing_tds": 0.2345171382072747,
+          "season_delta": -52.920215506401746,
+          "rank_delta": 0
+        },
+        {
+          "player_id": "00-0039910",
+          "position": "QB",
+          "attempts": 17.738117331388697,
+          "carries": 7.883166078183265,
+          "completions": 10.580227878463903,
+          "interceptions": 0.3693604725735413,
+          "passing_tds": 0.8649427744424528,
+          "passing_yards": 116.28570905808267,
+          "rushing_tds": 0.32860762090773,
+          "rushing_yards": 37.696483306247885,
+          "display_name_new": "Jayden Daniels",
+          "team": "WAS",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 13.113772571017204,
+          "fantasy_pts_season_new": 222.93413370729246,
+          "rank_new": 15,
+          "display_name_sealed": "Jayden Daniels",
+          "fantasy_pts_sealed": 17.27801336449332,
+          "fantasy_pts_season_sealed": 293.72622719638645,
+          "rank_sealed": 14,
+          "pg_attempts": 22.833864521983912,
+          "pg_passing_yards": 151.465146247807,
+          "pg_carries": 5.9414626217075,
+          "pg_rushing_yards": 29.24170030669615,
+          "pg_rushing_tds": 0.2011793584800882,
+          "season_delta": -70.79209348909399,
+          "rank_delta": -1
+        }
+      ],
+      "top15_new": [
+        {
+          "rank": 1,
+          "display_name": "Josh Allen",
+          "team": "BUF",
+          "fantasy_pts": 17.694925113656033,
+          "fantasy_pts_season": 300.8137269321526,
+          "attempts": 18.877516526975327,
+          "passing_yards": 144.92197648303957,
+          "carries": 7.545454545454546,
+          "rushing_yards": 36.303030303030305,
+          "rushing_tds": 0.7545454545454546
+        },
+        {
+          "rank": 2,
+          "display_name": "Drake Maye",
+          "team": "NE",
+          "fantasy_pts": 17.528092199906993,
+          "fantasy_pts_season": 297.9775673984189,
+          "attempts": 27.369577073770362,
+          "passing_yards": 206.26289884753234,
+          "carries": 5.01393504386697,
+          "rushing_yards": 28.92223032141193,
+          "rushing_tds": 0.2165582433448286
+        },
+        {
+          "rank": 3,
+          "display_name": "Jalen Hurts",
+          "team": "PHI",
+          "fantasy_pts": 17.415815966961645,
+          "fantasy_pts_season": 296.06887143834797,
+          "attempts": 17.473710673470322,
+          "passing_yards": 126.98875091724335,
+          "carries": 9.777777777777779,
+          "rushing_yards": 38.34920634920635,
+          "rushing_tds": 0.8419861142538325
+        },
+        {
+          "rank": 4,
+          "display_name": "Justin Herbert",
+          "team": "LAC",
+          "fantasy_pts": 16.774040229470334,
+          "fantasy_pts_season": 285.1586839009957,
+          "attempts": 26.218660410667027,
+          "passing_yards": 186.87025447241038,
+          "carries": 4.5597396963381165,
+          "rushing_yards": 22.40624614495683,
+          "rushing_tds": 0.2924659152792569
+        },
+        {
+          "rank": 5,
+          "display_name": "Bo Nix",
+          "team": "DEN",
+          "fantasy_pts": 16.006008454640302,
+          "fantasy_pts_season": 272.10214372888515,
+          "attempts": 26.11208030970387,
+          "passing_yards": 193.26338404598536,
+          "carries": 4.040699263198057,
+          "rushing_yards": 18.54685639244647,
+          "rushing_tds": 0.2037408006315235
+        },
+        {
+          "rank": 6,
+          "display_name": "Trevor Lawrence",
+          "team": "JAX",
+          "fantasy_pts": 15.684269883244994,
+          "fantasy_pts_season": 266.6325880151649,
+          "attempts": 24.381549163358695,
+          "passing_yards": 178.2393034864175,
+          "carries": 3.871564184360902,
+          "rushing_yards": 18.78970102917523,
+          "rushing_tds": 0.2975997285789055
+        },
+        {
+          "rank": 7,
+          "display_name": "Dak Prescott",
+          "team": "DAL",
+          "fantasy_pts": 15.244385669093408,
+          "fantasy_pts_season": 259.1545563745879,
+          "attempts": 26.695654113248008,
+          "passing_yards": 202.4669574271075,
+          "carries": 2.8175673092169427,
+          "rushing_yards": 12.302359188588548,
+          "rushing_tds": 0.09245879429666
+        },
+        {
+          "rank": 8,
+          "display_name": "Caleb Williams",
+          "team": "CHI",
+          "fantasy_pts": 14.667810855140022,
+          "fantasy_pts_season": 249.3527845373804,
+          "attempts": 24.533378093234557,
+          "passing_yards": 175.91884308493658,
+          "carries": 3.93038776895004,
+          "rushing_yards": 19.137837163647816,
+          "rushing_tds": 0.1274095600400328
+        },
+        {
+          "rank": 9,
+          "display_name": "Daniel Jones",
+          "team": "IND",
+          "fantasy_pts": 14.428019419212648,
+          "fantasy_pts_season": 245.27633012661502,
+          "attempts": 18.714034201679752,
+          "passing_yards": 146.88656195493144,
+          "carries": 5.802505667427322,
+          "rushing_yards": 28.496482811431726,
+          "rushing_tds": 0.3816805954963328
+        },
+        {
+          "rank": 10,
+          "display_name": "Lamar Jackson",
+          "team": "BAL",
+          "fantasy_pts": 14.227254031624218,
+          "fantasy_pts_season": 241.86331853761172,
+          "attempts": 15.727597062314073,
+          "passing_yards": 116.68273529490627,
+          "carries": 8.74137931034483,
+          "rushing_yards": 49.12068965517241,
+          "rushing_tds": 0.26212645226024783
+        },
+        {
+          "rank": 11,
+          "display_name": "Matthew Stafford",
+          "team": "LA",
+          "fantasy_pts": 13.972224690738633,
+          "fantasy_pts_season": 237.52781974255677,
+          "attempts": 26.72069987782679,
+          "passing_yards": 197.67212194980064,
+          "carries": 2.0064633369997167,
+          "rushing_yards": 4.781168295094186,
+          "rushing_tds": 0.0611169343628801
+        },
+        {
+          "rank": 12,
+          "display_name": "Baker Mayfield",
+          "team": "TB",
+          "fantasy_pts": 13.364739548447222,
+          "fantasy_pts_season": 227.20057232360278,
+          "attempts": 24.422700703023747,
+          "passing_yards": 167.9661125846682,
+          "carries": 2.719482870807961,
+          "rushing_yards": 13.528250858046151,
+          "rushing_tds": 0.1838230590438108
+        },
+        {
+          "rank": 13,
+          "display_name": "C.J. Stroud",
+          "team": "HOU",
+          "fantasy_pts": 13.34167014166445,
+          "fantasy_pts_season": 226.80839240829565,
+          "attempts": 23.496988225633594,
+          "passing_yards": 165.76597199782583,
+          "carries": 3.1030564389822497,
+          "rushing_yards": 12.944681869748182,
+          "rushing_tds": 0.1430186358383651
+        },
+        {
+          "rank": 14,
+          "display_name": "Jaxson Dart",
+          "team": "NYG",
+          "fantasy_pts": 13.31279960606681,
+          "fantasy_pts_season": 226.31759330313577,
+          "attempts": 14.345912122899893,
+          "passing_yards": 103.62534189700607,
+          "carries": 6.909550971029029,
+          "rushing_yards": 37.52810019467572,
+          "rushing_tds": 0.4656261314942325
+        },
+        {
+          "rank": 15,
+          "display_name": "Jayden Daniels",
+          "team": "WAS",
+          "fantasy_pts": 13.113772571017204,
+          "fantasy_pts_season": 222.93413370729246,
+          "attempts": 17.738117331388697,
+          "passing_yards": 116.28570905808267,
+          "carries": 7.883166078183265,
+          "rushing_yards": 37.696483306247885,
+          "rushing_tds": 0.32860762090773
+        }
+      ]
+    },
+    "provenance_keys": [
+      "allocation_params",
+      "arm",
+      "rate_prior_audit",
+      "target_season",
+      "team_volume"
+    ]
+  },
+  "allocation_plus_priors": {
+    "non_qb_invariance": {
+      "pass": true,
+      "n_compared": 3271,
+      "n_changed": 0,
+      "max_abs_delta": 0.0
+    },
+    "conservation": {
+      "n_teams": 32,
+      "mean_abs_rel_error": 7.244757369430315e-17,
+      "violations": []
+    },
+    "comparison": {
+      "n_qb": 96,
+      "ppg_thresholds": {
+        "ge_18": 2,
+        "ge_20": 0,
+        "ge_22": 0,
+        "ge_24": 0
+      },
+      "largest_positive": [
+        {
+          "display_name_new": "Shedeur Sanders",
+          "player_id": "00-0040668",
+          "season_delta": 71.24210437595659,
+          "rank_new": 31,
+          "rank_sealed": 32
+        },
+        {
+          "display_name_new": "Justin Fields",
+          "player_id": "00-0036945",
+          "season_delta": 65.63915766872464,
+          "rank_new": 34,
+          "rank_sealed": 42
+        },
+        {
+          "display_name_new": "Fernando Mendoza",
+          "player_id": "00-0041562",
+          "season_delta": 61.989922786627744,
+          "rank_new": 33,
+          "rank_sealed": 34
+        },
+        {
+          "display_name_new": "Michael Penix Jr.",
+          "player_id": "00-0039917",
+          "season_delta": 61.68079617936294,
+          "rank_new": 32,
+          "rank_sealed": 33
+        },
+        {
+          "display_name_new": "Trey Lance",
+          "player_id": "00-0037012",
+          "season_delta": 60.59381549602201,
+          "rank_new": 42,
+          "rank_sealed": 95
+        },
+        {
+          "display_name_new": "Mac Jones",
+          "player_id": "00-0036972",
+          "season_delta": 57.047194722155204,
+          "rank_new": 38,
+          "rank_sealed": 56
+        },
+        {
+          "display_name_new": "Spencer Rattler",
+          "player_id": "00-0039376",
+          "season_delta": 55.42116865164377,
+          "rank_new": 36,
+          "rank_sealed": 45
+        },
+        {
+          "display_name_new": "Tyler Huntley",
+          "player_id": "00-0035993",
+          "season_delta": 54.42466045186123,
+          "rank_new": 37,
+          "rank_sealed": 44
+        },
+        {
+          "display_name_new": "Davis Mills",
+          "player_id": "00-0036898",
+          "season_delta": 52.36908279193693,
+          "rank_new": 41,
+          "rank_sealed": 55
+        },
+        {
+          "display_name_new": "Dillon Gabriel",
+          "player_id": "00-0040704",
+          "season_delta": 51.993877044135345,
+          "rank_new": 40,
+          "rank_sealed": 50
+        }
+      ],
+      "largest_negative": [
+        {
+          "display_name_new": "Tua Tagovailoa",
+          "player_id": "00-0036212",
+          "season_delta": -113.73215984317903,
+          "rank_new": 44,
+          "rank_sealed": 31
+        },
+        {
+          "display_name_new": "Tyler Shough",
+          "player_id": "00-0040743",
+          "season_delta": -88.79404168391181,
+          "rank_new": 26,
+          "rank_sealed": 12
+        },
+        {
+          "display_name_new": "Patrick Mahomes",
+          "player_id": "00-0033873",
+          "season_delta": -82.40894551738143,
+          "rank_new": 14,
+          "rank_sealed": 4
+        },
+        {
+          "display_name_new": "Cam Ward",
+          "player_id": "00-0040676",
+          "season_delta": -80.6034813058802,
+          "rank_new": 29,
+          "rank_sealed": 24
+        },
+        {
+          "display_name_new": "Justin Herbert",
+          "player_id": "00-0036355",
+          "season_delta": -71.63348035998166,
+          "rank_new": 11,
+          "rank_sealed": 5
+        },
+        {
+          "display_name_new": "Brock Purdy",
+          "player_id": "00-0037834",
+          "season_delta": -68.30397413554479,
+          "rank_new": 13,
+          "rank_sealed": 7
+        },
+        {
+          "display_name_new": "Trevor Lawrence",
+          "player_id": "00-0036971",
+          "season_delta": -66.43592979939228,
+          "rank_new": 6,
+          "rank_sealed": 3
+        },
+        {
+          "display_name_new": "Jared Goff",
+          "player_id": "00-0033106",
+          "season_delta": -66.1745465692814,
+          "rank_new": 21,
+          "rank_sealed": 15
+        },
+        {
+          "display_name_new": "Bryce Young",
+          "player_id": "00-0039150",
+          "season_delta": -65.09829330959411,
+          "rank_new": 25,
+          "rank_sealed": 22
+        },
+        {
+          "display_name_new": "Drake Maye",
+          "player_id": "00-0039851",
+          "season_delta": -64.45232712485324,
+          "rank_new": 4,
+          "rank_sealed": 2
+        }
+      ],
+      "rank_moves_gt_5": [
+        {
+          "display_name_new": "Joe Flacco",
+          "player_id": "00-0026158",
+          "rank_new": 47,
+          "rank_sealed": 53,
+          "rank_delta": 6,
+          "season_delta": 41.210983455375
+        },
+        {
+          "display_name_new": "Josh Johnson",
+          "player_id": "00-0026300",
+          "rank_new": 45,
+          "rank_sealed": 76,
+          "rank_delta": 31,
+          "season_delta": 48.12736745113085
+        },
+        {
+          "display_name_new": "Andy Dalton",
+          "player_id": "00-0027973",
+          "rank_new": 79,
+          "rank_sealed": 51,
+          "rank_delta": -28,
+          "season_delta": 15.152691256625356
+        },
+        {
+          "display_name_new": "Teddy Bridgewater",
+          "player_id": "00-0031237",
+          "rank_new": 80,
+          "rank_sealed": 94,
+          "rank_delta": 14,
+          "season_delta": 23.84169397404068
+        },
+        {
+          "display_name_new": "Jameis Winston",
+          "player_id": "00-0031503",
+          "rank_new": 50,
+          "rank_sealed": 37,
+          "rank_delta": -13,
+          "season_delta": 23.374455647809015
+        },
+        {
+          "display_name_new": "Brandon Allen",
+          "player_id": "00-0032434",
+          "rank_new": 73,
+          "rank_sealed": 52,
+          "rank_delta": -21,
+          "season_delta": 21.020879852312255
+        },
+        {
+          "display_name_new": "Jared Goff",
+          "player_id": "00-0033106",
+          "rank_new": 21,
+          "rank_sealed": 15,
+          "rank_delta": -6,
+          "season_delta": -66.1745465692814
+        },
+        {
+          "display_name_new": "Nick Mullens",
+          "player_id": "00-0033319",
+          "rank_new": 51,
+          "rank_sealed": 88,
+          "rank_delta": 37,
+          "season_delta": 42.78463383520157
+        },
+        {
+          "display_name_new": "Mitchell Trubisky",
+          "player_id": "00-0033869",
+          "rank_new": 55,
+          "rank_sealed": 67,
+          "rank_delta": 12,
+          "season_delta": 36.40795660774422
+        },
+        {
+          "display_name_new": "Patrick Mahomes",
+          "player_id": "00-0033873",
+          "rank_new": 14,
+          "rank_sealed": 4,
+          "rank_delta": -10,
+          "season_delta": -82.40894551738143
+        },
+        {
+          "display_name_new": "Joshua Dobbs",
+          "player_id": "00-0033949",
+          "rank_new": 63,
+          "rank_sealed": 47,
+          "rank_delta": -16,
+          "season_delta": 25.379980356100816
+        },
+        {
+          "display_name_new": "Lamar Jackson",
+          "player_id": "00-0034796",
+          "rank_new": 3,
+          "rank_sealed": 18,
+          "rank_delta": 15,
+          "season_delta": 12.70648346846616
+        },
+        {
+          "display_name_new": "Jake Browning",
+          "player_id": "00-0035100",
+          "rank_new": 69,
+          "rank_sealed": 48,
+          "rank_delta": -21,
+          "season_delta": 22.142615724082972
+        },
+        {
+          "display_name_new": "Jarrett Stidham",
+          "player_id": "00-0035264",
+          "rank_new": 68,
+          "rank_sealed": 96,
+          "rank_delta": 28,
+          "season_delta": 35.5936043169477
+        },
+        {
+          "display_name_new": "Drew Lock",
+          "player_id": "00-0035704",
+          "rank_new": 82,
+          "rank_sealed": 70,
+          "rank_delta": -12,
+          "season_delta": 16.97562463700254
+        },
+        {
+          "display_name_new": "Daniel Jones",
+          "player_id": "00-0035710",
+          "rank_new": 9,
+          "rank_sealed": 23,
+          "rank_delta": 14,
+          "season_delta": -9.367764879120102
+        },
+        {
+          "display_name_new": "Tyler Huntley",
+          "player_id": "00-0035993",
+          "rank_new": 37,
+          "rank_sealed": 44,
+          "rank_delta": 7,
+          "season_delta": 54.42466045186123
+        },
+        {
+          "display_name_new": "Tua Tagovailoa",
+          "player_id": "00-0036212",
+          "rank_new": 44,
+          "rank_sealed": 31,
+          "rank_delta": -13,
+          "season_delta": -113.73215984317903
+        },
+        {
+          "display_name_new": "Jordan Love",
+          "player_id": "00-0036264",
+          "rank_new": 18,
+          "rank_sealed": 27,
+          "rank_delta": 9,
+          "season_delta": -16.37434181992913
+        },
+        {
+          "display_name_new": "Justin Herbert",
+          "player_id": "00-0036355",
+          "rank_new": 11,
+          "rank_sealed": 5,
+          "rank_delta": -6,
+          "season_delta": -71.63348035998166
+        },
+        {
+          "display_name_new": "Jalen Hurts",
+          "player_id": "00-0036389",
+          "rank_new": 2,
+          "rank_sealed": 8,
+          "rank_delta": 6,
+          "season_delta": 25.35228235074885
+        },
+        {
+          "display_name_new": "Shane Buechele",
+          "player_id": "00-0036679",
+          "rank_new": 60,
+          "rank_sealed": 82,
+          "rank_delta": 22,
+          "season_delta": 34.98403545203935
+        },
+        {
+          "display_name_new": "Davis Mills",
+          "player_id": "00-0036898",
+          "rank_new": 41,
+          "rank_sealed": 55,
+          "rank_delta": 14,
+          "season_delta": 52.36908279193693
+        },
+        {
+          "display_name_new": "Justin Fields",
+          "player_id": "00-0036945",
+          "rank_new": 34,
+          "rank_sealed": 42,
+          "rank_delta": 8,
+          "season_delta": 65.63915766872464
+        },
+        {
+          "display_name_new": "Mac Jones",
+          "player_id": "00-0036972",
+          "rank_new": 38,
+          "rank_sealed": 56,
+          "rank_delta": 18,
+          "season_delta": 57.047194722155204
+        },
+        {
+          "display_name_new": "Trey Lance",
+          "player_id": "00-0037012",
+          "rank_new": 42,
+          "rank_sealed": 95,
+          "rank_delta": 53,
+          "season_delta": 60.59381549602201
+        },
+        {
+          "display_name_new": "Chris Oladokun",
+          "player_id": "00-0037324",
+          "rank_new": 52,
+          "rank_sealed": 91,
+          "rank_delta": 39,
+          "season_delta": 42.819328640013005
+        },
+        {
+          "display_name_new": "Brock Purdy",
+          "player_id": "00-0037834",
+          "rank_new": 13,
+          "rank_sealed": 7,
+          "rank_delta": -6,
+          "season_delta": -68.30397413554479
+        },
+        {
+          "display_name_new": "Kenny Pickett",
+          "player_id": "00-0038102",
+          "rank_new": 70,
+          "rank_sealed": 61,
+          "rank_delta": -9,
+          "season_delta": 26.087593970222684
+        },
+        {
+          "display_name_new": "Tanner McKee",
+          "player_id": "00-0038400",
+          "rank_new": 58,
+          "rank_sealed": 73,
+          "rank_delta": 15,
+          "season_delta": 34.77368160904149
+        },
+        {
+          "display_name_new": "Aidan O'Connell",
+          "player_id": "00-0038579",
+          "rank_new": 71,
+          "rank_sealed": 89,
+          "rank_delta": 18,
+          "season_delta": 29.37848046351282
+        },
+        {
+          "display_name_new": "Anthony Richardson",
+          "player_id": "00-0039164",
+          "rank_new": 67,
+          "rank_sealed": 39,
+          "rank_delta": -28,
+          "season_delta": 15.377350012484218
+        },
+        {
+          "display_name_new": "Spencer Rattler",
+          "player_id": "00-0039376",
+          "rank_new": 36,
+          "rank_sealed": 45,
+          "rank_delta": 9,
+          "season_delta": 55.42116865164377
+        },
+        {
+          "display_name_new": "Joe Milton III",
+          "player_id": "00-0039398",
+          "rank_new": 46,
+          "rank_sealed": 85,
+          "rank_delta": 39,
+          "season_delta": 49.04968721312332
+        },
+        {
+          "display_name_new": "Kedon Slovis",
+          "player_id": "00-0039577",
+          "rank_new": 78,
+          "rank_sealed": 93,
+          "rank_delta": 15,
+          "season_delta": 25.270765580516333
+        },
+        {
+          "display_name_new": "Jayden Daniels",
+          "player_id": "00-0039910",
+          "rank_new": 8,
+          "rank_sealed": 14,
+          "rank_delta": 6,
+          "season_delta": -29.305768050299037
+        },
+        {
+          "display_name_new": "J.J. McCarthy",
+          "player_id": "00-0039923",
+          "rank_new": 59,
+          "rank_sealed": 72,
+          "rank_delta": 13,
+          "season_delta": 32.7443563414932
+        },
+        {
+          "display_name_new": "Quinn Ewers",
+          "player_id": "00-0040234",
+          "rank_new": 72,
+          "rank_sealed": 49,
+          "rank_delta": -23,
+          "season_delta": 19.51199420544353
+        },
+        {
+          "display_name_new": "Brady Cook",
+          "player_id": "00-0040398",
+          "rank_new": 56,
+          "rank_sealed": 63,
+          "rank_delta": 7,
+          "season_delta": 35.23758077710082
+        },
+        {
+          "display_name_new": "Max Brosmer",
+          "player_id": "00-0040494",
+          "rank_new": 65,
+          "rank_sealed": 90,
+          "rank_delta": 25,
+          "season_delta": 33.02175341100155
+        },
+        {
+          "display_name_new": "Jalen Milroe",
+          "player_id": "00-0040673",
+          "rank_new": 61,
+          "rank_sealed": 77,
+          "rank_delta": 16,
+          "season_delta": 33.76316430923505
+        },
+        {
+          "display_name_new": "Dillon Gabriel",
+          "player_id": "00-0040704",
+          "rank_new": 40,
+          "rank_sealed": 50,
+          "rank_delta": 10,
+          "season_delta": 51.993877044135345
+        },
+        {
+          "display_name_new": "Tyler Shough",
+          "player_id": "00-0040743",
+          "rank_new": 26,
+          "rank_sealed": 12,
+          "rank_delta": -14,
+          "season_delta": -88.79404168391181
+        },
+        {
+          "display_name_new": "Cole Payton",
+          "player_id": "00-0040891",
+          "rank_new": 89,
+          "rank_sealed": 78,
+          "rank_delta": -11,
+          "season_delta": 12.472864514019548
+        },
+        {
+          "display_name_new": "Garrett Nussmeier",
+          "player_id": "00-0040906",
+          "rank_new": 92,
+          "rank_sealed": 71,
+          "rank_delta": -21,
+          "season_delta": 9.660212971815653
+        },
+        {
+          "display_name_new": "Joe Fagnano",
+          "player_id": "00-0040981",
+          "rank_new": 88,
+          "rank_sealed": 57,
+          "rank_delta": -31,
+          "season_delta": 8.646158615824868
+        },
+        {
+          "display_name_new": "Diego Pavia",
+          "player_id": "00-0040985",
+          "rank_new": 87,
+          "rank_sealed": 46,
+          "rank_delta": -41,
+          "season_delta": 4.464292802665556
+        },
+        {
+          "display_name_new": "Jacob Clark",
+          "player_id": "00-0040996",
+          "rank_new": 66,
+          "rank_sealed": 92,
+          "rank_delta": 26,
+          "season_delta": 33.90734055575781
+        },
+        {
+          "display_name_new": "Cade Klubnik",
+          "player_id": "00-0041056",
+          "rank_new": 43,
+          "rank_sealed": 35,
+          "rank_delta": -8,
+          "season_delta": 25.541424356883603
+        },
+        {
+          "display_name_new": "Taylen Green",
+          "player_id": "00-0041092",
+          "rank_new": 84,
+          "rank_sealed": 74,
+          "rank_delta": -10,
+          "season_delta": 16.697743345951885
+        },
+        {
+          "display_name_new": "Behren Morton",
+          "player_id": "00-0041123",
+          "rank_new": 75,
+          "rank_sealed": 60,
+          "rank_delta": -15,
+          "season_delta": 21.771676066206975
+        },
+        {
+          "display_name_new": "Haynes King",
+          "player_id": "00-0041149",
+          "rank_new": 95,
+          "rank_sealed": 58,
+          "rank_delta": -37,
+          "season_delta": 6.684694439491263
+        },
+        {
+          "display_name_new": "Mark Gronowski",
+          "player_id": "00-0041156",
+          "rank_new": 49,
+          "rank_sealed": 68,
+          "rank_delta": 19,
+          "season_delta": 41.65309357271604
+        },
+        {
+          "display_name_new": "Joey Aguilar",
+          "player_id": "00-0041203",
+          "rank_new": 93,
+          "rank_sealed": 87,
+          "rank_delta": -6,
+          "season_delta": 12.230937907096889
+        },
+        {
+          "display_name_new": "Jalon Daniels",
+          "player_id": "00-0041251",
+          "rank_new": 91,
+          "rank_sealed": 84,
+          "rank_delta": -7,
+          "season_delta": 12.605926274249473
+        },
+        {
+          "display_name_new": "Matthew Caldwell",
+          "player_id": "00-0041414",
+          "rank_new": 94,
+          "rank_sealed": 62,
+          "rank_delta": -32,
+          "season_delta": 7.647938495828146
+        },
+        {
+          "display_name_new": "Luke Altmyer",
+          "player_id": "00-0041453",
+          "rank_new": 96,
+          "rank_sealed": 36,
+          "rank_delta": -60,
+          "season_delta": -12.965847550077694
+        },
+        {
+          "display_name_new": "Drew Allar",
+          "player_id": "00-0041565",
+          "rank_new": 81,
+          "rank_sealed": 65,
+          "rank_delta": -16,
+          "season_delta": 17.65226986312654
+        },
+        {
+          "display_name_new": "Ty Simpson",
+          "player_id": "00-0041568",
+          "rank_new": 53,
+          "rank_sealed": 40,
+          "rank_delta": -13,
+          "season_delta": 25.67141079725437
+        }
+      ],
+      "focus_players": [
+        {
+          "player_id": "00-0033873",
+          "position": "QB",
+          "attempts": 23.9347603811977,
+          "carries": 4.809523809523809,
+          "completions": 15.39435132805413,
+          "interceptions": 0.48578615409286807,
+          "passing_tds": 1.4360856228718621,
+          "passing_yards": 159.40872277095826,
+          "rushing_tds": 0.2107203717803936,
+          "rushing_yards": 23.428571428571427,
+          "display_name_new": "Patrick Mahomes",
+          "team": "KC",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 14.756298467679548,
+          "fantasy_pts_season_new": 250.85707395055232,
+          "rank_new": 14,
+          "display_name_sealed": "Patrick Mahomes",
+          "fantasy_pts_sealed": 19.60388349811375,
+          "fantasy_pts_season_sealed": 333.26601946793375,
+          "rank_sealed": 4,
+          "pg_attempts": 31.332556714565364,
+          "pg_passing_yards": 204.89724806112528,
+          "pg_carries": 3.814779437034475,
+          "pg_rushing_yards": 21.567076002220727,
+          "pg_rushing_tds": 0.2027180678413673,
+          "season_delta": -82.40894551738143,
+          "rank_delta": -10
+        },
+        {
+          "player_id": "00-0034796",
+          "position": "QB",
+          "attempts": 22.35372266004041,
+          "carries": 8.74137931034483,
+          "completions": 13.074346702495554,
+          "interceptions": 0.35220690090125073,
+          "passing_tds": 1.3412233596024246,
+          "passing_yards": 158.0103726172775,
+          "rushing_tds": 0.26212645226024783,
+          "rushing_yards": 49.12068965517241,
+          "display_name_new": "Lamar Jackson",
+          "team": "BAL",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 17.465722220377028,
+          "fantasy_pts_season_new": 296.91727774640947,
+          "rank_new": 3,
+          "display_name_sealed": "Lamar Jackson",
+          "fantasy_pts_sealed": 16.718282016349605,
+          "fantasy_pts_season_sealed": 284.2107942779433,
+          "rank_sealed": 18,
+          "pg_attempts": 23.27111048390881,
+          "pg_passing_yards": 164.3780360322704,
+          "pg_carries": 4.505757534866991,
+          "pg_rushing_yards": 21.806181658398327,
+          "pg_rushing_tds": 0.132264046622744,
+          "season_delta": 12.70648346846616,
+          "rank_delta": 15
+        },
+        {
+          "player_id": "00-0034857",
+          "position": "QB",
+          "attempts": 24.20950956259102,
+          "carries": 7.545454545454546,
+          "completions": 14.581519920946658,
+          "interceptions": 0.5346716484349064,
+          "passing_tds": 1.452570573755461,
+          "passing_yards": 177.02675661775805,
+          "rushing_tds": 0.7545454545454546,
+          "rushing_yards": 36.303030303030305,
+          "display_name_new": "Josh Allen",
+          "team": "BUF",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 19.979585020438112,
+          "fantasy_pts_season_new": 339.6529453474479,
+          "rank_new": 1,
+          "display_name_sealed": "Josh Allen",
+          "fantasy_pts_sealed": 21.022766426750437,
+          "fantasy_pts_season_sealed": 357.3870292547573,
+          "rank_sealed": 1,
+          "pg_attempts": 27.0270600138102,
+          "pg_passing_yards": 186.1346698990766,
+          "pg_carries": 5.623690956288139,
+          "pg_rushing_yards": 28.85473069203882,
+          "pg_rushing_tds": 0.5217846453793454,
+          "season_delta": -17.73408390730941,
+          "rank_delta": 0
+        },
+        {
+          "player_id": "00-0036389",
+          "position": "QB",
+          "attempts": 22.295789109981794,
+          "carries": 9.777777777777779,
+          "completions": 13.782157579673726,
+          "interceptions": 0.38012813281155167,
+          "passing_tds": 1.3377473465989076,
+          "passing_yards": 154.60297637688038,
+          "rushing_tds": 0.8419861142538325,
+          "rushing_yards": 38.34920634920635,
+          "display_name_new": "Jalen Hurts",
+          "team": "PHI",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 19.661689496291373,
+          "fantasy_pts_season_new": 334.24872143695336,
+          "rank_new": 2,
+          "display_name_sealed": "Jalen Hurts",
+          "fantasy_pts_sealed": 18.170378769776736,
+          "fantasy_pts_season_sealed": 308.8964390862045,
+          "rank_sealed": 8,
+          "pg_attempts": 25.081630356605963,
+          "pg_passing_yards": 171.91080716781892,
+          "pg_carries": 5.331816853470477,
+          "pg_rushing_yards": 26.649502530172263,
+          "pg_rushing_tds": 0.4395578146301786,
+          "season_delta": 25.35228235074885,
+          "rank_delta": 6
+        },
+        {
+          "player_id": "00-0036442",
+          "position": "QB",
+          "attempts": 24.321078790300827,
+          "carries": 3.2607142857142852,
+          "completions": 15.782509153496704,
+          "interceptions": 0.4088045822841719,
+          "passing_tds": 1.4592647274180497,
+          "passing_yards": 165.03842577999646,
+          "rushing_tds": 0.13109402332361514,
+          "rushing_yards": 11.971428571428572,
+          "display_name_new": "Joe Burrow",
+          "team": "CIN",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 13.604693773388261,
+          "fantasy_pts_season_new": 231.27979414760043,
+          "rank_new": 20,
+          "display_name_sealed": "Joe Burrow",
+          "fantasy_pts_sealed": 16.504994937431096,
+          "fantasy_pts_season_sealed": 280.58491393632863,
+          "rank_sealed": 20,
+          "pg_attempts": 30.387954173959443,
+          "pg_passing_yards": 203.4539787344203,
+          "pg_carries": 2.0136794674652294,
+          "pg_rushing_yards": 6.906191069797209,
+          "pg_rushing_tds": 0.046503731967124,
+          "season_delta": -49.305119788728206,
+          "rank_delta": 0
+        },
+        {
+          "player_id": "00-0039732",
+          "position": "QB",
+          "attempts": 28.094323157929946,
+          "carries": 4.663057731414234,
+          "completions": 19.064461285095188,
+          "interceptions": 0.5586787696915523,
+          "passing_tds": 1.5812191834968352,
+          "passing_yards": 191.9593992368299,
+          "rushing_tds": 0.23446495690317518,
+          "rushing_yards": 20.591523399040934,
+          "display_name_new": "Bo Nix",
+          "team": "DEN",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 16.351837245400578,
+          "fantasy_pts_season_new": 277.98123317180983,
+          "rank_new": 5,
+          "display_name_sealed": "Bo Nix",
+          "fantasy_pts_sealed": 19.161776299214264,
+          "fantasy_pts_season_sealed": 325.75019708664246,
+          "rank_sealed": 6,
+          "pg_attempts": 32.443220122423824,
+          "pg_passing_yards": 216.5553301096904,
+          "pg_carries": 4.174199218208693,
+          "pg_rushing_yards": 26.20537640692175,
+          "pg_rushing_tds": 0.1740560504223096,
+          "season_delta": -47.768963914832625,
+          "rank_delta": 1
+        },
+        {
+          "player_id": "00-0039851",
+          "position": "QB",
+          "attempts": 28.059348046800572,
+          "carries": 4.811812082109134,
+          "completions": 19.03490026236671,
+          "interceptions": 0.601971542432401,
+          "passing_tds": 1.5120438735459119,
+          "passing_yards": 205.18294560644554,
+          "rushing_tds": 0.1944809650439916,
+          "rushing_yards": 26.312966690986407,
+          "display_name_new": "Drake Maye",
+          "team": "NE",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 16.84973269293926,
+          "fantasy_pts_season_new": 286.4454557799674,
+          "rank_new": 4,
+          "display_name_sealed": "Drake Maye",
+          "fantasy_pts_sealed": 20.641046053224745,
+          "fantasy_pts_season_sealed": 350.89778290482064,
+          "rank_sealed": 2,
+          "pg_attempts": 28.671330384579925,
+          "pg_passing_yards": 215.73964609595987,
+          "pg_carries": 4.33955298477633,
+          "pg_rushing_yards": 25.64998945825593,
+          "pg_rushing_tds": 0.2345171382072747,
+          "season_delta": -64.45232712485324,
+          "rank_delta": -2
+        },
+        {
+          "player_id": "00-0039910",
+          "position": "QB",
+          "attempts": 23.78545140854853,
+          "carries": 7.883166078183265,
+          "completions": 14.18727204207031,
+          "interceptions": 0.47696272624466474,
+          "passing_tds": 1.1117169183922488,
+          "passing_yards": 157.99770946253417,
+          "rushing_tds": 0.32860762090773,
+          "rushing_yards": 37.696483306247885,
+          "display_name_new": "Jayden Daniels",
+          "team": "WAS",
+          "depth_rank": 1.0,
+          "projected_games": 17.0,
+          "fantasy_pts_new": 15.554144655652202,
+          "fantasy_pts_season_new": 264.4204591460874,
+          "rank_new": 8,
+          "display_name_sealed": "Jayden Daniels",
+          "fantasy_pts_sealed": 17.27801336449332,
+          "fantasy_pts_season_sealed": 293.72622719638645,
+          "rank_sealed": 14,
+          "pg_attempts": 22.833864521983912,
+          "pg_passing_yards": 151.465146247807,
+          "pg_carries": 5.9414626217075,
+          "pg_rushing_yards": 29.24170030669615,
+          "pg_rushing_tds": 0.2011793584800882,
+          "season_delta": -29.305768050299037,
+          "rank_delta": 6
+        }
+      ],
+      "top15_new": [
+        {
+          "rank": 1,
+          "display_name": "Josh Allen",
+          "team": "BUF",
+          "fantasy_pts": 19.979585020438112,
+          "fantasy_pts_season": 339.6529453474479,
+          "attempts": 24.20950956259102,
+          "passing_yards": 177.02675661775805,
+          "carries": 7.545454545454546,
+          "rushing_yards": 36.303030303030305,
+          "rushing_tds": 0.7545454545454546
+        },
+        {
+          "rank": 2,
+          "display_name": "Jalen Hurts",
+          "team": "PHI",
+          "fantasy_pts": 19.661689496291373,
+          "fantasy_pts_season": 334.24872143695336,
+          "attempts": 22.295789109981794,
+          "passing_yards": 154.60297637688038,
+          "carries": 9.777777777777779,
+          "rushing_yards": 38.34920634920635,
+          "rushing_tds": 0.8419861142538325
+        },
+        {
+          "rank": 3,
+          "display_name": "Lamar Jackson",
+          "team": "BAL",
+          "fantasy_pts": 17.465722220377028,
+          "fantasy_pts_season": 296.91727774640947,
+          "attempts": 22.35372266004041,
+          "passing_yards": 158.0103726172775,
+          "carries": 8.74137931034483,
+          "rushing_yards": 49.12068965517241,
+          "rushing_tds": 0.26212645226024783
+        },
+        {
+          "rank": 4,
+          "display_name": "Drake Maye",
+          "team": "NE",
+          "fantasy_pts": 16.84973269293926,
+          "fantasy_pts_season": 286.4454557799674,
+          "attempts": 28.059348046800572,
+          "passing_yards": 205.18294560644554,
+          "carries": 4.811812082109134,
+          "rushing_yards": 26.312966690986407,
+          "rushing_tds": 0.1944809650439916
+        },
+        {
+          "rank": 5,
+          "display_name": "Bo Nix",
+          "team": "DEN",
+          "fantasy_pts": 16.351837245400578,
+          "fantasy_pts_season": 277.98123317180983,
+          "attempts": 28.094323157929946,
+          "passing_yards": 191.9593992368299,
+          "carries": 4.663057731414234,
+          "rushing_yards": 20.591523399040934,
+          "rushing_tds": 0.23446495690317518
+        },
+        {
+          "rank": 6,
+          "display_name": "Trevor Lawrence",
+          "team": "JAX",
+          "fantasy_pts": 16.117768427316395,
+          "fantasy_pts_season": 274.0020632643787,
+          "attempts": 26.95539635869565,
+          "passing_yards": 186.403523936015,
+          "carries": 4.057142857142857,
+          "rushing_yards": 18.65428571428571,
+          "rushing_tds": 0.3540261984325469
+        },
+        {
+          "rank": 7,
+          "display_name": "Dak Prescott",
+          "team": "DAL",
+          "fantasy_pts": 15.615215050081549,
+          "fantasy_pts_season": 265.4586558513863,
+          "attempts": 27.769221451133266,
+          "passing_yards": 204.69721108614118,
+          "carries": 3.3051948051948052,
+          "rushing_yards": 12.409090909090908,
+          "rushing_tds": 0.12469261597594669
+        },
+        {
+          "rank": 8,
+          "display_name": "Jayden Daniels",
+          "team": "WAS",
+          "fantasy_pts": 15.554144655652202,
+          "fantasy_pts_season": 264.4204591460874,
+          "attempts": 23.78545140854853,
+          "passing_yards": 157.99770946253417,
+          "carries": 7.883166078183265,
+          "rushing_yards": 37.696483306247885,
+          "rushing_tds": 0.32860762090773
+        },
+        {
+          "rank": 9,
+          "display_name": "Daniel Jones",
+          "team": "IND",
+          "fantasy_pts": 15.47457180594616,
+          "fantasy_pts_season": 263.06772070108474,
+          "attempts": 24.81529106228663,
+          "passing_yards": 174.95562767667954,
+          "carries": 5.802505667427322,
+          "rushing_yards": 28.496482811431726,
+          "rushing_tds": 0.3816805954963328
+        },
+        {
+          "rank": 10,
+          "display_name": "Caleb Williams",
+          "team": "CHI",
+          "fantasy_pts": 15.290355678737466,
+          "fantasy_pts_season": 259.9360465385369,
+          "attempts": 27.043199264597472,
+          "passing_yards": 188.7186650318042,
+          "carries": 4.259008545591897,
+          "rushing_yards": 22.37535112397466,
+          "rushing_tds": 0.10785405904200573
+        },
+        {
+          "rank": 11,
+          "display_name": "Justin Herbert",
+          "team": "LAC",
+          "fantasy_pts": 15.28406834236981,
+          "fantasy_pts_season": 259.8291618202868,
+          "attempts": 27.958718143009268,
+          "passing_yards": 188.84393223650093,
+          "carries": 4.1269841269841265,
+          "rushing_yards": 18.714285714285715,
+          "rushing_tds": 0.10636522072980713
+        },
+        {
+          "rank": 12,
+          "display_name": "Jaxson Dart",
+          "team": "NYG",
+          "fantasy_pts": 15.120765002236734,
+          "fantasy_pts_season": 257.0530050380245,
+          "attempts": 22.87412837349367,
+          "passing_yards": 157.44976987890516,
+          "carries": 6.909550971029029,
+          "rushing_yards": 37.52810019467572,
+          "rushing_tds": 0.4656261314942325
+        },
+        {
+          "rank": 13,
+          "display_name": "Brock Purdy",
+          "team": "SF",
+          "fantasy_pts": 14.769379917925825,
+          "fantasy_pts_season": 251.07945860473902,
+          "attempts": 25.627061933989804,
+          "passing_yards": 181.46847196001184,
+          "carries": 3.601123595505618,
+          "rushing_yards": 13.191011235955056,
+          "rushing_tds": 0.23284549583312364
+        },
+        {
+          "rank": 14,
+          "display_name": "Patrick Mahomes",
+          "team": "KC",
+          "fantasy_pts": 14.756298467679548,
+          "fantasy_pts_season": 250.85707395055232,
+          "attempts": 23.9347603811977,
+          "passing_yards": 159.40872277095826,
+          "carries": 4.809523809523809,
+          "rushing_yards": 23.428571428571427,
+          "rushing_tds": 0.2107203717803936
+        },
+        {
+          "rank": 15,
+          "display_name": "Kyler Murray",
+          "team": "MIN",
+          "fantasy_pts": 14.662225345320605,
+          "fantasy_pts_season": 249.25783087045028,
+          "attempts": 22.1846461138376,
+          "passing_yards": 143.36846977279538,
+          "carries": 5.210799070388867,
+          "rushing_yards": 32.96184337981164,
+          "rushing_tds": 0.30324994126836124
+        }
+      ]
+    },
+    "provenance_keys": [
+      "allocation_params",
+      "arm",
+      "rate_prior_audit",
+      "target_season",
+      "team_volume"
+    ]
+  }
+}

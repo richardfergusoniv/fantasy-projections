@@ -1,0 +1,23 @@
+{
+  "arm": "baseline",
+  "target_season": 2026,
+  "allocation_params": {
+    "starter_attempt_share": 0.8936535162950258,
+    "starter_yard_share": 0.9014499877119685,
+    "n_team_seasons": 255,
+    "fit_seasons": [
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "method": "preseason_depth_proxy_median"
+  },
+  "team_volume": {
+    "mode": "shipped_reconcile_team_volume"
+  }
+}
