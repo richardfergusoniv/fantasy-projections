@@ -15,6 +15,8 @@ export interface ApiError {
 export interface User {
   id: string;
   email: string;
+  csrf_token?: string;
+  session_expires_at?: string;
 }
 
 export interface MagicLinkResponse {

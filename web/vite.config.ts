@@ -2,22 +2,32 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import {
+  CANONICAL_PRODUCTION_ORIGIN,
+  PWA_APP_NAME,
+  PWA_BACKGROUND_COLOR,
+  PWA_THEME_COLOR,
+} from "./src/pwa/canonical";
+import { isUncacheableAppUrl } from "./src/pwa/apiCachePolicy";
 
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg"],
+      includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
-        name: "Fantasy Decisions",
+        id: `${CANONICAL_PRODUCTION_ORIGIN}/`,
+        name: PWA_APP_NAME,
         short_name: "Fantasy",
         description: "Private fantasy football decision assistant",
-        theme_color: "#0f1419",
-        background_color: "#0f1419",
+        theme_color: PWA_THEME_COLOR,
+        background_color: PWA_BACKGROUND_COLOR,
         display: "standalone",
         orientation: "portrait-primary",
-        start_url: "/",
+        start_url: `${CANONICAL_PRODUCTION_ORIGIN}/`,
+        scope: `${CANONICAL_PRODUCTION_ORIGIN}/`,
+        lang: "en-US",
         icons: [
           {
             src: "/pwa-192x192.png",
@@ -30,7 +40,13 @@ export default defineConfig({
             type: "image/png",
           },
           {
-            src: "/pwa-512x512.png",
+            src: "/pwa-192x192-maskable.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
+            src: "/pwa-512x512-maskable.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
@@ -40,19 +56,19 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api\//, /^\/health\//],
         runtimeCaching: [
           {
-            urlPattern: ({ url }: { url: URL | string }) => {
-              const href = typeof url === "string" ? url : url.href;
-              return href.includes("/api/v1/") && !href.includes("/auth/") && !href.endsWith("/me");
-            },
+            urlPattern: ({ url }: { url: URL | string }) => isUncacheableAppUrl(url),
             handler: "NetworkOnly",
-            method: "GET",
           },
         ],
       },
     }),
   ],
+  define: {
+    __CANONICAL_PRODUCTION_ORIGIN__: JSON.stringify(CANONICAL_PRODUCTION_ORIGIN),
+  },
   server: {
     port: 5173,
     allowedHosts: [".trycloudflare.com"],

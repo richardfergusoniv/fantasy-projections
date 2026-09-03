@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
+import { IphoneInstallGuide } from "./IphoneInstallGuide";
 import { LeagueSwitcher } from "./LeagueSwitcher";
 import { useAuth } from "../hooks/useAuth";
 
@@ -30,6 +31,7 @@ export function AppShell() {
         </div>
         <LeagueSwitcher />
       </header>
+      <IphoneInstallGuide />
       {error ? (
         <p className="error-text shell-error" role="alert">
           {error}

@@ -16,6 +16,8 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from fastapi.testclient import TestClient
 
+from src.app.api.v1.auth import SESSION_MAX_AGE_SECONDS
+
 os.environ["APP_ENV"] = "test"
 os.environ["APP_ENABLE_DEV_AUTH"] = "true"
 os.environ["TEST_DATABASE_URL"] = "sqlite+pysqlite:///:memory:?cache=shared"
@@ -264,8 +266,20 @@ def test_session_cookie_flags_follow_settings(monkeypatch, client: TestClient):
     set_cookie = verify.headers["set-cookie"]
     assert "HttpOnly" in set_cookie
     assert "samesite=lax" in set_cookie.lower()
+    assert f"Max-Age={SESSION_MAX_AGE_SECONDS}" in set_cookie or "max-age=" in set_cookie.lower()
+    assert "expires=" in set_cookie.lower()
     # Test env is explicitly insecure-by-design; production is not.
     assert "secure" not in set_cookie.lower()
+
+
+def test_me_returns_csrf_for_active_session(client: TestClient):
+    csrf = _login(client)
+    me = client.get("/api/v1/me")
+    assert me.status_code == 200
+    body = me.json()
+    assert body["email"] == "owner@example.com"
+    assert body["csrf_token"] == csrf
+    assert "session_expires_at" in body
 
 
 def test_auth_verify_route_reads_secure_flag_from_settings():
@@ -276,7 +290,9 @@ def test_auth_verify_route_reads_secure_flag_from_settings():
 
     source = inspect.getsource(auth_routes)
     assert "secure=False" not in source
-    assert "settings.session_cookie_secure" in source
+    # Cookie Secure follows Settings via the shared helper (used by set + clear).
+    assert "session_cookie_secure" in source
+    assert "secure=_cookie_secure()" in source
 
 
 def test_auth_verify_is_rate_limited(client: TestClient):
