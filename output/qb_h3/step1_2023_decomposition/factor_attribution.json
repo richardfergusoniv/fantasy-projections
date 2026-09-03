@@ -1,0 +1,130 @@
+{
+  "mean_ae_delta": 5.11456152842508,
+  "sum_ae_delta": 214.81158419385335,
+  "total_positive_ae_delta": 1096.7216728413034,
+  "factor_sum_ae_delta": {
+    "incorrect_archetype_assignment": 185.754920220931,
+    "incorrect_expected_starts": 126.66935514223852,
+    "availability_underprediction": 132.24509685119935,
+    "passing_volume_changes": 976.9684647364166,
+    "rushing_volume_changes": 478.55010269447365,
+    "large_divergence_from_sealed_stack": 709.3347809956715,
+    "returning_injury_cohort": 76.14878772352289,
+    "rookie_or_insufficient_history": 65.2033858313566,
+    "role_or_team_change": -48.8760898065256,
+    "partial_game_or_efficiency_residual": 108.69808922570986,
+    "touchdown_composition": 42.30938198318347,
+    "availability_overprediction_inflates_season": 235.07892092029698,
+    "backup_got_starter_active_rates": 558.1331760953407,
+    "starter_backup_conservation_failure": 558.1331760953407
+  },
+  "share_of_positive_regression": {
+    "incorrect_archetype_assignment": 0.20313008088994977,
+    "incorrect_expected_starts": 0.5856849959168801,
+    "availability_underprediction": 0.12058218609703296,
+    "passing_volume_changes": 0.8908080226092011,
+    "rushing_volume_changes": 0.43634598872718755,
+    "large_divergence_from_sealed_stack": 0.646777389889616,
+    "returning_injury_cohort": 0.29427061818761086,
+    "rookie_or_insufficient_history": 0.20875328832875384,
+    "role_or_team_change": 0.20441358622954509,
+    "partial_game_or_efficiency_residual": 0.09911182747406011,
+    "touchdown_composition": 0.03857804858872856,
+    "availability_overprediction_inflates_season": 0.46510280981984714,
+    "backup_got_starter_active_rates": 0.5089105011022272,
+    "starter_backup_conservation_failure": 0.5089105011022272
+  },
+  "archetype_none_designed_bug": {
+    "n_mislabeled_dual": 6,
+    "ae_delta_sum_mislabeled": 185.754920220931,
+    "explanation": "Frozen classifier treats missing designed/scramble as pocket before checking carries>=5.5, so Lamar/Hurts-class rushers with null designed splits are labeled pocket_passer.",
+    "lamar_2023": {
+      "archetype": "pocket_passer",
+      "sample_active_starts": 52.0,
+      "input_seasons": [
+        2019,
+        2020,
+        2021,
+        2022
+      ],
+      "features": {
+        "designed_carries_per_active": null,
+        "scramble_per_dropback": null,
+        "carries_per_active": 11.096153846153847
+      }
+    },
+    "hurts_2023": {
+      "archetype": "pocket_passer",
+      "sample_active_starts": 35.0,
+      "input_seasons": [
+        2020,
+        2021,
+        2022
+      ],
+      "features": {
+        "designed_carries_per_active": null,
+        "scramble_per_dropback": null,
+        "carries_per_active": 10.142857142857142
+      }
+    }
+  },
+  "structural_causes_ranked": [
+    {
+      "cause": "starter_backup_conservation_failure",
+      "evidence": "Depth-tier\u22652 QBs assigned full active attempt rates \u00d7 expected starts without sealed depth discount / residual fill (Winston, White, Rush, Kyle Allen, Beathard)."
+    },
+    {
+      "cause": "incorrect_expected_starts",
+      "evidence": "Large |expected\u2212actual| starts among top regressors (Murray, Tannehill, Herbert, and several backups with starter-like expected starts)."
+    },
+    {
+      "cause": "incorrect_archetype_assignment",
+      "evidence": "Null designed/scramble \u2192 pocket before carries\u22655.5 check; Lamar/Hurts-class rushers mislabeled pocket_passer under frozen H1/H2 classifier."
+    },
+    {
+      "cause": "passing_volume_changes",
+      "evidence": "Candidate season attempts diverge from actual when active rates are applied without team reconcile."
+    },
+    {
+      "cause": "rushing_volume_changes",
+      "evidence": "Archetype mislabel + prior shrink understates designed/scramble opportunity for dual-threat starters."
+    },
+    {
+      "cause": "touchdown_composition",
+      "evidence": "Residual points error after roughly matching volume (efficiency / TD rate not jointly composed in post-hoc path)."
+    },
+    {
+      "cause": "role_or_team_change",
+      "evidence": "Prior-season role/team shifts without sealed transition features in the frozen post-hoc candidate."
+    },
+    {
+      "cause": "partial_game_handling",
+      "evidence": "Frozen path has only a coarse partial_exit_rate; early-exit volume haircuts are not reconciled to backups."
+    },
+    {
+      "cause": "not_in_sealed_pipeline",
+      "evidence": "Post-hoc rate\u00d7starts never saw team reconcile, depth ladder, TD constraints, or concentration \u2014 backups unbounded."
+    },
+    {
+      "cause": "double_application_of_availability",
+      "evidence": "Not the 2023 failure mode: candidate applies availability once via expected starts; inflation is over-predicted starts and missing depth conservation, not rate\u00d7starts\u00d7(starts/17)."
+    },
+    {
+      "cause": "ensemble_dilution",
+      "evidence": "Not applicable on 2023 fold: sealed comparator is model_points_end_to_end (v1 compose), not accuracy-first blend."
+    }
+  ],
+  "requested_factor_checklist": {
+    "incorrect_expected_starts": "flagged when |starts_error|>=3",
+    "incorrect_archetype_assignment": "null designed/scramble pocket bug + dual carries",
+    "rookies_or_insufficient_history": "archetype or is_rookie",
+    "role_or_team_changes": "prior team != preseason team or backup\u2192starter",
+    "partial_game_handling": "coarse residual flag when starts/rates close but AE worsens",
+    "double_application_of_availability": "checked; not primary 2023 driver",
+    "starter_backup_conservation": "depth>=2 with starter-like season totals",
+    "passing_volume_changes": "|cand_season_att - actual_att| >= 80",
+    "rushing_volume_changes": "|cand_season_car - actual_car| >= 25",
+    "touchdown_composition": "volume roughly ok but AE delta > 20",
+    "ensemble_dilution": "N/A on 2023 sealed fold"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-09-03T18:51:17.222526+00:00",
+  "thresholds_frozen": {
+    "active_min_attempts": 10,
+    "active_min_touches": 12,
+    "partial_max_attempts": 9,
+    "avail_lookback_seasons": 4,
+    "archetype_lookback": 4,
+    "designed_runner_designed_per_start": 4.0,
+    "mobile_scrambler_scramble_per_db": 0.08,
+    "pocket_max_designed_per_start": 2.0,
+    "pocket_max_scramble_per_db": 0.05,
+    "eval_seasons": [
+      2023,
+      2024,
+      2025
+    ],
+    "fit_seasons": [
+      2023,
+      2024
+    ],
+    "holdout_season": 2025,
+    "gates": {
+      "overall_mae_non_inferiority_tol": 0.02,
+      "cohort_improve_min_fit_folds": 2,
+      "holdout_cohort_must_improve": true,
+      "holdout_bootstrap_ci_must_exclude_zero": true,
+      "top12_mae_non_inferiority_tol": 0.03,
+      "spearman_max_drop": 0.02,
+      "use_2026_for_selection": false
+    },
+    "note": "Frozen before candidate result inspection; do not weaken after seeing results."
+  },
+  "h1_h2_retune": false,
+  "projections_db_present": false,
+  "sealed_refit_available": false
+}
