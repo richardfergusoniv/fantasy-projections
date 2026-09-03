@@ -1,0 +1,192 @@
+{
+  "generated_at": "2026-09-03T17:41:23.852800+00:00",
+  "attribution_rows": 32,
+  "lamar_provenance": {
+    "player_id": "00-0034796",
+    "archetype": "mobile",
+    "historical_profile": {
+      "seasons": [
+        {
+          "season": 2022,
+          "games": 12.0,
+          "carries_pg": 9.333333333333334,
+          "rushing_yards_pg": 63.666666666666664,
+          "rushing_tds": 3.0,
+          "designed_carries_pg": NaN,
+          "scramble_carries_pg": NaN
+        },
+        {
+          "season": 2023,
+          "games": 16.0,
+          "carries_pg": 9.25,
+          "rushing_yards_pg": 51.3125,
+          "rushing_tds": 5.0,
+          "designed_carries_pg": 5.6875,
+          "scramble_carries_pg": 4.75
+        },
+        {
+          "season": 2024,
+          "games": 17.0,
+          "carries_pg": 8.176470588235293,
+          "rushing_yards_pg": 53.8235294117647,
+          "rushing_tds": 4.0,
+          "designed_carries_pg": 6.294117647058823,
+          "scramble_carries_pg": 3.176470588235294
+        },
+        {
+          "season": 2025,
+          "games": 13.0,
+          "carries_pg": 5.153846153846154,
+          "rushing_yards_pg": 26.846153846153847,
+          "rushing_tds": 2.0,
+          "designed_carries_pg": NaN,
+          "scramble_carries_pg": NaN
+        }
+      ],
+      "games_weighted_carries_pg": 8.03448275862069,
+      "games_weighted_rushing_yards_pg": 49.12068965517241,
+      "games_weighted_designed_carries_pg": 6.0,
+      "games_weighted_scramble_carries_pg": 3.9393939393939394
+    },
+    "raw_model_rates": {
+      "attempts": 22.333715513139094,
+      "carries": 4.422580581350364,
+      "completions": 13.06264483166653,
+      "interceptions": 0.4966612462340904,
+      "passing_tds": 1.1693004410553465,
+      "passing_yards": 161.598796603169,
+      "rushing_tds": 0.1130676329087628,
+      "rushing_yards": 26.67435986443961
+    },
+    "sealed_rates": {
+      "pg_carries": 4.505757534866991,
+      "pg_rushing_yards": 21.806181658398327,
+      "pg_rushing_tds": 0.132264046622744,
+      "pg_attempts": 23.27111048390881,
+      "pg_passing_yards": 164.3780360322704,
+      "fantasy_pts": 16.718282016349605,
+      "fantasy_pts_season": 284.2107942779433
+    },
+    "multi_season_prior": {
+      "applied": true,
+      "reason": "established_multi_season",
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "sample_games": 58.0,
+      "weight": 1.0,
+      "components": {
+        "attempts_pg": 27.53448275862069,
+        "passing_yards_pg": 217.94827586206895,
+        "yards_per_attempt": 7.903246633641151,
+        "pass_td_rate": 0.06447301318472796,
+        "int_rate": 0.01575607366422493,
+        "designed_carries_pg": 5.104350746112033,
+        "scramble_carries_pg": 3.6370285642327955,
+        "carries_pg": 8.03448275862069,
+        "rushing_yards_pg": 49.12068965517241,
+        "rush_td_rate": 0.029986852526813355
+      }
+    },
+    "causes": [
+      "raw_model_underpredicts_rush_volume: veteran rate model output is 4.42 carries/g vs games-weighted prior 8.03",
+      "designed_run_profile_not_preserved: historical designed-rush usage ~6.00/g is not reflected in the raw carries forecast",
+      "compose_does_not_restore_rushing: sealed carries remain near the raw forecast; team-volume reconcile does not target QB rush stats"
+    ],
+    "verdict": "mobile_rushing_lost_in_raw_rate_model_and_unrepaired_by_compose"
+  },
+  "selection": {
+    "verdict": "NO-GO",
+    "reasons": [
+      "starter_ppg_mae_not_improved (5.151 vs 5.151)",
+      "starter_spearman_not_improved (0.476 vs 0.476)",
+      "selected_arm_is_baseline"
+    ],
+    "selected_arm": "baseline",
+    "holdout_season": 2025,
+    "starter": {
+      "selected": {
+        "segment": "high_confidence_starter",
+        "n": 31,
+        "ppg_mae": 5.1514314660710925,
+        "season_mae": 66.05449522177905,
+        "bias": -1.7243159460199418,
+        "spearman": 0.4762576896872007,
+        "top6_hit": 0.0,
+        "top12_hit": 0.6666666666666666,
+        "fraction_improved": 0.0,
+        "calibration_slope": 0.19506656062882344
+      },
+      "baseline": {
+        "segment": "high_confidence_starter",
+        "n": 31,
+        "ppg_mae": 5.1514314660710925,
+        "season_mae": 66.05449522177905,
+        "bias": -1.7243159460199418,
+        "spearman": 0.4762576896872007,
+        "top6_hit": 0.0,
+        "top12_hit": 0.6666666666666666,
+        "fraction_improved": 0.0,
+        "calibration_slope": 0.19506656062882344
+      }
+    },
+    "all_qb": {
+      "selected": {
+        "segment": "all_qb",
+        "n": 107,
+        "ppg_mae": 7.4540766926654465,
+        "season_mae": 39.207009654989434,
+        "bias": 3.4088182740931448,
+        "spearman": 0.7800133303515431,
+        "top6_hit": 0.0,
+        "top12_hit": 0.5833333333333334,
+        "fraction_improved": 0.0,
+        "calibration_slope": 0.10667277355764458
+      },
+      "baseline": {
+        "segment": "all_qb",
+        "n": 107,
+        "ppg_mae": 7.4540766926654465,
+        "season_mae": 39.207009654989434,
+        "bias": 3.4088182740931448,
+        "spearman": 0.7800133303515431,
+        "top6_hit": 0.0,
+        "top12_hit": 0.5833333333333334,
+        "fraction_improved": 0.0,
+        "calibration_slope": 0.10667277355764458
+      }
+    },
+    "ensemble": {
+      "selected": {
+        "v1_pred": 0.4,
+        "v2_pred": 0.6
+      },
+      "arm": "incumbent",
+      "promote": false,
+      "fit_leader": {
+        "weights": {
+          "v1_pred": 0.7000000000000001,
+          "v2_pred": 0.29999999999999993
+        },
+        "fit_mae": 44.0396472366551,
+        "fit_spearman": 0.7265318536651613
+      },
+      "holdout_incumbent": {
+        "n": 107,
+        "mae": 27.627626637547245,
+        "spearman": 0.8253114582258277
+      },
+      "holdout_candidate": {
+        "n": 107,
+        "mae": 32.424181629413816,
+        "spearman": 0.831115336272423
+      },
+      "ecr_weight": 0.0,
+      "adp_weight": 0.0
+    }
+  },
+  "selected_arm": "baseline"
+}
