@@ -1,0 +1,61 @@
+{
+  "non_qb_invariance": {
+    "pass": true,
+    "n_compared": 3271,
+    "n_changed": 0,
+    "max_abs_delta": 0.0
+  },
+  "burrow_attempts_baseline": 17.97066823591866,
+  "burrow_attempts_joint": 23.95858819348171,
+  "sanity_table": {
+    "Josh Allen": {
+      "rank": 1,
+      "ppg": 18.260362147741485,
+      "attempts": 23.963468580332346,
+      "carries": 6.089131560753759
+    },
+    "Lamar Jackson": {
+      "rank": 16,
+      "ppg": 13.25488137822263,
+      "attempts": 22.07900399211793,
+      "carries": 4.422580581350364
+    },
+    "Jayden Daniels": {
+      "rank": 21,
+      "ppg": 12.925866299819127,
+      "attempts": 23.679983589237256,
+      "carries": 6.440275807116136
+    },
+    "Jalen Hurts": {
+      "rank": 10,
+      "ppg": 14.726118767247202,
+      "attempts": 22.326895386453828,
+      "carries": 4.309725888921528
+    },
+    "Joe Burrow": {
+      "rank": 25,
+      "ppg": 11.931163485443369,
+      "attempts": 23.95858819348171,
+      "carries": 1.8944483377122696
+    },
+    "Patrick Mahomes": {
+      "rank": 9,
+      "ppg": 14.754802131296687,
+      "attempts": 23.826442939815053,
+      "carries": 4.563030519281061
+    },
+    "Drake Maye": {
+      "rank": 2,
+      "ppg": 17.872228909442754,
+      "attempts": 29.902413077950936,
+      "carries": 5.01393504386697
+    },
+    "Bo Nix": {
+      "rank": 5,
+      "ppg": 16.50054218538528,
+      "attempts": 29.822016456463043,
+      "carries": 4.040699263198057
+    }
+  },
+  "n_qb": 96
+}

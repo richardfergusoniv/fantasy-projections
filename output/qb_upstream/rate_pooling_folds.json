@@ -1,0 +1,47 @@
+{
+  "metric": "carries_pg",
+  "folds": [
+    {
+      "season": 2023,
+      "n": 32,
+      "carry_forward_mae": 0.957308597244259,
+      "pooled_mae": 0.8703153016790037,
+      "delta_mae": -0.08699329556525526,
+      "bootstrap_delta_mean": -0.08526683569749333,
+      "bootstrap_delta_ci95": [
+        -0.2818384892154744,
+        0.11028501153683289
+      ],
+      "spearman_cf": 0.7280396601913701,
+      "spearman_pooled": 0.7759142182711495
+    },
+    {
+      "season": 2024,
+      "n": 34,
+      "carry_forward_mae": 0.8854681962597186,
+      "pooled_mae": 0.8822246470012667,
+      "delta_mae": -0.0032435492584519388,
+      "bootstrap_delta_mean": -0.0007183016901075626,
+      "bootstrap_delta_ci95": [
+        -0.17296375298758324,
+        0.17276457516249208
+      ],
+      "spearman_cf": 0.7425122336082354,
+      "spearman_pooled": 0.73292589763178
+    },
+    {
+      "season": 2025,
+      "n": 32,
+      "carry_forward_mae": 1.059858898760553,
+      "pooled_mae": 0.9682427747671272,
+      "delta_mae": -0.09161612399342589,
+      "bootstrap_delta_mean": -0.09227461785974753,
+      "bootstrap_delta_ci95": [
+        -0.3000584187508985,
+        0.09196366508092954
+      ],
+      "spearman_cf": 0.8188067122648772,
+      "spearman_pooled": 0.8446521894149438
+    }
+  ]
+}
