@@ -31,6 +31,9 @@ DRAFT_DATA_DIR = REPO_ROOT / "draft_assistant" / "data"
 HISTORY_SEASON = 2025
 TOP_N = 16
 
+# Mirrors src.projection.data_prep.team_season_opponent_strength.
+_FRANCHISE_CODE_FIX = {"OAK": "LV", "SD": "LAC"}
+
 VOLUME_CAVEAT = (
     "2025 volume leader within this team's 2026 skill group; history has no "
     "team field (volume may have been earned elsewhere). Projected pool only — "
@@ -118,15 +121,6 @@ def load_comparison(path: Path) -> dict[str, Any]:
 def rank_descending(values: dict[str, float]) -> dict[str, int]:
     """1 = best (highest value). Ties share the minimum rank."""
     ordered = sorted(values.items(), key=lambda item: (-item[1], item[0]))
-    ranks: dict[str, int] = {}
-    for index, (key, _) in enumerate(ordered, start=1):
-        ranks[key] = index
-    return ranks
-
-
-def rank_ascending(values: dict[str, float]) -> dict[str, int]:
-    """1 = best (lowest value). Used for SOS (lower opponent EPA = easier)."""
-    ordered = sorted(values.items(), key=lambda item: (item[1], item[0]))
     ranks: dict[str, int] = {}
     for index, (key, _) in enumerate(ordered, start=1):
         ranks[key] = index
@@ -305,6 +299,31 @@ def assign_rank_tiers(
     return enriched
 
 
+def db_has_tables(db_file: Path, tables: tuple[str, ...]) -> bool:
+    """True when ``db_file`` is a readable SQLite DB containing every table.
+
+    ``projections.db`` is a zero-byte placeholder in some deploy environments;
+    ``sqlite3.connect`` happily opens it, so probe for the tables the DB-backed
+    rank loaders need instead of trusting the file's existence.
+    """
+    if not db_file.is_file() or db_file.stat().st_size == 0:
+        return False
+    try:
+        conn = sqlite3.connect(str(db_file))
+    except sqlite3.Error:
+        return False
+    try:
+        present = {
+            str(row[0])
+            for row in conn.execute("select name from sqlite_master where type = 'table'")
+        }
+    except sqlite3.Error:
+        return False
+    finally:
+        conn.close()
+    return all(table in present for table in tables)
+
+
 def count_2026_reg_schedules(conn: sqlite3.Connection, season: int) -> int:
     row = conn.execute(
         "select count(*) from schedules where season = ? and game_type = 'REG'",
@@ -438,6 +457,10 @@ def load_sos_ranks_from_nflverse(season: int) -> tuple[dict[str, int], dict[str,
     sched = sched[sched["game_type"] == "REG"].copy()
     if sched.empty:
         return {}, {}, {}
+    # Same normalization team_season_opponent_strength applies, so the DB and
+    # nflverse paths agree on historical franchise codes.
+    sched["home_team"] = sched["home_team"].replace(_FRANCHISE_CODE_FIX)
+    sched["away_team"] = sched["away_team"].replace(_FRANCHISE_CODE_FIX)
 
     pbp = nfl.load_pbp([season - 1])
     if hasattr(pbp, "to_pandas"):
@@ -543,7 +566,8 @@ def build_checklist(
     sos_rush_ranks: dict[str, int] = {}
     sos_unit_ranks: dict[str, int] = {}
 
-    if db_file.is_file():
+    used_db = False
+    if db_has_tables(db_file, ("pbp", "schedules")):
         conn = sqlite3.connect(str(db_file))
         try:
             offense_ranks = load_offense_ranks_from_db(conn, HISTORY_SEASON)
@@ -562,9 +586,11 @@ def build_checklist(
                 if sos_unit_ranks:
                     sos_included = True
                     sos_source = "projections.db:team_season_opponent_strength"
+            used_db = True
         finally:
             conn.close()
-    else:
+
+    if not used_db:
         # Same nflverse underlying data as db.load — not a sum of the 778 pool.
         offense_ranks = load_offense_ranks_from_nflverse(HISTORY_SEASON)
         offense_source = "nflverse_pbp:team_pass_rush_yards"

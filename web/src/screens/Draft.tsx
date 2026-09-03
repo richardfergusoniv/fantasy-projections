@@ -97,26 +97,33 @@ export function DraftScreen() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    void Promise.all([
+    // allSettled, not all: the two panes fail independently, so a checklist
+    // outage must not blank the board that "Ours" renders (and vice versa).
+    void Promise.allSettled([
       api.getDraftBoard(selectedLeagueId),
       api.getDraftChecklist(selectedLeagueId),
     ])
-      .then(([board, checklistPayload]) => {
+      .then(([boardResult, checklistResult]) => {
         if (cancelled) return;
-        setEntries(board.entries);
+        const board = boardResult.status === "fulfilled" ? boardResult.value : null;
+        const checklistPayload =
+          checklistResult.status === "fulfilled" ? checklistResult.value : null;
+
+        setEntries(board?.entries ?? []);
         setChecklist(checklistPayload);
-        setContext(board.context);
-        setProfile(board.profile);
+        setContext(board?.context);
+        setProfile(board?.profile);
         setSearch("");
         setVisibleCount(25);
-        setDataAsOf(checklistPayload.meta.data_as_of ?? board.meta.data_as_of);
-        setRunId(checklistPayload.meta.projection_run_id ?? board.meta.projection_run_id);
-      })
-      .catch((err: Error) => {
-        if (cancelled) return;
-        setEntries([]);
-        setChecklist(null);
-        setError(err.message);
+        setDataAsOf(checklistPayload?.meta.data_as_of ?? board?.meta.data_as_of);
+        setRunId(
+          checklistPayload?.meta.projection_run_id ?? board?.meta.projection_run_id,
+        );
+
+        const failures = [boardResult, checklistResult]
+          .filter((result) => result.status === "rejected")
+          .map((result) => String((result as PromiseRejectedResult).reason?.message ?? result));
+        setError(failures.length ? failures.join(" · ") : null);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -137,7 +144,10 @@ export function DraftScreen() {
 
   const normalizedSearch = search.trim().toLowerCase();
 
-  const criteriaKeys = checklist?.criteria_by_position[positionFilter] ?? [];
+  const criteriaKeys = useMemo(
+    () => checklist?.criteria_by_position[positionFilter] ?? [],
+    [checklist, positionFilter],
+  );
   const criteriaLabels = checklist?.criteria_labels ?? {};
 
   const checklistFiltered = useMemo(() => {
@@ -172,6 +182,13 @@ export function DraftScreen() {
   ]);
 
   const checklistVisible = checklistFiltered.slice(0, visibleCount);
+  // Derive the divider from what is actually on screen. Anchoring it to the
+  // entry's own unranked_break flag loses it whenever that one player is
+  // filtered out (drafted, min-checks) and strands it at the top when every
+  // ranked player is filtered away.
+  const unrankedBreakIndex = checklistVisible.findIndex(
+    (entry) => entry.rank_tier === "prior_pts" || entry.rank_tier === "none",
+  );
 
   const positionEntries = entries.filter(
     (entry) => positionFilter === "ALL" || entry.position === positionFilter,
@@ -430,11 +447,11 @@ export function DraftScreen() {
                   </tr>
                 </thead>
                 <tbody>
-                  {checklistVisible.map((entry: DraftChecklistEntry) => {
+                  {checklistVisible.map((entry: DraftChecklistEntry, index: number) => {
                     const drafted = draftedPlayerSet.has(entry.player_id);
                     return (
                       <Fragment key={entry.player_id}>
-                        {entry.unranked_break ? (
+                        {index === unrankedBreakIndex ? (
                           <tr className="draft-unranked-break">
                             <td colSpan={3 + criteriaKeys.length}>
                               Unranked / off market board — sorted by 2025 fantasy points
@@ -500,7 +517,7 @@ export function DraftScreen() {
           <>
             {!olIncluded ? (
               <p className="muted">
-                O-line unit ranks need ``projections.db`` (ol_quality). Re-run{" "}
+                O-line unit ranks need <code>projections.db</code> (ol_quality). Re-run{" "}
                 <code>python -m src.draft_assistant.checklist_prepare</code> on a host with the DB
                 to populate pass/run/unit ranks. Offense ranks below use 2025 team yardage.
               </p>

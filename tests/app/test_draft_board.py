@@ -94,6 +94,13 @@ def test_draft_checklist_endpoint(client: TestClient):
     assert body["meta"]["market_as_of"]["scoring"] == "half-ppr"
     assert body["meta"]["market_as_of"]["teams"] == 12
     assert "checks" in body["entries"][0]
+    # Freshness must describe the checklist artifact, not the league rule
+    # snapshot _meta() reports for the VORP endpoints.
+    assert body["projection_run_id"] == "checklist-2026"
+    assert body["data_as_of"] == body["meta"]["generated_at"]
+    # ...while the non-overlapping _meta keys still come through.
+    assert "projection_source" in body
+    assert "rule_snapshot_id" in body
 
 
 def test_draft_board_superflex_zero_vorp_qb_not_first():

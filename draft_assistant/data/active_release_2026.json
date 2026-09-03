@@ -18,7 +18,6 @@
     "team_stats": "data/releases/v2_baseline_20260830/team_stats_2026.json",
     "comparison": "data/releases/v2_baseline_20260830/comparison_2026.json",
     "deep_band_accuracy": "data/releases/v2_baseline_20260830/deep_band_accuracy.json",
-    "manifest": "data/releases/v2_baseline_20260830/release_bundle_manifest.json",
-    "draft_checklist": "data/releases/v2_baseline_20260830/draft_checklist_2026.json"
+    "manifest": "data/releases/v2_baseline_20260830/release_bundle_manifest.json"
   }
 }

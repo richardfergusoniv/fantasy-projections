@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,7 @@ import pytest
 from src.draft_assistant.checklist_prepare import (
     assign_rank_tiers,
     criteria_for_meta,
+    db_has_tables,
     rank_descending,
     volume_flags_for_players,
 )
@@ -159,3 +161,62 @@ def test_committed_checklist_json_loads():
     assert payload["meta"]["market_as_of"]["teams"] == 12
     assert "vorp" not in (payload["players"][0] or {})
     assert payload["players"][0]["rank_tier"] in {"adp", "ecr", "prior_pts", "none"}
+
+
+def _sqlite_with(path: Path, *tables: str) -> Path:
+    conn = sqlite3.connect(path)
+    try:
+        for table in tables:
+            conn.execute(f"create table {table} (a int)")
+        conn.commit()
+    finally:
+        conn.close()
+    return path
+
+
+def test_db_guard_rejects_empty_or_partial_projections_db(tmp_path: Path):
+    """A present-but-unusable projections.db must fall through to nflverse.
+
+    projections.db ships as a zero-byte placeholder in some deploy targets and
+    sqlite3.connect opens it happily, so file existence alone is not a usable
+    signal.
+    """
+    required = ("pbp", "schedules")
+
+    missing = tmp_path / "absent.db"
+    assert db_has_tables(missing, required) is False
+
+    empty = tmp_path / "zero.db"
+    empty.touch()
+    assert db_has_tables(empty, required) is False
+
+    junk = tmp_path / "junk.db"
+    junk.write_bytes(b"not a sqlite database")
+    assert db_has_tables(junk, required) is False
+
+    partial = _sqlite_with(tmp_path / "partial.db", "pbp")
+    assert db_has_tables(partial, required) is False
+
+
+def test_db_guard_accepts_a_populated_projections_db(tmp_path: Path):
+    full = _sqlite_with(tmp_path / "full.db", "pbp", "schedules")
+    assert db_has_tables(full, ("pbp", "schedules")) is True
+
+
+def test_checklist_is_not_written_into_the_sealed_release():
+    """The frozen namespace stays byte-stable; the checklist lives beside it.
+
+    Anything added under releases/<namespace>/ needs a manifest entry with a
+    digest, or verify_browser_surfaces cannot integrity-check it.
+    """
+    sealed = Path("draft_assistant/data/releases/v2_baseline_20260830")
+    if not sealed.is_dir():
+        pytest.skip("release bundle not present")
+    assert not (sealed / "draft_checklist_2026.json").exists()
+
+    manifest_path = sealed / "release_bundle_manifest.json"
+    if not manifest_path.is_file():
+        pytest.skip("release manifest not present")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    roles = {entry.get("role") for entry in manifest.get("artifacts") or []}
+    assert "draft_checklist" not in roles
