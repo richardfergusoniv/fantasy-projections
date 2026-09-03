@@ -125,7 +125,7 @@ def merge_rush_splits(active: pd.DataFrame, season_hist: pd.DataFrame | None = N
         "designed_ypc",
         "scramble_ypa",
     )
-    if season_hist is None or season_hist.empty:
+    if season_hist is None or season_hist.empty or out.empty:
         for c in empty_cols:
             if c not in out.columns:
                 out[c] = np.nan

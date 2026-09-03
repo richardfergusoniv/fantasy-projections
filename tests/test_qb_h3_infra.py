@@ -95,11 +95,17 @@ def test_pocket_requires_observed_designed_and_scramble():
     assert classify_archetype_h3(hist, player_id="p", target_season=2023)["archetype"] == "pocket_passer"
 
 
+def _committed_history() -> pd.DataFrame:
+    """Use the tracked active-rate table, not the gitignored weekly cache."""
+    path = REPO / "output" / "qb_active_archetype" / "active_season_rates.parquet"
+    hist = pd.read_parquet(path)
+    hist["player_id"] = hist["player_id"].astype(str)
+    return hist
+
+
 @pytest.mark.parametrize("name,pid", list(MISLABELED_2023.items()))
 def test_six_mislabeled_2023_not_pocket(name, pid):
-    from scripts.qb_sealed_baseline_bakeoff import build_history
-
-    hist = build_history()
+    hist = _committed_history()
     meta = classify_archetype_h3(hist, player_id=pid, target_season=2023)
     assert meta["archetype"] != "pocket_passer", (name, meta)
     # Classified from available prior seasons (carries), not a future label.
@@ -108,6 +114,14 @@ def test_six_mislabeled_2023_not_pocket(name, pid):
     if name in ("Lamar Jackson", "Jalen Hurts"):
         assert meta["archetype"] == "mobile_scrambler"
         assert (meta["features"].get("carries_per_active") or 0) >= 5.5
+
+
+def test_merge_rush_splits_empty_left_does_not_raise():
+    from src.projection.qb_active_archetype.active_rates import merge_rush_splits
+
+    out = merge_rush_splits(pd.DataFrame())
+    assert out.empty
+    assert "designed_carries_per_active" in out.columns
 
 
 def test_projections_db_placeholder_fails_fast(tmp_path):
@@ -174,11 +188,10 @@ def test_role_from_preseason_rookies():
 
 def test_2023_named_allocation_from_fixture():
     from src.projection.qb_h3.portable_contract import load_portable_fixture
-    from scripts.qb_sealed_baseline_bakeoff import build_history
     from src.projection.qb_h3.role_allocation import allocate_league_expected_starts
 
     fixture = load_portable_fixture()
-    hist = build_history()
+    hist = _committed_history()
     room = fixture[fixture.prediction_season == 2023]
     allocated = allocate_league_expected_starts(
         history=hist, target_season=2023, rooms=room, team_col="team"
