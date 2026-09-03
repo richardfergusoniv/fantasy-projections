@@ -1,0 +1,416 @@
+{
+  "generated_at": "2026-09-03T18:34:13.335105+00:00",
+  "decision": {
+    "verdict": "NO-GO",
+    "production_promotion": "NO",
+    "comparator": {
+      "prior_experiment": "A_injury_diluted_conflated_carry_forward",
+      "this_bakeoff": "B_sealed_final_model_points_end_to_end",
+      "sealed_source": "output/fantasy_evaluation_{season}.csv::model_points_end_to_end",
+      "supplement_2024_2025": "accuracy_first incumbent_pred (reported, not gate-binding unless noted)"
+    },
+    "reasons": [
+      "overall_mae_regression_vs_sealed_season_2023",
+      "primary_cohort_improved_on_1_fit_folds_need_2",
+      "holdout_primary_bootstrap_ci_vs_sealed_includes_zero",
+      "holdout_spearman_dropped_vs_sealed_beyond_tol"
+    ],
+    "gates": {
+      "overall_non_inferiority_vs_sealed": false,
+      "primary_cohort_fit_folds": false,
+      "holdout_primary_improve": true,
+      "holdout_bootstrap_ci": false,
+      "holdout_top12_non_inferior": true,
+      "holdout_spearman": false
+    },
+    "frozen_thresholds_unchanged": {
+      "overall_mae_non_inferiority_tol": 0.02,
+      "cohort_improve_min_fit_folds": 2,
+      "holdout_cohort_must_improve": true,
+      "holdout_bootstrap_ci_must_exclude_zero": true,
+      "top12_mae_non_inferiority_tol": 0.03,
+      "spearman_max_drop": 0.02,
+      "use_2026_for_selection": false
+    },
+    "note": "Configuration frozen; thresholds not retuned using 2025. GO here is required before Phase 2 candidate bundle work."
+  },
+  "folds": [
+    {
+      "season": 2023,
+      "n": 42,
+      "cohorts": {
+        "all": {
+          "n": 42,
+          "sealed_points_mae": 80.96830428332866,
+          "cand_points_mae": 86.08286581175375,
+          "delta_points_mae": 5.114561528425085,
+          "sealed_ppg_mae": 4.579638974756046,
+          "cand_pp_active_mae": 4.646749074912289,
+          "sealed_spearman": 0.5343975366663967,
+          "cand_spearman": 0.559841179807147,
+          "cand_attempts_mae": 7.597405894532399,
+          "cand_carries_mae": 0.939515433052505,
+          "cand_starts_mae": 3.401375131849641
+        },
+        "dual_threat": {},
+        "pocket_passer": {
+          "n": 32,
+          "sealed_points_mae": 81.52645352284452,
+          "cand_points_mae": 86.20170972167256,
+          "delta_points_mae": 4.675256198828038,
+          "sealed_ppg_mae": 4.0531600767687,
+          "cand_pp_active_mae": 4.466905326639405,
+          "sealed_spearman": 0.5373900293255132,
+          "cand_spearman": 0.6392961876832844,
+          "cand_attempts_mae": 6.80099100165428,
+          "cand_carries_mae": 0.9128833200083876,
+          "cand_starts_mae": 3.4130399796002724
+        },
+        "returning_injury": {
+          "n": 11,
+          "sealed_points_mae": 85.2809595480939,
+          "cand_points_mae": 92.2035766138687,
+          "delta_points_mae": 6.922617065774801,
+          "sealed_ppg_mae": 5.618056236586102,
+          "cand_pp_active_mae": 4.554398351870504,
+          "sealed_spearman": 0.4090909090909091,
+          "cand_spearman": 0.3545454545454546,
+          "cand_attempts_mae": 5.864950187936511,
+          "cand_carries_mae": 1.005231957088651,
+          "cand_starts_mae": 4.151381955807793
+        },
+        "primary": {
+          "n": 11,
+          "sealed_points_mae": 85.2809595480939,
+          "cand_points_mae": 92.2035766138687,
+          "delta_points_mae": 6.922617065774801,
+          "sealed_ppg_mae": 5.618056236586102,
+          "cand_pp_active_mae": 4.554398351870504,
+          "sealed_spearman": 0.4090909090909091,
+          "cand_spearman": 0.3545454545454546,
+          "cand_attempts_mae": 5.864950187936511,
+          "cand_carries_mae": 1.005231957088651,
+          "cand_starts_mae": 4.151381955807793
+        },
+        "top12_actual": {
+          "n": 12,
+          "sealed_points_mae": 76.21860156788925,
+          "cand_points_mae": 74.22468734563456,
+          "delta_points_mae": -1.9939142222546877,
+          "sealed_ppg_mae": 5.2811497403265895,
+          "cand_pp_active_mae": 2.000875184039328,
+          "sealed_spearman": 0.39860139860139865,
+          "cand_spearman": 0.32867132867132864,
+          "cand_attempts_mae": 1.904298315810031,
+          "cand_carries_mae": 0.6668681338328476,
+          "cand_starts_mae": 2.7265133835604813
+        }
+      },
+      "primary_bootstrap_delta_mae": {
+        "mean": 6.976144001842786,
+        "ci95": [
+          -30.159056400254823,
+          50.158178363919895
+        ]
+      }
+    },
+    {
+      "season": 2024,
+      "n": 43,
+      "cohorts": {
+        "all": {
+          "n": 43,
+          "sealed_points_mae": 71.74525662169069,
+          "cand_points_mae": 70.7588645673886,
+          "delta_points_mae": -0.9863920543020868,
+          "sealed_ppg_mae": 4.187415487518212,
+          "cand_pp_active_mae": 4.092941544059692,
+          "sealed_spearman": 0.7493204469948657,
+          "cand_spearman": 0.6505587435819994,
+          "cand_attempts_mae": 6.302762243593092,
+          "cand_carries_mae": 1.0271583597675986,
+          "cand_starts_mae": 3.0991498793006187
+        },
+        "dual_threat": {
+          "n": 11,
+          "sealed_points_mae": 94.12609666401846,
+          "cand_points_mae": 86.90051465461046,
+          "delta_points_mae": -7.225582009408001,
+          "sealed_ppg_mae": 4.842723485279346,
+          "cand_pp_active_mae": 4.097309022597949,
+          "sealed_spearman": 0.45454545454545453,
+          "cand_spearman": 0.6727272727272727,
+          "cand_attempts_mae": 4.440414578033385,
+          "cand_carries_mae": 1.2021588704826345,
+          "cand_starts_mae": 2.8312513776052577
+        },
+        "pocket_passer": {
+          "n": 25,
+          "sealed_points_mae": 68.9639779815396,
+          "cand_points_mae": 65.56707207586096,
+          "delta_points_mae": -3.3969059056786364,
+          "sealed_ppg_mae": 3.934784180153631,
+          "cand_pp_active_mae": 3.606439882604917,
+          "sealed_spearman": 0.6646153846153847,
+          "cand_spearman": 0.6169230769230769,
+          "cand_attempts_mae": 5.036492454169238,
+          "cand_carries_mae": 0.7761251088742387,
+          "cand_starts_mae": 2.9725416540052185
+        },
+        "returning_injury": {
+          "n": 13,
+          "sealed_points_mae": 62.59578524432114,
+          "cand_points_mae": 60.52417962323863,
+          "delta_points_mae": -2.0716056210825116,
+          "sealed_ppg_mae": 3.6475718463318025,
+          "cand_pp_active_mae": 3.616685707460039,
+          "sealed_spearman": 0.7967032967032966,
+          "cand_spearman": 0.8076923076923077,
+          "cand_attempts_mae": 6.008097581183555,
+          "cand_carries_mae": 1.0580571708412319,
+          "cand_starts_mae": 3.238571070554876
+        },
+        "primary": {
+          "n": 21,
+          "sealed_points_mae": 78.60522596837046,
+          "cand_points_mae": 72.3501872575803,
+          "delta_points_mae": -6.25503871079016,
+          "sealed_ppg_mae": 4.577783776333855,
+          "cand_pp_active_mae": 3.7489038994036936,
+          "sealed_spearman": 0.6857142857142857,
+          "cand_spearman": 0.7818181818181819,
+          "cand_attempts_mae": 5.654048097111608,
+          "cand_carries_mae": 1.144700623382705,
+          "cand_starts_mae": 3.0135149242616937
+        },
+        "top12_actual": {
+          "n": 12,
+          "sealed_points_mae": 68.79953331432047,
+          "cand_points_mae": 84.81911076011424,
+          "delta_points_mae": 16.01957744579377,
+          "sealed_ppg_mae": 4.55656010080593,
+          "cand_pp_active_mae": 3.016690007239328,
+          "sealed_spearman": 0.44055944055944063,
+          "cand_spearman": 0.2447552447552448,
+          "cand_attempts_mae": 3.7573954624636117,
+          "cand_carries_mae": 0.8812340169803322,
+          "cand_starts_mae": 3.0739988581431823
+        }
+      },
+      "primary_bootstrap_delta_mae": {
+        "mean": -6.355260628359713,
+        "ci95": [
+          -24.877970636667246,
+          12.194675651598617
+        ]
+      }
+    },
+    {
+      "season": 2025,
+      "n": 37,
+      "cohorts": {
+        "all": {
+          "n": 37,
+          "sealed_points_mae": 66.8222269314665,
+          "cand_points_mae": 67.47862423917881,
+          "delta_points_mae": 0.6563973077123109,
+          "sealed_ppg_mae": 4.86227766635206,
+          "cand_pp_active_mae": 3.1206187967010792,
+          "sealed_spearman": 0.5589473070099774,
+          "cand_spearman": 0.5262284402581738,
+          "cand_attempts_mae": 3.2834220281007065,
+          "cand_carries_mae": 1.0207978925174988,
+          "cand_starts_mae": 3.002362410581068
+        },
+        "dual_threat": {
+          "n": 12,
+          "sealed_points_mae": 81.69012098996882,
+          "cand_points_mae": 66.26099645757732,
+          "delta_points_mae": -15.429124532391498,
+          "sealed_ppg_mae": 5.769798784266949,
+          "cand_pp_active_mae": 2.9228119113928113,
+          "sealed_spearman": 0.3426573426573427,
+          "cand_spearman": 0.49650349650349657,
+          "cand_attempts_mae": 1.621879944116564,
+          "cand_carries_mae": 1.4718612909285766,
+          "cand_starts_mae": 2.4186124467851293
+        },
+        "pocket_passer": {
+          "n": 22,
+          "sealed_points_mae": 63.661383509014144,
+          "cand_points_mae": 71.49723890553054,
+          "delta_points_mae": 7.8358553965163935,
+          "sealed_ppg_mae": 4.625994402236987,
+          "cand_pp_active_mae": 3.2298159861125852,
+          "sealed_spearman": 0.5019762845849802,
+          "cand_spearman": 0.34500282326369286,
+          "cand_attempts_mae": 3.6656511059361816,
+          "cand_carries_mae": 0.771766456478944,
+          "cand_starts_mae": 3.35015698952145
+        },
+        "returning_injury": {
+          "n": 11,
+          "sealed_points_mae": 82.4959992052048,
+          "cand_points_mae": 74.24732378883594,
+          "delta_points_mae": -8.248675416368854,
+          "sealed_ppg_mae": 6.595588818445549,
+          "cand_pp_active_mae": 2.6952993152839384,
+          "sealed_spearman": 0.6090909090909091,
+          "cand_spearman": 0.46363636363636374,
+          "cand_attempts_mae": 2.467109021117763,
+          "cand_carries_mae": 0.9706292628675013,
+          "cand_starts_mae": 2.9984745080549704
+        },
+        "primary": {
+          "n": 20,
+          "sealed_points_mae": 75.33891215965257,
+          "cand_points_mae": 67.3379001669853,
+          "delta_points_mae": -8.001011992667259,
+          "sealed_ppg_mae": 5.660738118529608,
+          "cand_pp_active_mae": 2.8543656089079854,
+          "sealed_spearman": 0.5518796992481202,
+          "cand_spearman": 0.5759398496240601,
+          "cand_attempts_mae": 2.2343293882585216,
+          "cand_carries_mae": 1.1215247277228495,
+          "cand_starts_mae": 2.63163767181997
+        },
+        "top12_actual": {
+          "n": 12,
+          "sealed_points_mae": 75.56380893726568,
+          "cand_points_mae": 57.300698165287166,
+          "delta_points_mae": -18.26311077197851,
+          "sealed_ppg_mae": 5.271964585835012,
+          "cand_pp_active_mae": 2.0429260557175555,
+          "sealed_spearman": -0.7320501594135719,
+          "cand_spearman": -0.25919479328518813,
+          "cand_attempts_mae": 2.12689274652631,
+          "cand_carries_mae": 0.8149514275919021,
+          "cand_starts_mae": 1.7510870673730106
+        }
+      },
+      "primary_bootstrap_delta_mae": {
+        "mean": -8.132901159323403,
+        "ci95": [
+          -32.54619857542777,
+          15.91105227441794
+        ]
+      }
+    }
+  ],
+  "burrow_units": {
+    "player": "Joe Burrow",
+    "player_id": "00-0036442",
+    "historical": [
+      {
+        "season": 2022,
+        "active_starts": 16.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 37.875,
+        "attempts_per_game_conflated": 37.875,
+        "carries_per_active": 4.6875,
+        "carries_per_game_conflated": 4.6875,
+        "passing_yards_per_active": 279.6875,
+        "designed_carries_per_active": null,
+        "scramble_carries_per_active": null,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 14.16,
+          "partial_exit_rate": 0.012800000000000002,
+          "sample_active_starts": 42.0,
+          "input_seasons": [
+            2020,
+            2021,
+            2022
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 14.0
+        },
+        "note": "Full-ish season"
+      },
+      {
+        "season": 2023,
+        "active_starts": 10.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 36.5,
+        "attempts_per_game_conflated": 36.5,
+        "carries_per_active": 3.1,
+        "carries_per_game_conflated": 3.1,
+        "passing_yards_per_active": 230.9,
+        "designed_carries_per_active": 1.7,
+        "scramble_carries_per_active": 1.4,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 13.266666666666667,
+          "partial_exit_rate": 0.010666666666666665,
+          "sample_active_starts": 52.0,
+          "input_seasons": [
+            2020,
+            2021,
+            2022,
+            2023
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 13.0
+        },
+        "note": "Short seasons reduce active_starts / availability; attempts_per_active stays near healthy starter levels when active."
+      },
+      {
+        "season": 2024,
+        "active_starts": 17.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 38.35294117647059,
+        "attempts_per_game_conflated": 38.35294117647059,
+        "carries_per_active": 2.4705882352941178,
+        "carries_per_game_conflated": 2.4705882352941178,
+        "passing_yards_per_active": 289.29411764705884,
+        "designed_carries_per_active": 1.1764705882352942,
+        "scramble_carries_per_active": 1.2941176470588236,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 14.779850746268657,
+          "partial_exit_rate": 0.009552238805970151,
+          "sample_active_starts": 59.0,
+          "input_seasons": [
+            2021,
+            2022,
+            2023,
+            2024
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 14.75
+        },
+        "note": "Full-ish season"
+      },
+      {
+        "season": 2025,
+        "active_starts": 8.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 34.75,
+        "attempts_per_game_conflated": 34.75,
+        "carries_per_active": 1.75,
+        "carries_per_game_conflated": 1.75,
+        "passing_yards_per_active": 226.125,
+        "designed_carries_per_active": null,
+        "scramble_carries_per_active": null,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 13.055084745762713,
+          "partial_exit_rate": 0.010847457627118641,
+          "sample_active_starts": 51.0,
+          "input_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 12.75
+        },
+        "note": "Short seasons reduce active_starts / availability; attempts_per_active stays near healthy starter levels when active."
+      }
+    ],
+    "2026_candidate_decomposition": {
+      "attempts_per_active_start": 37.27450980392157,
+      "expected_starts": 13.055084745762713,
+      "expected_season_attempts": 486.6218843469591,
+      "availability_adjusted_attempts_per_scheduled_team_game": 28.624816726291712,
+      "clarification": "The previously reported ~30.1 was availability-adjusted attempts per scheduled team game on the composed board (expected season attempts / 17), NOT attempts per active start. Attempts per active start remain ~37. Expected season attempts \u2248 37.3 \u00d7 13.06 \u2248 487."
+    }
+  }
+}
