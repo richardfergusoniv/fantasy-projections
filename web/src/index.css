@@ -950,19 +950,29 @@ a {
 
 .draft-pane-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0.75rem 0 1rem;
+  flex-wrap: nowrap;
+  gap: 0.3rem;
+  margin: 0.5rem 0 0.65rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.draft-pane-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .draft-pane-tab {
-  min-height: var(--touch-target);
-  padding: 0.45rem 0.85rem;
+  flex: 1 1 0;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.55rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg);
   color: var(--text-muted);
+  font-size: 0.82rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -973,30 +983,38 @@ a {
 }
 
 .draft-market-badge {
-  display: inline-block;
-  margin: 0.25rem 0 0.75rem;
-  padding: 0.35rem 0.65rem;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-text);
-  font-size: 0.85rem;
+  display: block;
+  margin: 0.15rem 0 0.4rem;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.72rem;
   font-weight: 600;
+  line-height: 1.3;
+}
+
+.draft-checklist-caveat {
+  display: none;
 }
 
 .draft-pos-chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  grid-column: 1 / -1;
 }
 
 .draft-pos-chip {
-  min-height: 2.5rem;
-  min-width: 2.75rem;
-  padding: 0.35rem 0.7rem;
+  flex: 1 1 0;
+  min-height: 2.25rem;
+  min-width: 0;
+  padding: 0.25rem 0.35rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg);
   color: var(--text-muted);
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -1007,105 +1025,100 @@ a {
   color: var(--text);
 }
 
-.draft-checklist-scroll {
-  overflow-x: auto;
-  margin: 0.5rem 0 1rem;
+.draft-checklist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.75rem;
+}
+
+.draft-checklist-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.35rem;
+  align-items: start;
+  padding: 0.45rem 0.5rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-panel);
 }
 
-.draft-checklist-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 640px;
-}
-
-.draft-checklist-table th,
-.draft-checklist-table td {
-  padding: 0.55rem 0.65rem;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  vertical-align: middle;
-}
-
-.draft-checklist-table th {
-  position: sticky;
-  top: 0;
-  background: var(--bg-tier);
-  color: var(--text-muted);
-  font-size: 0.72rem;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  z-index: 1;
-}
-
-.draft-checklist-table th:first-child,
-.draft-checklist-table td:first-child {
-  position: sticky;
-  left: 0;
-  background: var(--bg-panel);
-  z-index: 2;
-}
-
-.draft-checklist-table th:first-child {
-  background: var(--bg-tier);
-  z-index: 3;
-}
-
-.draft-checklist-name {
-  position: sticky;
-  left: 3.25rem;
-  background: var(--bg-panel);
-  min-width: 11rem;
-  z-index: 2;
-}
-
-.draft-checklist-table th:nth-child(3) {
-  position: sticky;
-  left: 3.25rem;
-  z-index: 3;
-}
-
-.draft-checklist-table tr.is-drafted {
+.draft-checklist-row.is-drafted {
   opacity: 0.45;
 }
 
-.draft-check-col {
-  text-align: center !important;
-  white-space: normal;
-  max-width: 5.5rem;
+.draft-checklist-mark {
+  display: grid;
+  place-items: center;
+  min-height: 2rem;
+  margin: 0;
 }
 
-.draft-check-icon {
+.draft-checklist-mark input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
+}
+
+.draft-checklist-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.draft-checklist-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.45rem;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.draft-checklist-identity strong {
+  font-size: 0.95rem;
+}
+
+.draft-check-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.draft-check-pill {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 0.85rem;
+  gap: 0.15rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
 }
 
-.draft-check-icon.is-yes {
-  background: rgba(34, 197, 94, 0.2);
+.draft-check-pill.is-yes {
+  background: rgba(34, 197, 94, 0.18);
   color: #4ade80;
-  box-shadow: inset 0 0 0 2px #22c55e;
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.55);
 }
 
-.draft-check-icon.is-no {
-  background: rgba(248, 113, 113, 0.15);
+.draft-check-pill.is-no {
+  background: rgba(248, 113, 113, 0.12);
   color: #f87171;
-  box-shadow: inset 0 0 0 2px #ef4444;
+  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.45);
 }
 
-.draft-unranked-break td {
+.draft-unranked-break-row {
+  margin: 0.15rem 0;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius);
   background: var(--bg-hover);
   color: var(--warning);
   font-weight: 700;
-  font-size: 0.85rem;
-  text-align: center !important;
+  font-size: 0.75rem;
+  text-align: center;
 }
 
 .draft-oline-grid {
@@ -1168,6 +1181,16 @@ a {
   background: var(--bg);
 }
 
+.draft-status-compact {
+  margin-bottom: 0.45rem;
+  padding: 0.4rem 0.55rem;
+  gap: 0.35rem;
+}
+
+.draft-status-compact .on-clock {
+  font-size: 0.88rem;
+}
+
 .draft-status .on-clock {
   color: var(--mine);
   font-weight: 700;
@@ -1183,6 +1206,27 @@ a {
   gap: 0.65rem;
   align-items: end;
   margin: 0.9rem 0;
+}
+
+.draft-board-controls.is-checklist {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.45rem;
+  margin: 0.5rem 0 0.55rem;
+  align-items: end;
+}
+
+.draft-board-controls.is-checklist .draft-pos-chips {
+  grid-column: 1 / -1;
+  order: -1;
+}
+
+.draft-board-controls.is-checklist .draft-min-checks-field {
+  min-width: 4.5rem;
+}
+
+.draft-board-controls.is-checklist .draft-undo-btn {
+  min-height: 2.5rem;
+  padding-inline: 0.7rem;
 }
 
 .draft-toggle {
@@ -1337,8 +1381,53 @@ a {
     grid-template-columns: 1fr;
   }
 
+  .draft-board-controls.is-checklist {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.4rem;
+  }
+
+  .draft-board-controls.is-checklist .draft-search-field {
+    grid-column: 1 / -1;
+  }
+
+  .draft-board-controls.is-checklist .draft-min-checks-field {
+    min-width: 0;
+  }
+
+  .draft-board-controls.is-checklist .draft-toggle {
+    min-height: 2.25rem;
+    font-size: 0.75rem;
+  }
+
   .draft-player-action {
     padding-inline: 0.45rem;
+  }
+
+  .panel > .muted:first-of-type {
+    display: none;
+  }
+}
+
+@media (min-width: 681px) {
+  .draft-checklist-caveat {
+    display: block;
+    margin: 0 0 0.45rem;
+    font-size: 0.78rem;
+  }
+
+  .draft-pane-tab {
+    flex: 0 1 auto;
+    min-height: var(--touch-target);
+    padding: 0.45rem 0.85rem;
+    font-size: 0.9rem;
+  }
+
+  .draft-pos-chip {
+    flex: 0 1 auto;
+    min-width: 2.75rem;
+    min-height: 2.5rem;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.85rem;
   }
 }
 
