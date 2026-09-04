@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { AppBuildStamp } from "../components/AppBuildStamp";
+import { PostAuthInstallPrompt } from "../components/PostAuthInstallPrompt";
 import { useAuth } from "../hooks/useAuth";
 import { CANONICAL_PRODUCTION_ORIGIN } from "../pwa/canonical";
 import { readMagicLinkToken } from "../pwa/magicLink";
+import {
+  markPostAuthInstallNeeded,
+  shouldShowPostAuthInstall,
+} from "../pwa/postAuthInstall";
 import { forceRefreshAppShell } from "../pwa/registerUpdates";
 
 export function LoginScreen() {
@@ -15,6 +20,7 @@ export function LoginScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [refreshingShell, setRefreshingShell] = useState(false);
+  const [showInstallCoach, setShowInstallCoach] = useState(() => shouldShowPostAuthInstall());
   const autoVerified = useRef(false);
 
   const queryToken = searchParams.get("token");
@@ -26,6 +32,10 @@ export function LoginScreen() {
     // so mail scanners cannot burn the one-time token on prefetch.
     if (!linkToken || autoVerified.current) return;
     autoVerified.current = true;
+    // Mark before verify so we do not Navigate away before the install coach
+    // can render once the session is established (iPhone Safari only).
+    markPostAuthInstallNeeded();
+    setShowInstallCoach(shouldShowPostAuthInstall());
     setSubmitting(true);
     setMessage("Verifying your sign-in link…");
     void verify(linkToken)
@@ -34,6 +44,16 @@ export function LoginScreen() {
       })
       .finally(() => setSubmitting(false));
   }, [linkToken, verify]);
+
+  if (!loading && user && showInstallCoach) {
+    return (
+      <PostAuthInstallPrompt
+        onContinueInSafari={() => {
+          setShowInstallCoach(false);
+        }}
+      />
+    );
+  }
 
   if (!loading && user) {
     return <Navigate to="/" replace />;
@@ -64,6 +84,8 @@ export function LoginScreen() {
     setMessage(null);
     try {
       await verify(token);
+      markPostAuthInstallNeeded();
+      setShowInstallCoach(shouldShowPostAuthInstall());
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Invalid or expired token");
     } finally {

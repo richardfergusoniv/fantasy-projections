@@ -33,12 +33,12 @@ describe("IphoneInstallGuide", () => {
     localStorage.clear();
 
     render(<IphoneInstallGuide />);
-    expect(screen.getByText(/Install on iPhone/i)).toBeInTheDocument();
+    expect(screen.getByText(/You are in Safari right now/i)).toBeInTheDocument();
     expect(screen.getByText(/fantasy-projections-xi\.vercel\.app/i)).toBeInTheDocument();
     expect(screen.getByText(/fantasy-projections\.vercel\.app/i)).toBeInTheDocument();
     screen.getByRole("button", { name: "Dismiss" }).click();
     await waitFor(() => {
-      expect(screen.queryByText(/Install on iPhone/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/You are in Safari right now/i)).not.toBeInTheDocument();
     });
     expect(localStorage.getItem("fantasy-decisions:iphone-install-dismissed")).toBe("1");
     vi.unstubAllGlobals();
