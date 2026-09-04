@@ -1209,8 +1209,8 @@ a {
 }
 
 .draft-board-controls.is-checklist {
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 0.45rem;
+  grid-template-columns: minmax(0, 1fr) 4.75rem auto auto;
+  gap: 0.4rem;
   margin: 0.5rem 0 0.55rem;
   align-items: end;
 }
@@ -1220,8 +1220,17 @@ a {
   order: -1;
 }
 
+.draft-board-controls.is-checklist .draft-search-field {
+  min-width: 0;
+}
+
 .draft-board-controls.is-checklist .draft-min-checks-field {
   min-width: 4.5rem;
+}
+
+.draft-board-controls.is-checklist .draft-toggle {
+  min-height: 2.5rem;
+  white-space: nowrap;
 }
 
 .draft-board-controls.is-checklist .draft-undo-btn {
@@ -1382,21 +1391,53 @@ a {
   }
 
   .draft-board-controls.is-checklist {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.4rem;
+    grid-template-columns: minmax(0, 1fr) 4.25rem;
+    gap: 0.35rem;
   }
 
   .draft-board-controls.is-checklist .draft-search-field {
-    grid-column: 1 / -1;
+    grid-column: 1;
   }
 
   .draft-board-controls.is-checklist .draft-min-checks-field {
+    grid-column: 2;
     min-width: 0;
   }
 
   .draft-board-controls.is-checklist .draft-toggle {
-    min-height: 2.25rem;
+    grid-column: 1;
+    min-height: 2.1rem;
     font-size: 0.75rem;
+  }
+
+  .draft-board-controls.is-checklist .draft-undo-btn {
+    grid-column: 2;
+    min-height: 2.1rem;
+    padding-inline: 0.55rem;
+  }
+
+  .draft-board-controls.is-checklist .field label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .draft-board-controls.is-checklist .field {
+    position: relative;
+  }
+
+  .draft-board-controls.is-checklist .draft-search-field input {
+    min-height: 2.1rem;
+  }
+
+  .draft-board-controls.is-checklist .draft-min-checks-field select {
+    min-height: 2.1rem;
   }
 
   .draft-player-action {
@@ -1405,6 +1446,25 @@ a {
 
   .panel-body > .muted:first-of-type {
     display: none;
+  }
+
+  .draft-market-badge {
+    margin: 0.1rem 0 0.25rem;
+    font-size: 0.65rem;
+  }
+
+  .draft-status-compact {
+    margin-bottom: 0.3rem;
+    padding: 0.3rem 0.45rem;
+  }
+
+  .draft-checklist-row {
+    padding: 0.35rem 0.4rem;
+  }
+
+  .draft-checklist-list {
+    gap: 0.28rem;
+    margin: 0.25rem 0 0.5rem;
   }
 }
 
