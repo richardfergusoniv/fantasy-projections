@@ -63,7 +63,7 @@ test.describe("PWA auth and manifest (production build)", () => {
     expect(page.url()).not.toContain("token=");
   });
 
-  test("service worker precache excludes authenticated API paths", async ({ page }) => {
+  test("service worker keeps HTML fresh and API paths network-only", async ({ page }) => {
     await page.goto("/login");
     const swUrl = await page.evaluate(async () => {
       const registration = await navigator.serviceWorker.getRegistration();
@@ -77,11 +77,15 @@ test.describe("PWA auth and manifest (production build)", () => {
     const body = await response.text();
     expect(body).not.toMatch(/\/api\/v1\/(?!auth)/);
     expect(body).toContain("NetworkOnly");
+    expect(body).toContain("NetworkFirst");
+    expect(body).toContain("html-navigations");
     // vite-plugin-pwa stringifies urlPattern into sw.js without bundling imports.
     // A closed-over helper name would throw ReferenceError on every API fetch.
     expect(body).not.toContain("isUncacheableAppUrl");
     expect(body).toMatch(/startsWith\(["']\/api\//);
     expect(body).toMatch(/startsWith\(["']\/health\//);
+    // Navigations must not be bound to a frozen precached index.html revision.
+    expect(body).not.toContain('url:"index.html"');
+    await expect(page.getByTestId("app-build-stamp")).toBeVisible();
   });
 });
-

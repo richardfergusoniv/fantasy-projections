@@ -28,6 +28,33 @@ describe("service worker cache policy", () => {
   });
 });
 
+describe("forceRefreshAppShell", () => {
+  it("unregisters workers, clears caches, and reloads", async () => {
+    const unregister = vi.fn(async () => true);
+    const deleteCache = vi.fn(async () => true);
+    const reload = vi.fn();
+    vi.stubGlobal("navigator", {
+      serviceWorker: {
+        getRegistrations: async () => [{ unregister }],
+      },
+    });
+    vi.stubGlobal("caches", {
+      keys: async () => ["workbox-precache", "html-navigations"],
+      delete: deleteCache,
+    });
+    vi.stubGlobal("location", { reload });
+
+    const { forceRefreshAppShell } = await import("./registerUpdates");
+    await forceRefreshAppShell();
+
+    expect(unregister).toHaveBeenCalledTimes(1);
+    expect(deleteCache).toHaveBeenCalledWith("workbox-precache");
+    expect(deleteCache).toHaveBeenCalledWith("html-navigations");
+    expect(reload).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+});
+
 describe("magic link callback helpers", () => {
   it("prefers hash tokens over query tokens", () => {
     const token = readMagicLinkToken({

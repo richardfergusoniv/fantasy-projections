@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { execSync } from "node:child_process";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
@@ -8,6 +9,16 @@ import {
   PWA_BACKGROUND_COLOR,
   PWA_THEME_COLOR,
 } from "./src/pwa/canonical";
+
+function resolveAppBuildId(): string {
+  try {
+    return execSync("git rev-parse --short HEAD", { encoding: "utf8" }).trim();
+  } catch {
+    return "dev";
+  }
+}
+
+const APP_BUILD_ID = resolveAppBuildId();
 
 export default defineConfig({
   plugins: [
@@ -53,14 +64,31 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api\//, /^\/health\//],
-        // Keep this matcher self-contained. vite-plugin-pwa stringifies
-        // urlPattern into sw.js and will not bundle imported helpers — a
-        // closed-over `isUncacheableAppUrl` becomes a ReferenceError on every
-        // API fetch once the service worker controls the page.
+        // Precache hashed assets only. Binding navigations to a precached
+        // index.html freezes installed PWAs on an old shell until the SW file
+        // itself changes — NetworkFirst HTML picks up new script hashes on open.
+        globPatterns: ["**/*.{js,css,ico,png,svg,woff2}"],
+        // Override vite-plugin-pwa's default "index.html" NavigationRoute.
+        // Empty string disables createHandlerBoundToURL so NetworkFirst can win.
+        navigateFallback: "",
+        // Keep matchers self-contained: vite-plugin-pwa stringifies urlPattern
+        // into sw.js and will not bundle imported helpers.
         runtimeCaching: [
+          {
+            urlPattern: ({ request, url }: { request: Request; url: URL }) =>
+              request.mode === "navigate" &&
+              !url.pathname.startsWith("/api/") &&
+              !url.pathname.startsWith("/health/"),
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-navigations",
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 8,
+                maxAgeSeconds: 60 * 60 * 24,
+              },
+            },
+          },
           {
             urlPattern: ({ url }: { url: URL }) => {
               const path = url.pathname;
@@ -74,6 +102,7 @@ export default defineConfig({
   ],
   define: {
     __CANONICAL_PRODUCTION_ORIGIN__: JSON.stringify(CANONICAL_PRODUCTION_ORIGIN),
+    __APP_BUILD_ID__: JSON.stringify(APP_BUILD_ID),
   },
   server: {
     port: 5173,

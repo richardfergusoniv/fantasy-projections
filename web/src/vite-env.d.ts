@@ -2,3 +2,4 @@
 /// <reference types="vite-plugin-pwa/client" />
 
 declare const __CANONICAL_PRODUCTION_ORIGIN__: string;
+declare const __APP_BUILD_ID__: string;
