@@ -111,25 +111,18 @@ jobs:
           CANONICAL_APP_PUBLIC_URL: https://fantasy-projections-xi.vercel.app
         run: |
           set -euo pipefail
-          ENV_FILE=".vercel/.env.production.local"
-          current=""
-          if [ -f "$ENV_FILE" ]; then
-            # shellcheck disable=SC1090
-            set -a
-            # Only source APP_PUBLIC_URL if present; ignore parse errors from other keys.
-            current=$(grep -E '^APP_PUBLIC_URL=' "$ENV_FILE" | tail -n1 | cut -d= -f2- | tr -d '"' | tr -d "'" | tr -d '\r' || true)
-            set +a
-          fi
-          echo "Configured APP_PUBLIC_URL='${current}'"
-          if [ "$current" = "$CANONICAL_APP_PUBLIC_URL" ]; then
-            echo "APP_PUBLIC_URL already canonical."
-            exit 0
-          fi
-          echo "Updating APP_PUBLIC_URL -> ${CANONICAL_APP_PUBLIC_URL}"
-          vercel env rm APP_PUBLIC_URL production --yes --token="$VERCEL_TOKEN" || true
-          printf '%s' "$CANONICAL_APP_PUBLIC_URL" | vercel env add APP_PUBLIC_URL production --yes --token="$VERCEL_TOKEN"
+          # Public origin (not a secret). Force-overwrite so a stale
+          # fantasy-projections.vercel.app value cannot keep emailing the
+          # abandoned legacy host. --no-sensitive keeps it readable on pull.
+          vercel env add APP_PUBLIC_URL production \
+            --yes \
+            --force \
+            --no-sensitive \
+            --value "$CANONICAL_APP_PUBLIC_URL" \
+            --token "$VERCEL_TOKEN"
           vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           updated=$(grep -E '^APP_PUBLIC_URL=' .vercel/.env.production.local | tail -n1 | cut -d= -f2- | tr -d '"' | tr -d "'" | tr -d '\r')
+          echo "APP_PUBLIC_URL after upsert='${updated}'"
           if [ "$updated" != "$CANONICAL_APP_PUBLIC_URL" ]; then
             echo "Failed to set APP_PUBLIC_URL (got '${updated}')"
             exit 1
