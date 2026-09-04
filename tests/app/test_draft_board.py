@@ -73,6 +73,8 @@ def test_draft_board_endpoint(client: TestClient):
         assert body["entries"][0]["player_id"]
         assert len(body["entries"]) > 15
         assert body["league_specific"] is True
+        assert body["ranking_basis"] == "league_vorp"
+        assert body["points_unit"] == "season_total"
         assert body["replacement_ranks"]["WR"] > 1
         assert body["entries"][0]["replacement_rank"] > 1
 
@@ -226,6 +228,34 @@ def test_replacement_rank_changes_for_superflex():
 
     assert one_qb_ranks["QB"] == 3
     assert superflex_ranks["QB"] == 5
+
+
+def test_one_qb_and_superflex_rank_by_vorp_not_raw_qb_points():
+    from src.app.decisions.draft_board import _apply_league_vorp
+    from src.app.scoring.compiler import compile_sleeper_scoring
+
+    rows = _format_rows()
+    one_qb = compile_sleeper_scoring({}, ["QB", "RB", "WR", "TE"])
+    superflex = compile_sleeper_scoring(
+        {}, ["QB", "RB", "WR", "TE", "SUPER_FLEX"]
+    )
+
+    one_qb_ranked, one_qb_ranks, _ = _apply_league_vorp(rows, one_qb, team_count=2)
+    superflex_ranked, superflex_ranks, _ = _apply_league_vorp(
+        rows, superflex, team_count=2
+    )
+
+    # QB owns the highest raw point total, but a one-QB board values scarcity
+    # against QB3 and therefore ranks a non-QB first.
+    assert max(rows, key=lambda row: row["league_points"])["position"] == "QB"
+    assert one_qb_ranked[0]["position"] != "QB"
+    assert one_qb_ranks["QB"] == 3
+    # Superflex consumes two more QBs and moves replacement down to QB5,
+    # materially increasing the top QB's league-specific VORP.
+    assert superflex_ranks["QB"] == 5
+    one_qb_top_qb = next(row for row in one_qb_ranked if row["position"] == "QB")
+    superflex_top_qb = next(row for row in superflex_ranked if row["position"] == "QB")
+    assert superflex_top_qb["vorp"] > one_qb_top_qb["vorp"]
 
 
 def test_league_vorp_is_signed_instead_of_clipped_to_zero():

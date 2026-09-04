@@ -346,6 +346,9 @@ export class ApiClient {
           : undefined,
         profile: {
           league_specific: Boolean(board.league_specific),
+          ranking_basis:
+            board.ranking_basis === "league_vorp" ? "league_vorp" : "sealed_vorp",
+          points_unit: "season_total",
           team_count: board.team_count != null ? Number(board.team_count) : undefined,
           roster_positions: ((board.roster_positions as unknown[]) ?? []).map(String),
           contract_hash: board.contract_hash ? String(board.contract_hash) : undefined,

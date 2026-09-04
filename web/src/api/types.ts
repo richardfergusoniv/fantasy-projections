@@ -225,6 +225,8 @@ export interface DraftBoardEntry {
 
 export interface DraftBoardProfile {
   league_specific: boolean;
+  ranking_basis?: "league_vorp" | "sealed_vorp";
+  points_unit?: "season_total";
   team_count?: number;
   roster_positions: string[];
   contract_hash?: string;
