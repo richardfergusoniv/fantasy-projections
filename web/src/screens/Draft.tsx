@@ -315,8 +315,10 @@ export function DraftScreen() {
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Draft Checklist is the market ADP/ECR assistant with context checks. Our Rankings is the
-          league VORP board. O-line is team context. Mark drafted to hide a player across all three.
+          Draft Checklist is the market ADP/ECR assistant with context checks
+          (currently from @SUNDAYSPORTSSOCIETY boards). Our Rankings is the
+          league VORP board. O-line is team context. Mark drafted to hide a player
+          across all three.
         </p>
 
         <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">
