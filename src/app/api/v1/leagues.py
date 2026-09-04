@@ -324,6 +324,24 @@ def draft_board(league_id: str, user: AppUser = Depends(get_current_user), db: S
     }
 
 
+@router.get("/leagues/{league_id}/draft/checklist")
+def draft_checklist(
+    league_id: str,
+    user: AppUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Market-ordered checklist with checks/Xs — does not use VORP."""
+    from src.app.decisions.draft_checklist import DraftChecklistService
+
+    league = db.query(League).filter(League.league_id == league_id).one_or_none()
+    season = league.season if league else 2026
+    payload = DraftChecklistService(db).load(season, league_id=league_id)
+    # Checklist freshness comes from the sealed artifact's own generated_at, so the
+    # payload wins over _meta's rule-snapshot/projection-run values for the two keys
+    # they share (data_as_of, projection_run_id).
+    return {**_meta(db, league_id), **payload}
+
+
 @router.post("/sleeper/connect")
 def sleeper_connect(
     user: AppUser = Depends(require_csrf),

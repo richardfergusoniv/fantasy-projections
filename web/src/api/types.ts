@@ -250,6 +250,66 @@ export interface DraftBoard {
   meta: ApiMeta;
 }
 
+export type DraftRankTier = "adp" | "ecr" | "prior_pts" | "none";
+
+export interface DraftChecklistEntry {
+  player_id: string;
+  sleeper_id?: string;
+  name: string;
+  position: string;
+  team?: string;
+  adp?: number | null;
+  ecr?: number | null;
+  prior_pts?: number | null;
+  rank_tier: DraftRankTier;
+  pos_market_rank?: number;
+  unranked_break?: boolean;
+  checks: Record<string, boolean>;
+}
+
+export interface DraftChecklistTeam {
+  abbr: string;
+  name: string;
+  offense_rank?: number | null;
+  ol_pass_rank?: number | null;
+  ol_run_rank?: number | null;
+  ol_unit_rank?: number | null;
+  sos_pass_rank?: number | null;
+  sos_rush_rank?: number | null;
+  sos_unit_rank?: number | null;
+}
+
+export interface DraftChecklistMarketAsOf {
+  adp_start?: string | null;
+  adp_end?: string | null;
+  ecr_scrape?: string | null;
+  scoring?: string;
+  teams?: number;
+  comparison_generated_at?: string | null;
+  matched_adp?: number | null;
+  matched_ecr?: number | null;
+}
+
+export interface DraftChecklist {
+  league_id: string;
+  season: number;
+  available: boolean;
+  entries: DraftChecklistEntry[];
+  teams: DraftChecklistTeam[];
+  criteria_by_position: Record<string, string[]>;
+  criteria_labels: Record<string, string>;
+  checklist_meta: {
+    market_as_of?: DraftChecklistMarketAsOf;
+    sos_included?: boolean;
+    ol_included?: boolean;
+    volume_caveat?: string;
+    schedule_2026_reg_games?: number;
+    scoring_flavor?: string;
+    team_count?: number;
+  };
+  meta: ApiMeta;
+}
+
 export interface Citation {
   title: string;
   url: string;

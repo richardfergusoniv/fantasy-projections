@@ -16,6 +16,7 @@ import type {
   ApiError,
   AssistantResponse,
   DraftBoard,
+  DraftChecklist,
   InjuryEvidence,
   LeagueDetail,
   LeagueRules,
@@ -361,6 +362,92 @@ export class ApiClient {
         meta: {
           data_as_of: String(board.data_as_of ?? raw.data_as_of ?? new Date().toISOString()),
           projection_run_id: String(board.projection_run_id ?? raw.projection_run_id ?? "fixture"),
+        },
+      };
+    });
+  }
+
+  getDraftChecklist(leagueId: string): Promise<DraftChecklist> {
+    return this.request<RawRecord>(`/leagues/${leagueId}/draft/checklist`).then((raw) => {
+      const checklistMeta = (raw.meta as RawRecord | undefined) ?? {};
+      const market = (checklistMeta.market_as_of as RawRecord | undefined) ?? {};
+      return {
+        league_id: leagueId,
+        season: Number(raw.season ?? 2026),
+        available: Boolean(raw.available),
+        entries: ((raw.entries as RawRecord[]) ?? []).map((row) => ({
+          player_id: String(row.player_id),
+          sleeper_id: row.sleeper_id != null ? String(row.sleeper_id) : undefined,
+          name: String(row.name ?? row.player_id),
+          position: String(row.position ?? "FLEX"),
+          team: row.team ? String(row.team) : undefined,
+          adp: row.adp != null ? Number(row.adp) : null,
+          ecr: row.ecr != null ? Number(row.ecr) : null,
+          prior_pts: row.prior_pts != null ? Number(row.prior_pts) : null,
+          rank_tier: String(row.rank_tier ?? "none") as DraftChecklist["entries"][number]["rank_tier"],
+          pos_market_rank:
+            row.pos_market_rank != null ? Number(row.pos_market_rank) : undefined,
+          unranked_break: Boolean(row.unranked_break),
+          checks: Object.fromEntries(
+            Object.entries((row.checks as RawRecord | undefined) ?? {}).map(([key, value]) => [
+              key,
+              Boolean(value),
+            ]),
+          ),
+        })),
+        teams: ((raw.teams as RawRecord[]) ?? []).map((team) => ({
+          abbr: String(team.abbr),
+          name: String(team.name ?? team.abbr),
+          offense_rank: team.offense_rank != null ? Number(team.offense_rank) : null,
+          ol_pass_rank: team.ol_pass_rank != null ? Number(team.ol_pass_rank) : null,
+          ol_run_rank: team.ol_run_rank != null ? Number(team.ol_run_rank) : null,
+          ol_unit_rank: team.ol_unit_rank != null ? Number(team.ol_unit_rank) : null,
+          sos_pass_rank: team.sos_pass_rank != null ? Number(team.sos_pass_rank) : null,
+          sos_rush_rank: team.sos_rush_rank != null ? Number(team.sos_rush_rank) : null,
+          sos_unit_rank: team.sos_unit_rank != null ? Number(team.sos_unit_rank) : null,
+        })),
+        criteria_by_position: Object.fromEntries(
+          Object.entries((raw.criteria_by_position as RawRecord | undefined) ?? {}).map(
+            ([position, keys]) => [position, ((keys as unknown[]) ?? []).map(String)],
+          ),
+        ),
+        criteria_labels: Object.fromEntries(
+          Object.entries((raw.criteria_labels as RawRecord | undefined) ?? {}).map(
+            ([key, label]) => [key, String(label)],
+          ),
+        ),
+        checklist_meta: {
+          market_as_of: {
+            adp_start: market.adp_start != null ? String(market.adp_start) : null,
+            adp_end: market.adp_end != null ? String(market.adp_end) : null,
+            ecr_scrape: market.ecr_scrape != null ? String(market.ecr_scrape) : null,
+            scoring: market.scoring != null ? String(market.scoring) : undefined,
+            teams: market.teams != null ? Number(market.teams) : undefined,
+            comparison_generated_at:
+              market.comparison_generated_at != null
+                ? String(market.comparison_generated_at)
+                : null,
+            matched_adp: market.matched_adp != null ? Number(market.matched_adp) : null,
+            matched_ecr: market.matched_ecr != null ? Number(market.matched_ecr) : null,
+          },
+          sos_included: checklistMeta.sos_included != null ? Boolean(checklistMeta.sos_included) : undefined,
+          ol_included: checklistMeta.ol_included != null ? Boolean(checklistMeta.ol_included) : undefined,
+          volume_caveat:
+            checklistMeta.volume_caveat != null ? String(checklistMeta.volume_caveat) : undefined,
+          schedule_2026_reg_games:
+            checklistMeta.schedule_2026_reg_games != null
+              ? Number(checklistMeta.schedule_2026_reg_games)
+              : undefined,
+          scoring_flavor:
+            checklistMeta.scoring_flavor != null
+              ? String(checklistMeta.scoring_flavor)
+              : undefined,
+          team_count:
+            checklistMeta.team_count != null ? Number(checklistMeta.team_count) : undefined,
+        },
+        meta: {
+          data_as_of: String(raw.data_as_of ?? new Date().toISOString()),
+          projection_run_id: String(raw.projection_run_id ?? "checklist"),
         },
       };
     });

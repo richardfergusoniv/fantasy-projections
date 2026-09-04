@@ -940,6 +940,215 @@ a {
   font-weight: 700;
 }
 
+.draft-pane-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.draft-pane-tab {
+  min-height: var(--touch-target);
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.draft-pane-tab.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.draft-market-badge {
+  display: inline-block;
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.draft-pos-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.draft-pos-chip {
+  min-height: 2.5rem;
+  min-width: 2.75rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.draft-pos-chip.is-active {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.draft-checklist-scroll {
+  overflow-x: auto;
+  margin: 0.5rem 0 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+}
+
+.draft-checklist-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.draft-checklist-table th,
+.draft-checklist-table td {
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.draft-checklist-table th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-tier);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+.draft-checklist-table th:first-child,
+.draft-checklist-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--bg-panel);
+  z-index: 2;
+}
+
+.draft-checklist-table th:first-child {
+  background: var(--bg-tier);
+  z-index: 3;
+}
+
+.draft-checklist-name {
+  position: sticky;
+  left: 3.25rem;
+  background: var(--bg-panel);
+  min-width: 11rem;
+  z-index: 2;
+}
+
+.draft-checklist-table th:nth-child(3) {
+  position: sticky;
+  left: 3.25rem;
+  z-index: 3;
+}
+
+.draft-checklist-table tr.is-drafted {
+  opacity: 0.45;
+}
+
+.draft-check-col {
+  text-align: center !important;
+  white-space: normal;
+  max-width: 5.5rem;
+}
+
+.draft-check-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.draft-check-icon.is-yes {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  box-shadow: inset 0 0 0 2px #22c55e;
+}
+
+.draft-check-icon.is-no {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  box-shadow: inset 0 0 0 2px #ef4444;
+}
+
+.draft-unranked-break td {
+  background: var(--bg-hover);
+  color: var(--warning);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: center !important;
+}
+
+.draft-oline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.draft-oline-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.7rem;
+  background: var(--bg-panel);
+}
+
+.draft-oline-card header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.draft-oline-ranks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.draft-oline-ranks .heat-elite {
+  color: #4ade80;
+}
+
+.draft-oline-ranks .heat-good {
+  color: #86efac;
+}
+
+.draft-oline-ranks .heat-mid {
+  color: var(--text-muted);
+}
+
+.draft-oline-ranks .heat-poor {
+  color: #f87171;
+}
+
+.draft-oline-ranks .heat-missing {
+  color: var(--text-muted);
+}
+
 .draft-status {
   display: flex;
   flex-wrap: wrap;
