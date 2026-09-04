@@ -1,8 +1,17 @@
 name: CI
 
 on:
+  # Scoped to the long-lived branches: an unfiltered `push:` alongside
+  # `pull_request:` ran the whole suite twice for every commit on a PR branch.
   push:
+    branches: [master, temporary]
   pull_request:
+
+# Supersede in-flight runs for a PR when new commits land, but never cancel a
+# run on a long-lived branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test-windows:
