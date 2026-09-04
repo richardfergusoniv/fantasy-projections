@@ -57,24 +57,54 @@ function formatVorp(value: number | undefined): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}`;
 }
 
-function CheckIcon({ ok }: { ok: boolean }) {
-  return (
-    <span
-      className={`draft-check-icon ${ok ? "is-yes" : "is-no"}`}
-      aria-label={ok ? "Yes" : "No"}
-      title={ok ? "Yes" : "No"}
-    >
-      {ok ? "✓" : "✕"}
-    </span>
-  );
-}
-
 function heatClass(rank: number | null | undefined): string {
   if (rank == null) return "heat-missing";
   if (rank <= 8) return "heat-elite";
   if (rank <= 16) return "heat-good";
   if (rank <= 24) return "heat-mid";
   return "heat-poor";
+}
+
+const CHECKLIST_POSITIONS = ["ALL", "QB", "RB", "WR", "TE"] as const;
+
+const CHECK_SHORT_LABELS: Record<string, string> = {
+  pass_att_top16: "PASS",
+  rush_vol_top16: "RUSH",
+  offense_top16: "OFF",
+  ol_top16: "OL",
+  sos_top16: "SOS",
+  target_leader_in_group: "TGT",
+  rush_vol_leader_in_group: "RUSH",
+  qb_top16: "QB",
+  te_top2_targets_in_group: "TGT2",
+};
+
+const RANK_TIER_ORDER: Record<string, number> = {
+  adp: 0,
+  ecr: 1,
+  prior_pts: 2,
+  none: 3,
+};
+
+function checklistMarketSort(a: DraftChecklistEntry, b: DraftChecklistEntry): number {
+  const tierA = RANK_TIER_ORDER[a.rank_tier] ?? 9;
+  const tierB = RANK_TIER_ORDER[b.rank_tier] ?? 9;
+  if (tierA !== tierB) return tierA - tierB;
+  if (a.rank_tier === "adp") return (a.adp ?? 9999) - (b.adp ?? 9999);
+  if (a.rank_tier === "ecr") return (a.ecr ?? 9999) - (b.ecr ?? 9999);
+  if (a.rank_tier === "prior_pts") return (b.prior_pts ?? 0) - (a.prior_pts ?? 0);
+  return a.name.localeCompare(b.name);
+}
+
+function criteriaForEntry(
+  checklist: DraftChecklist | null,
+  entry: DraftChecklistEntry,
+): string[] {
+  return checklist?.criteria_by_position[entry.position] ?? [];
+}
+
+function shortCheckLabel(key: string, fullLabels: Record<string, string>): string {
+  return CHECK_SHORT_LABELS[key] ?? fullLabels[key] ?? key;
 }
 
 export function DraftScreen() {
@@ -85,9 +115,7 @@ export function DraftScreen() {
   const [checklist, setChecklist] = useState<DraftChecklist | null>(null);
   const [context, setContext] = useState<DraftBoard["context"]>();
   const [profile, setProfile] = useState<DraftBoard["profile"]>();
-  const [positionFilter, setPositionFilter] = useState(() =>
-    paneFromSearch(searchParams.get("pane")) === "ours" ? "ALL" : "WR",
-  );
+  const [positionFilter, setPositionFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(25);
   const [draftedPlayerIds, setDraftedPlayerIds] = useState<string[]>([]);
@@ -103,23 +131,12 @@ export function DraftScreen() {
     : null;
 
   useEffect(() => {
-    const next = paneFromSearch(searchParams.get("pane"));
-    setPane(next);
-    setPositionFilter((current) => {
-      if (next === "ours") return current === "ALL" || !current ? "ALL" : current;
-      if (current === "ALL" || !current) return "WR";
-      return current;
-    });
+    setPane(paneFromSearch(searchParams.get("pane")));
   }, [searchParams]);
 
   function selectPane(next: DraftPane) {
     setPane(next);
     setVisibleCount(25);
-    if (next === "ours") {
-      setPositionFilter("ALL");
-    } else if (next === "checklist" && (positionFilter === "ALL" || !positionFilter)) {
-      setPositionFilter("WR");
-    }
     const params = new URLSearchParams(searchParams);
     if (next === "ours") {
       params.delete("pane");
@@ -190,16 +207,12 @@ export function DraftScreen() {
 
   const normalizedSearch = search.trim().toLowerCase();
 
-  const criteriaKeys = useMemo(
-    () => checklist?.criteria_by_position[positionFilter] ?? [],
-    [checklist, positionFilter],
-  );
   const criteriaLabels = checklist?.criteria_labels ?? {};
 
   const checklistFiltered = useMemo(() => {
     const rows = checklist?.entries ?? [];
-    return rows.filter((entry) => {
-      if (entry.position !== positionFilter) return false;
+    const filtered = rows.filter((entry) => {
+      if (positionFilter !== "ALL" && entry.position !== positionFilter) return false;
       if (
         normalizedSearch &&
         !entry.name.toLowerCase().includes(normalizedSearch) &&
@@ -209,23 +222,20 @@ export function DraftScreen() {
       }
       if (hideDrafted && draftedPlayerSet.has(entry.player_id)) return false;
       if (minChecks > 0) {
-        const hits = criteriaKeys.reduce(
-          (count, key) => count + (entry.checks[key] ? 1 : 0),
-          0,
-        );
+        const keys = criteriaForEntry(checklist, entry);
+        const hits = keys.reduce((count, key) => count + (entry.checks[key] ? 1 : 0), 0);
         if (hits < minChecks) return false;
       }
       return true;
     });
-  }, [
-    checklist,
-    positionFilter,
-    normalizedSearch,
-    hideDrafted,
-    draftedPlayerSet,
-    minChecks,
-    criteriaKeys,
-  ]);
+    // Single-position views keep the prepared positional order; All re-sorts
+    // into overall market ADP → ECR → prior points so the board reads like a
+    // real draft queue.
+    if (positionFilter === "ALL") {
+      return [...filtered].sort(checklistMarketSort);
+    }
+    return filtered;
+  }, [checklist, positionFilter, normalizedSearch, hideDrafted, draftedPlayerSet, minChecks]);
 
   const checklistVisible = checklistFiltered.slice(0, visibleCount);
   // Derive the divider from what is actually on screen. Anchoring it to the
@@ -356,8 +366,8 @@ export function DraftScreen() {
         />
 
         {pane !== "oline" ? (
-          <div className="draft-board-controls">
-            <div className="field">
+          <div className={`draft-board-controls${pane === "checklist" ? " is-checklist" : ""}`}>
+            <div className="field draft-search-field">
               <label htmlFor="draft-player-search">Search players</label>
               <input
                 id="draft-player-search"
@@ -372,7 +382,7 @@ export function DraftScreen() {
             </div>
             {pane === "checklist" ? (
               <div className="draft-pos-chips" role="group" aria-label="Position">
-                {(["QB", "RB", "WR", "TE"] as const).map((position) => (
+                {CHECKLIST_POSITIONS.map((position) => (
                   <button
                     key={position}
                     type="button"
@@ -383,7 +393,7 @@ export function DraftScreen() {
                       setVisibleCount(25);
                     }}
                   >
-                    {position}
+                    {position === "ALL" ? "All" : position}
                   </button>
                 ))}
               </div>
@@ -408,7 +418,7 @@ export function DraftScreen() {
               </div>
             )}
             {pane === "checklist" ? (
-              <div className="field">
+              <div className="field draft-min-checks-field">
                 <label htmlFor="draft-mold-filter">Min checks</label>
                 <select
                   id="draft-mold-filter"
@@ -418,11 +428,11 @@ export function DraftScreen() {
                     setVisibleCount(25);
                   }}
                 >
-                  <option value={0}>Any mold</option>
-                  <option value={1}>≥ 1 check</option>
-                  <option value={2}>≥ 2 checks</option>
-                  <option value={3}>≥ 3 checks</option>
-                  <option value={4}>≥ 4 checks</option>
+                  <option value={0}>Any</option>
+                  <option value={1}>≥1</option>
+                  <option value={2}>≥2</option>
+                  <option value={3}>≥3</option>
+                  <option value={4}>≥4</option>
                 </select>
               </div>
             ) : null}
@@ -438,12 +448,12 @@ export function DraftScreen() {
               Hide drafted ({draftedCount})
             </label>
             <button
-              className="btn btn-secondary"
+              className="btn btn-secondary draft-undo-btn"
               type="button"
               disabled={draftedPlayerIds.length === 0}
               onClick={undoLastDrafted}
             >
-              Undo last drafted
+              Undo
             </button>
           </div>
         ) : null}
@@ -451,83 +461,87 @@ export function DraftScreen() {
         {pane === "checklist" && checklist?.available ? (
           <>
             {marketBadge ? <p className="draft-market-badge">{marketBadge}</p> : null}
-            <p className="muted">{checklist.checklist_meta.volume_caveat}</p>
-            <div className="draft-status">
+            <p className="muted draft-checklist-caveat">{checklist.checklist_meta.volume_caveat}</p>
+            <div className="draft-status draft-status-compact">
               <span className="on-clock">
-                Best available: {checklistTop?.name ?? "not available"}
-              </span>
-              <span className="pick-info">
-                {checklistTop?.rank_tier?.toUpperCase() ?? "—"}
-                {checklistTop?.adp != null ? ` · ADP ${checklistTop.adp}` : ""}
-                {checklistTop?.adp == null && checklistTop?.ecr != null
-                  ? ` · ECR ${checklistTop.ecr}`
-                  : ""}
+                Best: {checklistTop?.name ?? "—"}
+                {checklistTop ? (
+                  <span className="muted">
+                    {" "}
+                    · {checklistTop.position}
+                    {checklistTop.adp != null
+                      ? ` · ADP ${checklistTop.adp}`
+                      : checklistTop.ecr != null
+                        ? ` · ECR ${checklistTop.ecr}`
+                        : ""}
+                  </span>
+                ) : null}
               </span>
             </div>
-            <div className="draft-checklist-scroll">
-              <table className="draft-checklist-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Drafted</th>
-                    <th scope="col">Rk</th>
-                    <th scope="col">Player</th>
-                    {criteriaKeys.map((key) => (
-                      <th key={key} scope="col" className="draft-check-col">
-                        {criteriaLabels[key] ?? key}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {checklistVisible.map((entry: DraftChecklistEntry, index: number) => {
-                    const drafted = draftedPlayerSet.has(entry.player_id);
-                    return (
-                      <Fragment key={entry.player_id}>
-                        {index === unrankedBreakIndex ? (
-                          <tr className="draft-unranked-break">
-                            <td colSpan={3 + criteriaKeys.length}>
-                              Unranked / off market board — sorted by 2025 fantasy points
-                            </td>
-                          </tr>
-                        ) : null}
-                        <tr className={drafted ? "is-drafted" : undefined}>
-                          <td>
-                            <input
-                              type="checkbox"
-                              checked={drafted}
-                              aria-label={`${drafted ? "Undo" : "Mark"} ${entry.name} drafted`}
-                              onChange={(event) =>
-                                setDrafted(entry.player_id, event.target.checked)
-                              }
-                            />
-                          </td>
-                          <td>
-                            <span className="draft-rank">#{entry.pos_market_rank}</span>
-                          </td>
-                          <td className="draft-checklist-name">
-                            <strong>{entry.name}</strong>
-                            <span className="muted">
-                              {entry.team ? ` ${entry.team}` : ""}
-                              {entry.adp != null
-                                ? ` · ADP ${entry.adp}`
-                                : entry.ecr != null
-                                  ? ` · ECR ${entry.ecr}`
-                                  : entry.prior_pts != null
-                                    ? ` · ${entry.prior_pts.toFixed(0)} prior pts`
-                                    : ""}
-                            </span>
-                          </td>
-                          {criteriaKeys.map((key) => (
-                            <td key={key} className="draft-check-col">
-                              <CheckIcon ok={Boolean(entry.checks[key])} />
-                            </td>
-                          ))}
-                        </tr>
-                      </Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="draft-checklist-list" role="list">
+              {checklistVisible.map((entry: DraftChecklistEntry, index: number) => {
+                const drafted = draftedPlayerSet.has(entry.player_id);
+                const keys = criteriaForEntry(checklist, entry);
+                const overallRank =
+                  positionFilter === "ALL" ? index + 1 : entry.pos_market_rank;
+                return (
+                  <Fragment key={entry.player_id}>
+                    {index === unrankedBreakIndex ? (
+                      <div className="draft-unranked-break-row" role="separator">
+                        Unranked / off market — by 2025 pts
+                      </div>
+                    ) : null}
+                    <article
+                      className={`draft-checklist-row${drafted ? " is-drafted" : ""}`}
+                      role="listitem"
+                    >
+                      <label className="draft-checklist-mark">
+                        <input
+                          type="checkbox"
+                          checked={drafted}
+                          aria-label={`${drafted ? "Undo" : "Mark"} ${entry.name} drafted`}
+                          onChange={(event) =>
+                            setDrafted(entry.player_id, event.target.checked)
+                          }
+                        />
+                      </label>
+                      <div className="draft-checklist-main">
+                        <div className="draft-checklist-identity">
+                          <span className="draft-rank">#{overallRank}</span>
+                          <strong>{entry.name}</strong>
+                          <span className={`pos-badge ${entry.position}`}>{entry.position}</span>
+                          <span className="muted">
+                            {entry.team ?? ""}
+                            {entry.adp != null
+                              ? ` · ADP ${entry.adp}`
+                              : entry.ecr != null
+                                ? ` · ECR ${entry.ecr}`
+                                : entry.prior_pts != null
+                                  ? ` · ${entry.prior_pts.toFixed(0)} pts`
+                                  : ""}
+                          </span>
+                        </div>
+                        <div className="draft-check-pills" aria-label={`${entry.name} checks`}>
+                          {keys.map((key) => {
+                            const ok = Boolean(entry.checks[key]);
+                            const label = shortCheckLabel(key, criteriaLabels);
+                            return (
+                              <span
+                                key={key}
+                                className={`draft-check-pill ${ok ? "is-yes" : "is-no"}`}
+                                title={`${criteriaLabels[key] ?? key}: ${ok ? "Yes" : "No"}`}
+                              >
+                                <span aria-hidden="true">{ok ? "✓" : "✕"}</span>
+                                {label}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </article>
+                  </Fragment>
+                );
+              })}
             </div>
             <p className="muted">
               Showing {checklistVisible.length} of {checklistFiltered.length} matching players ·{" "}
