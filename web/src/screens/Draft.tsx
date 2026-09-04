@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AsyncStateBanner } from "../components/AsyncState";
 import { FreshnessBadge } from "../components/FreshnessBadge";
 import { Panel } from "../components/Panel";
@@ -16,6 +17,21 @@ import type {
 const DRAFTED_STORAGE_PREFIX = "fantasy-decisions:drafted";
 
 type DraftPane = "checklist" | "oline" | "ours";
+
+const DRAFT_PANES: Array<[DraftPane, string]> = [
+  ["ours", "Our Rankings"],
+  ["checklist", "Draft Checklist"],
+  ["oline", "O-line"],
+];
+
+function paneFromSearch(value: string | null): DraftPane {
+  if (value === "checklist" || value === "assistant" || value === "draft-assistant") {
+    return "checklist";
+  }
+  if (value === "oline") return "oline";
+  if (value === "ours" || value === "rankings") return "ours";
+  return "ours";
+}
 
 function draftedStorageKey(leagueId: string, season?: number): string {
   return `${DRAFTED_STORAGE_PREFIX}:${leagueId}:${season ?? "current"}`;
@@ -63,12 +79,15 @@ function heatClass(rank: number | null | undefined): string {
 
 export function DraftScreen() {
   const { selectedLeagueId, selectedLeague } = useAppState();
-  const [pane, setPane] = useState<DraftPane>("ours");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [pane, setPane] = useState<DraftPane>(() => paneFromSearch(searchParams.get("pane")));
   const [entries, setEntries] = useState<DraftBoardEntry[]>([]);
   const [checklist, setChecklist] = useState<DraftChecklist | null>(null);
   const [context, setContext] = useState<DraftBoard["context"]>();
   const [profile, setProfile] = useState<DraftBoard["profile"]>();
-  const [positionFilter, setPositionFilter] = useState("ALL");
+  const [positionFilter, setPositionFilter] = useState(() =>
+    paneFromSearch(searchParams.get("pane")) === "ours" ? "ALL" : "WR",
+  );
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(25);
   const [draftedPlayerIds, setDraftedPlayerIds] = useState<string[]>([]);
@@ -82,6 +101,33 @@ export function DraftScreen() {
   const storageKey = selectedLeagueId
     ? draftedStorageKey(selectedLeagueId, selectedLeague?.season)
     : null;
+
+  useEffect(() => {
+    const next = paneFromSearch(searchParams.get("pane"));
+    setPane(next);
+    setPositionFilter((current) => {
+      if (next === "ours") return current === "ALL" || !current ? "ALL" : current;
+      if (current === "ALL" || !current) return "WR";
+      return current;
+    });
+  }, [searchParams]);
+
+  function selectPane(next: DraftPane) {
+    setPane(next);
+    setVisibleCount(25);
+    if (next === "ours") {
+      setPositionFilter("ALL");
+    } else if (next === "checklist" && (positionFilter === "ALL" || !positionFilter)) {
+      setPositionFilter("WR");
+    }
+    const params = new URLSearchParams(searchParams);
+    if (next === "ours") {
+      params.delete("pane");
+    } else {
+      params.set("pane", next);
+    }
+    setSearchParams(params, { replace: true });
+  }
 
   useEffect(() => {
     setDraftedPlayerIds(storageKey ? loadDraftedPlayers(storageKey) : []);
@@ -255,37 +301,23 @@ export function DraftScreen() {
   return (
     <div className="screen">
       <Panel
-        title="Draft"
+        title="Draft assistant"
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Our Rankings uses league-specific VORP from the sealed projection release. Market
-          Checklist is a separate ADP/ECR comparison. Mark drafted to hide a player across panes.
+          Draft Checklist is the market ADP/ECR assistant with context checks. Our Rankings is the
+          league VORP board. O-line is team context. Mark drafted to hide a player across all three.
         </p>
 
         <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">
-          {(
-            [
-              ["ours", "Our Rankings"],
-              ["checklist", "Market Checklist"],
-              ["oline", "O-line"],
-            ] as const
-          ).map(([id, label]) => (
+          {DRAFT_PANES.map(([id, label]) => (
             <button
               key={id}
               type="button"
               role="tab"
               aria-selected={pane === id}
               className={`draft-pane-tab${pane === id ? " is-active" : ""}`}
-              onClick={() => {
-                setPane(id);
-                setVisibleCount(25);
-                if (id === "ours") {
-                  setPositionFilter("ALL");
-                } else if (id === "checklist" && (positionFilter === "ALL" || !positionFilter)) {
-                  setPositionFilter("WR");
-                }
-              }}
+              onClick={() => selectPane(id)}
             >
               {label}
             </button>

@@ -10,7 +10,7 @@ test.describe("screen smoke (production bundle)", () => {
       { link: "Lineup", heading: /Lineup/i },
       { link: "Waivers", heading: /Waivers/i },
       { link: "Trade", heading: /Trade Lab/i, exact: false },
-      { link: "Dynasty", heading: /Dynasty/i },
+      { link: "Draft", heading: /Draft assistant/i },
     ];
 
     for (const screen of primary) {
@@ -19,7 +19,7 @@ test.describe("screen smoke (production bundle)", () => {
     }
 
     const more: Array<{ label: string; heading: string | RegExp }> = [
-      { label: "Draft", heading: /Draft/i },
+      { label: "Dynasty", heading: /Dynasty/i },
       { label: "Assist", heading: /Assistant/i },
       { label: "Ops", heading: /Operations/i },
     ];
@@ -29,10 +29,18 @@ test.describe("screen smoke (production bundle)", () => {
       await expect(page.getByRole("heading", { name: screen.heading })).toBeVisible();
     }
 
-    // League VORP is the primary draft pane; market context remains separate.
-    await openMoreScreen(page, "Draft");
+    // Draft is primary nav; checklist is the market assistant pane.
+    await page.getByRole("link", { name: "Draft", exact: true }).click();
     await expect(page.getByRole("tab", { name: "Our Rankings" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "Market Checklist" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Draft Checklist" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "O-line" })).toBeVisible();
+
+    await page.getByRole("link", { name: "Home", exact: true }).click();
+    await page.getByRole("link", { name: "Open Draft Checklist" }).click();
+    await expect(page).toHaveURL(/\/draft\?pane=checklist/);
+    await expect(page.getByRole("tab", { name: "Draft Checklist" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });

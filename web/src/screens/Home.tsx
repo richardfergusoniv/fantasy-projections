@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { AsyncStateBanner } from "../components/AsyncState";
 import { FreshnessBadge } from "../components/FreshnessBadge";
 import { Panel } from "../components/Panel";
@@ -105,6 +106,21 @@ export function HomeScreen() {
             </p>
           </div>
         ) : null}
+      </Panel>
+
+      <Panel title="Draft assistant">
+        <p className="muted">
+          Market ADP/ECR checklist with context checks, plus the league VORP board and O-line view.
+          Open Draft in the bottom nav, or jump straight to the checklist.
+        </p>
+        <div className="stack">
+          <Link className="btn btn-primary" to="/draft?pane=checklist">
+            Open Draft Checklist
+          </Link>
+          <Link className="btn btn-ghost" to="/draft">
+            Open Our Rankings
+          </Link>
+        </div>
       </Panel>
 
       <Panel

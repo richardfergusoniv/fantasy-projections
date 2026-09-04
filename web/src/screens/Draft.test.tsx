@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DraftBoard, DraftChecklist } from "../api/types";
 import { DraftScreen } from "./Draft";
@@ -19,6 +20,14 @@ vi.mock("../hooks/useAppState", () => ({
     selectedLeague: { name: "Three Wide League", season: 2026 },
   }),
 }));
+
+function renderDraft(initialEntry = "/draft") {
+  return render(
+    <MemoryRouter initialEntries={[initialEntry]}>
+      <DraftScreen />
+    </MemoryRouter>,
+  );
+}
 
 function board(): DraftBoard {
   return {
@@ -138,22 +147,28 @@ describe("DraftScreen", () => {
     getDraftChecklist.mockResolvedValue(checklist());
   });
 
+  it("opens the checklist from the pane query", async () => {
+    renderDraft("/draft?pane=checklist");
+    expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Draft Checklist/i })).toHaveAttribute("aria-selected", "true");
+  });
+
   it("defaults to league-specific VORP rankings rather than the market checklist", async () => {
-    render(<DraftScreen />);
+    renderDraft();
     expect(await screen.findByRole("listitem", { name: "Draft Player 1 draft card" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Our Rankings/i })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText(/Ranked by league VORP, not raw quarterback points/i)).toBeInTheDocument();
     expect(screen.queryByText(/Market as of ADP 2026-09-03/i)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("tab", { name: /Market Checklist/i }));
+    fireEvent.click(screen.getByRole("tab", { name: /Draft Checklist/i }));
     expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" })).toBeInTheDocument();
     expect(screen.getByText(/Unranked \/ off market board/i)).toBeInTheDocument();
   });
 
   it("hides checklist rows when drafted via checkbox", async () => {
-    render(<DraftScreen />);
-    fireEvent.click(await screen.findByRole("tab", { name: /Market Checklist/i }));
+    renderDraft();
+    fireEvent.click(await screen.findByRole("tab", { name: /Draft Checklist/i }));
     await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
     fireEvent.click(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" }));
     expect(screen.queryByRole("checkbox", { name: /WR Player 1 drafted/i })).not.toBeInTheDocument();
@@ -166,7 +181,7 @@ describe("DraftScreen", () => {
 
   it("keeps the Ours board usable when the checklist request fails", async () => {
     getDraftChecklist.mockRejectedValue(new Error("checklist unavailable"));
-    render(<DraftScreen />);
+    renderDraft();
 
     expect(await screen.findByText(/checklist unavailable/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: /Our Rankings/i }));
@@ -180,9 +195,9 @@ describe("DraftScreen", () => {
 
   it("keeps the checklist usable when the draft board request fails", async () => {
     getDraftBoard.mockRejectedValue(new Error("board unavailable"));
-    render(<DraftScreen />);
+    renderDraft();
 
-    fireEvent.click(await screen.findByRole("tab", { name: /Market Checklist/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: /Draft Checklist/i }));
     expect(
       await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" }),
     ).toBeInTheDocument();
@@ -190,8 +205,8 @@ describe("DraftScreen", () => {
   });
 
   it("keeps the unranked divider when the flagged player is filtered out", async () => {
-    render(<DraftScreen />);
-    fireEvent.click(await screen.findByRole("tab", { name: /Market Checklist/i }));
+    renderDraft();
+    fireEvent.click(await screen.findByRole("tab", { name: /Draft Checklist/i }));
     await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
     // WR Player 21 carries unranked_break; hiding it must not hide the divider.
     fireEvent.click(screen.getByRole("checkbox", { name: "Mark WR Player 21 drafted" }));
@@ -203,14 +218,14 @@ describe("DraftScreen", () => {
   });
 
   it("shows o-line offense ranks when OL is unavailable", async () => {
-    render(<DraftScreen />);
+    renderDraft();
     fireEvent.click(await screen.findByRole("tab", { name: /O-line/i }));
     expect(await screen.findByText(/Offense #1/i)).toBeInTheDocument();
     expect(screen.getAllByText(/OL ranks unavailable/i).length).toBeGreaterThan(0);
   });
 
   it("shows the league format and paginates beyond the first 15 players", async () => {
-    render(<DraftScreen />);
+    renderDraft();
     await openOursPane();
 
     expect(
@@ -236,7 +251,7 @@ describe("DraftScreen", () => {
   });
 
   it("filters the complete board by position", async () => {
-    render(<DraftScreen />);
+    renderDraft();
     await openOursPane();
     await screen.findByRole("listitem", { name: "Draft Player 25 draft card" });
 
@@ -252,7 +267,7 @@ describe("DraftScreen", () => {
   });
 
   it("marks drafted players, updates best available, and persists per league", async () => {
-    const firstRender = render(<DraftScreen />);
+    const firstRender = renderDraft();
     await openOursPane();
     await screen.findByRole("listitem", { name: "Draft Player 1 draft card" });
 
@@ -270,7 +285,7 @@ describe("DraftScreen", () => {
     ).toEqual(["player-1"]);
 
     firstRender.unmount();
-    render(<DraftScreen />);
+    renderDraft();
     await openOursPane();
     await screen.findByText(/Best available: Draft Player 2/i);
     expect(
@@ -284,7 +299,7 @@ describe("DraftScreen", () => {
   });
 
   it("can show drafted cards and undo an individual player", async () => {
-    render(<DraftScreen />);
+    renderDraft();
     await openOursPane();
     await screen.findByRole("listitem", { name: "Draft Player 1 draft card" });
     fireEvent.click(screen.getByRole("button", { name: "Mark Draft Player 1 drafted" }));
