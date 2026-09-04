@@ -24,10 +24,10 @@ export function IphoneInstallGuide() {
   return (
     <aside className="iphone-install-guide" aria-label="Install on iPhone">
       <p>
-        <strong>Install on iPhone.</strong> Open {host} in Safari, tap Share, then{" "}
-        <strong>Add to Home Screen</strong>. Open that icon after sign-in so the app keeps
-        your session. Do not install from fantasy-projections.vercel.app — that is a different
-        legacy site.
+        <strong>You are in Safari right now.</strong> Magic links open the website so you can
+        sign in — then tap Share → <strong>Add to Home Screen</strong> on {host}, and open the
+        new icon (not this browser tab). Skip fantasy-projections.vercel.app — that is a
+        different legacy site.
       </p>
       <button
         className="btn btn-ghost btn-compact"
