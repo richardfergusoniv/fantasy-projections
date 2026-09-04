@@ -34,6 +34,8 @@ describe("IphoneInstallGuide", () => {
 
     render(<IphoneInstallGuide />);
     expect(screen.getByText(/Install on iPhone/i)).toBeInTheDocument();
+    expect(screen.getByText(/fantasy-projections-xi\.vercel\.app/i)).toBeInTheDocument();
+    expect(screen.getByText(/fantasy-projections\.vercel\.app/i)).toBeInTheDocument();
     screen.getByRole("button", { name: "Dismiss" }).click();
     await waitFor(() => {
       expect(screen.queryByText(/Install on iPhone/i)).not.toBeInTheDocument();

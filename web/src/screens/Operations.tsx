@@ -1,11 +1,13 @@
 import { useCallback, useState } from "react";
 import { AsyncStateBanner } from "../components/AsyncState";
+import { AppBuildStamp } from "../components/AppBuildStamp";
 import { FreshnessBadge } from "../components/FreshnessBadge";
 import { Panel } from "../components/Panel";
 import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
 import { useOperationsStatus } from "../hooks/useOperationsStatus";
 import { api } from "../api/client";
+import { forceRefreshAppShell } from "../pwa/registerUpdates";
 
 const ROLLBACK_MODES = ["weekly", "ros", "dynasty"] as const;
 type RollbackMode = (typeof ROLLBACK_MODES)[number];
@@ -16,6 +18,7 @@ export function OperationsScreen() {
   const [jobMessage, setJobMessage] = useState<string | null>(null);
   const [jobLoading, setJobLoading] = useState(false);
   const [rollbackMode, setRollbackMode] = useState<RollbackMode>("weekly");
+  const [refreshingShell, setRefreshingShell] = useState(false);
 
   const runJob = useCallback(
     async (label: string, action: () => Promise<{ job_id?: string; status?: string }>) => {
@@ -62,6 +65,19 @@ export function OperationsScreen() {
           emptyMessage="Operations status is unavailable."
           onRetry={() => void refresh()}
         />
+
+        <AppBuildStamp />
+        <button
+          className="btn btn-ghost"
+          type="button"
+          disabled={refreshingShell}
+          onClick={() => {
+            setRefreshingShell(true);
+            void forceRefreshAppShell().finally(() => setRefreshingShell(false));
+          }}
+        >
+          {refreshingShell ? "Refreshing app…" : "Refresh installed app shell"}
+        </button>
 
         {/*
           Production panel: sealed release + status overlay health.

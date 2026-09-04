@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
+import { AppBuildStamp } from "../components/AppBuildStamp";
 import { useAuth } from "../hooks/useAuth";
+import { CANONICAL_PRODUCTION_ORIGIN } from "../pwa/canonical";
 import { readMagicLinkToken } from "../pwa/magicLink";
+import { forceRefreshAppShell } from "../pwa/registerUpdates";
 
 export function LoginScreen() {
   const { user, loading, login, verify, sessionExpired, error: authError } = useAuth();
@@ -11,6 +14,7 @@ export function LoginScreen() {
   const [devLink, setDevLink] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [refreshingShell, setRefreshingShell] = useState(false);
   const autoVerified = useRef(false);
 
   const queryToken = searchParams.get("token");
@@ -87,8 +91,10 @@ export function LoginScreen() {
           ) : null}
           <p className="muted">
             Email magic-link authentication. Session cookies are HTTP-only and never cached
-            offline.
+            offline. Use {CANONICAL_PRODUCTION_ORIGIN.replace(/^https:\/\//, "")} — the
+            bare fantasy-projections.vercel.app host is a different legacy app.
           </p>
+          <AppBuildStamp />
           <form className="stack" onSubmit={onRequestLink}>
             <div className="field">
               <label htmlFor="login-email">Email</label>
@@ -134,6 +140,17 @@ export function LoginScreen() {
           <p className="status-message" role="status" aria-live="polite">
             {message ?? authError ?? ""}
           </p>
+          <button
+            className="btn btn-ghost"
+            type="button"
+            disabled={refreshingShell}
+            onClick={() => {
+              setRefreshingShell(true);
+              void forceRefreshAppShell().finally(() => setRefreshingShell(false));
+            }}
+          >
+            {refreshingShell ? "Refreshing app…" : "Stuck on an old version? Refresh app"}
+          </button>
         </div>
       </section>
     </div>

@@ -4,9 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import { AuthProvider } from "./hooks/useAuth";
+import { registerServiceWorkerUpdates } from "./pwa/registerUpdates";
 import "./index.css";
 
-registerSW({ immediate: true });
+registerServiceWorkerUpdates(registerSW);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
