@@ -8,7 +8,6 @@ import {
   PWA_BACKGROUND_COLOR,
   PWA_THEME_COLOR,
 } from "./src/pwa/canonical";
-import { isUncacheableAppUrl } from "./src/pwa/apiCachePolicy";
 
 export default defineConfig({
   plugins: [
@@ -57,9 +56,16 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//, /^\/health\//],
+        // Keep this matcher self-contained. vite-plugin-pwa stringifies
+        // urlPattern into sw.js and will not bundle imported helpers — a
+        // closed-over `isUncacheableAppUrl` becomes a ReferenceError on every
+        // API fetch once the service worker controls the page.
         runtimeCaching: [
           {
-            urlPattern: ({ url }: { url: URL | string }) => isUncacheableAppUrl(url),
+            urlPattern: ({ url }: { url: URL }) => {
+              const path = url.pathname;
+              return path.startsWith("/api/") || path.startsWith("/health/");
+            },
             handler: "NetworkOnly",
           },
         ],

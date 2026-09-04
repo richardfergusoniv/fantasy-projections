@@ -77,5 +77,11 @@ test.describe("PWA auth and manifest (production build)", () => {
     const body = await response.text();
     expect(body).not.toMatch(/\/api\/v1\/(?!auth)/);
     expect(body).toContain("NetworkOnly");
+    // vite-plugin-pwa stringifies urlPattern into sw.js without bundling imports.
+    // A closed-over helper name would throw ReferenceError on every API fetch.
+    expect(body).not.toContain("isUncacheableAppUrl");
+    expect(body).toMatch(/startsWith\(["']\/api\//);
+    expect(body).toMatch(/startsWith\(["']\/health\//);
   });
 });
+
