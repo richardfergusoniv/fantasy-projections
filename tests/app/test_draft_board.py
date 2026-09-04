@@ -272,3 +272,36 @@ def test_league_vorp_is_signed_instead_of_clipped_to_zero():
     assert any(row["vorp"] > 0 for row in ranked)
     assert any(row["vorp"] < 0 for row in ranked)
     assert sum(row["vorp"] == 0 for row in ranked) == 4
+
+
+def test_players_path_prefers_sealed_release_over_loose_board():
+    """HTTPS public_urls must not fall back to the pre-seal Chase #2 board."""
+    import json
+    from pathlib import Path
+
+    from src.app.decisions.draft_board import DraftBoardService
+    from src.projection.contracts import REPO_ROOT
+
+    service = DraftBoardService()
+    pointer = {
+        "namespace": "v2_baseline_20260830",
+        "public_urls": {
+            "players": (
+                "https://example.supabase.co/storage/v1/object/public/releases/"
+                "v2_baseline_20260830/players_2026.json"
+            )
+        },
+    }
+    path = service._players_path(2026, pointer)
+    assert path is not None
+    assert "releases/v2_baseline_20260830" in path.as_posix()
+    assert path != Path(REPO_ROOT) / "draft_assistant" / "data" / "players_2026.json"
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    rows = payload if isinstance(payload, list) else payload.get("players") or []
+    chase = next(
+        row
+        for row in rows
+        if row.get("player_id") == "00-0036900" or "Ja'Marr Chase" in str(row.get("name", ""))
+    )
+    assert int(chase.get("overall_rank") or chase.get("rank") or 0) == 1
