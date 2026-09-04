@@ -76,7 +76,7 @@ export function OperationsScreen() {
             void forceRefreshAppShell().finally(() => setRefreshingShell(false));
           }}
         >
-          {refreshingShell ? "Refreshing app…" : "Refresh installed app shell"}
+          {refreshingShell ? "Refreshing…" : "Refresh app shell"}
         </button>
 
         {/*

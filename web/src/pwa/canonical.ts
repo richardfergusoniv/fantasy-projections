@@ -1,4 +1,4 @@
-/** Canonical production origin for the private iPhone beta PWA. */
+/** Canonical production origin for Fantasy Decisions. */
 export const CANONICAL_PRODUCTION_ORIGIN = "https://fantasy-projections-xi.vercel.app";
 
 export const PWA_APP_NAME = "Fantasy Decisions";
