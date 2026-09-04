@@ -150,6 +150,14 @@ def create_app() -> FastAPI:
                 checks["alembic_revision_ok"] = (
                     checks["alembic_revision"] == settings.expected_alembic_revision
                 )
+            # Non-secret public origin used for magic links — exposed so deploys
+            # can detect a stale Vercel APP_PUBLIC_URL pointing at the abandoned
+            # fantasy-projections.vercel.app legacy host.
+            checks["app_public_url"] = settings.app_public_url.rstrip("/")
+            checks["effective_app_public_url"] = settings.effective_app_public_url.rstrip("/")
+            checks["app_public_url_remapped"] = (
+                checks["app_public_url"] != checks["effective_app_public_url"]
+            )
             from src.app.storage.release_bundle import probe_storage_round_trip
             from src.projection.active_release import read_active_pointer
 
