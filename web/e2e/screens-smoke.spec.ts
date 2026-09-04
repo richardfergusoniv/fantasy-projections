@@ -29,10 +29,10 @@ test.describe("screen smoke (production bundle)", () => {
       await expect(page.getByRole("heading", { name: screen.heading })).toBeVisible();
     }
 
-    // Draft checklist panes should be present on the Draft screen.
+    // League VORP is the primary draft pane; market context remains separate.
     await openMoreScreen(page, "Draft");
-    await expect(page.getByRole("tab", { name: "Checklist" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Our Rankings" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Market Checklist" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "O-line" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: /Ours/i })).toBeVisible();
   });
 });

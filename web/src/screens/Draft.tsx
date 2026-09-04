@@ -63,12 +63,12 @@ function heatClass(rank: number | null | undefined): string {
 
 export function DraftScreen() {
   const { selectedLeagueId, selectedLeague } = useAppState();
-  const [pane, setPane] = useState<DraftPane>("checklist");
+  const [pane, setPane] = useState<DraftPane>("ours");
   const [entries, setEntries] = useState<DraftBoardEntry[]>([]);
   const [checklist, setChecklist] = useState<DraftChecklist | null>(null);
   const [context, setContext] = useState<DraftBoard["context"]>();
   const [profile, setProfile] = useState<DraftBoard["profile"]>();
-  const [positionFilter, setPositionFilter] = useState("WR");
+  const [positionFilter, setPositionFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(25);
   const [draftedPlayerIds, setDraftedPlayerIds] = useState<string[]>([]);
@@ -259,16 +259,16 @@ export function DraftScreen() {
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Checklist uses market ADP/ECR (half-PPR, 12-team) plus sealed context checks — not our
-          VORP board. Mark drafted to hide a player across panes.
+          Our Rankings uses league-specific VORP from the sealed projection release. Market
+          Checklist is a separate ADP/ECR comparison. Mark drafted to hide a player across panes.
         </p>
 
         <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">
           {(
             [
-              ["checklist", "Checklist"],
+              ["ours", "Our Rankings"],
+              ["checklist", "Market Checklist"],
               ["oline", "O-line"],
-              ["ours", "Ours (experimental)"],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -564,8 +564,8 @@ export function DraftScreen() {
           <>
             <p className="muted">
               League-specific season rankings from the sealed release. Scoring, team count, fixed
-              starters, FLEX, and SUPER_FLEX determine replacement value. Experimental until you
-              trust the board.
+              starters, FLEX, and SUPER_FLEX determine replacement value. Raw season points never
+              determine the overall draft order.
             </p>
             <div className="draft-status">
               <span className="on-clock">Best available: {top?.name ?? "not available"}</span>
@@ -590,6 +590,10 @@ export function DraftScreen() {
                   {profile.league_specific ? "League-adjusted" : "Default format"}
                   {profile.team_count != null ? ` · ${profile.team_count} teams` : ""}
                   {profile.scoring_fidelity ? ` · ${profile.scoring_fidelity}` : ""}
+                </p>
+                <p className="muted">
+                  Ranked by {profile.ranking_basis === "league_vorp" ? "league VORP" : "sealed VORP"},
+                  not raw quarterback points · projected points are season totals
                 </p>
                 {profile.roster_positions.length ? (
                   <p className="muted">

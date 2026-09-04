@@ -36,6 +36,8 @@ function board(): DraftBoard {
     context: { draft_status: "preseason", draft_id: null },
     profile: {
       league_specific: true,
+      ranking_basis: "league_vorp",
+      points_unit: "season_total",
       team_count: 12,
       roster_positions: ["QB", "RB", "RB", "WR", "WR", "WR", "TE", "FLEX", "BN"],
       scoring_fidelity: "exact_component_rescore",
@@ -121,8 +123,8 @@ function checklist(): DraftChecklist {
 }
 
 async function openOursPane() {
-  await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
-  fireEvent.click(screen.getByRole("tab", { name: /Ours \(experimental\)/i }));
+  const ours = await screen.findByRole("tab", { name: /Our Rankings/i });
+  if (ours.getAttribute("aria-selected") !== "true") fireEvent.click(ours);
   const position = await screen.findByLabelText("Position");
   fireEvent.change(position, { target: { value: "ALL" } });
   expect(await screen.findByText(/League-adjusted · 12 teams/i)).toBeInTheDocument();
@@ -136,8 +138,14 @@ describe("DraftScreen", () => {
     getDraftChecklist.mockResolvedValue(checklist());
   });
 
-  it("defaults to checklist with market badge and unranked break", async () => {
+  it("defaults to league-specific VORP rankings rather than the market checklist", async () => {
     render(<DraftScreen />);
+    expect(await screen.findByRole("listitem", { name: "Draft Player 1 draft card" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Our Rankings/i })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText(/Ranked by league VORP, not raw quarterback points/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Market as of ADP 2026-09-03/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: /Market Checklist/i }));
     expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" })).toBeInTheDocument();
     expect(screen.getByText(/Unranked \/ off market board/i)).toBeInTheDocument();
@@ -145,6 +153,7 @@ describe("DraftScreen", () => {
 
   it("hides checklist rows when drafted via checkbox", async () => {
     render(<DraftScreen />);
+    fireEvent.click(await screen.findByRole("tab", { name: /Market Checklist/i }));
     await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
     fireEvent.click(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" }));
     expect(screen.queryByRole("checkbox", { name: /WR Player 1 drafted/i })).not.toBeInTheDocument();
@@ -160,7 +169,7 @@ describe("DraftScreen", () => {
     render(<DraftScreen />);
 
     expect(await screen.findByText(/checklist unavailable/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: /Ours \(experimental\)/i }));
+    fireEvent.click(screen.getByRole("tab", { name: /Our Rankings/i }));
     fireEvent.change(await screen.findByLabelText("Position"), {
       target: { value: "ALL" },
     });
@@ -173,6 +182,7 @@ describe("DraftScreen", () => {
     getDraftBoard.mockRejectedValue(new Error("board unavailable"));
     render(<DraftScreen />);
 
+    fireEvent.click(await screen.findByRole("tab", { name: /Market Checklist/i }));
     expect(
       await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" }),
     ).toBeInTheDocument();
@@ -181,6 +191,7 @@ describe("DraftScreen", () => {
 
   it("keeps the unranked divider when the flagged player is filtered out", async () => {
     render(<DraftScreen />);
+    fireEvent.click(await screen.findByRole("tab", { name: /Market Checklist/i }));
     await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
     // WR Player 21 carries unranked_break; hiding it must not hide the divider.
     fireEvent.click(screen.getByRole("checkbox", { name: "Mark WR Player 21 drafted" }));

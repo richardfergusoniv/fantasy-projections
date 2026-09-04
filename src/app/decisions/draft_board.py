@@ -362,6 +362,8 @@ class DraftBoardService:
         return {
             "entries": entries,
             "source": "sealed_release_league_rescore",
+            "ranking_basis": "league_vorp",
+            "points_unit": "season_total",
             "namespace": bundle.namespace,
             "data_as_of": meta.get(
                 "generated_at", bundle.generated_at or datetime.now(UTC).isoformat()
@@ -435,6 +437,8 @@ class DraftBoardService:
         return {
             "entries": entries,
             "source": "draft_assistant_release",
+            "ranking_basis": "sealed_vorp",
+            "points_unit": "season_total",
             "namespace": namespace,
             "data_as_of": meta.get("generated_at", datetime.now(UTC).isoformat()),
             "projection_run_id": f"preseason-{namespace}",
