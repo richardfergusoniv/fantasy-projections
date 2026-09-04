@@ -158,7 +158,14 @@ class AuthService:
         self.session.flush()
         # Hash fragment keeps the token out of the initial GET so mail scanners
         # cannot consume a one-time link before the owner opens it in a browser.
-        link = f"{self.settings.app_public_url}/auth/callback#token={token}"
+        public_url = self.settings.effective_app_public_url.rstrip("/")
+        if public_url.rstrip("/") != (self.settings.app_public_url or "").rstrip("/"):
+            logger.warning(
+                "magic_link_public_url_remapped",
+                configured=self.settings.app_public_url,
+                effective=public_url,
+            )
+        link = f"{public_url}/auth/callback#token={token}"
         dev_link = self.email_provider.send_magic_link(email, link)
         payload = {"status": "sent"}
         if dev_link:

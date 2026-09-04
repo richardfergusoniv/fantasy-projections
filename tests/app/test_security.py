@@ -405,6 +405,26 @@ def test_token_for_email_no_longer_allowlisted_is_rejected(db_session, monkeypat
         rotated_service.verify_magic_link(token)
 
 
+def test_abandoned_public_url_is_remapped_for_magic_links(db_session):
+    """Stale Vercel APP_PUBLIC_URL must not email the legacy Next.js host."""
+    from src.app.auth.service import AuthService
+    from src.app.config import CANONICAL_PRODUCTION_ORIGIN, Settings
+
+    settings = Settings(
+        app_env="test",
+        app_enable_dev_auth=True,
+        app_allowed_email="owner@example.com",
+        app_public_url="https://fantasy-projections.vercel.app",
+        email_provider="development",
+    )
+    assert settings.effective_app_public_url == CANONICAL_PRODUCTION_ORIGIN
+
+    service = AuthService(db_session, settings)
+    link = service.request_magic_link("owner@example.com")["development_link"]
+    assert link.startswith(f"{CANONICAL_PRODUCTION_ORIGIN}/auth/callback#token=")
+    assert "fantasy-projections.vercel.app" not in link
+
+
 def test_expired_session_row_is_removed_not_merely_ignored(db_session):
     from src.app.auth.service import AuthService, _hash_token
     from src.app.persistence.models import SessionRecord

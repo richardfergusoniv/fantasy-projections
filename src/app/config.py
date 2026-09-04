@@ -15,6 +15,17 @@ DEFAULT_ALLOWED_EMAIL = "owner@example.com"
 MIN_PRODUCTION_SECRET_LENGTH = 32
 LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "[::1]", "::1"})
 
+# Canonical production origin for Fantasy Decisions (rdfergus15 Vercel project).
+# The bare fantasy-projections.vercel.app alias is a different legacy Next.js app
+# on another Vercel account — magic links must never point there.
+CANONICAL_PRODUCTION_ORIGIN = "https://fantasy-projections-xi.vercel.app"
+ABANDONED_PUBLIC_HOSTS = frozenset(
+    {
+        "fantasy-projections.vercel.app",
+        "www.fantasy-projections.vercel.app",
+    }
+)
+
 
 class ProductionConfigError(RuntimeError):
     """Raised when production configuration is unsafe.
@@ -184,6 +195,20 @@ class Settings(BaseSettings):
     @property
     def is_development(self) -> bool:
         return self.app_env == "development"
+
+    @property
+    def effective_app_public_url(self) -> str:
+        """Public origin used in emailed magic links and absolute app URLs.
+
+        Remaps the abandoned fantasy-projections.vercel.app host (legacy Next.js
+        project we do not control) to the canonical xi deployment so a stale
+        Vercel APP_PUBLIC_URL cannot keep sending owners to the wrong app.
+        """
+        raw = (self.app_public_url or "").rstrip("/")
+        host = (urlparse(raw).hostname or "").lower()
+        if host in ABANDONED_PUBLIC_HOSTS:
+            return CANONICAL_PRODUCTION_ORIGIN
+        return raw or CANONICAL_PRODUCTION_ORIGIN
 
     @property
     def session_cookie_secure(self) -> bool:
