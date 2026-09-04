@@ -254,11 +254,10 @@ describe("DraftScreen", () => {
     expect(screen.getByText(/Unranked \/ off market/i)).toBeInTheDocument();
   });
 
-  it("shows o-line offense ranks when OL is unavailable", async () => {
+  it("no longer exposes a separate O-line tab", async () => {
     renderDraft();
-    fireEvent.click(await screen.findByRole("tab", { name: /O-line/i }));
-    expect(await screen.findByText(/Offense #1/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/OL ranks unavailable/i).length).toBeGreaterThan(0);
+    expect(await screen.findByRole("tab", { name: /Draft Checklist/i })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: /O-line/i })).not.toBeInTheDocument();
   });
 
   it("shows the league format and paginates beyond the first 15 players", async () => {

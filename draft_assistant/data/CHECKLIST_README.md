@@ -9,18 +9,21 @@
 #   python scripts/apply_sss_checklist_override.py
 # That overlay replaces projection-derived offense/QB/SOS/volume flags for the
 # published SSS board (WR60 / RB48 / QB24 / TE24) and clears checks for
-# everyone else so sources are not mixed. Re-run the overlay after
-# checklist_prepare if you refresh market ranks.
+# everyone else so sources are not mixed. TOP 16 O-LINE for QB/RB is taken from
+# the 32-team OL unit rating chart (tackles weighted) applied in the same
+# script — not from projections.db. Re-run the overlay after checklist_prepare
+# if you refresh market ranks.
 #
 # Pre-draft market refresh (host with network):
 #   python -m src.draft_assistant.compare_prepare --season 2026 --teams 12 --ffc-scoring half-ppr
 #   python -m src.draft_assistant.checklist_prepare --season 2026
 #   python scripts/apply_sss_checklist_override.py
 #
-# OL unit ranks require projections.db (ol_quality). Offense + SOS can use the
-# DB or nflverse fallbacks; SOS is omitted when 2026 REG schedules are missing.
-# The SSS overlay still publishes player-level OL check columns for QB/RB even
-# when team OL unit ranks are absent.
+# OL unit ranks for the checklist's TOP 16 O-LINE column come from the
+# transcribed 32-team OL rating chart in apply_sss_checklist_override.py.
+# projections.db ol_quality is no longer required for that player check.
+# Offense + SOS context still come from the SSS graphics (or, if regenerating
+# without the overlay, from the DB / nflverse fallbacks).
 #
 # The checklist is NOT part of a sealed release bundle. It lives at
 # draft_assistant/data/draft_checklist_{season}.json and is served from there.

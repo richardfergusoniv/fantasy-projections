@@ -14,11 +14,16 @@ OVERRIDE = REPO / "scripts" / "apply_sss_checklist_override.py"
 
 def test_committed_checklist_uses_sss_checks_for_chase() -> None:
     payload = json.loads(CHECKLIST.read_text(encoding="utf-8"))
-    assert payload["meta"]["check_source"] == "sunday_sports_society_screenshots"
-    assert payload["meta"]["ol_included"] is False
+    assert payload["meta"]["ol_included"] is True
+    assert payload["meta"]["ol_source"] == "ol_unit_rating_chart_32_teams"
     assert "ol_top16" in payload["criteria_by_position"]["QB"]
     assert "ol_top16" in payload["criteria_by_position"]["RB"]
     assert "ol_top16" not in payload["criteria_by_position"]["WR"]
+
+    den = next(t for t in payload["teams"] if t["abbr"] == "DEN")
+    cin = next(t for t in payload["teams"] if t["abbr"] == "CIN")
+    assert den["ol_unit_rank"] == 1
+    assert cin["ol_unit_rank"] == 30
 
     chase = next(p for p in payload["players"] if p["player_id"] == "00-0036900")
     assert chase["name"] == "Ja'Marr Chase"
@@ -29,6 +34,16 @@ def test_committed_checklist_uses_sss_checks_for_chase() -> None:
         "offense_top16": True,
         "sos_top16": True,
     }
+    # CIN OL is #30 on the unit chart → not top-16; Burrow/Chase teammates on QB/RB boards
+    # should reflect that. Chase is WR so no ol_top16 key.
+    allen = next(p for p in payload["players"] if p["name"] == "Josh Allen")
+    assert allen["checks"]["ol_top16"] is True  # BUF #4
+    browning = next(
+        (p for p in payload["players"] if p["name"] == "Joe Burrow"),
+        None,
+    )
+    if browning is not None:
+        assert browning["checks"]["ol_top16"] is False  # CIN #30
 
     board_counts = {"QB": 0, "RB": 0, "WR": 0, "TE": 0}
     for player in payload["players"]:

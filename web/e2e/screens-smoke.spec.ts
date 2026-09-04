@@ -33,7 +33,7 @@ test.describe("screen smoke (production bundle)", () => {
     await page.getByRole("link", { name: "Draft", exact: true }).click();
     await expect(page.getByRole("tab", { name: "Our Rankings" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Draft Checklist" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "O-line" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "O-line" })).toHaveCount(0);
 
     await page.getByRole("link", { name: "Home", exact: true }).click();
     await page.getByRole("link", { name: "Open Draft Checklist" }).click();

@@ -198,6 +198,43 @@ TE_BOARD: list[tuple[int, str, tuple[bool, bool, bool, bool]]] = [
     (24, "Terrance Ferguson", (False, True, True, False)),
 ]
 
+# Unit ranks from the 32-team OL rating chart (tackles weighted heavier).
+# Chart abbreviations ARZ/BLT/CLV/HST map to ARI/BAL/CLE/HOU.
+OL_UNIT_RANKS: dict[str, int] = {
+    "ARI": 16,
+    "ATL": 12,
+    "BAL": 9,
+    "BUF": 4,
+    "CAR": 22,
+    "CHI": 3,
+    "CIN": 30,
+    "CLE": 28,
+    "DAL": 13,
+    "DEN": 1,
+    "DET": 17,
+    "GB": 24,
+    "HOU": 32,
+    "IND": 19,
+    "JAX": 25,
+    "KC": 23,
+    "LAC": 10,
+    "LAR": 5,
+    "LV": 21,
+    "MIA": 27,
+    "MIN": 11,
+    "NE": 14,
+    "NO": 20,
+    "NYG": 18,
+    "NYJ": 15,
+    "PHI": 2,
+    "PIT": 29,
+    "SEA": 8,
+    "SF": 6,
+    "TB": 7,
+    "TEN": 26,
+    "WAS": 31,
+}
+
 NAME_ALIASES: dict[str, str] = {
     "aj brown": "a.j. brown",
     "a j brown": "a.j. brown",
@@ -467,7 +504,33 @@ def main() -> int:
         for player in cohort:
             player["unranked_break"] = first_off is not None and player is first_off
 
+    # Overlay OL unit ranks from the 32-team rating chart and recompute
+    # ol_top16 for QB/RB from those ranks (top 16 = check). This replaces any
+    # OL marks that came from the positional SSS graphics.
+    teams = list(payload.get("teams") or [])
+    for team in teams:
+        abbr = str(team.get("abbr") or "")
+        if abbr in OL_UNIT_RANKS:
+            team["ol_unit_rank"] = OL_UNIT_RANKS[abbr]
+            # Chart is a single unit ranking; pass/run splits are unavailable.
+            team["ol_pass_rank"] = None
+            team["ol_run_rank"] = None
+    team_ol_top16 = {
+        abbr: rank <= 16 for abbr, rank in OL_UNIT_RANKS.items()
+    }
+    for player in players:
+        if player.get("position") not in ("QB", "RB"):
+            continue
+        checks = dict(player.get("checks") or {})
+        team = str(player.get("team") or "")
+        if team in team_ol_top16:
+            checks["ol_top16"] = team_ol_top16[team]
+        else:
+            checks["ol_top16"] = False
+        player["checks"] = checks
+
     payload["players"] = players
+    payload["teams"] = teams
     payload["criteria_by_position"] = {
         "QB": ["pass_att_top16", "rush_vol_top16", "offense_top16", "ol_top16", "sos_top16"],
         "RB": [
@@ -481,17 +544,17 @@ def main() -> int:
         "TE": ["te_top2_targets_in_group", "qb_top16", "offense_top16", "sos_top16"],
     }
     meta = dict(payload.get("meta") or {})
-    meta["ol_included"] = False
-    meta["ol_source"] = "sunday_sports_society_screenshots_player_checks_only"
+    meta["ol_included"] = True
+    meta["ol_source"] = "ol_unit_rating_chart_32_teams"
     meta["offense_source"] = "sunday_sports_society_screenshots"
     meta["sos_source"] = "sunday_sports_society_screenshots"
     meta["check_source"] = "sunday_sports_society_screenshots"
     meta["check_source_note"] = (
         "Context checks transcribed from @SUNDAYSPORTSSOCIETY positional "
-        "checklist graphics (PPR boards). Not derived from projections.db. "
-        "Ja'Marr Chase and other CIN pass-catchers use the graphic's TOP 16 QB "
-        "marks until the internal QB-context repair lands. Player OL check "
-        "columns are included for QB/RB; team OL unit ranks are still unavailable."
+        "checklist graphics (PPR boards), except TOP 16 O-LINE which comes from "
+        "the 32-team OL unit rating chart (tackles weighted). Not derived from "
+        "projections.db. Ja'Marr Chase and other CIN pass-catchers use the "
+        "graphic's TOP 16 QB marks until the internal QB-context repair lands."
     )
     meta["generated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     meta["scoring_flavor"] = "ppr"

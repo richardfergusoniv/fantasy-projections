@@ -11,24 +11,23 @@ import type {
   DraftBoardEntry,
   DraftChecklist,
   DraftChecklistEntry,
-  DraftChecklistTeam,
 } from "../api/types";
 
 const DRAFTED_STORAGE_PREFIX = "fantasy-decisions:drafted";
 
-type DraftPane = "checklist" | "oline" | "ours";
+type DraftPane = "checklist" | "ours";
 
 const DRAFT_PANES: Array<[DraftPane, string]> = [
   ["ours", "Our Rankings"],
   ["checklist", "Draft Checklist"],
-  ["oline", "O-line"],
 ];
 
 function paneFromSearch(value: string | null): DraftPane {
   if (value === "checklist" || value === "assistant" || value === "draft-assistant") {
     return "checklist";
   }
-  if (value === "oline") return "oline";
+  // Legacy ?pane=oline deep links land on checklist; OL now lives in checklist checks.
+  if (value === "oline") return "checklist";
   if (value === "ours" || value === "rankings") return "ours";
   return "ours";
 }
@@ -57,13 +56,6 @@ function formatVorp(value: number | undefined): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}`;
 }
 
-function heatClass(rank: number | null | undefined): string {
-  if (rank == null) return "heat-missing";
-  if (rank <= 8) return "heat-elite";
-  if (rank <= 16) return "heat-good";
-  if (rank <= 24) return "heat-mid";
-  return "heat-poor";
-}
 
 const CHECKLIST_POSITIONS = ["ALL", "QB", "RB", "WR", "TE"] as const;
 
@@ -296,17 +288,6 @@ export function DraftScreen() {
         } · ${market.teams ?? 12}-team`
       : null;
 
-  const olineTeams: DraftChecklistTeam[] = useMemo(() => {
-    const teams = [...(checklist?.teams ?? [])];
-    teams.sort((a, b) => {
-      const ar = a.ol_unit_rank ?? a.offense_rank ?? 99;
-      const br = b.ol_unit_rank ?? b.offense_rank ?? 99;
-      return ar - br;
-    });
-    return teams;
-  }, [checklist]);
-
-  const olIncluded = Boolean(checklist?.checklist_meta.ol_included);
 
   return (
     <div className="screen">
@@ -316,9 +297,9 @@ export function DraftScreen() {
       >
         <p className="muted">
           Draft Checklist is the market ADP/ECR assistant with context checks
-          (currently from @SUNDAYSPORTSSOCIETY boards). Our Rankings is the
-          league VORP board. O-line is team context. Mark drafted to hide a player
-          across all three.
+          (currently from @SUNDAYSPORTSSOCIETY boards, plus the OL unit chart).
+          Our Rankings is the league VORP board. Mark drafted to hide a player
+          across both.
         </p>
 
         <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">
@@ -346,16 +327,12 @@ export function DraftScreen() {
           hasData={
             pane === "checklist"
               ? Boolean(checklist?.available && checklist.entries.length)
-              : pane === "oline"
-                ? Boolean(checklist?.teams.length)
-                : entries.length > 0
+              : entries.length > 0
           }
           isEmpty={
             pane === "checklist"
               ? !checklist?.available || checklist.entries.length === 0
-              : pane === "oline"
-                ? !checklist?.teams.length
-                : entries.length === 0
+              : entries.length === 0
           }
           missing={missing}
           emptyMessage={
@@ -367,8 +344,7 @@ export function DraftScreen() {
           }
         />
 
-        {pane !== "oline" ? (
-          <div className={`draft-board-controls${pane === "checklist" ? " is-checklist" : ""}`}>
+        <div className={`draft-board-controls${pane === "checklist" ? " is-checklist" : ""}`}>
             <div className="field draft-search-field">
               <label htmlFor="draft-player-search">Search players</label>
               <input
@@ -458,7 +434,6 @@ export function DraftScreen() {
               Undo
             </button>
           </div>
-        ) : null}
 
         {pane === "checklist" && checklist?.available ? (
           <>
@@ -561,52 +536,6 @@ export function DraftScreen() {
           </>
         ) : null}
 
-        {pane === "oline" && checklist ? (
-          <>
-            {!olIncluded ? (
-              <p className="muted">
-                O-line unit ranks need <code>projections.db</code> (ol_quality). Re-run{" "}
-                <code>python -m src.draft_assistant.checklist_prepare</code> on a host with the DB
-                to populate pass/run/unit ranks. Offense ranks below use 2025 team yardage.
-              </p>
-            ) : null}
-            <div className="draft-oline-grid">
-              {olineTeams.map((team) => (
-                <article key={team.abbr} className="draft-oline-card">
-                  <header>
-                    <strong>{team.abbr}</strong>
-                    <span className="muted">{team.name}</span>
-                  </header>
-                  <div className="draft-oline-ranks">
-                    {olIncluded ? (
-                      <>
-                        <span className={heatClass(team.ol_unit_rank)}>
-                          Unit #{team.ol_unit_rank ?? "—"}
-                        </span>
-                        <span className={heatClass(team.ol_pass_rank)}>
-                          Pass #{team.ol_pass_rank ?? "—"}
-                        </span>
-                        <span className={heatClass(team.ol_run_rank)}>
-                          Run #{team.ol_run_rank ?? "—"}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="muted">OL ranks unavailable</span>
-                    )}
-                    <span className={heatClass(team.offense_rank)}>
-                      Offense #{team.offense_rank ?? "—"}
-                    </span>
-                    {checklist.checklist_meta.sos_included ? (
-                      <span className={heatClass(team.sos_unit_rank)}>
-                        SOS #{team.sos_unit_rank ?? "—"}
-                      </span>
-                    ) : null}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </>
-        ) : null}
 
         {pane === "ours" && entries.length ? (
           <>

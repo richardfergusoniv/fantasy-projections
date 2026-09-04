@@ -1121,54 +1121,7 @@ a {
   text-align: center;
 }
 
-.draft-oline-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 0.65rem;
-  margin-top: 0.75rem;
-}
 
-.draft-oline-card {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.7rem;
-  background: var(--bg-panel);
-}
-
-.draft-oline-card header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  margin-bottom: 0.5rem;
-}
-
-.draft-oline-ranks {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.draft-oline-ranks .heat-elite {
-  color: #4ade80;
-}
-
-.draft-oline-ranks .heat-good {
-  color: #86efac;
-}
-
-.draft-oline-ranks .heat-mid {
-  color: var(--text-muted);
-}
-
-.draft-oline-ranks .heat-poor {
-  color: #f87171;
-}
-
-.draft-oline-ranks .heat-missing {
-  color: var(--text-muted);
-}
 
 .draft-status {
   display: flex;
