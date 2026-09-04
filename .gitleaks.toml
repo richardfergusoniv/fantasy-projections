@@ -1,0 +1,45 @@
+# gitleaks configuration for scripts/predeploy_secret_scan.sh
+#
+# The predeploy gate scans the WORKING TREE (--no-git): that is what gets
+# deployed, and it runs in ~2s instead of ~17s for a full history walk.
+# Scanning history is an audit, not a per-deploy gate.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = """
+Dependency and cache trees, plus deliberate non-secret sentinels.
+
+Paths first: gitleaks --no-git honours .gitignore on Linux but walked .venv on
+the Windows runner (373MB scanned against 279MB of tracked files, 131 findings
+from vendored package fixtures). None of these directories are tracked, so
+excluding them cannot hide anything that would be committed or deployed, and
+relying on .gitignore parity across platforms is not worth the flakiness.
+
+Sentinels second: """
+paths = [
+  '''(^|/)\.venv/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)__pycache__/''',
+  '''(^|/)\.pytest_cache/''',
+  '''(^|/)\.ruff_cache/''',
+  '''(^|/)\.mypy_cache/''',
+  '''(^|/)dist/''',
+  '''(^|/)\.vercel/''',
+]
+_sentinel_note = """
+Deliberate non-secret sentinels. tests/app asserts that these values never
+appear in an HTTP response body or log line, so the literals have to be
+present in the source for the tests to mean anything. Allowlisted by exact
+value rather than by path, so a genuine secret committed to tests/ still fails
+the scan.
+"""
+regexTarget = "line"
+regexes = [
+  '''sk-sentinel-NEVER-LEAK-[0-9]+''',
+  '''sk-live-should-never-appear''',
+  '''cookie-value-should-never-appear''',
+  '''postgresql://fantasy:sup3r-s3cret@''',
+  '''hunter2@db\.internal''',
+]
