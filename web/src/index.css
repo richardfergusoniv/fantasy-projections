@@ -1403,7 +1403,7 @@ a {
     padding-inline: 0.45rem;
   }
 
-  .panel > .muted:first-of-type {
+  .panel-body > .muted:first-of-type {
     display: none;
   }
 }
