@@ -1,0 +1,53 @@
+{
+  "model_id": "h4_insufficient_history_prior",
+  "h3_model_id": "h3_repaired_frozen",
+  "sealed_comparator": "model_points_end_to_end",
+  "h3_base_commit": "4d61c891b24e817995b82efa2f9ecaa09b067a92",
+  "eval_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "fit_seasons": [
+    2023,
+    2024
+  ],
+  "latest_chronological_oos": 2025,
+  "primary_cohort": "dual_threat \u222a returning_injury (same as H3)",
+  "paired_bootstrap_ci_policy": "On the latest chronological OOS fold, for the primary cohort, compute paired bootstrap of \u0394MAE = H4_MAE \u2212 sealed_MAE. Gate passes only if the 95% CI upper bound is strictly < 0.",
+  "gates": {
+    "overall_mae_non_inferiority_tol": 0.02,
+    "cohort_improve_min_fit_folds": 2,
+    "holdout_cohort_must_improve": true,
+    "holdout_bootstrap_ci_must_exclude_zero": true,
+    "top12_mae_non_inferiority_tol": 0.03,
+    "spearman_max_drop": 0.02,
+    "established_veteran_mae_non_inferiority_tol": 0.02,
+    "protected_top12_tol": 0.03,
+    "require_zero_conservation_violations": true,
+    "require_zero_double_availability": true,
+    "require_zero_non_qb_changes": true,
+    "use_2026_for_selection": false
+  },
+  "go_requires": [
+    "All frozen H3 gates vs sealed model_points_end_to_end",
+    "Latest OOS overall \u0394MAE within +2% of sealed MAE",
+    "Primary-cohort paired bootstrap CI upper < 0 on latest OOS",
+    "No material established_veteran regression beyond +2% tol on latest OOS",
+    "Top-12 non-inferiority on latest OOS (\u2264 +3%)",
+    "Zero team conservation violations",
+    "Zero double-availability applications",
+    "Zero non-QB projection changes",
+    "H3 remains reproducible and unchanged"
+  ],
+  "do_not": [
+    "Weaken any threshold after seeing results",
+    "Tune against the 2025 final evaluation fold",
+    "Use same-season outcomes as features",
+    "Substitute a favorable point estimate for the CI gate",
+    "Classify null designed-run history as pocket",
+    "Publish or promote any model",
+    "Change production projection source"
+  ],
+  "predeclared_before_final_eval": true
+}
