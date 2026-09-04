@@ -32,6 +32,19 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --all-extras --dev
 
+      - name: Install gitleaks
+        shell: pwsh
+        run: |
+          $version = '8.28.0'
+          $url = "https://github.com/gitleaks/gitleaks/releases/download/v$version/gitleaks_${version}_windows_x64.zip"
+          Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\gitleaks.zip"
+          Expand-Archive -Path "$env:RUNNER_TEMP\gitleaks.zip" -DestinationPath "$env:RUNNER_TEMP\gitleaks" -Force
+          "$env:RUNNER_TEMP\gitleaks" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Secret scan
+        shell: bash
+        run: bash scripts/predeploy_secret_scan.sh
+
       - name: Entrypoint import smoke test
         run: uv run pytest tests/test_entrypoint_smoke.py -q
 

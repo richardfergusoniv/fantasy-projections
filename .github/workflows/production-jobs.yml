@@ -2,8 +2,12 @@ name: Production Jobs
 
 on:
   schedule:
-    # Poll every 15 minutes; run-due only executes slots inside the scheduler grace window.
-    - cron: "*/15 * * * *"
+    # Every schedule slot in src/app/jobs/scheduler.py lands on :00 or :45
+    # (America/Los_Angeles), and DEFAULT_GRACE keeps a slot runnable for 6h.
+    # Firing at :00 and :45 hits every slot at its exact minute while halving
+    # the run count, and stays correct across DST because it is minute-based
+    # rather than pinned to UTC hours.
+    - cron: "0,45 * * * *"
   workflow_dispatch:
 
 concurrency:
