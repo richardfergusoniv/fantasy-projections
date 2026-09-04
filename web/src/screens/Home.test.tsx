@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppStateProvider } from "../hooks/useAppState";
 import { HomeScreen } from "./Home";
@@ -78,9 +79,11 @@ vi.mock("../api/client", () => ({
 
 function renderHome() {
   return render(
-    <AppStateProvider>
-      <HomeScreen />
-    </AppStateProvider>,
+    <MemoryRouter>
+      <AppStateProvider>
+        <HomeScreen />
+      </AppStateProvider>
+    </MemoryRouter>,
   );
 }
 
@@ -105,6 +108,11 @@ describe("HomeScreen urgent decisions", () => {
     expect(await screen.findByText(/Win probability/i)).toBeInTheDocument();
     // Uncertainty is never hidden on a recommendation surface.
     expect(await screen.findByText(/Projected lineup points/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Draft assistant" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Draft Checklist" })).toHaveAttribute(
+      "href",
+      "/draft?pane=checklist",
+    );
   });
 
   it("derives urgent items from swaps, waiver targets, and failed gates", async () => {

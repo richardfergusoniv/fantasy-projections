@@ -6,11 +6,11 @@ const PRIMARY_NAV = [
   { to: "/lineup", label: "Lineup", icon: "▣" },
   { to: "/waivers", label: "Waivers", icon: "＋" },
   { to: "/trade-lab", label: "Trade", icon: "⇄" },
-  { to: "/dynasty", label: "Dynasty", icon: "◈" },
+  { to: "/draft", label: "Draft", icon: "◎" },
 ] as const;
 
 const MORE_NAV = [
-  { to: "/draft", label: "Draft", icon: "◎" },
+  { to: "/dynasty", label: "Dynasty", icon: "◈" },
   { to: "/assistant", label: "Assist", icon: "✦" },
   { to: "/operations", label: "Ops", icon: "⚙" },
 ] as const;
