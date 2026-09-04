@@ -200,11 +200,18 @@ def evaluate_season(history_h3: pd.DataFrame, history_h4: pd.DataFrame, season: 
         "n": int(len(frame)),
         "fold_label": "latest_chronological_oos" if season == LATEST else "fit",
         "cohorts": {k: cohort(frame[m]) for k, m in masks.items()},
+        "h3_comparable_universe": cohort(frame[frame.h3_points > 0]),
+        "note_h3_comparable": (
+            "Players with nonzero H3 predictions (excludes no-history rookies that "
+            "H3 zeroed). Matches n/sealed MAE of the repaired H3 report."
+        ),
         "reconciliation": h4["reconciliation_source"],
         "team_starts_conservation_mae": h4["team_starts_conservation_mae"],
         "double_avail_violations": h4["double_avail_violations"],
         "conservation_violations": h4["reconciliation_report"]["violations"],
         "non_qb_projection_changes": 0,
+        "h3_zero_predictions": int((frame.h3_points == 0).sum()),
+        "h4_zero_predictions": int((frame.h4_points == 0).sum()),
     }
     primary = frame[masks["primary"]]
     if len(primary) >= 5:
@@ -268,6 +275,18 @@ def decide(folds: list[dict]) -> dict:
         if f.get("conservation_violations"):
             reasons.append(f"conservation_violations_season_{f['season']}")
 
+    # Also apply overall non-inferiority on the H3-comparable universe (no-history
+    # rookies excluded) so a GO cannot hide behind H3's zeroed rookies.
+    for f in fit + ([latest] if latest else []):
+        hc = f.get("h3_comparable_universe") or {}
+        if not hc:
+            continue
+        sealed_mae = float(hc["sealed_points_mae"])
+        delta = float(hc["delta_vs_sealed"])
+        if delta > sealed_mae * H4_GATES.overall_mae_non_inferiority_tol + 1e-9:
+            reasons.append(
+                f"h3_comparable_overall_mae_regression_season_{f['season']}_delta_{delta:.2f}"
+            )
     gates["overall_non_inferiority"] = not any("overall_mae_regression" in r for r in reasons)
     improved = sum(
         1 for f in fit if c(f, "primary") and c(f, "primary").get("delta_vs_sealed", 1) < 0

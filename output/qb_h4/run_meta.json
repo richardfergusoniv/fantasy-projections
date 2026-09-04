@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-09-04T20:06:13.314815+00:00",
+  "model_id": "h4_insufficient_history_prior",
+  "h3_base_commit": "4d61c891b24e817995b82efa2f9ecaa09b067a92",
+  "projections_db": {
+    "path": "/workspace/data/projections.db",
+    "exists": false,
+    "size_bytes": 0,
+    "usable": false,
+    "placeholder": false
+  },
+  "reconciliation_source": {
+    "source": "portable_fixture",
+    "projections_db": {
+      "path": "/workspace/data/projections.db",
+      "exists": false,
+      "size_bytes": 0,
+      "usable": false,
+      "placeholder": false
+    },
+    "projections_db_error": "data/projections.db is missing or zero bytes (gitignored Cloud placeholder). Do not open it and do not silently skip team reconciliation. Use the portable QB reconciliation fixture (output/qb_h3/infra/) built from public-derived Parquet sources. status={'path': '/workspace/data/projections.db', 'exists': False, 'size_bytes': 0, 'usable': False, 'placeholder': False}",
+    "fixture_path": "/workspace/output/qb_h3/infra/portable_qb_reconcile_fixture.parquet",
+    "fixture_present": true,
+    "reconciliation_will_run": true,
+    "schema_version": "qb_h3_reconcile_contract_v1"
+  },
+  "designed_coverage_seasons": [
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "policy_hash_note": "see predeclared_decision_policy.json"
+}
