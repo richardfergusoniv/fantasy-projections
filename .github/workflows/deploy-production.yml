@@ -103,6 +103,31 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
+      - name: Ensure canonical APP_PUBLIC_URL on Vercel
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          CANONICAL_APP_PUBLIC_URL: https://fantasy-projections-xi.vercel.app
+        run: |
+          set -euo pipefail
+          # Public origin (not a secret). Force-overwrite so a stale
+          # fantasy-projections.vercel.app value cannot keep emailing the
+          # abandoned legacy host. --no-sensitive keeps it readable on pull.
+          vercel env add APP_PUBLIC_URL production \
+            --yes \
+            --force \
+            --no-sensitive \
+            --value "$CANONICAL_APP_PUBLIC_URL" \
+            --token "$VERCEL_TOKEN"
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          updated=$(grep -E '^APP_PUBLIC_URL=' .vercel/.env.production.local | tail -n1 | cut -d= -f2- | tr -d '"' | tr -d "'" | tr -d '\r')
+          echo "APP_PUBLIC_URL after upsert='${updated}'"
+          if [ "$updated" != "$CANONICAL_APP_PUBLIC_URL" ]; then
+            echo "Failed to set APP_PUBLIC_URL (got '${updated}')"
+            exit 1
+          fi
+
       - name: Deploy
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -113,6 +138,7 @@ jobs:
       - name: Post-deploy readiness check
         env:
           PRODUCTION_URL: https://fantasy-projections-xi.vercel.app
+          CANONICAL_APP_PUBLIC_URL: https://fantasy-projections-xi.vercel.app
         run: |
           set -euo pipefail
           for path in /health/live /health/ready; do
@@ -127,6 +153,20 @@ jobs:
               exit 1
             fi
           done
+          curl -sS -o /tmp/ready.json "${PRODUCTION_URL}/health/ready"
+          python3 - <<'PY'
+          import json, os, sys
+          body = json.load(open("/tmp/ready.json"))
+          checks = body.get("checks") or {}
+          effective = (checks.get("effective_app_public_url") or "").rstrip("/")
+          canonical = os.environ["CANONICAL_APP_PUBLIC_URL"].rstrip("/")
+          print("effective_app_public_url=", effective)
+          print("app_public_url=", checks.get("app_public_url"))
+          print("app_public_url_remapped=", checks.get("app_public_url_remapped"))
+          if effective != canonical:
+              print("Magic-link origin is not canonical xi host", file=sys.stderr)
+              sys.exit(1)
+          PY
           curl -sS -o /tmp/home.html -w "%{http_code}" "${PRODUCTION_URL}/" | tee /tmp/home_status.txt
           if ! grep -q "Fantasy Decisions" /tmp/home.html; then
             echo "Production home page does not serve Fantasy Decisions PWA"
@@ -136,4 +176,13 @@ jobs:
           if grep -qi '404: NOT_FOUND' /tmp/login.html; then
             echo "Production /login returned Vercel 404"
             exit 1
+          fi
+          # Legacy abandoned host must remain a different product (not our PWA).
+          legacy=$(curl -sS -o /tmp/legacy.html -w "%{http_code}" "https://fantasy-projections.vercel.app/" || true)
+          if [ "$legacy" = "200" ] && grep -q "Fantasy Decisions" /tmp/legacy.html; then
+            echo "Unexpected: abandoned host now serves Fantasy Decisions"
+            exit 1
+          fi
+          if [ "$legacy" = "200" ] && grep -qi "Fantasy Projections" /tmp/legacy.html; then
+            echo "Confirmed abandoned host still serves legacy Fantasy Projections"
           fi
