@@ -1,9 +1,13 @@
 """Build sealed draft-checklist JSON (market ranks + context checks).
 
 Volume-leader flags come only from sealed ``team_stats_*`` history blocks.
-OL / offense / SOS ranks require ``projections.db`` when available; offense
-and SOS can fall back to the same nflverse sources ``src.db.load`` would
-ingest. OL ranks have no substitute — omit them when the DB is absent.
+Offense / SOS ranks require ``projections.db`` when available; both can fall
+back to the same nflverse sources ``src.db.load`` would ingest.
+
+OL unit ranks prefer the sealed screenshot board
+``draft_assistant/data/ol_unit_ranks_{season}.json`` (manual composite unit
+ranks). When that file is absent, OL falls back to ``projections.db``
+ol_quality; if both are missing, OL checks are omitted.
 
 Market order is half-PPR / 12-team ADP only (the single committed flavor).
 Refresh ``comparison_{season}.json`` via ``compare_prepare`` before this
@@ -383,6 +387,87 @@ def load_ol_ranks_from_db(
     return rank_descending(pass_scores), rank_descending(run_scores), rank_descending(unit_scores)
 
 
+def sealed_ol_ranks_path(season: int = 2026) -> Path:
+    return DRAFT_DATA_DIR / f"ol_unit_ranks_{season}.json"
+
+
+def load_sealed_ol_unit_ranks(path: Path) -> dict[str, int]:
+    """Load manual unit ranks (1 = best) from the sealed screenshot board."""
+    with path.open(encoding="utf-8") as fh:
+        payload = json.load(fh)
+    raw = payload.get("unit_ranks") or {}
+    ranks: dict[str, int] = {}
+    for abbr, rank in raw.items():
+        try:
+            ranks[str(abbr)] = int(rank)
+        except (TypeError, ValueError):
+            continue
+    return ranks
+
+
+def apply_ol_unit_ranks(
+    payload: dict[str, Any],
+    unit_ranks: dict[str, int],
+    *,
+    ol_source: str,
+    top_n: int | None = None,
+) -> dict[str, Any]:
+    """Inject / replace OL unit ranks and QB/RB ``ol_top16`` checks in place."""
+    if not unit_ranks:
+        return payload
+
+    top = int(top_n if top_n is not None else payload.get("meta", {}).get("top_n") or TOP_N)
+    meta = dict(payload.get("meta") or {})
+    meta["ol_included"] = True
+    meta["ol_source"] = ol_source
+    labels = dict(meta.get("criteria_labels") or {})
+    labels["ol_top16"] = CRITERIA_LABELS["ol_top16"]
+    meta["criteria_labels"] = labels
+    meta["generated_at"] = datetime.now(timezone.utc).isoformat()
+    payload["meta"] = meta
+
+    criteria = {
+        pos: list(keys) for pos, keys in (payload.get("criteria_by_position") or {}).items()
+    }
+    for pos, keys in CRITERIA_BASE.items():
+        if "ol_top16" not in keys:
+            continue
+        current = criteria.setdefault(pos, [])
+        if "ol_top16" not in current:
+            # Keep OL next to offense when present; otherwise append.
+            if "offense_top16" in current:
+                insert_at = current.index("offense_top16") + 1
+                current.insert(insert_at, "ol_top16")
+            else:
+                current.append("ol_top16")
+    payload["criteria_by_position"] = criteria
+
+    teams_out: list[dict[str, Any]] = []
+    for team in payload.get("teams") or []:
+        row = dict(team)
+        abbr = str(row.get("abbr") or "")
+        if abbr in unit_ranks:
+            row["ol_unit_rank"] = unit_ranks[abbr]
+        teams_out.append(row)
+    payload["teams"] = teams_out
+
+    players_out: list[dict[str, Any]] = []
+    for player in payload.get("players") or []:
+        row = dict(player)
+        checks = dict(row.get("checks") or {})
+        pos = str(row.get("position") or "")
+        if "ol_top16" in (criteria.get(pos) or []):
+            team = row.get("team")
+            if not team:
+                checks["ol_top16"] = False
+            else:
+                checks["ol_top16"] = (unit_ranks.get(str(team)) or 99) <= top
+        row["checks"] = checks
+        players_out.append(row)
+    payload["players"] = players_out
+    return payload
+
+
 def load_sos_ranks_from_db(
     conn: sqlite3.Connection, season: int
 ) -> tuple[dict[str, int], dict[str, int], dict[str, int]]:
@@ -602,9 +687,20 @@ def build_checklist(
             if sos_unit_ranks:
                 sos_included = True
                 sos_source = "nflverse_schedules+pbp:opponent_strength"
-        # OL has no substitute without ol_coefficients.
         ol_included = False
         ol_source = "unavailable_without_projections.db"
+
+    # Sealed screenshot board wins over DB ol_quality for checklist TOP-16 OL.
+    sealed_ol_path = sealed_ol_ranks_path(season)
+    if sealed_ol_path.is_file():
+        sealed_ranks = load_sealed_ol_unit_ranks(sealed_ol_path)
+        if sealed_ranks:
+            ol_unit_ranks = sealed_ranks
+            # Pass/run splits are not part of the sealed unit board.
+            ol_pass_ranks = {}
+            ol_run_ranks = {}
+            ol_included = True
+            ol_source = f"sealed:{sealed_ol_path.name}"
 
     criteria = criteria_for_meta(ol_included=ol_included, sos_included=sos_included)
 
@@ -706,6 +802,32 @@ def export_checklist(
     return destination
 
 
+def patch_checklist_ol(
+    season: int = 2026,
+    *,
+    checklist_path: Path | None = None,
+    ol_ranks_path: Path | None = None,
+) -> Path:
+    """Rewrite OL ranks/checks on an existing checklist without rebuilding offense/SOS."""
+    destination = checklist_path or DRAFT_DATA_DIR / f"draft_checklist_{season}.json"
+    ranks_path = ol_ranks_path or sealed_ol_ranks_path(season)
+    if not destination.is_file():
+        raise FileNotFoundError(f"checklist not found: {destination}")
+    if not ranks_path.is_file():
+        raise FileNotFoundError(f"sealed OL ranks not found: {ranks_path}")
+    with destination.open(encoding="utf-8") as fh:
+        payload = json.load(fh)
+    unit_ranks = load_sealed_ol_unit_ranks(ranks_path)
+    apply_ol_unit_ranks(
+        payload,
+        unit_ranks,
+        ol_source=f"sealed:{ranks_path.name}",
+    )
+    with destination.open("w", encoding="utf-8") as fh:
+        json.dump(payload, fh, indent=2, allow_nan=False)
+    return destination
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export draft checklist JSON")
     parser.add_argument("--season", type=int, default=2026)
@@ -715,12 +837,23 @@ def main() -> None:
         default=None,
         help="projections.db path (default: configured DB_PATH)",
     )
-    args = parser.parse_args()
-    path = export_checklist(
-        args.season,
-        out_path=Path(args.out) if args.out else None,
-        db_path=args.db_path,
+    parser.add_argument(
+        "--patch-ol-only",
+        action="store_true",
+        help="Inject sealed ol_unit_ranks into the existing checklist JSON only",
     )
+    args = parser.parse_args()
+    if args.patch_ol_only:
+        path = patch_checklist_ol(
+            args.season,
+            checklist_path=Path(args.out) if args.out else None,
+        )
+    else:
+        path = export_checklist(
+            args.season,
+            out_path=Path(args.out) if args.out else None,
+            db_path=args.db_path,
+        )
     print(f"Wrote {path}")
 
 

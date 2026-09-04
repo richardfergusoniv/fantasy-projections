@@ -563,9 +563,10 @@ export function DraftScreen() {
           <>
             {!olIncluded ? (
               <p className="muted">
-                O-line unit ranks need <code>projections.db</code> (ol_quality). Re-run{" "}
-                <code>python -m src.draft_assistant.checklist_prepare</code> on a host with the DB
-                to populate pass/run/unit ranks. Offense ranks below use 2025 team yardage.
+                O-line unit ranks are missing from the published checklist. Re-run{" "}
+                <code>python -m src.draft_assistant.checklist_prepare --patch-ol-only</code>{" "}
+                after sealing <code>ol_unit_ranks_*.json</code>, or a full prepare on a host with{" "}
+                <code>projections.db</code>. Offense ranks below use 2025 team yardage.
               </p>
             ) : null}
             <div className="draft-oline-grid">

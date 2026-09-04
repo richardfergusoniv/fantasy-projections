@@ -8,8 +8,15 @@
 #   python -m src.draft_assistant.compare_prepare --season 2026 --teams 12 --ffc-scoring half-ppr
 #   python -m src.draft_assistant.checklist_prepare --season 2026
 #
-# OL unit ranks require projections.db (ol_quality). Offense + SOS can use the
-# DB or nflverse fallbacks; SOS is omitted when 2026 REG schedules are missing.
+# OL unit ranks prefer sealed draft_assistant/data/ol_unit_ranks_{season}.json
+# (manual composite board from the O-line rankings screenshot). That file drives
+# TOP 16 O-LINE checks for QB/RB and the O-line pane unit ranks. When the sealed
+# board is absent, prepare falls back to projections.db ol_quality; if both are
+# missing, OL checks are omitted. Offense + SOS can use the DB or nflverse
+# fallbacks; SOS is omitted when 2026 REG schedules are missing.
+#
+# Offline OL-only refresh (no nflverse / no projections.db):
+#   python -m src.draft_assistant.checklist_prepare --season 2026 --patch-ol-only
 #
 # The checklist is NOT part of a sealed release bundle. It lives at
 # draft_assistant/data/draft_checklist_{season}.json and is served from there.
