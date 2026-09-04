@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { AppBuildStamp } from "../components/AppBuildStamp";
 import { AsyncStateBanner } from "../components/AsyncState";
 import { FreshnessBadge } from "../components/FreshnessBadge";
 import { Panel } from "../components/Panel";
@@ -9,6 +11,7 @@ import {
   useLineupRecommendation,
   useWaiverRecommendation,
 } from "../hooks/useReadonlyRecommendation";
+import { forceRefreshAppShell } from "../pwa/registerUpdates";
 
 interface UrgentItem {
   id: string;
@@ -30,6 +33,7 @@ export function HomeScreen() {
   const lineup = useLineupRecommendation(selectedLeagueId, week);
   const waivers = useWaiverRecommendation(selectedLeagueId, week);
   const operations = useOperationsStatus();
+  const [refreshingShell, setRefreshingShell] = useState(false);
 
   // Every entry below is derived from a response the app actually received.
   // Nothing is a static reminder string.
@@ -79,6 +83,20 @@ export function HomeScreen() {
 
   return (
     <div className="screen home-screen">
+      <div className="home-build-row">
+        <AppBuildStamp />
+        <button
+          className="btn btn-ghost btn-compact"
+          type="button"
+          disabled={refreshingShell}
+          onClick={() => {
+            setRefreshingShell(true);
+            void forceRefreshAppShell().finally(() => setRefreshingShell(false));
+          }}
+        >
+          {refreshingShell ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
       <Panel title="League">
         <AsyncStateBanner
           label="League list"

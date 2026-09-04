@@ -828,6 +828,14 @@ a {
   margin: 0.2rem 0;
 }
 
+.home-build-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+}
+
 .matchup-card .win-prob {
   margin: 0 0 0.35rem;
   font-size: 1rem;

@@ -113,6 +113,8 @@ describe("HomeScreen urgent decisions", () => {
       "href",
       "/draft?pane=checklist",
     );
+    expect(screen.getByTestId("app-build-stamp")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Refresh" })).toBeInTheDocument();
   });
 
   it("derives urgent items from swaps, waiver targets, and failed gates", async () => {
