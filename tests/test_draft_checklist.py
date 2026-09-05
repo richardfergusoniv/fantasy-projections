@@ -215,8 +215,6 @@ def test_committed_checklist_ol_ranks_match_sealed_board():
         assert player["ranks"]["ol_rank"] == ranks.get(str(team))
 
 
-
-
 def test_load_checklist_payload_falls_back_to_2026_for_historical_season():
     from src.app.decisions.draft_checklist import DraftChecklistService, load_checklist_payload
 
