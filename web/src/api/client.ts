@@ -391,6 +391,13 @@ export class ApiClient {
           pos_market_rank:
             row.pos_market_rank != null ? Number(row.pos_market_rank) : undefined,
           unranked_break: Boolean(row.unranked_break),
+          ranks: Object.fromEntries(
+            Object.entries((row.ranks as RawRecord | undefined) ?? {}).map(([key, value]) => {
+              if (value == null || value === "") return [key, null];
+              const numeric = Number(value);
+              return [key, Number.isFinite(numeric) ? numeric : null];
+            }),
+          ),
           checks: Object.fromEntries(
             Object.entries((row.checks as RawRecord | undefined) ?? {}).map(([key, value]) => [
               key,

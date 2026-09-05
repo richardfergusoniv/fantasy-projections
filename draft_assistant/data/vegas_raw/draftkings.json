@@ -1,0 +1,3284 @@
+{
+  "source": "draftkings",
+  "fetched_at": "2026-09-05T03:35:18.387224+00:00",
+  "urls": [
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&subcategory=player-stats-o-u&nav_1=pass-yards",
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&subcategory=player-stats-o-u&nav_1=pass-tds",
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&subcategory=player-stats-o-u&nav_1=rush-yards",
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&subcategory=player-stats-o-u&nav_1=rush-tds",
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&subcategory=player-stats-o-u&nav_1=rec-yards",
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&subcategory=player-stats-o-u&nav_1=rec-tds",
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&subcategory=player-stats-o-u&nav_1=receptions",
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&subcategory=player-stats-o-u&nav_1=sacks",
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&subcategory=wins&nav_1=regular-season-wins"
+  ],
+  "players": [
+    {
+      "name": "A.J. Brown",
+      "team": "NE",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1124.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 7.5,
+          "over_odds": 115,
+          "under_odds": -145
+        },
+        "receptions": {
+          "line": 78.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Aaron Jones",
+      "team": "MIN",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 474.5,
+          "over_odds": -115,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Aaron Rodgers",
+      "team": "PIT",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3099.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 21.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Abdul Carter",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 7.25,
+          "over_odds": 110,
+          "under_odds": -135
+        }
+      }
+    },
+    {
+      "name": "Aidan Hutchinson",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 13.25,
+          "over_odds": -105,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Amon-Ra St. Brown",
+      "team": "DET",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1249.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 9.5,
+          "over_odds": -115,
+          "under_odds": -110
+        },
+        "receptions": {
+          "line": 104.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Arvell Reese",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 3.75,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Baker Mayfield",
+      "team": "TB",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3599.5,
+          "over_odds": 100,
+          "under_odds": -120
+        },
+        "pass_tds": {
+          "line": 25.5,
+          "over_odds": 110,
+          "under_odds": -130
+        }
+      }
+    },
+    {
+      "name": "Bhayshul Tuten",
+      "team": "JAX",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 724.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": 105,
+          "under_odds": -130
+        }
+      }
+    },
+    {
+      "name": "Bijan Robinson",
+      "team": "ATL",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1174.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 8.5,
+          "over_odds": -125,
+          "under_odds": 100
+        },
+        "rec_yards": {
+          "line": 574.5,
+          "over_odds": -115,
+          "under_odds": -105
+        },
+        "rec_tds": {
+          "line": 3.5,
+          "over_odds": 100,
+          "under_odds": -125
+        },
+        "receptions": {
+          "line": 65.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Blake Corum",
+      "team": "LA",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 699.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": -130,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Bo Nix",
+      "team": "DEN",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3499.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 24.5,
+          "over_odds": -105,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Bradley Chubb",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 8.25,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Brian Burns",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 11.25,
+          "over_odds": 120,
+          "under_odds": -150
+        }
+      }
+    },
+    {
+      "name": "Brian Thomas Jr.",
+      "team": "JAX",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 724.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": 100,
+          "under_odds": -125
+        }
+      }
+    },
+    {
+      "name": "Brock Bowers",
+      "team": "LV",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 949.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 7.5,
+          "over_odds": 130,
+          "under_odds": -165
+        },
+        "receptions": {
+          "line": 82.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Brock Purdy",
+      "team": "SF",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3749.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 27.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Bryce Young",
+      "team": "CAR",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 2874.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 20.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Bucky Irving",
+      "team": "TB",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 799.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 4.5,
+          "over_odds": -145,
+          "under_odds": 115
+        }
+      }
+    },
+    {
+      "name": "C.J. Stroud",
+      "team": "HOU",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3549.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 22.5,
+          "over_odds": -115,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Caleb Williams",
+      "team": "CHI",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3649.5,
+          "over_odds": -120,
+          "under_odds": 100
+        },
+        "pass_tds": {
+          "line": 24.5,
+          "over_odds": -115,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Cameron Skattebo",
+      "team": null,
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 799.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 6.5,
+          "over_odds": 105,
+          "under_odds": -130
+        }
+      }
+    },
+    {
+      "name": "Cameron Ward",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3249.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 20.5,
+          "over_odds": -105,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Carnell Tate",
+      "team": "TEN",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 774.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": 100,
+          "under_odds": -125
+        },
+        "receptions": {
+          "line": 61.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "CeeDee Lamb",
+      "team": "DAL",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1199.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 7.5,
+          "over_odds": -110,
+          "under_odds": -115
+        },
+        "receptions": {
+          "line": 91.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Chase Brown",
+      "team": "CIN",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 849.5,
+          "over_odds": -115,
+          "under_odds": -105
+        },
+        "rush_tds": {
+          "line": 6.5,
+          "over_odds": 100,
+          "under_odds": -125
+        }
+      }
+    },
+    {
+      "name": "Chase Young",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 7.75,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Chris Godwin",
+      "team": "TB",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 699.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Chris Jones",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 7.75,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Chris Olave",
+      "team": "NO",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1049.5,
+          "over_odds": -115,
+          "under_odds": -105
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -130,
+          "under_odds": 105
+        },
+        "receptions": {
+          "line": 87.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Christian McCaffrey",
+      "team": "SF",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 949.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 8.5,
+          "over_odds": -115,
+          "under_odds": -110
+        },
+        "rec_yards": {
+          "line": 574.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": 115,
+          "under_odds": -145
+        },
+        "receptions": {
+          "line": 60.5,
+          "over_odds": -115,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Christian Watson",
+      "team": "GB",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 799.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 6.5,
+          "over_odds": 115,
+          "under_odds": -145
+        },
+        "receptions": {
+          "line": 51.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Colston Loveland",
+      "team": "CHI",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 824.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -145,
+          "under_odds": 120
+        },
+        "receptions": {
+          "line": 69.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Courtland Sutton",
+      "team": "DEN",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 699.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 6.5,
+          "over_odds": 100,
+          "under_odds": -125
+        },
+        "receptions": {
+          "line": 59.5,
+          "over_odds": 100,
+          "under_odds": -125
+        }
+      }
+    },
+    {
+      "name": "DJ Moore",
+      "team": "BUF",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 849.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 6.5,
+          "over_odds": 115,
+          "under_odds": -145
+        },
+        "receptions": {
+          "line": 63.5,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "DK Metcalf",
+      "team": "PIT",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 824.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -105,
+          "under_odds": -120
+        },
+        "receptions": {
+          "line": 58.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Dak Prescott",
+      "team": "DAL",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3999.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 27.5,
+          "over_odds": 100,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Dallas Goedert",
+      "team": "PHI",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 574.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": -130,
+          "under_odds": 105
+        }
+      }
+    },
+    {
+      "name": "Dallas Turner",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 7.75,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Dalton Kincaid",
+      "team": "BUF",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 599.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": 130,
+          "under_odds": -160
+        }
+      }
+    },
+    {
+      "name": "Daniel Jones",
+      "team": "IND",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3299.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 19.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Danielle Hunter",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 12.75,
+          "over_odds": 120,
+          "under_odds": -150
+        }
+      }
+    },
+    {
+      "name": "Davante Adams",
+      "team": "LA",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 774.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 9.5,
+          "over_odds": 110,
+          "under_odds": -135
+        },
+        "receptions": {
+          "line": 60.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "David Bailey",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 6.25,
+          "over_odds": -110,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "David Montgomery",
+      "team": "HOU",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 824.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 7.5,
+          "over_odds": -105,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "De'Von Achane",
+      "team": "MIA",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 974.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": 130,
+          "under_odds": -155
+        },
+        "receptions": {
+          "line": 57.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "De'Zhaun Stribling",
+      "team": "SF",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 649.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "DeVonta Smith",
+      "team": "PHI",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1099.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -115,
+          "under_odds": -110
+        },
+        "receptions": {
+          "line": 79.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Deebo Samuel",
+      "team": "SF",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 624.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "receptions": {
+          "line": 59.5,
+          "over_odds": -110,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Denzel Boston",
+      "team": "CLE",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 499.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Derrick Brown",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 4.25,
+          "over_odds": -110,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Derrick Henry",
+      "team": "BAL",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1249.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 12.5,
+          "over_odds": -105,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Deshaun Watson",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 1749.5,
+          "over_odds": 105,
+          "under_odds": -125
+        },
+        "pass_tds": {
+          "line": 12.5,
+          "over_odds": 110,
+          "under_odds": -135
+        }
+      }
+    },
+    {
+      "name": "Dexter Lawrence",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 4.25,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Dontayvion Wicks",
+      "team": "PHI",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 599.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Drake London",
+      "team": "ATL",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1099.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rec_tds": {
+          "line": 7.5,
+          "over_odds": 110,
+          "under_odds": -135
+        },
+        "receptions": {
+          "line": 89.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Drake Maye",
+      "team": "NE",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3799.5,
+          "over_odds": -120,
+          "under_odds": 100
+        },
+        "pass_tds": {
+          "line": 26.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rush_yards": {
+          "line": 424.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 3.5,
+          "over_odds": -110,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Garrett Wilson",
+      "team": "NYJ",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 999.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -105,
+          "under_odds": -120
+        },
+        "receptions": {
+          "line": 84.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "George Kittle",
+      "team": "SF",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 699.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -130,
+          "under_odds": 105
+        }
+      }
+    },
+    {
+      "name": "George Pickens",
+      "team": "DAL",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1049.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 6.5,
+          "over_odds": -130,
+          "under_odds": 105
+        },
+        "receptions": {
+          "line": 75.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Harold Fannin Jr.",
+      "team": "CLE",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 699.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": -135,
+          "under_odds": 110
+        },
+        "receptions": {
+          "line": 71.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Hunter Henry",
+      "team": "NE",
+      "position": "TE",
+      "markets": {
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": 120,
+          "under_odds": -145
+        }
+      }
+    },
+    {
+      "name": "Isaiah Likely",
+      "team": "NYG",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 624.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 3.5,
+          "over_odds": -130,
+          "under_odds": 105
+        }
+      }
+    },
+    {
+      "name": "J.K. Dobbins",
+      "team": "DEN",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 674.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": 105,
+          "under_odds": -130
+        }
+      }
+    },
+    {
+      "name": "Ja'Marr Chase",
+      "team": "CIN",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1324.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 10.5,
+          "over_odds": 110,
+          "under_odds": -135
+        },
+        "receptions": {
+          "line": 108.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Jadarian Price",
+      "team": "SEA",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 724.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Jahmyr Gibbs",
+      "team": "DET",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1199.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 12.5,
+          "over_odds": 100,
+          "under_odds": -125
+        },
+        "rec_yards": {
+          "line": 449.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": 155,
+          "under_odds": -185
+        },
+        "receptions": {
+          "line": 60.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Jake Ferguson",
+      "team": "DAL",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 524.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": -145,
+          "under_odds": 115
+        },
+        "receptions": {
+          "line": 64.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Jalen Carter",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 4.75,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Jalen Hurts",
+      "team": "PHI",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3249.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 22.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_yards": {
+          "line": 424.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 8.5,
+          "over_odds": 105,
+          "under_odds": -130
+        }
+      }
+    },
+    {
+      "name": "Jalyx Hunt",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 6.25,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "James Cook",
+      "team": "BUF",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1224.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 10.5,
+          "over_odds": 110,
+          "under_odds": -135
+        }
+      }
+    },
+    {
+      "name": "Jameson Williams",
+      "team": "DET",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 924.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -105,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Jared Goff",
+      "team": "DET",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 4099.5,
+          "over_odds": 100,
+          "under_odds": -120
+        },
+        "pass_tds": {
+          "line": 29.5,
+          "over_odds": -115,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Jared Verse",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 7.25,
+          "over_odds": 110,
+          "under_odds": -135
+        }
+      }
+    },
+    {
+      "name": "Javonte Williams",
+      "team": "DAL",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 949.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 9.5,
+          "over_odds": -105,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Jaxon Smith-Njigba",
+      "team": "SEA",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1324.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 8.5,
+          "over_odds": 110,
+          "under_odds": -135
+        },
+        "receptions": {
+          "line": 101.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Jaxson Dart",
+      "team": "NYG",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3150.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "pass_tds": {
+          "line": 19.5,
+          "over_odds": -115,
+          "under_odds": -105
+        },
+        "rush_yards": {
+          "line": 449.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": -145,
+          "under_odds": 115
+        }
+      }
+    },
+    {
+      "name": "Jayden Daniels",
+      "team": "WAS",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3199.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 21.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rush_yards": {
+          "line": 549.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 4.5,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Jayden Reed",
+      "team": "GB",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 674.5,
+          "over_odds": -115,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Jaylen Waddle",
+      "team": "DEN",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 924.5,
+          "over_odds": -120,
+          "under_odds": 100
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -105,
+          "under_odds": -120
+        },
+        "receptions": {
+          "line": 68.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Jaylen Warren",
+      "team": "PIT",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 624.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 4.5,
+          "over_odds": -160,
+          "under_odds": 130
+        }
+      }
+    },
+    {
+      "name": "Jeremiyah Love",
+      "team": "ARI",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 774.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Jerry Jeudy",
+      "team": "CLE",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 549.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "receptions": {
+          "line": 49.5,
+          "over_odds": -105,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Joe Burrow",
+      "team": "CIN",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3999.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 32.5,
+          "over_odds": -115,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Jonathan Taylor",
+      "team": "IND",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1224.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rush_tds": {
+          "line": 11.5,
+          "over_odds": 105,
+          "under_odds": -130
+        }
+      }
+    },
+    {
+      "name": "Jordan Addison",
+      "team": "MIN",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 674.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": 110,
+          "under_odds": -135
+        }
+      }
+    },
+    {
+      "name": "Jordan Love",
+      "team": "GB",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3549.5,
+          "over_odds": 100,
+          "under_odds": -120
+        },
+        "pass_tds": {
+          "line": 25.5,
+          "over_odds": -115,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Jordan Mason",
+      "team": "MIN",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 649.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 4.5,
+          "over_odds": -130,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Josh Allen",
+      "team": "BUF",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3624.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 25.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_yards": {
+          "line": 499.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 11.5,
+          "over_odds": 100,
+          "under_odds": -125
+        }
+      }
+    },
+    {
+      "name": "Josh Hines-Allen",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 9.75,
+          "over_odds": -105,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Josh Sweat",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 8.75,
+          "over_odds": -110,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Justin Herbert",
+      "team": "LAC",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3650.5,
+          "over_odds": -115,
+          "under_odds": -105
+        },
+        "pass_tds": {
+          "line": 25.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Justin Jefferson",
+      "team": "MIN",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1174.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 6.5,
+          "over_odds": -135,
+          "under_odds": 110
+        },
+        "receptions": {
+          "line": 92.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Juwan Johnson",
+      "team": "NO",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 599.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "K'Lavon Chaisson",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 5.25,
+          "over_odds": -110,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "KC Concepcion",
+      "team": "CLE",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 599.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Kenneth Walker III",
+      "team": "KC",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 949.5,
+          "over_odds": -115,
+          "under_odds": -105
+        },
+        "rush_tds": {
+          "line": 7.5,
+          "over_odds": -105,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Khalil Mack",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 7.25,
+          "over_odds": 105,
+          "under_odds": -130
+        }
+      }
+    },
+    {
+      "name": "Kyle Pitts",
+      "team": "ATL",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 749.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": -120,
+          "under_odds": -105
+        },
+        "receptions": {
+          "line": 67.5,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Kyler Murray",
+      "team": "MIN",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3049.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 18.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Kyren Williams",
+      "team": "LA",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 949.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 9.5,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Ladd McConkey",
+      "team": "LAC",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 899.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -125,
+          "under_odds": 100
+        },
+        "receptions": {
+          "line": 72.5,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Laiatu Latu",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 6.75,
+          "over_odds": -135,
+          "under_odds": 110
+        }
+      }
+    },
+    {
+      "name": "Lamar Jackson",
+      "team": "BAL",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3249.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 24.5,
+          "over_odds": -115,
+          "under_odds": -105
+        },
+        "rush_yards": {
+          "line": 599.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 3.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Luther Burden III",
+      "team": "CHI",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 849.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": -105,
+          "under_odds": -120
+        },
+        "receptions": {
+          "line": 64.5,
+          "over_odds": -110,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Malachi Lawrence",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 3.75,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Malik Nabers",
+      "team": "NYG",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 999.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -145,
+          "under_odds": 115
+        }
+      }
+    },
+    {
+      "name": "Malik Willis",
+      "team": "MIA",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 2949.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 14.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rush_yards": {
+          "line": 549.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 3.5,
+          "over_odds": -160,
+          "under_odds": 130
+        }
+      }
+    },
+    {
+      "name": "Mark Andrews",
+      "team": "BAL",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 499.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 6.5,
+          "over_odds": 120,
+          "under_odds": -150
+        }
+      }
+    },
+    {
+      "name": "Marvin Harrison Jr.",
+      "team": "ARI",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 824.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": 125,
+          "under_odds": -150
+        }
+      }
+    },
+    {
+      "name": "Matthew Golden",
+      "team": "GB",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 649.5,
+          "over_odds": -115,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Matthew Stafford",
+      "team": "LA",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3899.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 30.5,
+          "over_odds": 100,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Maxx Crosby",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 10.75,
+          "over_odds": -105,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Michael Pittman Jr.",
+      "team": "PIT",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 749.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": 110,
+          "under_odds": -135
+        },
+        "receptions": {
+          "line": 70.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Michael Wilson",
+      "team": "ARI",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 724.5,
+          "over_odds": 110,
+          "under_odds": -130
+        }
+      }
+    },
+    {
+      "name": "Mike Evans",
+      "team": "SF",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 799.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 6.5,
+          "over_odds": -105,
+          "under_odds": -120
+        },
+        "receptions": {
+          "line": 59.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Montez Sweat",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 8.25,
+          "over_odds": 110,
+          "under_odds": -135
+        }
+      }
+    },
+    {
+      "name": "Myles Garrett",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 15.75,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Nick Bosa",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 10.25,
+          "over_odds": 105,
+          "under_odds": -130
+        }
+      }
+    },
+    {
+      "name": "Nico Collins",
+      "team": "HOU",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 1149.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 6.5,
+          "over_odds": -125,
+          "under_odds": 100
+        },
+        "receptions": {
+          "line": 77.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Nik Bonitto",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 11.75,
+          "over_odds": 110,
+          "under_odds": -135
+        }
+      }
+    },
+    {
+      "name": "Omar Cooper Jr.",
+      "team": "NYJ",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 449.5,
+          "over_odds": -105,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Omarion Hampton",
+      "team": "LAC",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 949.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 7.5,
+          "over_odds": -150,
+          "under_odds": 120
+        }
+      }
+    },
+    {
+      "name": "Parker Washington",
+      "team": "JAX",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 824.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": -115,
+          "under_odds": -110
+        },
+        "receptions": {
+          "line": 62.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Patrick Mahomes",
+      "team": "KC",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3649.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 25.5,
+          "over_odds": -105,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Quentin Johnston",
+      "team": "LAC",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 674.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Quinnen Williams",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 5.75,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Quinshon Judkins",
+      "team": "CLE",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 874.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 6.5,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Rashan Gary",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 7.25,
+          "over_odds": 110,
+          "under_odds": -135
+        }
+      }
+    },
+    {
+      "name": "Rashid Shaheed",
+      "team": "SEA",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 574.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Rhamondre Stevenson",
+      "team": "NE",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 624.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": -145,
+          "under_odds": 120
+        }
+      }
+    },
+    {
+      "name": "Rico Dowdle",
+      "team": "PIT",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 699.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": 130,
+          "under_odds": -160
+        }
+      }
+    },
+    {
+      "name": "Rome Odunze",
+      "team": "CHI",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 824.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -145,
+          "under_odds": 115
+        }
+      }
+    },
+    {
+      "name": "Romeo Doubs",
+      "team": "NE",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 649.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": -145,
+          "under_odds": 115
+        }
+      }
+    },
+    {
+      "name": "Rueben Bain Jr.",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 6.25,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Sam Darnold",
+      "team": "SEA",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3699.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "pass_tds": {
+          "line": 23.5,
+          "over_odds": 100,
+          "under_odds": -120
+        }
+      }
+    },
+    {
+      "name": "Saquon Barkley",
+      "team": "PHI",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1099.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 7.5,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Stefon Diggs",
+      "team": "WAS",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 749.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": -125,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "T.J. Hockenson",
+      "team": "MIN",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 474.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "T.J. Watt",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 11.25,
+          "over_odds": 120,
+          "under_odds": -150
+        }
+      }
+    },
+    {
+      "name": "Tee Higgins",
+      "team": "CIN",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 874.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 8.5,
+          "over_odds": 115,
+          "under_odds": -145
+        },
+        "receptions": {
+          "line": 64.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Terry McLaurin",
+      "team": "WAS",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 924.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -125,
+          "under_odds": 100
+        },
+        "receptions": {
+          "line": 71.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Tetairoa McMillan",
+      "team": "CAR",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 949.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 6.5,
+          "over_odds": -105,
+          "under_odds": -120
+        },
+        "receptions": {
+          "line": 72.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Tony Pollard",
+      "team": "TEN",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 799.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": 115,
+          "under_odds": -140
+        }
+      }
+    },
+    {
+      "name": "Travis Etienne Jr.",
+      "team": "NO",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 824.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": 120,
+          "under_odds": -145
+        }
+      }
+    },
+    {
+      "name": "Travis Kelce",
+      "team": "KC",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 674.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 4.5,
+          "over_odds": -115,
+          "under_odds": -115
+        },
+        "receptions": {
+          "line": 66.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Travon Walker",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 6.75,
+          "over_odds": -110,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Tre Tucker",
+      "team": "LV",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 574.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Trevor Lawrence",
+      "team": "JAX",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3774.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "pass_tds": {
+          "line": 25.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Trey Hendrickson",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 12.25,
+          "over_odds": 100,
+          "under_odds": -125
+        }
+      }
+    },
+    {
+      "name": "Trey McBride",
+      "team": "ARI",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 999.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 6.5,
+          "over_odds": 100,
+          "under_odds": -125
+        },
+        "receptions": {
+          "line": 97.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Tucker Kraft",
+      "team": "GB",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 699.5,
+          "over_odds": -105,
+          "under_odds": -115
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": 110,
+          "under_odds": -135
+        }
+      }
+    },
+    {
+      "name": "Tuli Tuipulotu",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 10.25,
+          "over_odds": -110,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Tyler Shough",
+      "team": "NO",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3449.5,
+          "over_odds": -120,
+          "under_odds": 100
+        },
+        "pass_tds": {
+          "line": 20.5,
+          "over_odds": -120,
+          "under_odds": 100
+        }
+      }
+    },
+    {
+      "name": "Tyler Warren",
+      "team": "IND",
+      "position": "TE",
+      "markets": {
+        "rec_yards": {
+          "line": 774.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": 115,
+          "under_odds": -145
+        },
+        "receptions": {
+          "line": 74.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Wan'Dale Robinson",
+      "team": "TEN",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 674.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Will Anderson Jr.",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 12.25,
+          "over_odds": 110,
+          "under_odds": -135
+        }
+      }
+    },
+    {
+      "name": "Will McDonald IV",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 7.25,
+          "over_odds": -120,
+          "under_odds": -105
+        }
+      }
+    },
+    {
+      "name": "Xavier Worthy",
+      "team": "KC",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 649.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Zach Allen",
+      "team": null,
+      "position": "DEF",
+      "markets": {
+        "sacks": {
+          "line": 7.75,
+          "over_odds": -110,
+          "under_odds": -115
+        }
+      }
+    },
+    {
+      "name": "Zay Flowers",
+      "team": "BAL",
+      "position": "WR",
+      "markets": {
+        "rec_yards": {
+          "line": 999.5,
+          "over_odds": -110,
+          "under_odds": -110
+        },
+        "rec_tds": {
+          "line": 5.5,
+          "over_odds": -105,
+          "under_odds": -120
+        },
+        "receptions": {
+          "line": 74.5,
+          "over_odds": -115,
+          "under_odds": -110
+        }
+      }
+    }
+  ],
+  "teams": [
+    {
+      "name": "Arizona Cardinals",
+      "abbr": "ARI",
+      "markets": {
+        "win_total": {
+          "line": 3.5,
+          "over_odds": -136,
+          "under_odds": 115,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board",
+          "live_board_verified": {
+            "line": 3.5,
+            "over_odds": -136,
+            "under_odds": 115,
+            "url": "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&subcategory=wins&nav_1=regular-season-wins",
+            "verified_at": "2026-09-05T03:34:55.285339+00:00"
+          }
+        }
+      }
+    },
+    {
+      "name": "Atlanta Falcons",
+      "abbr": "ATL",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": 120,
+          "under_odds": -140,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Baltimore Ravens",
+      "abbr": "BAL",
+      "markets": {
+        "win_total": {
+          "line": 11.5,
+          "over_odds": 115,
+          "under_odds": -140,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Buffalo Bills",
+      "abbr": "BUF",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -140,
+          "under_odds": 115,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Carolina Panthers",
+      "abbr": "CAR",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": 115,
+          "under_odds": -136,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Chicago Bears",
+      "abbr": "CHI",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": 105,
+          "under_odds": -125,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Cincinnati Bengals",
+      "abbr": "CIN",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": -140,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Cleveland Browns",
+      "abbr": "CLE",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -125,
+          "under_odds": 105,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Dallas Cowboys",
+      "abbr": "DAL",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": 100,
+          "under_odds": -120,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Denver Broncos",
+      "abbr": "DEN",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -115,
+          "under_odds": -105,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Detroit Lions",
+      "abbr": "DET",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -115,
+          "under_odds": -105,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Green Bay Packers",
+      "abbr": "GB",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -130,
+          "under_odds": 110,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Houston Texans",
+      "abbr": "HOU",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -146,
+          "under_odds": 124,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Indianapolis Colts",
+      "abbr": "IND",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": -140,
+          "under_odds": 115,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Jacksonville Jaguars",
+      "abbr": "JAX",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": -140,
+          "under_odds": 116,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Kansas City Chiefs",
+      "abbr": "KC",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": -140,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Los Angeles Chargers",
+      "abbr": "LAC",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -140,
+          "under_odds": 115,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Los Angeles Rams",
+      "abbr": "LAR",
+      "markets": {
+        "win_total": {
+          "line": 11.5,
+          "over_odds": -130,
+          "under_odds": 110,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Las Vegas Raiders",
+      "abbr": "LV",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -150,
+          "under_odds": 125,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Miami Dolphins",
+      "abbr": "MIA",
+      "markets": {
+        "win_total": {
+          "line": 3.5,
+          "over_odds": -140,
+          "under_odds": 110,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Minnesota Vikings",
+      "abbr": "MIN",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": -120,
+          "under_odds": 100,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "New England Patriots",
+      "abbr": "NE",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": -140,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "New Orleans Saints",
+      "abbr": "NO",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": -120,
+          "under_odds": 100,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "New York Giants",
+      "abbr": "NYG",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": -110,
+          "under_odds": -110,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "New York Jets",
+      "abbr": "NYJ",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -115,
+          "under_odds": -105,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Philadelphia Eagles",
+      "abbr": "PHI",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": -140,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Pittsburgh Steelers",
+      "abbr": "PIT",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": 110,
+          "under_odds": -130,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Seattle Seahawks",
+      "abbr": "SEA",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -115,
+          "under_odds": -105,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "San Francisco 49ers",
+      "abbr": "SF",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -146,
+          "under_odds": 120,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Tampa Bay Buccaneers",
+      "abbr": "TB",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": 115,
+          "under_odds": -136,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Tennessee Titans",
+      "abbr": "TEN",
+      "markets": {
+        "win_total": {
+          "line": 6.5,
+          "over_odds": 100,
+          "under_odds": -120,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    },
+    {
+      "name": "Washington Commanders",
+      "abbr": "WAS",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": 105,
+          "under_odds": -125,
+          "as_of": "2026-09-03",
+          "board": "draftkings",
+          "captured_via": "espn_article_attributed_to_draftkings_verified_against_live_ari_board"
+        }
+      }
+    }
+  ],
+  "notes": "DraftKings NFL 2026/27 season-long Player Stats O/U scraped live from sportsbook.draftkings.com via sportscontent leagueSubcategory API (US-OR-SB) for pass yards/TDs, rush yards/TDs, receiving yards/TDs, receptions, and sacks. Pass attempts, rush attempts, targets, and fantasy-points season O/Us were not listed under Player Stats O/U on the public board at fetch time. Team win totals: all 32 DraftKings lines taken from ESPN Super Bowl odds article attributed to DraftKings (as_of ~2026-09-03); Arizona Cardinals 3.5 (-136/+115) was verified live on the DraftKings Regular Season Wins board on 2026-09-05. Market line counts: {'pass_yards': 28, 'pass_tds': 28, 'rush_yards': 36, 'rush_tds': 34, 'rec_yards': 71, 'rec_tds': 56, 'receptions': 42, 'sacks': 36}. Players=162, teams=32. Roster enrichment matched 123/162 players to players_2026.json.",
+  "errors": [
+    "Pass attempts / rush attempts / targets / fantasy points season O/U markets not found on DK Player Stats O/U board.",
+    "Full live accordion scrape of all 32 win-total panels was unreliable (lazy marketType API); used ESPN DraftKings-attributed lines with live ARI verification."
+  ],
+  "summary": {
+    "players": 162,
+    "teams": 32,
+    "player_market_counts": {
+      "pass_yards": 28,
+      "pass_tds": 28,
+      "rush_yards": 36,
+      "rush_tds": 34,
+      "rec_yards": 71,
+      "rec_tds": 56,
+      "receptions": 42,
+      "sacks": 36
+    },
+    "team_win_totals": 32,
+    "roster_matched": 123
+  }
+}

@@ -1080,34 +1080,41 @@ a {
   font-size: 0.95rem;
 }
 
-.draft-check-pills {
+.draft-rank-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
 }
 
-.draft-check-pill {
+.draft-rank-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0.2rem;
   padding: 0.12rem 0.4rem;
   border-radius: 4px;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
 }
 
-.draft-check-pill.is-yes {
+.draft-rank-pill.is-strong {
   background: rgba(34, 197, 94, 0.18);
   color: #4ade80;
   box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.55);
 }
 
-.draft-check-pill.is-no {
-  background: rgba(248, 113, 113, 0.12);
-  color: #f87171;
-  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.45);
+.draft-rank-pill.is-mild {
+  background: rgba(250, 204, 21, 0.14);
+  color: #eab308;
+  box-shadow: inset 0 0 0 1px rgba(234, 179, 8, 0.45);
+}
+
+.draft-rank-pill.is-muted {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-muted);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.35);
 }
 
 .draft-unranked-break-row {
@@ -1175,7 +1182,7 @@ a {
   min-width: 0;
 }
 
-.draft-board-controls.is-checklist .draft-min-checks-field {
+.draft-board-controls.is-checklist .draft-max-avg-rank-field {
   min-width: 4.5rem;
 }
 
@@ -1350,7 +1357,7 @@ a {
     grid-column: 1;
   }
 
-  .draft-board-controls.is-checklist .draft-min-checks-field {
+  .draft-board-controls.is-checklist .draft-max-avg-rank-field {
     grid-column: 2;
     min-width: 0;
   }
@@ -1387,7 +1394,7 @@ a {
     min-height: 2.1rem;
   }
 
-  .draft-board-controls.is-checklist .draft-min-checks-field select {
+  .draft-board-controls.is-checklist .draft-max-avg-rank-field select {
     min-height: 2.1rem;
   }
 

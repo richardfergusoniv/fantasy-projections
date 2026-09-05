@@ -1,34 +1,33 @@
-"""Build sealed draft-checklist JSON from Sunday Sports Society screenshots.
+"""Build sealed draft-checklist JSON with Vegas / Sharp SOS ranks.
 
-Context checks come from ``screenshot_checklist_{season}.json`` (SSS
-screenshots). QB/RB ``ol_top16`` is overwritten from
-``ol_unit_ranks_{season}.json``.
+Context columns are ranks (1 = best), not boolean checks.
 
-Positional *order* is market-driven: a simple average of available platform
-ADPs (ESPN, Fantasy Football Calculator, MyFantasyLeague) plus FantasyPros
-ECR from ``comparison_{season}.json``. Screenshot ranks are kept only as
-analysis metadata, not as the board order.
+- Volume (pass/rush attempts, targets): numberFire via sealed Vegas consensus
+  (season attempt/target O/Us are not publicly posted).
+- Yardage / QB fantasy quality: median Vegas season O/U lines.
+- Team offense: Vegas-implied points scored and total yards, ranked 1-32.
+- O-line: sealed ol_unit_ranks_{season}.json.
+- SOS: Sharp Football Analysis fantasy SOS (pass for QB/WR/TE, rush for RB).
+
+Board covers every rostered QB/RB/WR/TE in team_stats_{season}.json.
+Positional order remains market ADP/ECR average.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
-import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import pandas as pd
-
-from src.paths import DB_PATH
-from src.team_stats.prepare import TEAM_META
 from src.draft_assistant.market_adp import (
     average_market_value,
     fetch_market_maps,
     market_components_for_player,
+    normalize_player_name,
 )
+from src.team_stats.prepare import TEAM_META
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DRAFT_DATA_DIR = REPO_ROOT / "draft_assistant" / "data"
@@ -36,70 +35,58 @@ DRAFT_DATA_DIR = REPO_ROOT / "draft_assistant" / "data"
 HISTORY_SEASON = 2025
 TOP_N = 16
 
-# Mirrors src.projection.data_prep.team_season_opponent_strength.
-_FRANCHISE_CODE_FIX = {"OAK": "LV", "SD": "LAC"}
-
 VOLUME_CAVEAT = (
-    "2025 volume leader within this team's 2026 skill group; history has no "
-    "team field (volume may have been earned elsewhere). Projected pool only — "
-    "departed/retired players are missing. Rush volume uses rushing_yards "
-    "because history has no carries column."
+    "Ranks use sealed Vegas consensus (median sportsbook O/Us for yards/TDs/"
+    "receptions; numberFire remaining-season projections for attempts/targets "
+    "because those season O/Us are not publicly posted). Team offense ranks "
+    "combine Vegas-implied points scored and total yards. O-line ranks stay on "
+    "the sealed screenshot board. SOS is Sharp Football Analysis fantasy SOS "
+    "(passing for QB/WR/TE, rushing for RB). Board includes every rostered "
+    "QB/RB/WR/TE."
 )
 
 CRITERIA_BASE: dict[str, list[str]] = {
     "QB": [
-        "pass_att_top16",
-        "rush_vol_top16",
-        "offense_top16",
-        "ol_top16",
-        "sos_top16",
+        "pass_att_rank",
+        "rush_att_rank",
+        "offense_pts_rank",
+        "offense_yds_rank",
+        "ol_rank",
+        "sos_rank",
     ],
     "RB": [
-        "target_leader_in_group",
-        "rush_vol_leader_in_group",
-        "offense_top16",
-        "ol_top16",
-        "sos_top16",
+        "tgt_rank",
+        "rush_att_rank",
+        "offense_pts_rank",
+        "offense_yds_rank",
+        "ol_rank",
+        "sos_rank",
     ],
     "WR": [
-        "target_leader_in_group",
-        "qb_top16",
-        "offense_top16",
-        "sos_top16",
+        "tgt_rank",
+        "qb_rank",
+        "offense_pts_rank",
+        "offense_yds_rank",
+        "sos_rank",
     ],
     "TE": [
-        "te_top2_targets_in_group",
-        "qb_top16",
-        "offense_top16",
-        "sos_top16",
+        "tgt_rank",
+        "qb_rank",
+        "offense_pts_rank",
+        "offense_yds_rank",
+        "sos_rank",
     ],
 }
 
 CRITERIA_LABELS: dict[str, str] = {
-    "pass_att_top16": "TOP 16 PASS ATT",
-    "rush_vol_top16": "TOP 16 RUSH ATT",
-    "offense_top16": "TOP 16 OFFENSE",
-    "ol_top16": "TOP 16 O-LINE",
-    "sos_top16": "TOP 16 SOS",
-    "target_leader_in_group": "TEAM TARGET LEADER",
-    "rush_vol_leader_in_group": "RUSH ATT LEADER",
-    "qb_top16": "TOP 16 QB",
-    "te_top2_targets_in_group": "TOP-2 IN TEAM TARGETS",
-}
-
-# Screenshot lettering → sealed team_stats display_name.
-SCREENSHOT_NAME_ALIASES: dict[str, str] = {
-    "Michael Pittman Jr.": "Michael Pittman",
-    "DeZhaun Stribling": "De'Zhaun Stribling",
-    "CJ Stroud": "C.J. Stroud",
-    "James Cook III": "James Cook",
-    "Denry Henry": "Derrick Henry",
-    "Travis Etienne Jr.": "Travis Etienne",
-    "Kenneth Gainwell": "Kenny Gainwell",
-    "Sam Laporta": "Sam LaPorta",
-    "Harold Fannin": "Harold Fannin Jr.",
-    "TJ Hockenson": "T.J. Hockenson",
-    "Oronde Gadsden": "Oronde Gadsden II",
+    "pass_att_rank": "PASS ATT RANK",
+    "rush_att_rank": "RUSH ATT RANK",
+    "offense_pts_rank": "OFFENSE PTS RANK",
+    "offense_yds_rank": "OFFENSE YDS RANK",
+    "ol_rank": "O-LINE RANK",
+    "sos_rank": "SOS RANK",
+    "tgt_rank": "TARGETS RANK",
+    "qb_rank": "QB RANK",
 }
 
 
@@ -107,300 +94,26 @@ def _num(value: Any) -> float | None:
     if value is None:
         return None
     try:
-        if pd.isna(value):
-            return None
-    except TypeError:
-        pass
-    try:
         parsed = float(value)
     except (TypeError, ValueError):
         return None
-    if parsed != parsed:  # NaN
+    if parsed != parsed:
         return None
     return parsed
 
 
-def _history_2025(player: dict[str, Any]) -> dict[str, Any] | None:
-    for row in player.get("history") or []:
-        if int(row.get("season") or 0) == HISTORY_SEASON:
-            return row
-    return None
+def rank_descending(values: dict[str, float]) -> dict[str, int]:
+    ordered = sorted(values.items(), key=lambda item: (-item[1], str(item[0])))
+    return {key: index for index, (key, _) in enumerate(ordered, start=1)}
 
 
-def load_team_stats(path: Path) -> list[dict[str, Any]]:
-    with path.open(encoding="utf-8") as fh:
-        payload = json.load(fh)
-    return list(payload.get("players") or [])
-
-
-def load_comparison(path: Path) -> dict[str, Any]:
+def load_json(path: Path) -> dict[str, Any]:
     with path.open(encoding="utf-8") as fh:
         return json.load(fh)
 
 
-def rank_descending(values: dict[str, float]) -> dict[str, int]:
-    """1 = best (highest value). Ties share the minimum rank."""
-    ordered = sorted(values.items(), key=lambda item: (-item[1], item[0]))
-    ranks: dict[str, int] = {}
-    for index, (key, _) in enumerate(ordered, start=1):
-        ranks[key] = index
-    return ranks
-
-
-def volume_flags_for_players(
-    players: list[dict[str, Any]],
-    *,
-    top_n: int = TOP_N,
-) -> dict[str, dict[str, bool]]:
-    """Compute per-player volume/QB checks from sealed history only."""
-    by_id = {str(p["player_id"]): p for p in players if p.get("player_id")}
-
-    hist: dict[str, dict[str, Any]] = {}
-    for pid, player in by_id.items():
-        row = _history_2025(player)
-        if row is not None:
-            hist[pid] = row
-
-    # League-wide QB top-16 by 2025 pass attempts / rush yards.
-    qb_pass: dict[str, float] = {}
-    qb_rush: dict[str, float] = {}
-    qb_fp: dict[str, float] = {}
-    for pid, player in by_id.items():
-        if player.get("position") != "QB":
-            continue
-        row = hist.get(pid)
-        if not row:
-            continue
-        attempts = _num(row.get("attempts")) or 0.0
-        rush_yds = _num(row.get("rushing_yards")) or 0.0
-        fp = _num(row.get("fantasy_pts_season")) or 0.0
-        qb_pass[pid] = attempts
-        qb_rush[pid] = rush_yds
-        qb_fp[pid] = fp
-
-    qb_pass_ok = {pid for pid, rank in rank_descending(qb_pass).items() if rank <= top_n}
-    qb_rush_ok = {pid for pid, rank in rank_descending(qb_rush).items() if rank <= top_n}
-    # Team QB quality for WR/TE/RB: rank QB1 on each 2026 team by 2025 FP.
-    team_qb1: dict[str, tuple[str, float]] = {}
-    for pid, player in by_id.items():
-        if player.get("position") != "QB":
-            continue
-        team = player.get("team")
-        if not team:
-            continue
-        fp = qb_fp.get(pid, 0.0)
-        prev = team_qb1.get(team)
-        if prev is None or fp > prev[1]:
-            team_qb1[team] = (pid, fp)
-    qb1_fp = {team: fp for team, (_pid, fp) in team_qb1.items()}
-    qb1_ranks = rank_descending(qb1_fp)
-    teams_qb_top16 = {team for team, rank in qb1_ranks.items() if rank <= top_n}
-
-    # Group leaders by 2026 team + position pool.
-    flags: dict[str, dict[str, bool]] = {pid: {} for pid in by_id}
-
-    # Target leaders: among WR+RB on team (WR/RB target leader) and TE top-2.
-    teams = sorted({p.get("team") for p in by_id.values() if p.get("team")})
-    for team in teams:
-        skill = [
-            pid
-            for pid, p in by_id.items()
-            if p.get("team") == team and p.get("position") in ("WR", "RB", "TE")
-        ]
-        wr_rb = [pid for pid in skill if by_id[pid].get("position") in ("WR", "RB")]
-        tes = [pid for pid in skill if by_id[pid].get("position") == "TE"]
-        rbs = [pid for pid in skill if by_id[pid].get("position") == "RB"]
-
-        def _targets(pid: str) -> float:
-            return _num((hist.get(pid) or {}).get("targets")) or 0.0
-
-        def _rush_vol(pid: str) -> float:
-            return _num((hist.get(pid) or {}).get("rushing_yards")) or 0.0
-
-        if wr_rb:
-            best_tgt = max(wr_rb, key=_targets)
-            best_tgt_val = _targets(best_tgt)
-            for pid in wr_rb:
-                flags[pid]["target_leader_in_group"] = (
-                    pid == best_tgt and best_tgt_val > 0
-                )
-        if rbs:
-            best_rush = max(rbs, key=_rush_vol)
-            best_rush_val = _rush_vol(best_rush)
-            for pid in rbs:
-                flags[pid]["rush_vol_leader_in_group"] = (
-                    pid == best_rush and best_rush_val > 0
-                )
-        if tes:
-            ordered_te = sorted(tes, key=_targets, reverse=True)
-            top2 = set()
-            for pid in ordered_te[:2]:
-                if _targets(pid) > 0:
-                    top2.add(pid)
-            for pid in tes:
-                flags[pid]["te_top2_targets_in_group"] = pid in top2
-
-    for pid, player in by_id.items():
-        pos = player.get("position")
-        team = player.get("team")
-        if pos == "QB":
-            flags[pid]["pass_att_top16"] = pid in qb_pass_ok
-            flags[pid]["rush_vol_top16"] = pid in qb_rush_ok
-        if pos in ("WR", "TE", "RB") and team:
-            flags[pid]["qb_top16"] = team in teams_qb_top16
-
-    return flags
-
-
-def assign_rank_tiers(
-    players: list[dict[str, Any]],
-    comparison_by_id: dict[str, dict[str, Any]],
-) -> list[dict[str, Any]]:
-    """Attach ADP/ECR/prior_pts and sort keys; return enriched player dicts."""
-    enriched: list[dict[str, Any]] = []
-    for player in players:
-        pid = str(player["player_id"])
-        pos = str(player.get("position") or "")
-        if pos not in CRITERIA_BASE:
-            continue
-        market = comparison_by_id.get(pid) or {}
-        hist = _history_2025(player) or {}
-        adp = _num(market.get("adp"))
-        ecr = _num(market.get("ecr"))
-        prior_pts = _num(hist.get("fantasy_pts_season"))
-        if adp is not None:
-            rank_tier = "adp"
-        elif ecr is not None:
-            rank_tier = "ecr"
-        elif prior_pts is not None:
-            rank_tier = "prior_pts"
-        else:
-            rank_tier = "none"
-        enriched.append(
-            {
-                "player_id": pid,
-                "name": player.get("display_name") or player.get("name") or pid,
-                "position": pos,
-                "team": player.get("team"),
-                "adp": adp,
-                "ecr": ecr,
-                "prior_pts": prior_pts,
-                "rank_tier": rank_tier,
-            }
-        )
-
-    # Positional market rank within ADP→ECR→prior→none.
-    tier_order = {"adp": 0, "ecr": 1, "prior_pts": 2, "none": 3}
-    for pos in CRITERIA_BASE:
-        cohort = [row for row in enriched if row["position"] == pos]
-        cohort.sort(
-            key=lambda row: (
-                tier_order[row["rank_tier"]],
-                row["adp"] if row["rank_tier"] == "adp" else 0.0,
-                row["ecr"] if row["rank_tier"] == "ecr" else 0.0,
-                -(row["prior_pts"] or 0.0) if row["rank_tier"] == "prior_pts" else 0.0,
-                row["name"],
-            )
-        )
-        for index, row in enumerate(cohort, start=1):
-            row["pos_market_rank"] = index
-            # First player off the market board (no ADP and no ECR).
-            row["unranked_break"] = row["rank_tier"] in ("prior_pts", "none") and (
-                index == 1
-                or cohort[index - 2]["rank_tier"] in ("adp", "ecr")
-            )
-
-    enriched.sort(
-        key=lambda row: (
-            {"QB": 0, "RB": 1, "WR": 2, "TE": 3}.get(row["position"], 9),
-            row.get("pos_market_rank") or 9999,
-        )
-    )
-    return enriched
-
-
-def db_has_tables(db_file: Path, tables: tuple[str, ...]) -> bool:
-    """True when ``db_file`` is a readable SQLite DB containing every table.
-
-    ``projections.db`` is a zero-byte placeholder in some deploy environments;
-    ``sqlite3.connect`` happily opens it, so probe for the tables the DB-backed
-    rank loaders need instead of trusting the file's existence.
-    """
-    if not db_file.is_file() or db_file.stat().st_size == 0:
-        return False
-    try:
-        conn = sqlite3.connect(str(db_file))
-    except sqlite3.Error:
-        return False
-    try:
-        present = {
-            str(row[0])
-            for row in conn.execute("select name from sqlite_master where type = 'table'")
-        }
-    except sqlite3.Error:
-        return False
-    finally:
-        conn.close()
-    return all(table in present for table in tables)
-
-
-def count_2026_reg_schedules(conn: sqlite3.Connection, season: int) -> int:
-    row = conn.execute(
-        "select count(*) from schedules where season = ? and game_type = 'REG'",
-        (season,),
-    ).fetchone()
-    return int(row[0] if row else 0)
-
-
-def load_offense_ranks_from_db(
-    conn: sqlite3.Connection, history_season: int = HISTORY_SEASON
-) -> dict[str, int]:
-    from src.projection.data_prep import team_season_yardage_totals
-
-    pass_yds = team_season_yardage_totals(conn, seasons=[history_season])
-    # Rush yards: same REG pbp source as yardage totals.
-    rush = pd.read_sql(
-        f"""
-        select season, posteam as team, sum(rushing_yards) as team_rushing_yards
-        from pbp
-        where season = {history_season} and season_type = 'REG'
-          and posteam is not null and rush_attempt = 1
-        group by season, posteam
-        """,
-        conn,
-    )
-    merged = pass_yds.merge(rush, on=["season", "team"], how="outer").fillna(0.0)
-    totals = {
-        str(row.team): float(row.team_passing_yards) + float(row.team_rushing_yards)
-        for row in merged.itertuples(index=False)
-    }
-    return rank_descending(totals)
-
-
-def load_ol_ranks_from_db(
-    conn: sqlite3.Connection, history_season: int = HISTORY_SEASON
-) -> tuple[dict[str, int], dict[str, int], dict[str, int]]:
-    from src.projection.ol_quality import team_season_ol_quality
-
-    ol = team_season_ol_quality(conn, seasons=[history_season])
-    ol = ol[ol["season"] == history_season].copy()
-    if ol.empty:
-        return {}, {}, {}
-    pass_scores = {
-        str(row.team): float(row.ol_pass_protection_score)
-        for row in ol.itertuples(index=False)
-        if pd.notna(row.ol_pass_protection_score)
-    }
-    run_scores = {
-        str(row.team): float(row.ol_run_blocking_score)
-        for row in ol.itertuples(index=False)
-        if pd.notna(row.ol_run_blocking_score)
-    }
-    unit_scores = {
-        team: 0.55 * pass_scores.get(team, 0.0) + 0.45 * run_scores.get(team, 0.0)
-        for team in set(pass_scores) | set(run_scores)
-    }
-    return rank_descending(pass_scores), rank_descending(run_scores), rank_descending(unit_scores)
+def load_team_stats(path: Path) -> list[dict[str, Any]]:
+    return list(load_json(path).get("players") or [])
 
 
 def sealed_ol_ranks_path(season: int = 2026) -> Path:
@@ -408,10 +121,7 @@ def sealed_ol_ranks_path(season: int = 2026) -> Path:
 
 
 def load_sealed_ol_unit_ranks(path: Path) -> dict[str, int]:
-    """Load manual unit ranks (1 = best) from the sealed screenshot board."""
-    with path.open(encoding="utf-8") as fh:
-        payload = json.load(fh)
-    raw = payload.get("unit_ranks") or {}
+    raw = load_json(path).get("unit_ranks") or {}
     ranks: dict[str, int] = {}
     for abbr, rank in raw.items():
         try:
@@ -421,6 +131,48 @@ def load_sealed_ol_unit_ranks(path: Path) -> dict[str, int]:
     return ranks
 
 
+def load_sharp_sos(path: Path) -> dict[str, dict[str, int]]:
+    payload = load_json(path)
+    return {
+        "passing": {str(k): int(v) for k, v in (payload.get("passing_ranks") or {}).items()},
+        "rushing": {str(k): int(v) for k, v in (payload.get("rushing_ranks") or {}).items()},
+    }
+
+
+def _history_prior_pts(player: dict[str, Any]) -> float | None:
+    for row in player.get("history") or []:
+        if int(row.get("season") or 0) == HISTORY_SEASON:
+            return _num(
+                row.get("fantasy_pts_season")
+                or row.get("fantasy_pts")
+                or row.get("fantasy_points")
+            )
+    return _num(player.get("fantasy_pts_season"))
+
+
+def _qb_fantasy_from_markets(markets: dict[str, Any]) -> float:
+    return (
+        (_num(markets.get("pass_yards")) or 0.0) / 25.0
+        + (_num(markets.get("pass_tds")) or 0.0) * 4.0
+        + (_num(markets.get("rush_yards")) or 0.0) / 10.0
+        + (_num(markets.get("rush_tds")) or 0.0) * 6.0
+    )
+
+
+def criteria_for_meta(*, ol_included: bool, sos_included: bool) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
+    for pos, keys in CRITERIA_BASE.items():
+        filtered: list[str] = []
+        for key in keys:
+            if key == "ol_rank" and not ol_included:
+                continue
+            if key == "sos_rank" and not sos_included:
+                continue
+            filtered.append(key)
+        out[pos] = filtered
+    return out
+
+
 def apply_ol_unit_ranks(
     payload: dict[str, Any],
     unit_ranks: dict[str, int],
@@ -428,16 +180,15 @@ def apply_ol_unit_ranks(
     ol_source: str,
     top_n: int | None = None,
 ) -> dict[str, Any]:
-    """Inject / replace OL unit ranks and QB/RB ``ol_top16`` checks in place."""
     if not unit_ranks:
         return payload
+    top = int(top_n if top_n is not None else (payload.get("meta") or {}).get("top_n") or TOP_N)
 
-    top = int(top_n if top_n is not None else payload.get("meta", {}).get("top_n") or TOP_N)
     meta = dict(payload.get("meta") or {})
     meta["ol_included"] = True
     meta["ol_source"] = ol_source
     labels = dict(meta.get("criteria_labels") or {})
-    labels["ol_top16"] = CRITERIA_LABELS["ol_top16"]
+    labels["ol_rank"] = CRITERIA_LABELS["ol_rank"]
     meta["criteria_labels"] = labels
     meta["generated_at"] = datetime.now(timezone.utc).isoformat()
     payload["meta"] = meta
@@ -446,16 +197,14 @@ def apply_ol_unit_ranks(
         pos: list(keys) for pos, keys in (payload.get("criteria_by_position") or {}).items()
     }
     for pos, keys in CRITERIA_BASE.items():
-        if "ol_top16" not in keys:
+        if "ol_rank" not in keys:
             continue
         current = criteria.setdefault(pos, [])
-        if "ol_top16" not in current:
-            # Keep OL next to offense when present; otherwise append.
-            if "offense_top16" in current:
-                insert_at = current.index("offense_top16") + 1
-                current.insert(insert_at, "ol_top16")
+        if "ol_rank" not in current:
+            if "offense_yds_rank" in current:
+                current.insert(current.index("offense_yds_rank") + 1, "ol_rank")
             else:
-                current.append("ol_top16")
+                current.append("ol_rank")
     payload["criteria_by_position"] = criteria
 
     teams_out: list[dict[str, Any]] = []
@@ -470,196 +219,19 @@ def apply_ol_unit_ranks(
     players_out: list[dict[str, Any]] = []
     for player in payload.get("players") or []:
         row = dict(player)
+        ranks = dict(row.get("ranks") or {})
         checks = dict(row.get("checks") or {})
         pos = str(row.get("position") or "")
-        if "ol_top16" in (criteria.get(pos) or []):
+        if "ol_rank" in (criteria.get(pos) or []):
             team = row.get("team")
-            if not team:
-                checks["ol_top16"] = False
-            else:
-                checks["ol_top16"] = (unit_ranks.get(str(team)) or 99) <= top
+            rank = unit_ranks.get(str(team)) if team else None
+            ranks["ol_rank"] = rank
+            checks["ol_rank"] = bool(rank is not None and rank <= top)
+        row["ranks"] = ranks
         row["checks"] = checks
         players_out.append(row)
     payload["players"] = players_out
     return payload
-
-
-def load_sos_ranks_from_db(
-    conn: sqlite3.Connection, season: int
-) -> tuple[dict[str, int], dict[str, int], dict[str, int]]:
-    from src.projection.data_prep import team_season_opponent_strength
-
-    opp = team_season_opponent_strength(conn, seasons=[season - 1, season])
-    opp = opp[opp["season"] == season].copy()
-    if opp.empty:
-        return {}, {}, {}
-    pass_vals = {
-        str(row.team): float(row.opp_def_pass_epa_prior)
-        for row in opp.itertuples(index=False)
-        if pd.notna(row.opp_def_pass_epa_prior)
-    }
-    rush_vals = {
-        str(row.team): float(row.opp_def_rush_epa_prior)
-        for row in opp.itertuples(index=False)
-        if pd.notna(row.opp_def_rush_epa_prior)
-    }
-    combined = {
-        team: 0.5 * pass_vals.get(team, 0.0) + 0.5 * rush_vals.get(team, 0.0)
-        for team in set(pass_vals) | set(rush_vals)
-    }
-    # Lower opponent EPA allowed = tougher defense = harder SOS.
-    # Infographic "TOP 16 SOS" means favorable schedule → easier opponents
-    # → higher opponent EPA allowed. Rank ascending on difficulty so rank 1
-    # is easiest (highest EPA allowed). Invert by ranking descending on EPA.
-    return (
-        rank_descending(pass_vals),
-        rank_descending(rush_vals),
-        rank_descending(combined),
-    )
-
-
-def load_offense_ranks_from_nflverse(history_season: int = HISTORY_SEASON) -> dict[str, int]:
-    import nflreadpy as nfl
-
-    pbp = nfl.load_pbp([history_season])
-    if hasattr(pbp, "to_pandas"):
-        pbp = pbp.to_pandas()
-    reg = pbp[pbp["season_type"] == "REG"]
-    pass_yds = (
-        reg[reg["pass_attempt"] == 1]
-        .groupby("posteam")["passing_yards"]
-        .sum()
-    )
-    rush_yds = (
-        reg[reg["rush_attempt"] == 1]
-        .groupby("posteam")["rushing_yards"]
-        .sum()
-    )
-    totals = (pass_yds.fillna(0) + rush_yds.fillna(0)).to_dict()
-    return rank_descending({str(k): float(v) for k, v in totals.items() if k})
-
-
-def count_2026_reg_schedules_nflverse(season: int) -> int:
-    import nflreadpy as nfl
-
-    sched = nfl.load_schedules([season])
-    if hasattr(sched, "to_pandas"):
-        sched = sched.to_pandas()
-    return int((sched["game_type"] == "REG").sum())
-
-
-def load_sos_ranks_from_nflverse(season: int) -> tuple[dict[str, int], dict[str, int], dict[str, int]]:
-    """Mirror team_season_opponent_strength using nflverse schedules + prior pbp."""
-    import nflreadpy as nfl
-
-    sched = nfl.load_schedules([season])
-    if hasattr(sched, "to_pandas"):
-        sched = sched.to_pandas()
-    sched = sched[sched["game_type"] == "REG"].copy()
-    if sched.empty:
-        return {}, {}, {}
-    # Same normalization team_season_opponent_strength applies, so the DB and
-    # nflverse paths agree on historical franchise codes.
-    sched["home_team"] = sched["home_team"].replace(_FRANCHISE_CODE_FIX)
-    sched["away_team"] = sched["away_team"].replace(_FRANCHISE_CODE_FIX)
-
-    pbp = nfl.load_pbp([season - 1])
-    if hasattr(pbp, "to_pandas"):
-        pbp = pbp.to_pandas()
-    reg = pbp[pbp["season_type"] == "REG"]
-    pass_epa = (
-        reg[reg["pass_attempt"] == 1]
-        .groupby("defteam")["epa"]
-        .mean()
-        .rename("def_pass_epa_allowed")
-    )
-    rush_epa = (
-        reg[reg["rush_attempt"] == 1]
-        .groupby("defteam")["epa"]
-        .mean()
-        .rename("def_rush_epa_allowed")
-    )
-    def_epa = pd.concat([pass_epa, rush_epa], axis=1).reset_index().rename(
-        columns={"defteam": "opponent"}
-    )
-
-    home = sched.rename(columns={"home_team": "team", "away_team": "opponent"})[
-        ["team", "opponent"]
-    ]
-    away = sched.rename(columns={"away_team": "team", "home_team": "opponent"})[
-        ["team", "opponent"]
-    ]
-    long = pd.concat([home, away], ignore_index=True)
-    merged = long.merge(def_epa, on="opponent", how="left")
-    agg = (
-        merged.groupby("team")[["def_pass_epa_allowed", "def_rush_epa_allowed"]]
-        .mean()
-        .reset_index()
-    )
-    pass_vals = {
-        str(row.team): float(row.def_pass_epa_allowed)
-        for row in agg.itertuples(index=False)
-        if pd.notna(row.def_pass_epa_allowed)
-    }
-    rush_vals = {
-        str(row.team): float(row.def_rush_epa_allowed)
-        for row in agg.itertuples(index=False)
-        if pd.notna(row.def_rush_epa_allowed)
-    }
-    combined = {
-        team: 0.5 * pass_vals.get(team, 0.0) + 0.5 * rush_vals.get(team, 0.0)
-        for team in set(pass_vals) | set(rush_vals)
-    }
-    return (
-        rank_descending(pass_vals),
-        rank_descending(rush_vals),
-        rank_descending(combined),
-    )
-
-
-def criteria_for_meta(*, ol_included: bool, sos_included: bool) -> dict[str, list[str]]:
-    out: dict[str, list[str]] = {}
-    for pos, keys in CRITERIA_BASE.items():
-        filtered = []
-        for key in keys:
-            if key == "ol_top16" and not ol_included:
-                continue
-            if key == "sos_top16" and not sos_included:
-                continue
-            filtered.append(key)
-        out[pos] = filtered
-    return out
-
-
-def screenshot_checklist_path(season: int = 2026) -> Path:
-    return DRAFT_DATA_DIR / f"screenshot_checklist_{season}.json"
-
-
-def load_screenshot_board(path: Path) -> dict[str, Any]:
-    with path.open(encoding="utf-8") as fh:
-        return json.load(fh)
-
-
-def resolve_screenshot_name(name: str, aliases: dict[str, str]) -> str:
-    return aliases.get(name, name)
-
-
-def index_team_stats_by_pos_name(
-    players: list[dict[str, Any]],
-) -> dict[str, dict[str, dict[str, Any]]]:
-    out: dict[str, dict[str, dict[str, Any]]] = {}
-    for player in players:
-        pos = str(player.get("position") or "")
-        name = str(player.get("display_name") or player.get("name") or "")
-        if not pos or not name:
-            continue
-        out.setdefault(pos, {})[name] = player
-    return out
-
-
-def _history_prior_pts(player: dict[str, Any]) -> float | None:
-    hist = _history_2025(player) or {}
-    return _num(hist.get("fantasy_pts_season"))
 
 
 def build_checklist(
@@ -669,42 +241,169 @@ def build_checklist(
     comparison_path: Path | None = None,
     db_path: str | Path | None = None,
     top_n: int = TOP_N,
-    screenshot_path: Path | None = None,
+    vegas_path: Path | None = None,
+    sos_path: Path | None = None,
     ol_ranks_path: Path | None = None,
 ) -> dict[str, Any]:
-    """Build checklist from SSS screenshot checks + market ADP/ECR order.
-
-    ``db_path`` remains for CLI compatibility and is unused for ranks/checks.
-    """
     del db_path
 
     team_stats_path = team_stats_path or DRAFT_DATA_DIR / f"team_stats_{season}.json"
     comparison_path = comparison_path or DRAFT_DATA_DIR / f"comparison_{season}.json"
-    board_path = screenshot_path or screenshot_checklist_path(season)
-    if not board_path.is_file():
-        raise FileNotFoundError(f"screenshot checklist board not found: {board_path}")
-    if not comparison_path.is_file():
-        raise FileNotFoundError(f"comparison board not found: {comparison_path}")
+    vegas_path = vegas_path or DRAFT_DATA_DIR / f"vegas_consensus_{season}.json"
+    sos_path = sos_path or DRAFT_DATA_DIR / f"sharp_fantasy_sos_{season}.json"
+    ranks_path = ol_ranks_path or sealed_ol_ranks_path(season)
 
-    board = load_screenshot_board(board_path)
-    aliases = dict(SCREENSHOT_NAME_ALIASES)
-    aliases.update({str(k): str(v) for k, v in (board.get("name_aliases") or {}).items()})
+    for path, label in (
+        (team_stats_path, "team_stats"),
+        (comparison_path, "comparison"),
+        (vegas_path, "vegas_consensus"),
+        (sos_path, "sharp_fantasy_sos"),
+        (ranks_path, "ol_unit_ranks"),
+    ):
+        if not path.is_file():
+            raise FileNotFoundError(f"{label} not found: {path}")
 
     roster = load_team_stats(team_stats_path)
-    by_pos_name = index_team_stats_by_pos_name(roster)
-
-    ranks_path = ol_ranks_path or sealed_ol_ranks_path(season)
-    if not ranks_path.is_file():
-        raise FileNotFoundError(f"sealed OL ranks not found: {ranks_path}")
+    vegas = load_json(vegas_path)
+    sos = load_sharp_sos(sos_path)
     ol_unit_ranks = load_sealed_ol_unit_ranks(ranks_path)
     if not ol_unit_ranks:
         raise ValueError(f"sealed OL ranks empty: {ranks_path}")
 
+    vegas_by_norm = {
+        str(row.get("name_norm") or normalize_player_name(str(row.get("name") or ""))): row
+        for row in vegas.get("players") or []
+        if row.get("name")
+    }
+    team_offense = {
+        str(row.get("abbr")): dict(row.get("markets") or {})
+        for row in vegas.get("teams") or []
+        if row.get("abbr")
+    }
+
     espn_adp, ffc_adp, mfl_adp, ecr_by_id, market_meta = fetch_market_maps(
         comparison_path=comparison_path
     )
-
     criteria = criteria_for_meta(ol_included=True, sos_included=True)
+
+    points_vals = {
+        abbr: float(markets["points_scored"])
+        for abbr, markets in team_offense.items()
+        if _num(markets.get("points_scored")) is not None
+    }
+    yards_vals = {
+        abbr: float(markets["total_yards"])
+        for abbr, markets in team_offense.items()
+        if _num(markets.get("total_yards")) is not None
+    }
+    offense_pts_ranks = rank_descending(points_vals)
+    offense_yds_ranks = rank_descending(yards_vals)
+
+    candidates: list[dict[str, Any]] = []
+    for player in roster:
+        pos = str(player.get("position") or "")
+        if pos not in CRITERIA_BASE:
+            continue
+        team = player.get("team")
+        if not team:
+            continue
+        display_name = str(player.get("display_name") or player.get("name") or "")
+        player_id = str(player.get("player_id") or "")
+        norm = normalize_player_name(display_name)
+        markets = dict((vegas_by_norm.get(norm) or {}).get("markets") or {})
+
+        season_stats = player.get("season") or {}
+        if _num(markets.get("pass_attempts")) is None and pos == "QB":
+            fallback = _num(season_stats.get("attempts"))
+            if fallback is not None:
+                markets["pass_attempts"] = fallback
+        if _num(markets.get("rush_attempts")) is None and pos in ("QB", "RB"):
+            fallback = _num(season_stats.get("carries"))
+            if fallback is not None:
+                markets["rush_attempts"] = fallback
+        if _num(markets.get("targets")) is None and pos in ("RB", "WR", "TE"):
+            fallback = _num(season_stats.get("targets"))
+            if fallback is not None:
+                markets["targets"] = fallback
+
+        components = market_components_for_player(
+            position=pos,
+            name=display_name,
+            player_id=player_id,
+            espn=espn_adp,
+            ffc=ffc_adp,
+            mfl=mfl_adp,
+            ecr_by_id=ecr_by_id,
+        )
+        market_avg = average_market_value(components)
+        candidates.append(
+            {
+                "player_id": player_id,
+                "name": display_name,
+                "name_norm": norm,
+                "position": pos,
+                "team": str(team),
+                "adp": round(market_avg, 2) if market_avg is not None else None,
+                "adp_espn": components.get("adp_espn"),
+                "adp_ffc": components.get("adp_ffc"),
+                "adp_mfl": components.get("adp_mfl"),
+                "ecr": components.get("ecr"),
+                "prior_pts": _history_prior_pts(player),
+                "rank_tier": "market_avg" if market_avg is not None else "none",
+                "market_avg": round(market_avg, 2) if market_avg is not None else None,
+                "markets": markets,
+            }
+        )
+
+    pass_att = {
+        row["player_id"]: float(row["markets"]["pass_attempts"])
+        for row in candidates
+        if row["position"] == "QB" and _num(row["markets"].get("pass_attempts")) is not None
+    }
+    qb_rush_att = {
+        row["player_id"]: float(row["markets"]["rush_attempts"])
+        for row in candidates
+        if row["position"] == "QB" and _num(row["markets"].get("rush_attempts")) is not None
+    }
+    rb_rush_att = {
+        row["player_id"]: float(row["markets"]["rush_attempts"])
+        for row in candidates
+        if row["position"] == "RB" and _num(row["markets"].get("rush_attempts")) is not None
+    }
+    wr_tgt = {
+        row["player_id"]: float(row["markets"]["targets"])
+        for row in candidates
+        if row["position"] == "WR" and _num(row["markets"].get("targets")) is not None
+    }
+    rb_tgt = {
+        row["player_id"]: float(row["markets"]["targets"])
+        for row in candidates
+        if row["position"] == "RB" and _num(row["markets"].get("targets")) is not None
+    }
+    te_tgt = {
+        row["player_id"]: float(row["markets"]["targets"])
+        for row in candidates
+        if row["position"] == "TE" and _num(row["markets"].get("targets")) is not None
+    }
+
+    pass_att_ranks = rank_descending(pass_att)
+    qb_rush_ranks = rank_descending(qb_rush_att)
+    rb_rush_ranks = rank_descending(rb_rush_att)
+    wr_tgt_ranks = rank_descending(wr_tgt)
+    rb_tgt_ranks = rank_descending(rb_tgt)
+    te_tgt_ranks = rank_descending(te_tgt)
+
+    team_qb1_fp: dict[str, float] = {}
+    for row in candidates:
+        if row["position"] != "QB":
+            continue
+        fp = _num(row["markets"].get("fantasy_points"))
+        if fp is None:
+            fp = _qb_fantasy_from_markets(row["markets"])
+        prev = team_qb1_fp.get(row["team"])
+        if prev is None or fp > prev:
+            team_qb1_fp[row["team"]] = float(fp)
+    team_qb_ranks = rank_descending(team_qb1_fp)
 
     teams_out: list[dict[str, Any]] = []
     for meta in TEAM_META:
@@ -713,95 +412,80 @@ def build_checklist(
             {
                 "abbr": abbr,
                 "name": meta["name"],
-                "offense_rank": None,
+                "offense_pts_rank": offense_pts_ranks.get(abbr),
+                "offense_yds_rank": offense_yds_ranks.get(abbr),
+                "offense_rank": offense_pts_ranks.get(abbr),
                 "ol_pass_rank": None,
                 "ol_run_rank": None,
                 "ol_unit_rank": ol_unit_ranks.get(abbr),
-                "sos_pass_rank": None,
-                "sos_rush_rank": None,
-                "sos_unit_rank": None,
+                "sos_pass_rank": sos["passing"].get(abbr),
+                "sos_rush_rank": sos["rushing"].get(abbr),
+                "sos_unit_rank": sos["passing"].get(abbr),
             }
-        )
-
-    drafted: list[dict[str, Any]] = []
-    missing: list[str] = []
-    positions = board.get("positions") or {}
-    for pos in ("QB", "RB", "WR", "TE"):
-        rows = list(positions.get(pos) or [])
-        pool = by_pos_name.get(pos) or {}
-        for row in rows:
-            raw_name = str(row.get("name") or "")
-            resolved = resolve_screenshot_name(raw_name, aliases)
-            identity = pool.get(resolved)
-            if identity is None:
-                missing.append(f"{pos}:{raw_name}")
-                continue
-            team = identity.get("team")
-            shot_checks = dict(row.get("checks") or {})
-            checks: dict[str, bool] = {}
-            for key in criteria.get(pos, []):
-                if key == "ol_top16":
-                    checks[key] = bool(team) and (
-                        (ol_unit_ranks.get(str(team)) or 99) <= top_n
-                    )
-                elif key in shot_checks:
-                    checks[key] = bool(shot_checks[key])
-                else:
-                    checks[key] = False
-
-            display_name = str(identity.get("display_name") or resolved)
-            player_id = str(identity["player_id"])
-            components = market_components_for_player(
-                position=pos,
-                name=display_name,
-                player_id=player_id,
-                espn=espn_adp,
-                ffc=ffc_adp,
-                mfl=mfl_adp,
-                ecr_by_id=ecr_by_id,
-            )
-            market_avg = average_market_value(components)
-            drafted.append(
-                {
-                    "player_id": player_id,
-                    "name": display_name,
-                    "position": pos,
-                    "team": team,
-                    "adp": round(market_avg, 2) if market_avg is not None else None,
-                    "adp_espn": components["adp_espn"],
-                    "adp_ffc": components["adp_ffc"],
-                    "adp_mfl": components["adp_mfl"],
-                    "ecr": components["ecr"],
-                    "prior_pts": _history_prior_pts(identity),
-                    "rank_tier": "market_avg" if market_avg is not None else "screenshot",
-                    "screenshot_rank": int(row["rank"]),
-                    "market_avg": round(market_avg, 2) if market_avg is not None else None,
-                    "unranked_break": False,
-                    "checks": checks,
-                }
-            )
-
-    if missing:
-        raise ValueError(
-            "screenshot names not found in team_stats: " + ", ".join(missing)
         )
 
     players_out: list[dict[str, Any]] = []
     for pos in ("QB", "RB", "WR", "TE"):
-        cohort = [row for row in drafted if row["position"] == pos]
+        cohort = [row for row in candidates if row["position"] == pos]
         cohort.sort(
             key=lambda row: (
                 row["market_avg"] is None,
                 row["market_avg"] if row["market_avg"] is not None else 9999.0,
-                row["screenshot_rank"],
                 row["name"],
             )
         )
         for index, row in enumerate(cohort, start=1):
-            row["pos_market_rank"] = index
-            players_out.append(row)
+            team = row["team"]
+            ranks: dict[str, int | None] = {
+                "offense_pts_rank": offense_pts_ranks.get(team),
+                "offense_yds_rank": offense_yds_ranks.get(team),
+            }
+            if pos == "QB":
+                ranks["pass_att_rank"] = pass_att_ranks.get(row["player_id"])
+                ranks["rush_att_rank"] = qb_rush_ranks.get(row["player_id"])
+                ranks["ol_rank"] = ol_unit_ranks.get(team)
+                ranks["sos_rank"] = sos["passing"].get(team)
+            elif pos == "RB":
+                ranks["tgt_rank"] = rb_tgt_ranks.get(row["player_id"])
+                ranks["rush_att_rank"] = rb_rush_ranks.get(row["player_id"])
+                ranks["ol_rank"] = ol_unit_ranks.get(team)
+                ranks["sos_rank"] = sos["rushing"].get(team)
+            elif pos == "WR":
+                ranks["tgt_rank"] = wr_tgt_ranks.get(row["player_id"])
+                ranks["qb_rank"] = team_qb_ranks.get(team)
+                ranks["sos_rank"] = sos["passing"].get(team)
+            else:
+                ranks["tgt_rank"] = te_tgt_ranks.get(row["player_id"])
+                ranks["qb_rank"] = team_qb_ranks.get(team)
+                ranks["sos_rank"] = sos["passing"].get(team)
 
-    comparison = load_comparison(comparison_path)
+            allowed = list(criteria.get(pos) or [])
+            ranks = {key: ranks.get(key) for key in allowed}
+            checks = {
+                key: bool(val is not None and val <= top_n) for key, val in ranks.items()
+            }
+            players_out.append(
+                {
+                    "player_id": row["player_id"],
+                    "name": row["name"],
+                    "position": pos,
+                    "team": team,
+                    "adp": row["adp"],
+                    "adp_espn": row["adp_espn"],
+                    "adp_ffc": row["adp_ffc"],
+                    "adp_mfl": row["adp_mfl"],
+                    "ecr": row["ecr"],
+                    "prior_pts": row["prior_pts"],
+                    "rank_tier": row["rank_tier"],
+                    "pos_market_rank": index,
+                    "market_avg": row["market_avg"],
+                    "unranked_break": False,
+                    "ranks": ranks,
+                    "checks": checks,
+                }
+            )
+
+    comparison = load_json(comparison_path)
     comparison_meta = comparison.get("meta") or {}
     ecr_meta = comparison_meta.get("ecr") or {}
 
@@ -823,29 +507,24 @@ def build_checklist(
                 "sources": market_meta.get("sources"),
             },
             "sos_included": True,
-            "schedule_2026_reg_games": None,
             "ol_included": True,
-            "offense_source": "screenshot_checklist",
-            "sos_source": "screenshot_checklist",
+            "offense_source": f"sealed:{vegas_path.name}",
+            "sos_source": f"sealed:{sos_path.name}",
             "ol_source": f"sealed:{ranks_path.name}",
-            "rank_board_source": f"sealed:{board_path.name}",
-            "checks_source": "screenshot_checklist",
-            "volume_caveat": (
-                "Checks transcribed from SSS checklist screenshots; QB/RB TOP 16 "
-                "O-LINE uses the sealed O-line unit rankings screenshot. Board "
-                "order is the mean of available ESPN/FFC/MFL ADPs and FantasyPros ECR."
-            ),
+            "volume_source": f"sealed:{vegas_path.name}",
+            "rank_board_source": "full_roster_team_stats",
+            "checks_source": "derived_top16_from_ranks",
+            "volume_caveat": VOLUME_CAVEAT,
             "criteria_labels": {
-                key: CRITERIA_LABELS[key]
-                for keys in criteria.values()
-                for key in keys
+                key: CRITERIA_LABELS[key] for keys in criteria.values() for key in keys
             },
+            "player_count": len(players_out),
+            "vegas_method": vegas.get("method") or {},
         },
         "criteria_by_position": criteria,
         "teams": teams_out,
         "players": players_out,
     }
-
 
 
 def export_checklist(
@@ -859,6 +538,7 @@ def export_checklist(
     destination.parent.mkdir(parents=True, exist_ok=True)
     with destination.open("w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=2, allow_nan=False)
+        fh.write("\n")
     return destination
 
 
@@ -868,7 +548,6 @@ def patch_checklist_ol(
     checklist_path: Path | None = None,
     ol_ranks_path: Path | None = None,
 ) -> Path:
-    """Rewrite OL ranks/checks on an existing checklist without rebuilding offense/SOS."""
     destination = checklist_path or DRAFT_DATA_DIR / f"draft_checklist_{season}.json"
     ranks_path = ol_ranks_path or sealed_ol_ranks_path(season)
     if not destination.is_file():
@@ -885,6 +564,7 @@ def patch_checklist_ol(
     )
     with destination.open("w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=2, allow_nan=False)
+        fh.write("\n")
     return destination
 
 
@@ -892,11 +572,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Export draft checklist JSON")
     parser.add_argument("--season", type=int, default=2026)
     parser.add_argument("--out", default=None, help="Output JSON path")
-    parser.add_argument(
-        "--db-path",
-        default=None,
-        help="projections.db path (default: configured DB_PATH)",
-    )
+    parser.add_argument("--db-path", default=None, help="projections.db path")
     parser.add_argument(
         "--patch-ol-only",
         action="store_true",

@@ -266,7 +266,10 @@ export interface DraftChecklistEntry {
   rank_tier: DraftRankTier;
   pos_market_rank?: number;
   unranked_break?: boolean;
-  checks: Record<string, boolean>;
+  /** Numeric criterion ranks (1 = best). Prefer this over legacy boolean checks. */
+  ranks: Record<string, number | null>;
+  /** @deprecated Prefer `ranks`. Kept for older checklist payloads. */
+  checks?: Record<string, boolean>;
 }
 
 export interface DraftChecklistTeam {

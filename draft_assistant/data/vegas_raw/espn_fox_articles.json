@@ -1,0 +1,2055 @@
+{
+  "source": "espn_fox_articles",
+  "fetched_at": "2026-09-05T03:14:41Z",
+  "urls": [
+    "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+    "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+    "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs",
+    "https://www.espn.com/espn/betting/story/_/id/49662164/2026-nfl-betting-win-totals-odds-futures-picks-predictions",
+    "https://www.espn.com/espn/betting/story/_/id/49659411/2026-nfl-betting-preview-guide-odds-best-bets-tips",
+    "https://www.foxsports.com/stories/nfl/2026-nfl-win-totals-over-unders-all-32-squads",
+    "https://www.foxsports.com/stories/nfl/2026-nfl-win-totals-report-not-normally-what-you-see-chiefs",
+    "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards",
+    "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards",
+    "https://www.foxsports.com/stories/nfl/2026-27-nfl-odds-jaxon-smith-njigba-follow-up-historic-season",
+    "https://www.foxsports.com/stories/nfl/travis-kelce-over-under-regular-season-receiving-prop",
+    "https://www.foxsports.com/stories/nfl/michael-pittman-jr-steelers-receiving-yards-prop",
+    "https://www.foxsports.com/stories/nfl/2026-nfl-odds-how-will-bijan-robinson-perform",
+    "https://www.foxsports.com/stories/nfl/2026-nfl-odds-will-kenneth-walker-iii-solve-chiefsrushing-woes",
+    "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qb-will-lead-league-passing-yards-touchdowns",
+    "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-rb-will-lead-league-rushing-yards-touchdowns"
+  ],
+  "players": [
+    {
+      "name": "Jeremiyah Love",
+      "team": "ARI",
+      "position": "RB",
+      "markets": {
+        "rushing_tds": {
+          "line": 5.5,
+          "side": "under",
+          "odds": 100
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Trey McBride",
+      "team": "ARI",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 999.5,
+          "side": "under",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Bijan Robinson",
+      "team": "ATL",
+      "position": "RB",
+      "markets": {
+        "rushing_tds": {
+          "line": 8.5,
+          "over_odds": -125,
+          "under_odds": 100,
+          "book": "DraftKings",
+          "as_of": "2026-08-04",
+          "espn_pick": {
+            "side": "under",
+            "odds": 100,
+            "article": "three_bets"
+          }
+        },
+        "rushing_yards": {
+          "line": 1174.5,
+          "over_odds": -110,
+          "under_odds": -110,
+          "as_of": "2026-08-04",
+          "book": "DraftKings"
+        },
+        "rush_and_recv_1000_plus_odds": 900
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-how-will-bijan-robinson-perform"
+      ]
+    },
+    {
+      "name": "Drake London",
+      "team": "ATL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 120,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Trey Hendrickson",
+      "team": "BAL",
+      "position": "DE",
+      "markets": {
+        "sacks": {
+          "line": 12.25,
+          "side": "under",
+          "odds": -125
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Zay Flowers",
+      "team": "BAL",
+      "position": "WR",
+      "markets": {
+        "receiving_tds": {
+          "line": 5.5,
+          "side": "under",
+          "odds": -120
+        },
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 250,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+      ]
+    },
+    {
+      "name": "James Cook III",
+      "team": "BUF",
+      "position": "RB",
+      "markets": {
+        "rushing_yards": {
+          "line": 1224.5,
+          "side": "under",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Josh Allen",
+      "team": "BUF",
+      "position": "QB",
+      "markets": {
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 165,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+    },
+    {
+      "name": "Bryce Young",
+      "team": "CAR",
+      "position": "QB",
+      "markets": {
+        "passing_tds": {
+          "line": 20.5,
+          "side": "under",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Tetairoa McMillan",
+      "team": "CAR",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 370,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Caleb Williams",
+      "team": "CHI",
+      "position": "QB",
+      "markets": {
+        "passing_tds_30_plus": {
+          "threshold": 30,
+          "odds": 275
+        },
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 175,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+      ]
+    },
+    {
+      "name": "Colston Loveland",
+      "team": "CHI",
+      "position": "TE",
+      "markets": {
+        "receptions": {
+          "line": 69.5,
+          "side": "over",
+          "odds": -130
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions"
+    },
+    {
+      "name": "Ja'Marr Chase",
+      "team": "CIN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": -200,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Joe Burrow",
+      "team": "CIN",
+      "position": "QB",
+      "markets": {
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": -110,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+    },
+    {
+      "name": "Deshaun Watson",
+      "team": "CLE",
+      "position": "QB",
+      "markets": {
+        "passing_yards": {
+          "line": 1749.5,
+          "side": "under",
+          "odds": -120
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "CeeDee Lamb",
+      "team": "DAL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 100,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Dak Prescott",
+      "team": "DAL",
+      "position": "QB",
+      "markets": {
+        "passing_yards": {
+          "line": 3999.5,
+          "side": "over",
+          "odds": -110
+        },
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": -110,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+      ]
+    },
+    {
+      "name": "George Pickens",
+      "team": "DAL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 275,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Bo Nix",
+      "team": "DEN",
+      "position": "QB",
+      "markets": {
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 250,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+    },
+    {
+      "name": "Amon-Ra St. Brown",
+      "team": "DET",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": -110,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Jared Goff",
+      "team": "DET",
+      "position": "QB",
+      "markets": {
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": -135,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+    },
+    {
+      "name": "Jordan Love",
+      "team": "GB",
+      "position": "QB",
+      "markets": {
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 230,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+    },
+    {
+      "name": "Matthew Golden",
+      "team": "GB",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 649.5,
+          "side": "under",
+          "odds": -105
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "C.J. Stroud",
+      "team": "HOU",
+      "position": "QB",
+      "markets": {
+        "passing_tds": {
+          "line": 22.5,
+          "side": "under",
+          "odds": -105
+        },
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 190,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+      ]
+    },
+    {
+      "name": "Nico Collins",
+      "team": "HOU",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1149.5,
+          "side": "under",
+          "odds": -110
+        },
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 150,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+      ]
+    },
+    {
+      "name": "Alec Pierce",
+      "team": "IND",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 350,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Bhayshul Tuten",
+      "team": "JAX",
+      "position": "RB",
+      "markets": {
+        "rushing_yards": {
+          "line": 724.5,
+          "side": "under",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Trevor Lawrence",
+      "team": "JAX",
+      "position": "QB",
+      "markets": {
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 140,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+    },
+    {
+      "name": "Kenneth Walker III",
+      "team": "KC",
+      "position": "RB",
+      "markets": {
+        "rushing_yards": {
+          "line": 924.5,
+          "over_odds": -110,
+          "under_odds": -110,
+          "as_of": "2026-03-10",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-will-kenneth-walker-iii-solve-chiefsrushing-woes"
+    },
+    {
+      "name": "Patrick Mahomes",
+      "team": "KC",
+      "position": "QB",
+      "markets": {
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 185,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+    },
+    {
+      "name": "Rashee Rice",
+      "team": "KC",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 180,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Travis Kelce",
+      "team": "KC",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 674.5,
+          "side": "under",
+          "odds": -110,
+          "alt_lines": [
+            {
+              "line": 699.5,
+              "over_odds": -125,
+              "under_odds": 100,
+              "as_of": "2026-03-10",
+              "book": "DraftKings"
+            }
+          ],
+          "espn_picks": [
+            {
+              "side": "under",
+              "odds": -110,
+              "article": "three_bets"
+            },
+            {
+              "side": "over",
+              "odds": -110,
+              "article": "eleven_props"
+            }
+          ]
+        },
+        "receptions": {
+          "line": 66.5,
+          "side": "under",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+        "https://www.foxsports.com/stories/nfl/travis-kelce-over-under-regular-season-receiving-prop"
+      ]
+    },
+    {
+      "name": "Justin Herbert",
+      "team": "LAC",
+      "position": "QB",
+      "markets": {
+        "passing_yards": {
+          "line": 3650.5,
+          "side": "over",
+          "odds": -115
+        },
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 200,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+      ]
+    },
+    {
+      "name": "Omarion Hampton",
+      "team": "LAC",
+      "position": "RB",
+      "markets": {
+        "rushing_yards": {
+          "line": 949.5,
+          "side": "over",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions"
+    },
+    {
+      "name": "Davante Adams",
+      "team": "LAR",
+      "position": "WR",
+      "markets": {
+        "receiving_tds": {
+          "line": 9.5,
+          "side": "under",
+          "odds": -135
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Matthew Stafford",
+      "team": "LAR",
+      "position": "QB",
+      "markets": {
+        "passing_yards": {
+          "line": 3899.5,
+          "side": "under",
+          "odds": -110
+        },
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 120,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+      ]
+    },
+    {
+      "name": "Myles Garrett",
+      "team": "LAR",
+      "position": "DE",
+      "markets": {
+        "sacks": {
+          "line": 15.75,
+          "side": "under",
+          "odds": -105
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions"
+    },
+    {
+      "name": "Puka Nacua",
+      "team": "LAR",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": -200,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Brock Bowers",
+      "team": "LV",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 924.5,
+          "side": "over",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "De'Von Achane",
+      "team": "MIA",
+      "position": "RB",
+      "markets": {
+        "receptions": {
+          "line": 57.5,
+          "side": "under",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Justin Jefferson",
+      "team": "MIN",
+      "position": "WR",
+      "markets": {
+        "receptions": {
+          "line": 92.5,
+          "side": "under",
+          "odds": -110
+        },
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 120,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+      ]
+    },
+    {
+      "name": "A.J. Brown",
+      "team": "NE",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1124.5,
+          "side": "under",
+          "odds": -110
+        },
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 130,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+      ]
+    },
+    {
+      "name": "Drake Maye",
+      "team": "NE",
+      "position": "QB",
+      "markets": {
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 135,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+    },
+    {
+      "name": "Chris Olave",
+      "team": "NO",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 180,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Travis Etienne Jr.",
+      "team": "NO",
+      "position": "RB",
+      "markets": {
+        "rushing_yards": {
+          "line": 824.5,
+          "side": "over",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Jaxson Dart",
+      "team": "NYG",
+      "position": "QB",
+      "markets": {
+        "rushing_tds": {
+          "line": 5.5,
+          "side": "under",
+          "odds": 115
+        },
+        "passing_yards": {
+          "line": 3150,
+          "side": "under",
+          "odds": -115,
+          "alt_lines": [
+            {
+              "line": 3150.5,
+              "side": "under",
+              "odds": -115
+            }
+          ]
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions"
+      ]
+    },
+    {
+      "name": "Malik Nabers",
+      "team": "NYG",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 250,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Garrett Wilson",
+      "team": "NYJ",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 999.5,
+          "side": "over",
+          "odds": -110
+        },
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 275,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+      ]
+    },
+    {
+      "name": "Omar Cooper Jr.",
+      "team": "NYJ",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 449.5,
+          "side": "under",
+          "odds": -115
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "DeVonta Smith",
+      "team": "PHI",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 250,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    },
+    {
+      "name": "Jalen Hurts",
+      "team": "PHI",
+      "position": "QB",
+      "markets": {
+        "rushing_yards": {
+          "line": 424.5,
+          "side": "under",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Aaron Rodgers",
+      "team": "PIT",
+      "position": "QB",
+      "markets": {
+        "passing_tds": {
+          "line": 21.5,
+          "side": "over",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Michael Pittman Jr.",
+      "team": "PIT",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 774.5,
+          "over_odds": -110,
+          "under_odds": -110,
+          "as_of": "2026-03-31",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/michael-pittman-jr-steelers-receiving-yards-prop"
+    },
+    {
+      "name": "T.J. Watt",
+      "team": "PIT",
+      "position": "LB",
+      "markets": {
+        "sacks": {
+          "line": 11.25,
+          "side": "under",
+          "odds": -150
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Jaxon Smith-Njigba",
+      "team": "SEA",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1324.5,
+          "side": "under",
+          "odds": -110,
+          "alt_lines": [
+            {
+              "line": 999.5,
+              "over_odds": -110,
+              "under_odds": -110,
+              "as_of": "2026-05-08",
+              "book": "DraftKings"
+            }
+          ]
+        },
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": -200,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-27-nfl-odds-jaxon-smith-njigba-follow-up-historic-season",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+      ]
+    },
+    {
+      "name": "Rashid Shaheed",
+      "team": "SEA",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 574.5,
+          "side": "over",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Sam Darnold",
+      "team": "SEA",
+      "position": "QB",
+      "markets": {
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 175,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+    },
+    {
+      "name": "Brock Purdy",
+      "team": "SF",
+      "position": "QB",
+      "markets": {
+        "passing_tds": {
+          "line": 27.5,
+          "side": "under",
+          "odds": -110
+        },
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 130,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+      ]
+    },
+    {
+      "name": "Baker Mayfield",
+      "team": "TB",
+      "position": "QB",
+      "markets": {
+        "passing_tds": {
+          "line": 25.5,
+          "side": "under",
+          "odds": -130
+        },
+        "passing_yards_4000_plus": {
+          "threshold": 4000,
+          "odds": 230,
+          "as_of": "2026-08-24",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+      "source_urls": [
+        "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+        "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-qbs-will-surpass-4000-passing-yards"
+      ]
+    },
+    {
+      "name": "Rueben Bain Jr.",
+      "team": "TB",
+      "position": "DE",
+      "markets": {
+        "sacks": {
+          "line": 6.25,
+          "side": "under",
+          "odds": 100
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Carnell Tate",
+      "team": "TEN",
+      "position": "WR",
+      "markets": {
+        "receptions": {
+          "line": 61.5,
+          "side": "under",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Stefon Diggs",
+      "team": "WAS",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 774.5,
+          "side": "under",
+          "odds": -110
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions"
+    },
+    {
+      "name": "Terry McLaurin",
+      "team": "WAS",
+      "position": "WR",
+      "markets": {
+        "receiving_yards_1250_plus": {
+          "threshold": 1250,
+          "odds": 370,
+          "as_of": "2026-08-13",
+          "book": "DraftKings"
+        }
+      },
+      "article_url": "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-wrs-will-surpass-1250-receiving-yards"
+    }
+  ],
+  "teams": [
+    {
+      "name": "Arizona Cardinals",
+      "abbr": "ARI",
+      "markets": {
+        "win_total": {
+          "line": 3.5,
+          "over_odds": -136,
+          "under_odds": 115,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 4.5,
+          "side": "under",
+          "odds": -186,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Atlanta Falcons",
+      "abbr": "ATL",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": 120,
+          "under_odds": -140,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 6.5,
+              "over_odds": -146,
+              "under_odds": 125,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 6.5,
+          "side": "under",
+          "odds": 130,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Baltimore Ravens",
+      "abbr": "BAL",
+      "markets": {
+        "win_total": {
+          "line": 11.5,
+          "over_odds": 115,
+          "under_odds": -140,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 11.5,
+              "over_odds": 120,
+              "under_odds": -160,
+              "book": "Caesars",
+              "as_of": "2026-08-30",
+              "source": "fox_win_totals_report"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 11.5,
+          "side": "under",
+          "odds": -140,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Buffalo Bills",
+      "abbr": "BUF",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -140,
+          "under_odds": 115,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 10.5,
+              "over_odds": -120,
+              "under_odds": 100,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 10.5,
+          "side": "over",
+          "odds": -120,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Carolina Panthers",
+      "abbr": "CAR",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": 115,
+          "under_odds": -136,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 7.5,
+              "over_odds": 110,
+              "under_odds": -130,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 6.5,
+          "side": "over",
+          "odds": -166,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        },
+        "division_wins": {
+          "line": 2.5,
+          "side": "over",
+          "odds": -165
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Chicago Bears",
+      "abbr": "CHI",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": 105,
+          "under_odds": -125,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 9.5,
+              "over_odds": 100,
+              "under_odds": -120,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 9.5,
+          "side": "over",
+          "odds": 105,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        },
+        "highest_scoring_team_odds": 900
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Cincinnati Bengals",
+      "abbr": "CIN",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": -140,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 9.5,
+          "side": "over",
+          "odds": -160,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Cleveland Browns",
+      "abbr": "CLE",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -125,
+          "under_odds": 105,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 5.5,
+              "over_odds": -130,
+              "under_odds": 110,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 5.5,
+          "side": "under",
+          "odds": 115,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Dallas Cowboys",
+      "abbr": "DAL",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": 100,
+          "under_odds": -120,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 9.5,
+              "over_odds": 115,
+              "under_odds": -140,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            },
+            {
+              "line": 9.5,
+              "over_odds": -115,
+              "under_odds": -105,
+              "book": "Caesars",
+              "as_of": "2026-08-30",
+              "source": "fox_win_totals_report"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 9.5,
+          "side": "over",
+          "odds": 100,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Denver Broncos",
+      "abbr": "DEN",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -115,
+          "under_odds": -105,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 9.5,
+          "side": "over",
+          "odds": -110,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Detroit Lions",
+      "abbr": "DET",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -115,
+          "under_odds": -105,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 10.5,
+              "over_odds": -110,
+              "under_odds": -110,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 10.5,
+          "side": "under",
+          "odds": -105,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Green Bay Packers",
+      "abbr": "GB",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -130,
+          "under_odds": 110,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 9.5,
+          "side": "over",
+          "odds": -130,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Houston Texans",
+      "abbr": "HOU",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -146,
+          "under_odds": 124,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 9.5,
+              "over_odds": -125,
+              "under_odds": 105,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 10.5,
+          "side": "under",
+          "odds": -156,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Indianapolis Colts",
+      "abbr": "IND",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": -140,
+          "under_odds": 115,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 7.5,
+          "side": "over",
+          "odds": -140,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Jacksonville Jaguars",
+      "abbr": "JAX",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": -140,
+          "under_odds": 116,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 8.5,
+          "side": "over",
+          "odds": -140,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Kansas City Chiefs",
+      "abbr": "KC",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": -140,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 10.5,
+              "over_odds": 120,
+              "under_odds": -150,
+              "book": "Caesars",
+              "as_of": "2026-08-30",
+              "source": "fox_win_totals_report"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 9.5,
+          "side": "over",
+          "odds": -160,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Las Vegas Raiders",
+      "abbr": "LV",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -150,
+          "under_odds": 125,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 5.5,
+              "over_odds": -145,
+              "under_odds": 120,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 6.5,
+          "side": "under",
+          "odds": -150,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        },
+        "division_wins": {
+          "line": 1.5,
+          "side": "under",
+          "odds": -135
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Los Angeles Chargers",
+      "abbr": "LAC",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -140,
+          "under_odds": 115,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 10.5,
+          "side": "under",
+          "odds": -160,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        },
+        "highest_scoring_team_odds": 20
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Los Angeles Rams",
+      "abbr": "LAR",
+      "markets": {
+        "win_total": {
+          "line": 11.5,
+          "over_odds": -130,
+          "under_odds": 110,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 11.5,
+              "over_odds": -125,
+              "under_odds": 105,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            },
+            {
+              "line": 11.5,
+              "over_odds": -140,
+              "under_odds": 118,
+              "book": "Caesars",
+              "as_of": "2026-08-30",
+              "source": "fox_win_totals_report"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 11.5,
+          "side": "under",
+          "odds": 105,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Miami Dolphins",
+      "abbr": "MIA",
+      "markets": {
+        "win_total": {
+          "line": 3.5,
+          "over_odds": -140,
+          "under_odds": 110,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 4.5,
+              "over_odds": 122,
+              "under_odds": -146,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            },
+            {
+              "line": 3.5,
+              "over_odds": -150,
+              "under_odds": 126,
+              "book": "Caesars",
+              "as_of": "2026-08-30",
+              "source": "fox_win_totals_report"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 4.5,
+          "side": "under",
+          "odds": -175,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        },
+        "division_wins": {
+          "line": 1.5,
+          "side": "under",
+          "odds": 100
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Minnesota Vikings",
+      "abbr": "MIN",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": -120,
+          "under_odds": 100,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 8.5,
+              "over_odds": -110,
+              "under_odds": -110,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            },
+            {
+              "line": 8.5,
+              "over_odds": -140,
+              "under_odds": 115,
+              "book": "Caesars",
+              "as_of": "2026-08-30",
+              "source": "fox_win_totals_report"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 8.5,
+          "side": "under",
+          "odds": 100,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "New England Patriots",
+      "abbr": "NE",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": -140,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 9.5,
+          "side": "over",
+          "odds": -150,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "New Orleans Saints",
+      "abbr": "NO",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": -120,
+          "under_odds": 100,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 7.5,
+          "side": "over",
+          "odds": -120,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "New York Giants",
+      "abbr": "NYG",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": -110,
+          "under_odds": -110,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 7.5,
+          "side": "under",
+          "odds": -110,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "New York Jets",
+      "abbr": "NYJ",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -115,
+          "under_odds": -105,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 5.5,
+              "over_odds": -120,
+              "under_odds": 100,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 5.5,
+          "side": "over",
+          "odds": -120,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Philadelphia Eagles",
+      "abbr": "PHI",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": -140,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 9.5,
+          "side": "over",
+          "odds": -156,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Pittsburgh Steelers",
+      "abbr": "PIT",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": 110,
+          "under_odds": -130,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 7.5,
+          "side": "over",
+          "odds": -160,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "San Francisco 49ers",
+      "abbr": "SF",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -146,
+          "under_odds": 120,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 10.5,
+              "over_odds": 130,
+              "under_odds": -160,
+              "book": "Caesars",
+              "as_of": "2026-08-30",
+              "source": "fox_win_totals_report"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 10.5,
+          "side": "under",
+          "odds": -150,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Seattle Seahawks",
+      "abbr": "SEA",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -115,
+          "under_odds": -105,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article"
+        },
+        "espn_three_bets_win_pick": {
+          "line": 10.5,
+          "side": "over",
+          "odds": -115,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Tampa Bay Buccaneers",
+      "abbr": "TB",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": 115,
+          "under_odds": -136,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 8.5,
+              "over_odds": 122,
+              "under_odds": -145,
+              "book": "Caesars",
+              "as_of": "2026-08-30",
+              "source": "fox_win_totals_report"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 8.5,
+          "side": "under",
+          "odds": -136,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        },
+        "division_wins": {
+          "line": 3.5,
+          "side": "under",
+          "odds": -125
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Tennessee Titans",
+      "abbr": "TEN",
+      "markets": {
+        "win_total": {
+          "line": 6.5,
+          "over_odds": 100,
+          "under_odds": -120,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 6.5,
+              "over_odds": -110,
+              "under_odds": -110,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 6.5,
+          "side": "under",
+          "odds": -115,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    },
+    {
+      "name": "Washington Commanders",
+      "abbr": "WAS",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": 105,
+          "under_odds": -125,
+          "book": "DraftKings",
+          "as_of": "2026-09-03",
+          "source": "espn_super_bowl_odds_article",
+          "alt_lines": [
+            {
+              "line": 7.5,
+              "over_odds": -125,
+              "under_odds": 105,
+              "book": "DraftKings",
+              "as_of": "2026-07-23",
+              "source": "fox_win_totals_all_32"
+            }
+          ]
+        },
+        "espn_three_bets_win_pick": {
+          "line": 7.5,
+          "side": "over",
+          "odds": -105,
+          "book": "DraftKings",
+          "as_of": "2026-09-01"
+        }
+      },
+      "article_url": "https://www.espn.com/espn/betting/story/_/id/47809892/2026-super-bowl-lxi-odds-nfl-sports-betting-season-win-totals-playoffs"
+    }
+  ],
+  "notes": "Extracted 2026 NFL season-long Vegas lines from ESPN and Fox Sports articles. Primary team win totals from ESPN Super Bowl LXI odds table (DraftKings, ~Sep 3 2026). Fox all-32 win totals (DraftKings, Jul 23) and Caesars mentions (Aug 30 report) stored as alt_lines. Player season props primarily from ESPN 'Three bets to make on each team' and 'Eleven NFL player props' plus Fox individual O/U and milestone (4000 pass / 1250 recv) articles. Lines move over time; alt_lines capture earlier Fox numbers (e.g. Kelce 699.5 vs later ESPN 674.5; JSN Fox May 999.5 vs ESPN Sep 1324.5).",
+  "errors": [
+    "Fox Jul 23 win-totals article listed LAR as Over 11.5 / Under 10.5 (likely typo); captured as 11.5 with under odds +105.",
+    "Madden '99 Club' Fox article (Jul 2025) covers 2025 season props, not 2026 \u2014 excluded.",
+    "ESPN free-agency win totals article (id/48175201) returned empty body on fetch; used later ESPN/Fox boards instead.",
+    "No team total yards season O/U lines found in ESPN/Fox articles searched.",
+    "Team scoring: only 'highest scoring team' futures odds found (CHI +900, LAC 20-1); no season team points O/U tables."
+  ],
+  "summary": {
+    "url_count": 16,
+    "player_count": 63,
+    "team_count": 32,
+    "teams_with_win_total": 32,
+    "player_market_key_counts": {
+      "rushing_tds": 3,
+      "receiving_yards": 12,
+      "rushing_yards": 7,
+      "rush_and_recv_1000_plus_odds": 1,
+      "receiving_yards_1250_plus": 19,
+      "sacks": 4,
+      "receiving_tds": 2,
+      "passing_yards_4000_plus": 16,
+      "passing_tds": 5,
+      "passing_tds_30_plus": 1,
+      "receptions": 5,
+      "passing_yards": 5
+    },
+    "numeric_prop_lines": 80,
+    "teams_with_scoring_markets": 2
+  }
+}

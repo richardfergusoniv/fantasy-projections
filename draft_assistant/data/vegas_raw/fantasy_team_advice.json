@@ -1,0 +1,1292 @@
+{
+  "source": "fantasy_team_advice",
+  "fetched_at": "2026-09-05T03:19:58Z",
+  "urls": [
+    "https://fantasyteamadvice.com/nfl/season-long-props",
+    "https://fantasyteamadvice.com/nfl/season-long-props/passing-yards",
+    "https://fantasyteamadvice.com/nfl/season-long-props/passing-touchdowns",
+    "https://fantasyteamadvice.com/nfl/season-long-props/rushing-yards",
+    "https://fantasyteamadvice.com/nfl/season-long-props/rushing-touchdowns",
+    "https://fantasyteamadvice.com/nfl/season-long-props/receiving-yards",
+    "https://fantasyteamadvice.com/nfl/season-long-props/receiving-touchdowns",
+    "https://fantasyteamadvice.com/nfl/team-futures?prop_type=NFL_SEASON_WINS",
+    "https://fantasyteamadvisors.com/",
+    "https://www.foxsports.com/stories/nfl/2026-nfl-odds-every-qbs-over-under-season-pass-yards",
+    "https://legacy.fantasypoints.com/nfl/articles/2026/nfl-player-props-passing-yards",
+    "https://legacy.fantasypoints.com/nfl/articles/2026/nfl-player-props-passing-touchdowns",
+    "https://legacy.fantasypoints.com/nfl/articles/2026/nfl-player-props-rushing-yards",
+    "https://legacy.fantasypoints.com/nfl/articles/2026/nfl-player-props-rushing-touchdowns",
+    "https://legacy.fantasypoints.com/nfl/articles/2026/nfl-player-props-receiving-yards",
+    "https://www.si.com/betting/nfl-running-back-power-rankings-based-on-odds-bijan-robinson-will-be-best-rb-in-2026-01kta2z8f4bn",
+    "https://www.rotowire.com/betting/nfl/win-totals.php",
+    "https://www.thebiglead.com/nfl-player-props-over-under-bets-2026-season/",
+    "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&nav_1=pass-yards&subcategory=player-stats-o-u",
+    "https://sportsbook.draftkings.com/leagues/football/nfl?category=futures&nav_1=pass-tds&subcategory=player-stats-o-u"
+  ],
+  "players": [
+    {
+      "name": "A.J. Brown",
+      "team": "NE",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1087.0
+      }
+    },
+    {
+      "name": "Aaron Rodgers",
+      "team": "PIT",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3099.5,
+        "pass_tds": 21.5
+      }
+    },
+    {
+      "name": "Alec Pierce",
+      "team": "IND",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 875.5
+      }
+    },
+    {
+      "name": "Amon-Ra St. Brown",
+      "team": "DET",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1225.0
+      }
+    },
+    {
+      "name": "Ashton Jeanty",
+      "team": "LV",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 975.0,
+        "rush_tds": 7.5
+      }
+    },
+    {
+      "name": "Baker Mayfield",
+      "team": "TB",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3599.5,
+        "pass_tds": 25.5
+      }
+    },
+    {
+      "name": "Bhaysul Tuten",
+      "team": null,
+      "position": "RB",
+      "markets": {
+        "rush_yards": 712.0
+      }
+    },
+    {
+      "name": "Bijan Robinson",
+      "team": "ATL",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 1174.5,
+        "rush_tds": 8.5,
+        "receiving_yards": 600.5
+      }
+    },
+    {
+      "name": "Blake Corum",
+      "team": "LA",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 675.0,
+        "rush_tds": 5.5
+      }
+    },
+    {
+      "name": "Bo Nix",
+      "team": "DEN",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3499.5,
+        "pass_tds": 24.5
+      }
+    },
+    {
+      "name": "Breece Hall",
+      "team": "NYJ",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 875.5,
+        "rush_tds": 5.5
+      }
+    },
+    {
+      "name": "Brian Thomas",
+      "team": "JAX",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 699.5
+      }
+    },
+    {
+      "name": "Brock Bowers",
+      "team": "LV",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 875.5
+      }
+    },
+    {
+      "name": "Brock Purdy",
+      "team": "SF",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3749.5,
+        "pass_tds": 27.5
+      }
+    },
+    {
+      "name": "Bryce Young",
+      "team": "CAR",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 2874.5,
+        "pass_tds": 20.5
+      }
+    },
+    {
+      "name": "Bucky Irving",
+      "team": "TB",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 813.0,
+        "rush_tds": 5.5
+      }
+    },
+    {
+      "name": "C.J. Stroud",
+      "team": "HOU",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3549.5,
+        "pass_tds": 22.5
+      }
+    },
+    {
+      "name": "Caleb Williams",
+      "team": "CHI",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3649.5,
+        "pass_tds": 24.5
+      }
+    },
+    {
+      "name": "Cam Ward",
+      "team": "TEN",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3249.5,
+        "pass_tds": 20.5
+      }
+    },
+    {
+      "name": "Carnell Tate",
+      "team": "TEN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 774.5
+      }
+    },
+    {
+      "name": "CeeDee Lamb",
+      "team": "DAL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1175.5,
+        "receptions": 94.5
+      }
+    },
+    {
+      "name": "Chase Brown",
+      "team": "CIN",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 849.5,
+        "rush_tds": 6.0
+      }
+    },
+    {
+      "name": "Chris Olave",
+      "team": "NO",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1025.5
+      }
+    },
+    {
+      "name": "Christian McCaffrey",
+      "team": "SF",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 974.5,
+        "rush_tds": 8.5,
+        "receiving_yards": 574.5,
+        "receiving_tds": 4.5
+      }
+    },
+    {
+      "name": "Christian Watson",
+      "team": "GB",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 787.5
+      }
+    },
+    {
+      "name": "Chuba Hubbard",
+      "team": "CAR",
+      "position": "RB",
+      "markets": {
+        "rush_tds": 4.5
+      }
+    },
+    {
+      "name": "Colston Loveland",
+      "team": "CHI",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 775.0
+      }
+    },
+    {
+      "name": "Courtland Sutton",
+      "team": "DEN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 762.5
+      }
+    },
+    {
+      "name": "D'Andre Swift",
+      "team": "CHI",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 824.5,
+        "rush_tds": 6.5
+      }
+    },
+    {
+      "name": "DJ Moore",
+      "team": "BUF",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 788.0
+      }
+    },
+    {
+      "name": "DK Metcalf",
+      "team": "PIT",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 824.5
+      }
+    },
+    {
+      "name": "Dak Prescott",
+      "team": "DAL",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3999.5,
+        "pass_tds": 27.5
+      }
+    },
+    {
+      "name": "Dallas Goedert",
+      "team": "PHI",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 575.0
+      }
+    },
+    {
+      "name": "Dalton Kincaid",
+      "team": "BUF",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 599.5,
+        "receiving_tds": 4.5
+      }
+    },
+    {
+      "name": "Daniel Jones",
+      "team": "IND",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3299.5,
+        "pass_tds": 19.5
+      }
+    },
+    {
+      "name": "Davante Adams",
+      "team": "LA",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 775.5
+      }
+    },
+    {
+      "name": "David Montgomery",
+      "team": "HOU",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 750.5,
+        "rush_tds": 7.5
+      }
+    },
+    {
+      "name": "De'Von Achane",
+      "team": "MIA",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 1000.0,
+        "rush_tds": 5.5
+      }
+    },
+    {
+      "name": "DeVonta Smith",
+      "team": "PHI",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1025.0,
+        "receiving_tds": 5.5
+      }
+    },
+    {
+      "name": "Denzel Boston",
+      "team": "CLE",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 450.0
+      }
+    },
+    {
+      "name": "Derrick Henry",
+      "team": "BAL",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 1120.5,
+        "rush_tds": 12.5
+      }
+    },
+    {
+      "name": "Deshaun Watson",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": 1749.5,
+        "pass_tds": 12.5
+      }
+    },
+    {
+      "name": "Drake London",
+      "team": "ATL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1125.0
+      }
+    },
+    {
+      "name": "Drake Maye",
+      "team": "NE",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3799.5,
+        "pass_tds": 26.5,
+        "rush_yards": 424.5,
+        "rush_tds": 3.5
+      }
+    },
+    {
+      "name": "Emeka Egbuka",
+      "team": "TB",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 850.0
+      }
+    },
+    {
+      "name": "Fernando Mendoza",
+      "team": "LV",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 2400.0,
+        "pass_tds": 12.5
+      }
+    },
+    {
+      "name": "Garrett Wilson",
+      "team": "NYJ",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 999.5,
+        "receiving_tds": 5.5
+      }
+    },
+    {
+      "name": "George Pickens",
+      "team": "DAL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1013.0
+      }
+    },
+    {
+      "name": "Isiah Pacheco",
+      "team": "DET",
+      "position": "RB",
+      "markets": {
+        "rush_tds": 4.5
+      }
+    },
+    {
+      "name": "J.K. Dobbins",
+      "team": "DEN",
+      "position": "RB",
+      "markets": {
+        "rush_tds": 5.5,
+        "rush_yards": 674.5
+      }
+    },
+    {
+      "name": "Ja'Marr Chase",
+      "team": "CIN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1300.5
+      }
+    },
+    {
+      "name": "Jadarian Price",
+      "team": "SEA",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 750.5,
+        "rush_tds": 5.5
+      }
+    },
+    {
+      "name": "Jahmyr Gibbs",
+      "team": "DET",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 1199.5,
+        "rush_tds": 12.0,
+        "receiving_yards": 425.5,
+        "receiving_tds": 4.5
+      }
+    },
+    {
+      "name": "Jake Ferguson",
+      "team": "DAL",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 500.0
+      }
+    },
+    {
+      "name": "Jalen Hurts",
+      "team": "PHI",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3249.5,
+        "pass_tds": 22.5,
+        "rush_yards": 424.5,
+        "rush_tds": 8.5
+      }
+    },
+    {
+      "name": "James Cook",
+      "team": "BUF",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 1200.5,
+        "rush_tds": 10.5
+      }
+    },
+    {
+      "name": "Jameson Williams",
+      "team": "DET",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 888.0,
+        "receiving_tds": 5.5
+      }
+    },
+    {
+      "name": "Jared Goff",
+      "team": "DET",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 4099.5,
+        "pass_tds": 29.5
+      }
+    },
+    {
+      "name": "Javonte Williams",
+      "team": "DAL",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 1000.5,
+        "rush_tds": 9.5
+      }
+    },
+    {
+      "name": "Jaxon Smith-Njigba",
+      "team": "SEA",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1300.5
+      }
+    },
+    {
+      "name": "Jaxson Dart",
+      "team": "NYG",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3150.5,
+        "pass_tds": 19.5,
+        "rush_yards": 437.5,
+        "rush_tds": 5.5
+      }
+    },
+    {
+      "name": "Jayden Daniels",
+      "team": "WAS",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3199.5,
+        "pass_tds": 21.5,
+        "rush_yards": 550.0,
+        "rush_tds": 4.5
+      }
+    },
+    {
+      "name": "Jayden Reed",
+      "team": "GB",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 637.0
+      }
+    },
+    {
+      "name": "Jaylen Waddle",
+      "team": "DEN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 899.5,
+        "receiving_tds": 5.5
+      }
+    },
+    {
+      "name": "Jaylen Warren",
+      "team": "PIT",
+      "position": "RB",
+      "markets": {
+        "rush_tds": 4.5
+      }
+    },
+    {
+      "name": "Jeremiyah Love",
+      "team": "ARI",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 875.5,
+        "rush_tds": 5.5
+      }
+    },
+    {
+      "name": "Jerry Jeudy",
+      "team": "CLE",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 549.5
+      }
+    },
+    {
+      "name": "Joe Burrow",
+      "team": "CIN",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3999.5,
+        "pass_tds": 32.5
+      }
+    },
+    {
+      "name": "Jonathan Taylor",
+      "team": "IND",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 1250.5,
+        "rush_tds": 11.5
+      }
+    },
+    {
+      "name": "Jordan Addison",
+      "team": "MIN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 662.0
+      }
+    },
+    {
+      "name": "Jordan Love",
+      "team": "GB",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3549.5,
+        "pass_tds": 25.5
+      }
+    },
+    {
+      "name": "Jordan Mason",
+      "team": "MIN",
+      "position": "RB",
+      "markets": {
+        "rush_tds": 4.5,
+        "rush_yards": 649.5
+      }
+    },
+    {
+      "name": "Josh Allen",
+      "team": "BUF",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3624.5,
+        "pass_tds": 25.5,
+        "rush_yards": 475.5,
+        "rush_tds": 11.0
+      }
+    },
+    {
+      "name": "Josh Downs",
+      "team": "IND",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 762.5
+      }
+    },
+    {
+      "name": "Justin Herbert",
+      "team": "LAC",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3650.5,
+        "pass_tds": 25.5
+      }
+    },
+    {
+      "name": "Justin Jefferson",
+      "team": "MIN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1125.5
+      }
+    },
+    {
+      "name": "KC Concepcion",
+      "team": "CLE",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 587.5
+      }
+    },
+    {
+      "name": "Kenneth Walker",
+      "team": "KC",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 950.5,
+        "rush_tds": 7.0
+      }
+    },
+    {
+      "name": "Kenyon Sadiq",
+      "team": "NYJ",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 438.0
+      }
+    },
+    {
+      "name": "Khalil Shakir",
+      "team": "BUF",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 638.0
+      }
+    },
+    {
+      "name": "Kyle Monangai",
+      "team": "CHI",
+      "position": "RB",
+      "markets": {
+        "rush_tds": 4.5
+      }
+    },
+    {
+      "name": "Kyle Pitts",
+      "team": "ATL",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 750.0
+      }
+    },
+    {
+      "name": "Kyler Murray",
+      "team": "MIN",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3049.5,
+        "pass_tds": 18.5
+      }
+    },
+    {
+      "name": "Kyren Williams",
+      "team": "LA",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 1000.5,
+        "rush_tds": 9.5
+      }
+    },
+    {
+      "name": "Ladd McConkey",
+      "team": "LAC",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 850.5
+      }
+    },
+    {
+      "name": "Lamar Jackson",
+      "team": "BAL",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3249.5,
+        "pass_tds": 24.5,
+        "rush_yards": 550.5,
+        "rush_tds": 3.5
+      }
+    },
+    {
+      "name": "Luther Burden",
+      "team": "CHI",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 812.5
+      }
+    },
+    {
+      "name": "Makai Lemon",
+      "team": "PHI",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 625.0
+      }
+    },
+    {
+      "name": "Malik Willis",
+      "team": "MIA",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 2949.5,
+        "pass_tds": 14.5
+      }
+    },
+    {
+      "name": "Mark Andrews",
+      "team": "BAL",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 499.5,
+        "receiving_tds": 6.5
+      }
+    },
+    {
+      "name": "Marvin Harrison",
+      "team": "ARI",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 813.0
+      }
+    },
+    {
+      "name": "Matthew Golden",
+      "team": "GB",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 649.5
+      }
+    },
+    {
+      "name": "Matthew Stafford",
+      "team": "LA",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3899.5,
+        "pass_tds": 30.5
+      }
+    },
+    {
+      "name": "Michael Pittman",
+      "team": "PIT",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 750.0
+      }
+    },
+    {
+      "name": "Mike Evans",
+      "team": "SF",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 875.5
+      }
+    },
+    {
+      "name": "Nico Collins",
+      "team": "HOU",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1075.5
+      }
+    },
+    {
+      "name": "Omar Cooper",
+      "team": "NYJ",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 549.5
+      }
+    },
+    {
+      "name": "Omarion Hampton",
+      "team": "LAC",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 949.5,
+        "rush_tds": 7.5
+      }
+    },
+    {
+      "name": "Patrick Mahomes",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3649.5,
+        "pass_tds": 25.5
+      }
+    },
+    {
+      "name": "Puka Nacua",
+      "team": "LA",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 1325.5
+      }
+    },
+    {
+      "name": "Quinshon Judkins",
+      "team": "CLE",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 850.5
+      }
+    },
+    {
+      "name": "Rhamondre Stevenson",
+      "team": "NE",
+      "position": "RB",
+      "markets": {
+        "rush_tds": 6.0,
+        "rush_yards": 624.5
+      }
+    },
+    {
+      "name": "Rico Dowdle",
+      "team": "PIT",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 699.5
+      }
+    },
+    {
+      "name": "Rome Odunze",
+      "team": "CHI",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 765.0
+      }
+    },
+    {
+      "name": "Romeo Doubs",
+      "team": "NE",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 612.5
+      }
+    },
+    {
+      "name": "Sam Darnold",
+      "team": "SEA",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3699.5,
+        "pass_tds": 23.5
+      }
+    },
+    {
+      "name": "Saquon Barkley",
+      "team": "PHI",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 1075.5,
+        "rush_tds": 7.5
+      }
+    },
+    {
+      "name": "Tee Higgins",
+      "team": "CIN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 862.5
+      }
+    },
+    {
+      "name": "Terry McLaurin",
+      "team": "WAS",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 938.0
+      }
+    },
+    {
+      "name": "Tetairoa McMillan",
+      "team": "CAR",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 925.0
+      }
+    },
+    {
+      "name": "Tony Pollard",
+      "team": "TEN",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 775.5,
+        "rush_tds": 5.5
+      }
+    },
+    {
+      "name": "Travis Etienne",
+      "team": "NO",
+      "position": "RB",
+      "markets": {
+        "rush_yards": 863.0,
+        "rush_tds": 5.5
+      }
+    },
+    {
+      "name": "Travis Kelce",
+      "team": "KC",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 674.5
+      }
+    },
+    {
+      "name": "Trevor Lawrence",
+      "team": "JAX",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3774.5,
+        "pass_tds": 25.5
+      }
+    },
+    {
+      "name": "Trey McBride",
+      "team": "ARI",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 1000.5,
+        "receptions": 100.5
+      }
+    },
+    {
+      "name": "Tyler Shough",
+      "team": "NO",
+      "position": "QB",
+      "markets": {
+        "pass_yards": 3449.5,
+        "pass_tds": 20.5
+      }
+    },
+    {
+      "name": "Tyler Warren",
+      "team": "IND",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": 737.5
+      }
+    },
+    {
+      "name": "Zay Flowers",
+      "team": "BAL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": 963.0
+      }
+    }
+  ],
+  "teams": [
+    {
+      "name": "Arizona Cardinals",
+      "abbr": "ARI",
+      "markets": {
+        "win_total": 3.5
+      }
+    },
+    {
+      "name": "Atlanta Falcons",
+      "abbr": "ATL",
+      "markets": {
+        "win_total": 6.5
+      }
+    },
+    {
+      "name": "Baltimore Ravens",
+      "abbr": "BAL",
+      "markets": {
+        "win_total": 10.5
+      }
+    },
+    {
+      "name": "Buffalo Bills",
+      "abbr": "BUF",
+      "markets": {
+        "win_total": 10.5
+      }
+    },
+    {
+      "name": "Carolina Panthers",
+      "abbr": "CAR",
+      "markets": {
+        "win_total": 7.5,
+        "points_scored_per_game": 20.7,
+        "points_scored": 351.9
+      }
+    },
+    {
+      "name": "Chicago Bears",
+      "abbr": "CHI",
+      "markets": {
+        "win_total": 9.5
+      }
+    },
+    {
+      "name": "Cincinnati Bengals",
+      "abbr": "CIN",
+      "markets": {
+        "win_total": 10.5
+      }
+    },
+    {
+      "name": "Cleveland Browns",
+      "abbr": "CLE",
+      "markets": {
+        "win_total": 5.5
+      }
+    },
+    {
+      "name": "Dallas Cowboys",
+      "abbr": "DAL",
+      "markets": {
+        "win_total": 9.5
+      }
+    },
+    {
+      "name": "Denver Broncos",
+      "abbr": "DEN",
+      "markets": {
+        "win_total": 9.5
+      }
+    },
+    {
+      "name": "Detroit Lions",
+      "abbr": "DET",
+      "markets": {
+        "win_total": 10.5
+      }
+    },
+    {
+      "name": "Green Bay Packers",
+      "abbr": "GB",
+      "markets": {
+        "win_total": 9.5
+      }
+    },
+    {
+      "name": "Houston Texans",
+      "abbr": "HOU",
+      "markets": {
+        "win_total": 10.5
+      }
+    },
+    {
+      "name": "Indianapolis Colts",
+      "abbr": "IND",
+      "markets": {
+        "win_total": 8.5
+      }
+    },
+    {
+      "name": "Jacksonville Jaguars",
+      "abbr": "JAX",
+      "markets": {
+        "win_total": 8.5
+      }
+    },
+    {
+      "name": "Kansas City Chiefs",
+      "abbr": "KC",
+      "markets": {
+        "win_total": 10.5
+      }
+    },
+    {
+      "name": "Las Vegas Raiders",
+      "abbr": "LV",
+      "markets": {
+        "win_total": 5.5
+      }
+    },
+    {
+      "name": "Los Angeles Chargers",
+      "abbr": "LAC",
+      "markets": {
+        "win_total": 9.5
+      }
+    },
+    {
+      "name": "Los Angeles Rams",
+      "abbr": "LAR",
+      "markets": {
+        "win_total": 11.5
+      }
+    },
+    {
+      "name": "Miami Dolphins",
+      "abbr": "MIA",
+      "markets": {
+        "win_total": 3.5
+      }
+    },
+    {
+      "name": "Minnesota Vikings",
+      "abbr": "MIN",
+      "markets": {
+        "win_total": 8.5
+      }
+    },
+    {
+      "name": "New England Patriots",
+      "abbr": "NE",
+      "markets": {
+        "win_total": 9.5
+      }
+    },
+    {
+      "name": "New Orleans Saints",
+      "abbr": "NO",
+      "markets": {
+        "win_total": 7.5
+      }
+    },
+    {
+      "name": "New York Giants",
+      "abbr": "NYG",
+      "markets": {
+        "win_total": 7.5
+      }
+    },
+    {
+      "name": "New York Jets",
+      "abbr": "NYJ",
+      "markets": {
+        "win_total": 5.5
+      }
+    },
+    {
+      "name": "Philadelphia Eagles",
+      "abbr": "PHI",
+      "markets": {
+        "win_total": 10.5
+      }
+    },
+    {
+      "name": "Pittsburgh Steelers",
+      "abbr": "PIT",
+      "markets": {
+        "win_total": 8.5
+      }
+    },
+    {
+      "name": "San Francisco 49ers",
+      "abbr": "SF",
+      "markets": {
+        "win_total": 10.5
+      }
+    },
+    {
+      "name": "Seattle Seahawks",
+      "abbr": "SEA",
+      "markets": {
+        "win_total": 10.5
+      }
+    },
+    {
+      "name": "Tampa Bay Buccaneers",
+      "abbr": "TB",
+      "markets": {
+        "win_total": 8.5
+      }
+    },
+    {
+      "name": "Tennessee Titans",
+      "abbr": "TEN",
+      "markets": {
+        "win_total": 6.5,
+        "points_scored_per_game": 20.7,
+        "points_scored": 351.9
+      }
+    },
+    {
+      "name": "Washington Commanders",
+      "abbr": "WAS",
+      "markets": {
+        "win_total": 7.5
+      }
+    }
+  ],
+  "notes": "Fantasy Team Advice (fantasyteamadvice.com) is the named source; full season-long player prop tables are FTA+-paywalled (public pages expose ~5 teaser players per market). FTA team win totals ARE public via /nfl/team-futures?prop_type=NFL_SEASON_WINS (BetMGM lines for all 32 teams). fantasyteamadvisors.com did not publish usable 2026 season-long Vegas prop boards (DFS site). Player season O/U totals were filled from public mirrors of the same sportsbook markets: live DraftKings Regular Season Passing Yards OU and Passing TDs OU (28 QBs each), FOX Sports DK pass-yards article (~Aug 10), Fantasy Points June multi-book high/low midpoints (pass/rush/rec yards & rush/pass TDs), SI Caesars RB lines, RotoWire player pages, and Big Lead/ESPN prop articles. Prefer live DK lines when present; otherwise midpoint of highest/lowest book lines or latest single-book line. Pass attempts, rush attempts, targets, team total yards, and full season points-scored boards were not available in free public sources (only sparse CAR/TEN implied PPG).",
+  "errors": [
+    "FTA season-long player props fully locked behind FTA+ (only ~5 teaser rows per prop type publicly).",
+    "DraftKings sportscontent/API endpoints returned 403 from this environment.",
+    "RotoWire rec-yards / pass-yards odds tables load via JS and returned empty static HTML.",
+    "ESPN season-prop article returned 403 to automated fetch (used search snippet for a few lines).",
+    "No public team season total yards or full points_scored O/U board located.",
+    "Pass attempts / rush attempts / targets season O/U boards not found on free FTA or mirrors."
+  ]
+}

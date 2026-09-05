@@ -75,11 +75,11 @@ function checklist(): DraftChecklist {
       | "prior_pts",
     pos_market_rank: index + 1,
     unranked_break: index === 20,
-    checks: {
-      target_leader_in_group: index % 2 === 0,
-      qb_top16: index % 3 === 0,
-      offense_top16: true,
-      sos_top16: index < 5,
+    ranks: {
+      tgt_rank: index % 2 === 0 ? 3 : 18,
+      qb_rank: index % 3 === 0 ? 5 : 22,
+      offense_pts_rank: 7,
+      sos_rank: index < 5 ? 4 : 20,
     },
   }));
   const qb = [
@@ -94,11 +94,11 @@ function checklist(): DraftChecklist {
       rank_tier: "adp" as const,
       pos_market_rank: 1,
       unranked_break: false,
-      checks: {
-        pass_att_top16: true,
-        rush_vol_top16: true,
-        offense_top16: true,
-        sos_top16: false,
+      ranks: {
+        pass_att_rank: 2,
+        rush_att_rank: 6,
+        offense_pts_rank: 4,
+        sos_rank: 19,
       },
     },
   ];
@@ -122,18 +122,20 @@ function checklist(): DraftChecklist {
       },
     ],
     criteria_by_position: {
-      WR: ["target_leader_in_group", "qb_top16", "offense_top16", "sos_top16"],
-      QB: ["pass_att_top16", "rush_vol_top16", "offense_top16", "sos_top16"],
-      RB: ["target_leader_in_group", "rush_vol_leader_in_group", "offense_top16", "sos_top16"],
-      TE: ["te_top2_targets_in_group", "qb_top16", "offense_top16", "sos_top16"],
+      WR: ["tgt_rank", "qb_rank", "offense_pts_rank", "sos_rank"],
+      QB: ["pass_att_rank", "rush_att_rank", "offense_pts_rank", "sos_rank"],
+      RB: ["tgt_rank", "rush_att_rank", "offense_pts_rank", "sos_rank"],
+      TE: ["tgt_rank", "qb_rank", "offense_pts_rank", "sos_rank"],
     },
     criteria_labels: {
-      target_leader_in_group: "2025 TGT LEADER IN GROUP",
-      qb_top16: "TOP 16 QB",
-      offense_top16: "TOP 16 OFFENSE",
-      sos_top16: "TOP 16 SOS",
-      pass_att_top16: "TOP 16 PASS ATT",
-      rush_vol_top16: "TOP 16 RUSH VOL",
+      tgt_rank: "TGT RANK",
+      qb_rank: "QB RANK",
+      offense_pts_rank: "OFFENSE PTS RANK",
+      offense_yds_rank: "OFFENSE YDS RANK",
+      sos_rank: "SOS RANK",
+      pass_att_rank: "PASS ATT RANK",
+      rush_att_rank: "RUSH ATT RANK",
+      ol_rank: "OL RANK",
     },
     checklist_meta: {
       market_as_of: {
@@ -144,7 +146,7 @@ function checklist(): DraftChecklist {
       },
       sos_included: true,
       ol_included: false,
-      volume_caveat: "2025 volume leader within this team's 2026 skill group",
+      volume_caveat: "Vegas consensus volume/offense ranks + Sharp Fantasy SOS",
     },
     meta: {
       data_as_of: "2026-09-03T20:00:00Z",
@@ -189,8 +191,20 @@ describe("DraftScreen", () => {
     const checkboxes = screen.getAllByRole("checkbox", { name: /Mark .+ drafted/i });
     expect(checkboxes[0]).toHaveAccessibleName("Mark QB Player 1 drafted");
     expect(checkboxes[1]).toHaveAccessibleName("Mark WR Player 1 drafted");
+    expect(screen.getByText("PASS 2")).toBeInTheDocument();
+    expect(screen.getByText("RUSH 6")).toBeInTheDocument();
+    expect(screen.getByLabelText("Max avg rank")).toBeInTheDocument();
     expect(screen.getByText(/Unranked \/ off market/i)).toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: /O-line/i })).not.toBeInTheDocument();
+  });
+
+  it("filters checklist rows by max average rank", async () => {
+    renderDraft("/draft?pane=checklist");
+    await screen.findByRole("checkbox", { name: "Mark QB Player 1 drafted" });
+    // QB avg = (2+6+4+19)/4 = 7.75 → kept at ≤8; many WRs average worse.
+    fireEvent.change(screen.getByLabelText("Max avg rank"), { target: { value: "8" } });
+    expect(screen.getByRole("checkbox", { name: "Mark QB Player 1 drafted" })).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /WR Player 2 drafted/i })).not.toBeInTheDocument();
   });
 
   it("filters the checklist to a single position from the All tab", async () => {
