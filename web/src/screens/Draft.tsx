@@ -57,15 +57,19 @@ function formatVorp(value: number | undefined): string {
 const CHECKLIST_POSITIONS = ["ALL", "QB", "RB", "WR", "TE"] as const;
 
 const CHECK_SHORT_LABELS: Record<string, string> = {
-  pass_att_top16: "PASS",
-  rush_vol_top16: "RUSH",
-  offense_top16: "OFF",
-  ol_top16: "OL",
-  sos_top16: "SOS",
-  target_leader_in_group: "TGT",
-  rush_vol_leader_in_group: "RUSH",
-  qb_top16: "QB",
-  te_top2_targets_in_group: "TGT2",
+  fp_rank: "FP",
+  total_yds_rank: "YDS",
+  rush_yds_rank: "RUSH",
+  pass_td_rank: "PTD",
+  total_td_rank: "TD",
+  offense_pts_rank: "PTS",
+  offense_yds_rank: "OFF",
+  ol_rank: "OL",
+  sos_rank: "SOS",
+  rec_rank: "REC",
+  rec_yds_rank: "RYDS",
+  rec_td_rank: "RTD",
+  qb_rank: "QB",
 };
 
 const RANK_TIER_ORDER: Record<string, number> = {
@@ -105,6 +109,22 @@ function shortCheckLabel(key: string, fullLabels: Record<string, string>): strin
   return CHECK_SHORT_LABELS[key] ?? fullLabels[key] ?? key;
 }
 
+function rankTierClass(rank: number | null | undefined): string {
+  if (rank == null || Number.isNaN(rank)) return "is-muted";
+  if (rank <= 8) return "is-strong";
+  if (rank <= 16) return "is-mild";
+  return "is-muted";
+}
+
+/** Average of available numeric ranks for the player's position criteria. */
+function averageAvailableRank(entry: DraftChecklistEntry, keys: string[]): number | null {
+  const values = keys
+    .map((key) => entry.ranks[key])
+    .filter((value): value is number => value != null && !Number.isNaN(value));
+  if (!values.length) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
 export function DraftScreen() {
   const { selectedLeagueId, selectedLeague } = useAppState();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -118,7 +138,7 @@ export function DraftScreen() {
   const [visibleCount, setVisibleCount] = useState(25);
   const [draftedPlayerIds, setDraftedPlayerIds] = useState<string[]>([]);
   const [hideDrafted, setHideDrafted] = useState(true);
-  const [minChecks, setMinChecks] = useState(0);
+  const [maxAvgRank, setMaxAvgRank] = useState(0);
   const [dataAsOf, setDataAsOf] = useState<string | undefined>();
   const [runId, setRunId] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
@@ -219,10 +239,10 @@ export function DraftScreen() {
         return false;
       }
       if (hideDrafted && draftedPlayerSet.has(entry.player_id)) return false;
-      if (minChecks > 0) {
+      if (maxAvgRank > 0) {
         const keys = criteriaForEntry(checklist, entry);
-        const hits = keys.reduce((count, key) => count + (entry.checks[key] ? 1 : 0), 0);
-        if (hits < minChecks) return false;
+        const avg = averageAvailableRank(entry, keys);
+        if (avg == null || avg > maxAvgRank) return false;
       }
       return true;
     });
@@ -233,12 +253,12 @@ export function DraftScreen() {
       return [...filtered].sort(checklistAdpSort);
     }
     return filtered;
-  }, [checklist, positionFilter, normalizedSearch, hideDrafted, draftedPlayerSet, minChecks]);
+  }, [checklist, positionFilter, normalizedSearch, hideDrafted, draftedPlayerSet, maxAvgRank]);
 
   const checklistVisible = checklistFiltered.slice(0, visibleCount);
   // Derive the divider from what is actually on screen. Anchoring it to the
   // entry's own unranked_break flag loses it whenever that one player is
-  // filtered out (drafted, min-checks) and strands it at the top when every
+  // filtered out (drafted, max-avg-rank) and strands it at the top when every
   // ranked player is filtered away.
   const unrankedBreakIndex = checklistVisible.findIndex(
     (entry) => entry.rank_tier === "prior_pts" || entry.rank_tier === "none",
@@ -290,11 +310,11 @@ export function DraftScreen() {
   const rankSource = checklist?.checklist_meta.rank_source;
   const marketBadge =
     rankSource === "market_avg"
-      ? `All tab by ADP (ESPN/FFC/MFL + FP ECR avg) · position tabs by board · checks from SSS · ${
+      ? `All tab by ADP (ESPN/FFC/MFL + FP ECR avg) · position tabs by board · Vegas + Sharp SOS ranks · ${
           market?.scoring ?? "ppr"
         }`
       : rankSource === "screenshot"
-        ? `Checklist board · SSS screenshots · ${market?.scoring ?? "ppr"}`
+        ? `Checklist board · Vegas + Sharp SOS ranks · ${market?.scoring ?? "ppr"}`
         : market?.adp_end || market?.ecr_scrape
           ? `Market as of ADP ${market.adp_end ?? "—"} · ECR ${market.ecr_scrape ?? "—"} · ${
               market.scoring ?? "half-ppr"
@@ -308,8 +328,8 @@ export function DraftScreen() {
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Draft Checklist All tab is ordered by ADP; checkmarks come from the sealed SSS screenshot
-          board. Our Rankings is the league VORP board. Mark drafted to hide a player across both.
+          Draft Checklist All tab is ordered by ADP; context pills are Vegas volume/offense and Sharp
+          SOS ranks. Our Rankings is the league VORP board. Mark drafted to hide a player across both.
         </p>
 
         <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">
@@ -406,21 +426,21 @@ export function DraftScreen() {
             </div>
           )}
           {pane === "checklist" ? (
-            <div className="field draft-min-checks-field">
-              <label htmlFor="draft-mold-filter">Min checks</label>
+            <div className="field draft-max-avg-rank-field">
+              <label htmlFor="draft-mold-filter">Max avg rank</label>
               <select
                 id="draft-mold-filter"
-                value={minChecks}
+                value={maxAvgRank}
                 onChange={(event) => {
-                  setMinChecks(Number(event.target.value));
+                  setMaxAvgRank(Number(event.target.value));
                   setVisibleCount(25);
                 }}
               >
                 <option value={0}>Any</option>
-                <option value={1}>≥1</option>
-                <option value={2}>≥2</option>
-                <option value={3}>≥3</option>
-                <option value={4}>≥4</option>
+                <option value={8}>≤8</option>
+                <option value={12}>≤12</option>
+                <option value={16}>≤16</option>
+                <option value={24}>≤24</option>
               </select>
             </div>
           ) : null}
@@ -506,20 +526,24 @@ export function DraftScreen() {
                                 : entry.prior_pts != null
                                   ? ` · ${entry.prior_pts.toFixed(0)} pts`
                                   : ""}
+                            {entry.vegas_fp != null
+                              ? ` · Vegas FP ${entry.vegas_fp.toFixed(1)}`
+                              : ""}
                           </span>
                         </div>
-                        <div className="draft-check-pills" aria-label={`${entry.name} checks`}>
+                        <div className="draft-rank-pills" aria-label={`${entry.name} ranks`}>
                           {keys.map((key) => {
-                            const ok = Boolean(entry.checks[key]);
+                            const rank = entry.ranks[key];
                             const label = shortCheckLabel(key, criteriaLabels);
+                            const display =
+                              rank == null || Number.isNaN(rank) ? "—" : String(rank);
                             return (
                               <span
                                 key={key}
-                                className={`draft-check-pill ${ok ? "is-yes" : "is-no"}`}
-                                title={`${criteriaLabels[key] ?? key}: ${ok ? "Yes" : "No"}`}
+                                className={`draft-rank-pill ${rankTierClass(rank)}`}
+                                title={`${criteriaLabels[key] ?? key}: ${display}`}
                               >
-                                <span aria-hidden="true">{ok ? "✓" : "✕"}</span>
-                                {label}
+                                {label} {display}
                               </span>
                             );
                           })}

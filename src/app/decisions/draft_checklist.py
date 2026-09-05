@@ -1,4 +1,4 @@
-"""Load sealed draft checklist for the PWA (market ranks + context checks)."""
+"""Load sealed draft checklist for the PWA (market ranks + context ranks)."""
 
 from __future__ import annotations
 
@@ -105,9 +105,14 @@ class DraftChecklistService:
                     "adp": row.get("adp"),
                     "ecr": row.get("ecr"),
                     "prior_pts": row.get("prior_pts"),
+                    "vegas_fp": row.get("vegas_fp"),
                     "rank_tier": row.get("rank_tier"),
                     "pos_market_rank": row.get("pos_market_rank"),
                     "unranked_break": bool(row.get("unranked_break")),
+                    "ranks": {
+                        key: (int(value) if value is not None else None)
+                        for key, value in dict(row.get("ranks") or {}).items()
+                    },
                     "checks": dict(row.get("checks") or {}),
                 }
             )
@@ -120,7 +125,11 @@ class DraftChecklistService:
             "entries": entries,
             "teams": list(payload.get("teams") or []),
             "criteria_by_position": dict(payload.get("criteria_by_position") or {}),
-            "criteria_labels": dict(meta.get("criteria_labels") or {}),
+            "criteria_labels": dict(
+                meta.get("criteria_labels")
+                or payload.get("criteria_labels")
+                or {}
+            ),
             "meta": meta,
             "data_as_of": meta.get("generated_at"),
             "projection_run_id": f"checklist-{season}",

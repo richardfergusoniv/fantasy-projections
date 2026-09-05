@@ -1,0 +1,2451 @@
+{
+  "source": "sharp_rotogrinders_sbr",
+  "fetched_at": "2026-09-05T03:18:53.919166+00:00",
+  "urls": [
+    "https://www.sharpfootballanalysis.com/fantasy/strength-of-schedule-fantasy-football/",
+    "https://www.sharpfootballanalysis.com/fantasy/nfl-implied-team-totals-tool/",
+    "https://www.sharpfootballanalysis.com/betting/nfl-team-win-totals-odds-best-bets/",
+    "https://www.sharpfootballanalysis.com/analysis/nfl-strength-of-schedule/",
+    "https://www.sharpfootballanalysis.com/betting/nfl-season-long-player-props/",
+    "https://www.sharpfootballanalysis.com/betting/nfl-receiving-player-prop-overs/",
+    "https://rotogrinders.com/articles/2026-nfl-team-previews-4213312",
+    "https://rotogrinders.com/grids/2026-nfl-best-prop-bets-4043258",
+    "https://rotogrinders.com/grids/nfl-season-player-prop-projections-4042446",
+    "https://www.sportsbookreview.com/picks/nfl/football-win-totals/",
+    "https://www.sportsbookreview.com/betting-odds/nfl-football/futures/",
+    "https://www.sportsbookreview.com/picks/nfl/football-mvp-odds/",
+    "https://www.sportsbookreview.com/picks/nfl/most-regular-season-passing-yards-odds/",
+    "https://www.sportsbookreview.com/picks/nfl/most-regular-season-rushing-yards-odds/",
+    "https://www.sportsbookreview.com/picks/nfl/most-regular-season-receiving-yards-odds/",
+    "https://www.sharpfootballanalysis.com/analysis/nfl-schedule-release-2026/",
+    "https://www.sportsbookreview.com/picks/nfl/football-win-total-predictions-2026/",
+    "https://www.sportsbookreview.com/betting-odds/nfl-football/"
+  ],
+  "players": [
+    {
+      "name": "Baker Mayfield",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 4500,
+        "mvp_implied_prob": 0.022000000000000002
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Bijan Robinson",
+      "team": "ATL",
+      "position": "RB",
+      "markets": {
+        "rg_projection_sample": {
+          "payds": 0.0,
+          "patd": 0.0,
+          "ruyds": 70.99,
+          "rutd": 0.5,
+          "reyds": 40.17,
+          "retd": 0.24,
+          "rec": 5.07,
+          "tar": 6.68,
+          "totyd": 111.16,
+          "tottd": 0.74
+        },
+        "rg_projection_note": "sample_row_from_public_html_may_be_weekly_not_season",
+        "mvp_odds": 10000,
+        "mvp_implied_prob": 0.01
+      },
+      "provider": "rotogrinders,sbr"
+    },
+    {
+      "name": "Bo Nix",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 3500,
+        "mvp_implied_prob": 0.027999999999999997
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Brian Robinson",
+      "team": "ATL",
+      "position": "RB",
+      "markets": {
+        "rg_projection_sample": {
+          "payds": 0.0,
+          "patd": 0.0,
+          "ruyds": 29.92,
+          "rutd": 0.24,
+          "reyds": 5.11,
+          "retd": 0.02,
+          "rec": 0.69,
+          "tar": 0.96,
+          "totyd": 35.03,
+          "tottd": 0.26
+        },
+        "rg_projection_note": "sample_row_from_public_html_may_be_weekly_not_season"
+      },
+      "provider": "rotogrinders"
+    },
+    {
+      "name": "Brock Purdy",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 2000,
+        "mvp_implied_prob": 0.048
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Bryce Young",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 12500,
+        "mvp_implied_prob": 0.008
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "C.J. Stroud",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 6000,
+        "mvp_implied_prob": 0.016
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Caleb Williams",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 1800,
+        "mvp_implied_prob": 0.053
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Cam Ward",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 6500,
+        "mvp_implied_prob": 0.015
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Colston Loveland",
+      "team": "CHI",
+      "position": "TE",
+      "markets": {
+        "season_receiving_yards": {
+          "line": 1000.0,
+          "side_pick": "over",
+          "odds": 200,
+          "raw": "Colston Loveland \u2014 Over 1000 Receiving Yards (+200)"
+        },
+        "sharp_proj_receptions": 90,
+        "sharp_proj_receiving_yards": 1068
+      },
+      "provider": "sharp_football"
+    },
+    {
+      "name": "D.J. Moore",
+      "team": "BUF",
+      "position": "WR",
+      "markets": {
+        "season_receptions": {
+          "line": 59.5,
+          "side_pick": "over",
+          "odds": -115,
+          "raw": "D.J. Moore \u2014 Over 59.5 Receptions (-115)"
+        },
+        "sharp_proj_receptions": 83,
+        "sharp_proj_receiving_yards": 1100,
+        "season_receiving_yards": {
+          "line": 824.5,
+          "side_pick": "over",
+          "odds": -115,
+          "raw": "D.J. Moore \u2014 Over 824.5 Receiving Yards (-115)"
+        }
+      },
+      "provider": "sharp_football"
+    },
+    {
+      "name": "Dak Prescott",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 1300,
+        "mvp_implied_prob": 0.071
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Daniel Jones",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 8000,
+        "mvp_implied_prob": 0.012
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "David Montgomery",
+      "team": "DET",
+      "position": "RB",
+      "markets": {
+        "season_rushing_touchdowns": {
+          "line": 7.5,
+          "side_pick": "over",
+          "odds": -102,
+          "raw": "David Montgomery \u2014 Over 7.5 Rushing Touchdowns (-102)"
+        }
+      },
+      "provider": "sharp_football"
+    },
+    {
+      "name": "Dontayvion Wicks",
+      "team": "GB",
+      "position": "WR",
+      "markets": {
+        "rg_best_bet_total_receiving_yards": {
+          "line": 599.5,
+          "side": "under",
+          "book": "draftkings",
+          "win_pct": 61.69,
+          "edge_pct": 9.3,
+          "rank": 3
+        },
+        "season_total_receiving_yards": {
+          "line": 599.5,
+          "book": "draftkings",
+          "source": "rotogrinders_best_bets"
+        }
+      },
+      "provider": "rotogrinders"
+    },
+    {
+      "name": "Drake Maye",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 850,
+        "mvp_implied_prob": 0.105
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Fernando Mendoza",
+      "team": "LV",
+      "position": "QB",
+      "markets": {
+        "season_passing_yards": {
+          "line": 2299.5,
+          "side_pick": "under",
+          "odds": -115,
+          "raw": "Fernando Mendoza \u2014 Under 2299.5 Passing Yards (-115)"
+        }
+      },
+      "provider": "sharp_football"
+    },
+    {
+      "name": "Geno Smith",
+      "team": "LV",
+      "position": "QB",
+      "markets": {
+        "rg_best_bet_total_passing_yards": {
+          "line": 2850.5,
+          "side": "under",
+          "book": "fanduel",
+          "win_pct": 63.86,
+          "edge_pct": 10.59,
+          "rank": 2
+        },
+        "season_total_passing_yards": {
+          "line": 2850.5,
+          "book": "fanduel",
+          "source": "rotogrinders_best_bets"
+        }
+      },
+      "provider": "rotogrinders"
+    },
+    {
+      "name": "J.J. McCarthy",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 12500,
+        "mvp_implied_prob": 0.008
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Ja'Marr Chase",
+      "team": null,
+      "position": "WR",
+      "markets": {
+        "mvp_odds": 12500,
+        "mvp_implied_prob": 0.008
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Jahmyr Gibbs",
+      "team": null,
+      "position": "RB",
+      "markets": {
+        "mvp_odds": 12500,
+        "mvp_implied_prob": 0.008
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Jalen Hurts",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 3500,
+        "mvp_implied_prob": 0.027999999999999997
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Jared Goff",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 4000,
+        "mvp_implied_prob": 0.024
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Jaxon Smith-Njigba",
+      "team": "SEA",
+      "position": "WR",
+      "markets": {
+        "season_receiving_yards": {
+          "line": 1324.5,
+          "side_pick": "under",
+          "odds": -110,
+          "raw": "Jaxon Smith-Njigba \u2014 Under 1324.5 Receiving Yards (-110)"
+        }
+      },
+      "provider": "sharp_football"
+    },
+    {
+      "name": "Jaxson Dart",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 5500,
+        "mvp_implied_prob": 0.018000000000000002
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Jayden Daniels",
+      "team": "WAS",
+      "position": "QB",
+      "markets": {
+        "rg_best_bet_total_rushing_yards": {
+          "line": 575.5,
+          "side": "under",
+          "book": "riverscasino",
+          "win_pct": 60.12,
+          "edge_pct": 6.63,
+          "rank": 6
+        },
+        "season_total_rushing_yards": {
+          "line": 575.5,
+          "book": "riverscasino",
+          "source": "rotogrinders_best_bets"
+        },
+        "mvp_odds": 2000,
+        "mvp_implied_prob": 0.048
+      },
+      "provider": "rotogrinders,sbr"
+    },
+    {
+      "name": "Jerry Jeudy",
+      "team": "CLE",
+      "position": "WR",
+      "markets": {
+        "rg_best_bet_total_receiving_yards": {
+          "line": 549.5,
+          "side": "under",
+          "book": "draftkings",
+          "win_pct": 68.51,
+          "edge_pct": 16.13,
+          "rank": 1
+        },
+        "season_total_receiving_yards": {
+          "line": 549.5,
+          "book": "draftkings",
+          "source": "rotogrinders_best_bets"
+        }
+      },
+      "provider": "rotogrinders"
+    },
+    {
+      "name": "Joe Burrow",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 1000,
+        "mvp_implied_prob": 0.091
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Jonathan Taylor",
+      "team": "IND",
+      "position": "RB",
+      "markets": {
+        "season_rushing_yards": {
+          "line": 1224.5,
+          "side_pick": "under",
+          "odds": -110,
+          "raw": "Jonathan Taylor \u2014 Under 1224.5 Rushing Yards (-110)"
+        }
+      },
+      "provider": "sharp_football"
+    },
+    {
+      "name": "Jordan Love",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 1500,
+        "mvp_implied_prob": 0.063
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Josh Allen",
+      "team": "BUF",
+      "position": "QB",
+      "markets": {
+        "season_passing_touchdowns": {
+          "line": 24.5,
+          "side_pick": "over",
+          "odds": -110,
+          "raw": "Josh Allen \u2014 Over 24.5 Passing Touchdowns (-110)"
+        },
+        "mvp_odds": 600,
+        "mvp_implied_prob": 0.14300000000000002
+      },
+      "provider": "sbr,sharp_football"
+    },
+    {
+      "name": "Justin Herbert",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 1100,
+        "mvp_implied_prob": 0.083
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Lamar Jackson",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 750,
+        "mvp_implied_prob": 0.11800000000000001
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Matthew Stafford",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 1400,
+        "mvp_implied_prob": 0.067
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Michael Penix",
+      "team": "ATL",
+      "position": "QB",
+      "markets": {
+        "rg_projection_sample": {
+          "payds": 164.72,
+          "patd": 0.99,
+          "ruyds": 2.75,
+          "rutd": 0.05,
+          "reyds": 0.0,
+          "retd": 0.0,
+          "rec": 0.0,
+          "tar": 0.0,
+          "totyd": 167.47,
+          "tottd": 1.04
+        },
+        "rg_projection_note": "sample_row_from_public_html_may_be_weekly_not_season"
+      },
+      "provider": "rotogrinders"
+    },
+    {
+      "name": "Michael Penix Jr.",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 12500,
+        "mvp_implied_prob": 0.008
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Olamide Zaccheaus",
+      "team": "ATL",
+      "position": "WR",
+      "markets": {
+        "rg_projection_sample": {
+          "payds": 0.0,
+          "patd": 0.0,
+          "ruyds": 0.45,
+          "rutd": 0.0,
+          "reyds": 16.91,
+          "retd": 0.1,
+          "rec": 1.61,
+          "tar": 2.43,
+          "totyd": 17.36,
+          "tottd": 0.1
+        },
+        "rg_projection_note": "sample_row_from_public_html_may_be_weekly_not_season"
+      },
+      "provider": "rotogrinders"
+    },
+    {
+      "name": "Omar Cooper",
+      "team": null,
+      "position": "WR",
+      "markets": {
+        "rg_best_bet_total_receiving_yards": {
+          "line": 449.5,
+          "side": "under",
+          "book": "draftkings",
+          "win_pct": 61.94,
+          "edge_pct": 8.45,
+          "rank": 4
+        },
+        "season_total_receiving_yards": {
+          "line": 449.5,
+          "book": "draftkings",
+          "source": "rotogrinders_best_bets"
+        }
+      },
+      "provider": "rotogrinders"
+    },
+    {
+      "name": "Patrick Mahomes",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 1100,
+        "mvp_implied_prob": 0.083
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Puka Nacua",
+      "team": null,
+      "position": "WR",
+      "markets": {
+        "mvp_odds": 10000,
+        "mvp_implied_prob": 0.01
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Sam Darnold",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 2700,
+        "mvp_implied_prob": 0.036000000000000004
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Trevor Lawrence",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 1500,
+        "mvp_implied_prob": 0.063
+      },
+      "provider": "sbr"
+    },
+    {
+      "name": "Tua Tagovailoa",
+      "team": "ATL",
+      "position": "QB",
+      "markets": {
+        "rg_projection_sample": {
+          "payds": 61.62,
+          "patd": 0.37,
+          "ruyds": 1.35,
+          "rutd": 0.01,
+          "reyds": 0.0,
+          "retd": 0.0,
+          "rec": 0.0,
+          "tar": 0.0,
+          "totyd": 62.97,
+          "tottd": 0.38
+        },
+        "rg_projection_note": "sample_row_from_public_html_may_be_weekly_not_season"
+      },
+      "provider": "rotogrinders"
+    },
+    {
+      "name": "Tucker Kraft",
+      "team": "GB",
+      "position": "TE",
+      "markets": {
+        "rg_best_bet_total_receiving_yards": {
+          "line": 750.5,
+          "side": "under",
+          "book": "fanduel",
+          "win_pct": 60.19,
+          "edge_pct": 6.92,
+          "rank": 5
+        },
+        "season_total_receiving_yards": {
+          "line": 750.5,
+          "book": "fanduel",
+          "source": "rotogrinders_best_bets"
+        }
+      },
+      "provider": "rotogrinders"
+    },
+    {
+      "name": "Tyler Goodson",
+      "team": "ATL",
+      "position": "RB",
+      "markets": {
+        "rg_projection_sample": {
+          "payds": 0.0,
+          "patd": 0.0,
+          "ruyds": 5.05,
+          "rutd": 0.03,
+          "reyds": 2.26,
+          "retd": 0.01,
+          "rec": 0.34,
+          "tar": 0.47,
+          "totyd": 7.31,
+          "tottd": 0.04
+        },
+        "rg_projection_note": "sample_row_from_public_html_may_be_weekly_not_season"
+      },
+      "provider": "rotogrinders"
+    },
+    {
+      "name": "Tyler Shough",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": 10000,
+        "mvp_implied_prob": 0.01
+      },
+      "provider": "sbr"
+    }
+  ],
+  "teams": [
+    {
+      "name": "Arizona Cardinals",
+      "abbr": "ARI",
+      "markets": {
+        "week1_implied_total": 18.5,
+        "week1_opponent": "at LAC",
+        "implied_ppg": 18.4,
+        "implied_season_points": 312.8,
+        "fantasy_playoffs_w15_17_implied": 60.0,
+        "win_total": 3.5,
+        "win_total_over_odds": -145,
+        "win_total_under_odds": 120,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 32,
+        "vegas_sos_win_total_ref": 3.5,
+        "rg_win_total": 4.5,
+        "sbr_win_total": 4.5,
+        "sbr_win_total_over_odds": -110,
+        "sbr_win_total_under_odds": -110,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 25000,
+          "odds_by_book": {
+            "betmgm": 25000,
+            "fanduel": 22500,
+            "draftkings": 25000,
+            "bet365": 25000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 15000,
+          "odds_by_book": {
+            "betmgm": 15000,
+            "fanduel": 15000,
+            "draftkings": 20000,
+            "bet365": 15000,
+            "fanatics": 10000
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC West - Win Division",
+          "odds": 5000,
+          "odds_by_book": {
+            "betmgm": 5000,
+            "fanduel": 3000,
+            "draftkings": 8000,
+            "bet365": 8000
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Atlanta Falcons",
+      "abbr": "ATL",
+      "markets": {
+        "week1_implied_total": 19.75,
+        "week1_opponent": "at PIT",
+        "implied_ppg": 21.0,
+        "implied_season_points": 357.0,
+        "fantasy_playoffs_w15_17_implied": 66.25,
+        "win_total": 7.5,
+        "win_total_over_odds": 115,
+        "win_total_under_odds": -140,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 19,
+        "vegas_sos_win_total_ref": 6.5,
+        "rg_win_total": 7.5,
+        "sbr_win_total": 6.5,
+        "sbr_win_total_over_odds": -140,
+        "sbr_win_total_under_odds": 115,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 6600,
+          "odds_by_book": {
+            "betmgm": 6600,
+            "fanduel": 5000,
+            "draftkings": 8000,
+            "bet365": 6000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 4000,
+          "odds_by_book": {
+            "betmgm": 4000,
+            "fanduel": 3000,
+            "draftkings": 5000,
+            "bet365": 4500,
+            "fanatics": 2800
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC South - Win Division",
+          "odds": 333,
+          "odds_by_book": {
+            "betmgm": 333,
+            "fanduel": 270,
+            "draftkings": 425,
+            "bet365": 325
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Baltimore Ravens",
+      "abbr": "BAL",
+      "markets": {
+        "week1_implied_total": 25.5,
+        "week1_opponent": "at IND",
+        "implied_ppg": 25.3,
+        "implied_season_points": 430.1,
+        "fantasy_playoffs_w15_17_implied": 73.0,
+        "win_total": 11.5,
+        "win_total_over_odds": 120,
+        "win_total_under_odds": -145,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 5,
+        "vegas_sos_win_total_ref": 11.5,
+        "rg_win_total": 11.5,
+        "sbr_win_total": 10.5,
+        "sbr_win_total_over_odds": -145,
+        "sbr_win_total_under_odds": 120,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 1200,
+          "odds_by_book": {
+            "betmgm": 1200,
+            "fanduel": 1200,
+            "draftkings": 1300,
+            "bet365": 1200
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 500,
+          "odds_by_book": {
+            "betmgm": 500,
+            "fanduel": 550,
+            "draftkings": 500,
+            "bet365": 500,
+            "fanatics": 575
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC North - Win Division",
+          "odds": -130,
+          "odds_by_book": {
+            "betmgm": -130,
+            "fanduel": -120,
+            "draftkings": -120,
+            "bet365": -135
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Buffalo Bills",
+      "abbr": "BUF",
+      "markets": {
+        "week1_implied_total": 23.0,
+        "week1_opponent": "at HOU",
+        "implied_ppg": 26.1,
+        "implied_season_points": 443.7,
+        "fantasy_playoffs_w15_17_implied": 79.25,
+        "win_total": 10.5,
+        "win_total_over_odds": -130,
+        "win_total_under_odds": 110,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 14,
+        "vegas_sos_win_total_ref": 10.5,
+        "rg_win_total": 10.5,
+        "sbr_win_total": 10.5,
+        "sbr_win_total_over_odds": -125,
+        "sbr_win_total_under_odds": 105,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 1200,
+          "odds_by_book": {
+            "betmgm": 1200,
+            "fanduel": 1200,
+            "draftkings": 1100,
+            "bet365": 1100
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 450,
+          "odds_by_book": {
+            "betmgm": 450,
+            "fanduel": 500,
+            "draftkings": 500,
+            "bet365": 500,
+            "fanatics": 550
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC East - Win Division",
+          "odds": -155,
+          "odds_by_book": {
+            "betmgm": -155,
+            "fanduel": -135,
+            "draftkings": -145,
+            "bet365": -145,
+            "fanatics": -200
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Carolina Panthers",
+      "abbr": "CAR",
+      "markets": {
+        "week1_implied_total": 22.5,
+        "week1_opponent": "vs CHI",
+        "implied_ppg": 20.1,
+        "implied_season_points": 341.7,
+        "fantasy_playoffs_w15_17_implied": 58.5,
+        "win_total": 7.5,
+        "win_total_over_odds": 125,
+        "win_total_under_odds": -150,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 30,
+        "vegas_sos_win_total_ref": 7.5,
+        "rg_win_total": 7.5,
+        "sbr_win_total": 6.5,
+        "sbr_win_total_over_odds": -120,
+        "sbr_win_total_under_odds": 100,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 10000,
+          "odds_by_book": {
+            "betmgm": 10000,
+            "fanduel": 15000,
+            "draftkings": 10000,
+            "bet365": 12500
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 5000,
+          "odds_by_book": {
+            "betmgm": 5000,
+            "fanduel": 3500,
+            "draftkings": 4000,
+            "bet365": 5000,
+            "fanatics": 6000
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC South - Win Division",
+          "odds": 350,
+          "odds_by_book": {
+            "betmgm": 350,
+            "fanduel": 320,
+            "draftkings": 330,
+            "bet365": 350,
+            "fanatics": 1000
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Chicago Bears",
+      "abbr": "CHI",
+      "markets": {
+        "week1_implied_total": 25.0,
+        "week1_opponent": "at CAR",
+        "implied_ppg": 24.4,
+        "implied_season_points": 414.8,
+        "fantasy_playoffs_w15_17_implied": 73.25,
+        "win_total": 9.5,
+        "win_total_over_odds": 105,
+        "win_total_under_odds": -125,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 26,
+        "vegas_sos_win_total_ref": 9.5,
+        "rg_win_total": 9.5,
+        "sbr_win_total": 9.5,
+        "sbr_win_total_over_odds": 100,
+        "sbr_win_total_under_odds": -120,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 2500,
+          "odds_by_book": {
+            "betmgm": 2500,
+            "fanduel": 2700,
+            "draftkings": 2500,
+            "bet365": 2500
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 1300,
+          "odds_by_book": {
+            "betmgm": 1300,
+            "fanduel": 1300,
+            "draftkings": 1300,
+            "bet365": 1200,
+            "fanatics": 1200
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC North - Win Division",
+          "odds": 333,
+          "odds_by_book": {
+            "betmgm": 333,
+            "fanduel": 310,
+            "draftkings": 340,
+            "bet365": 340
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Cincinnati Bengals",
+      "abbr": "CIN",
+      "markets": {
+        "week1_implied_total": 27.0,
+        "week1_opponent": "vs TB",
+        "implied_ppg": 25.6,
+        "implied_season_points": 435.2,
+        "fantasy_playoffs_w15_17_implied": 77.25,
+        "win_total": 9.5,
+        "win_total_over_odds": -155,
+        "win_total_under_odds": 130,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 2,
+        "vegas_sos_win_total_ref": 10.5,
+        "rg_win_total": 10.5,
+        "sbr_win_total": 9.5,
+        "sbr_win_total_over_odds": -115,
+        "sbr_win_total_under_odds": -105,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 3000,
+          "odds_by_book": {
+            "betmgm": 3000,
+            "fanduel": 3000,
+            "draftkings": 2500,
+            "bet365": 2800
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 1200,
+          "odds_by_book": {
+            "betmgm": 1200,
+            "fanduel": 1100,
+            "draftkings": 1200,
+            "bet365": 1400,
+            "fanatics": 1400
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC North - Win Division",
+          "odds": 240,
+          "odds_by_book": {
+            "betmgm": 240,
+            "fanduel": 190,
+            "draftkings": 230,
+            "bet365": 250
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Cleveland Browns",
+      "abbr": "CLE",
+      "markets": {
+        "week1_implied_total": 16.5,
+        "week1_opponent": "at JAX",
+        "implied_ppg": 17.9,
+        "implied_season_points": 304.3,
+        "fantasy_playoffs_w15_17_implied": 52.5,
+        "win_total": 5.5,
+        "win_total_over_odds": -135,
+        "win_total_under_odds": 110,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 6,
+        "vegas_sos_win_total_ref": 5.5,
+        "rg_win_total": 5.5,
+        "sbr_win_total": 6.5,
+        "sbr_win_total_over_odds": 100,
+        "sbr_win_total_under_odds": -120,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 15000,
+          "odds_by_book": {
+            "betmgm": 15000,
+            "fanduel": 12500,
+            "draftkings": 15000,
+            "bet365": 15000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 8000,
+          "odds_by_book": {
+            "betmgm": 8000,
+            "fanduel": 10000,
+            "draftkings": 7500,
+            "bet365": 10000,
+            "fanatics": 5500
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC North - Win Division",
+          "odds": 1700,
+          "odds_by_book": {
+            "betmgm": 1700,
+            "fanduel": 1800,
+            "draftkings": 1800,
+            "bet365": 1600,
+            "fanatics": 2500
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Dallas Cowboys",
+      "abbr": "DAL",
+      "markets": {
+        "week1_implied_total": 25.5,
+        "week1_opponent": "at NYG",
+        "implied_ppg": 25.4,
+        "implied_season_points": 431.8,
+        "fantasy_playoffs_w15_17_implied": 77.25,
+        "win_total": 9.5,
+        "win_total_over_odds": 105,
+        "win_total_under_odds": -125,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 28,
+        "vegas_sos_win_total_ref": 9.5,
+        "rg_win_total": 8.5,
+        "sbr_win_total": 8.5,
+        "sbr_win_total_over_odds": -130,
+        "sbr_win_total_under_odds": 110,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 3000,
+          "odds_by_book": {
+            "betmgm": 3000,
+            "fanduel": 3000,
+            "draftkings": 3500,
+            "bet365": 3300
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 1600,
+          "odds_by_book": {
+            "betmgm": 1600,
+            "fanduel": 1200,
+            "draftkings": 1400,
+            "bet365": 1400,
+            "fanatics": 1600
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC East - Win Division",
+          "odds": 230,
+          "odds_by_book": {
+            "betmgm": 230,
+            "fanduel": 200,
+            "draftkings": 210,
+            "bet365": 220
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Denver Broncos",
+      "abbr": "DEN",
+      "markets": {
+        "week1_implied_total": 20.25,
+        "week1_opponent": "at KC",
+        "implied_ppg": 22.0,
+        "implied_season_points": 374.0,
+        "fantasy_playoffs_w15_17_implied": 64.5,
+        "win_total": 9.5,
+        "win_total_over_odds": -125,
+        "win_total_under_odds": 105,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 11,
+        "vegas_sos_win_total_ref": 9.5,
+        "rg_win_total": 9.5,
+        "sbr_win_total": 9.5,
+        "sbr_win_total_over_odds": -110,
+        "sbr_win_total_under_odds": -110,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 2000,
+          "odds_by_book": {
+            "betmgm": 2000,
+            "fanduel": 2000,
+            "draftkings": 1800,
+            "bet365": 1800
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 900,
+          "odds_by_book": {
+            "betmgm": 900,
+            "fanduel": 950,
+            "draftkings": 900,
+            "bet365": 900,
+            "fanatics": 800
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC West - Win Division",
+          "odds": 200,
+          "odds_by_book": {
+            "betmgm": 200,
+            "fanduel": 210,
+            "draftkings": 220,
+            "bet365": 210
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Detroit Lions",
+      "abbr": "DET",
+      "markets": {
+        "week1_implied_total": 28.75,
+        "week1_opponent": "vs NO",
+        "implied_ppg": 25.9,
+        "implied_season_points": 440.3,
+        "fantasy_playoffs_w15_17_implied": 75.0,
+        "win_total": 10.5,
+        "win_total_over_odds": -130,
+        "win_total_under_odds": 110,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 1,
+        "vegas_sos_win_total_ref": 10.5,
+        "rg_win_total": 10.5,
+        "sbr_win_total": 10.5,
+        "sbr_win_total_over_odds": -130,
+        "sbr_win_total_under_odds": 110,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 1500,
+          "odds_by_book": {
+            "betmgm": 1500,
+            "fanduel": 1600,
+            "draftkings": 1400,
+            "bet365": 1500
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 800,
+          "odds_by_book": {
+            "betmgm": 800,
+            "fanduel": 850,
+            "draftkings": 850,
+            "bet365": 850,
+            "fanatics": 800
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC North - Win Division",
+          "odds": 175,
+          "odds_by_book": {
+            "betmgm": 175,
+            "fanduel": 155,
+            "draftkings": 180,
+            "bet365": 170
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Green Bay Packers",
+      "abbr": "GB",
+      "markets": {
+        "week1_implied_total": 22.0,
+        "week1_opponent": "at MIN",
+        "implied_ppg": 24.4,
+        "implied_season_points": 414.8,
+        "fantasy_playoffs_w15_17_implied": 72.75,
+        "win_total": 9.5,
+        "win_total_over_odds": -125,
+        "win_total_under_odds": 105,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 24,
+        "vegas_sos_win_total_ref": 9.5,
+        "rg_win_total": 9.5,
+        "sbr_win_total": 10.5,
+        "sbr_win_total_over_odds": 100,
+        "sbr_win_total_under_odds": -120,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 1400,
+          "odds_by_book": {
+            "betmgm": 1400,
+            "fanduel": 1300,
+            "draftkings": 1400,
+            "bet365": 1400
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 750,
+          "odds_by_book": {
+            "betmgm": 750,
+            "fanduel": 1000,
+            "draftkings": 750,
+            "bet365": 850,
+            "fanatics": 800
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC North - Win Division",
+          "odds": 200,
+          "odds_by_book": {
+            "betmgm": 200,
+            "fanduel": 230,
+            "draftkings": 190,
+            "bet365": 190,
+            "fanatics": 100
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Houston Texans",
+      "abbr": "HOU",
+      "markets": {
+        "week1_implied_total": 21.5,
+        "week1_opponent": "vs BUF",
+        "implied_ppg": 22.1,
+        "implied_season_points": 375.7,
+        "fantasy_playoffs_w15_17_implied": 60.0,
+        "win_total": 9.5,
+        "win_total_over_odds": -145,
+        "win_total_under_odds": 120,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 22,
+        "vegas_sos_win_total_ref": 9.5,
+        "rg_win_total": 9.5,
+        "sbr_win_total": 9.5,
+        "sbr_win_total_over_odds": -110,
+        "sbr_win_total_under_odds": -110,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 2000,
+          "odds_by_book": {
+            "betmgm": 2000,
+            "fanduel": 2000,
+            "draftkings": 2000,
+            "bet365": 2000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 1000,
+          "odds_by_book": {
+            "betmgm": 1000,
+            "fanduel": 950,
+            "draftkings": 900,
+            "bet365": 1000,
+            "fanatics": 1000
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC South - Win Division",
+          "odds": 160,
+          "odds_by_book": {
+            "betmgm": 160,
+            "fanduel": 140,
+            "draftkings": 135,
+            "bet365": 135
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Indianapolis Colts",
+      "abbr": "IND",
+      "markets": {
+        "week1_implied_total": 22.0,
+        "week1_opponent": "vs BAL",
+        "implied_ppg": 22.9,
+        "implied_season_points": 389.3,
+        "fantasy_playoffs_w15_17_implied": 70.75,
+        "win_total": 7.5,
+        "win_total_over_odds": -135,
+        "win_total_under_odds": 110,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 9,
+        "vegas_sos_win_total_ref": 7.5,
+        "rg_win_total": 8.5,
+        "sbr_win_total": 8.5,
+        "sbr_win_total_over_odds": 105,
+        "sbr_win_total_under_odds": -125,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 4000,
+          "odds_by_book": {
+            "betmgm": 4000,
+            "fanduel": 4000,
+            "draftkings": 6000,
+            "bet365": 5000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 2500,
+          "odds_by_book": {
+            "betmgm": 2500,
+            "fanduel": 2000,
+            "draftkings": 2800,
+            "bet365": 2200,
+            "fanatics": 2200
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC South - Win Division",
+          "odds": 350,
+          "odds_by_book": {
+            "betmgm": 350,
+            "fanduel": 350,
+            "draftkings": 400,
+            "bet365": 350
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Jacksonville Jaguars",
+      "abbr": "JAX",
+      "markets": {
+        "week1_implied_total": 24.0,
+        "week1_opponent": "vs CLE",
+        "implied_ppg": 23.2,
+        "implied_season_points": 394.4,
+        "fantasy_playoffs_w15_17_implied": 70.0,
+        "win_total": 9.5,
+        "win_total_over_odds": 120,
+        "win_total_under_odds": -145,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 18,
+        "vegas_sos_win_total_ref": 8.5,
+        "rg_win_total": 9.5,
+        "sbr_win_total": 9.5,
+        "sbr_win_total_over_odds": 100,
+        "sbr_win_total_under_odds": -120,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 2000,
+          "odds_by_book": {
+            "betmgm": 2000,
+            "fanduel": 2000,
+            "draftkings": 2200,
+            "bet365": 2200
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 1100,
+          "odds_by_book": {
+            "betmgm": 1100,
+            "fanduel": 1200,
+            "draftkings": 1200,
+            "bet365": 1100,
+            "fanatics": 950
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC South - Win Division",
+          "odds": 175,
+          "odds_by_book": {
+            "betmgm": 175,
+            "fanduel": 190,
+            "draftkings": 195,
+            "bet365": 180,
+            "fanatics": 290
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Kansas City Chiefs",
+      "abbr": "KC",
+      "markets": {
+        "week1_implied_total": 22.75,
+        "week1_opponent": "vs DEN",
+        "implied_ppg": 23.9,
+        "implied_season_points": 406.3,
+        "fantasy_playoffs_w15_17_implied": 71.0,
+        "win_total": 10.5,
+        "win_total_over_odds": 115,
+        "win_total_under_odds": -135,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 12,
+        "vegas_sos_win_total_ref": 10.5,
+        "rg_win_total": 10.5,
+        "sbr_win_total": 10.5,
+        "sbr_win_total_over_odds": -105,
+        "sbr_win_total_under_odds": -115,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 1400,
+          "odds_by_book": {
+            "betmgm": 1400,
+            "fanduel": 1600,
+            "draftkings": 1500,
+            "bet365": 1400
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 750,
+          "odds_by_book": {
+            "betmgm": 750,
+            "fanduel": 800,
+            "draftkings": 750,
+            "bet365": 700,
+            "fanatics": 700
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC West - Win Division",
+          "odds": 180,
+          "odds_by_book": {
+            "betmgm": 180,
+            "fanduel": 175,
+            "draftkings": 165,
+            "bet365": 170
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Los Angeles Rams",
+      "abbr": "LA",
+      "markets": {
+        "week1_implied_total": 26.0,
+        "week1_opponent": "vs SF",
+        "implied_ppg": 26.7,
+        "implied_season_points": 453.9,
+        "fantasy_playoffs_w15_17_implied": 78.75,
+        "win_total": 11.5,
+        "win_total_over_odds": -140,
+        "win_total_under_odds": 115,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 27,
+        "vegas_sos_win_total_ref": 11.5,
+        "rg_win_total": 11.5,
+        "sbr_win_total": 10.5,
+        "sbr_win_total_over_odds": -140,
+        "sbr_win_total_under_odds": 115,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 900,
+          "odds_by_book": {
+            "betmgm": 900,
+            "fanduel": 800,
+            "draftkings": 950,
+            "bet365": 900
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 400,
+          "odds_by_book": {
+            "betmgm": 400,
+            "fanduel": 380,
+            "draftkings": 400,
+            "bet365": 400,
+            "fanatics": 400
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC West - Win Division",
+          "odds": 145,
+          "odds_by_book": {
+            "betmgm": 145,
+            "fanduel": 130,
+            "draftkings": 140,
+            "bet365": 140
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Los Angeles Chargers",
+      "abbr": "LAC",
+      "markets": {
+        "week1_implied_total": 29.0,
+        "week1_opponent": "vs ARI",
+        "implied_ppg": 23.7,
+        "implied_season_points": 402.9,
+        "fantasy_playoffs_w15_17_implied": 73.75,
+        "win_total": 10.5,
+        "win_total_over_odds": 120,
+        "win_total_under_odds": -145,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 20,
+        "vegas_sos_win_total_ref": 9.5,
+        "rg_win_total": 10.5,
+        "sbr_win_total": 10.5,
+        "sbr_win_total_over_odds": 110,
+        "sbr_win_total_under_odds": -130,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 1500,
+          "odds_by_book": {
+            "betmgm": 1500,
+            "fanduel": 1500,
+            "draftkings": 1500,
+            "bet365": 1400
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 825,
+          "odds_by_book": {
+            "betmgm": 825,
+            "fanduel": 700,
+            "draftkings": 800,
+            "bet365": 750,
+            "fanatics": 700
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC West - Win Division",
+          "odds": 185,
+          "odds_by_book": {
+            "betmgm": 185,
+            "fanduel": 180,
+            "draftkings": 185,
+            "bet365": 180,
+            "fanatics": 275
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Las Vegas Raiders",
+      "abbr": "LV",
+      "markets": {
+        "week1_implied_total": 22.0,
+        "week1_opponent": "vs MIA",
+        "implied_ppg": 18.8,
+        "implied_season_points": 319.6,
+        "fantasy_playoffs_w15_17_implied": 61.25,
+        "win_total": 5.5,
+        "win_total_over_odds": -155,
+        "win_total_under_odds": 130,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 13,
+        "vegas_sos_win_total_ref": 5.5,
+        "rg_win_total": 5.5,
+        "sbr_win_total": 5.5,
+        "sbr_win_total_over_odds": 115,
+        "sbr_win_total_under_odds": -140,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 15000,
+          "odds_by_book": {
+            "betmgm": 15000,
+            "fanduel": 12500,
+            "draftkings": 18000,
+            "bet365": 15000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 8000,
+          "odds_by_book": {
+            "betmgm": 8000,
+            "fanduel": 7000,
+            "draftkings": 7500,
+            "bet365": 6000,
+            "fanatics": 5500
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC West - Win Division",
+          "odds": 2500,
+          "odds_by_book": {
+            "betmgm": 2500,
+            "fanduel": 1800,
+            "draftkings": 2200,
+            "bet365": 2000
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Miami Dolphins",
+      "abbr": "MIA",
+      "markets": {
+        "week1_implied_total": 18.5,
+        "week1_opponent": "at LV",
+        "implied_ppg": 18.6,
+        "implied_season_points": 316.2,
+        "fantasy_playoffs_w15_17_implied": 55.25,
+        "win_total": 4.5,
+        "win_total_over_odds": 145,
+        "win_total_under_odds": -175,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 31,
+        "vegas_sos_win_total_ref": 4.5,
+        "rg_win_total": 4.5,
+        "sbr_win_total": 4.5,
+        "sbr_win_total_over_odds": -110,
+        "sbr_win_total_under_odds": -110,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 25000,
+          "odds_by_book": {
+            "betmgm": 25000,
+            "fanduel": 22500,
+            "draftkings": 20000,
+            "bet365": 20000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 10000,
+          "odds_by_book": {
+            "betmgm": 10000,
+            "fanduel": 15000,
+            "draftkings": 15000,
+            "bet365": 15000,
+            "fanatics": 9000
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC East - Win Division",
+          "odds": 2800,
+          "odds_by_book": {
+            "betmgm": 2800,
+            "fanduel": 3000,
+            "draftkings": 2800,
+            "bet365": 2800
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Minnesota Vikings",
+      "abbr": "MIN",
+      "markets": {
+        "week1_implied_total": 23.5,
+        "week1_opponent": "vs GB",
+        "implied_ppg": 22.0,
+        "implied_season_points": 374.0,
+        "fantasy_playoffs_w15_17_implied": 67.5,
+        "win_total": 8.5,
+        "win_total_over_odds": -110,
+        "win_total_under_odds": -110,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 15,
+        "vegas_sos_win_total_ref": 8.5,
+        "rg_win_total": 8.5,
+        "sbr_win_total": 8.5,
+        "sbr_win_total_over_odds": 115,
+        "sbr_win_total_under_odds": -140,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 5000,
+          "odds_by_book": {
+            "betmgm": 5000,
+            "fanduel": 5500,
+            "draftkings": 6000,
+            "bet365": 6000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 2500,
+          "odds_by_book": {
+            "betmgm": 2500,
+            "fanduel": 2500,
+            "draftkings": 2200,
+            "bet365": 2500,
+            "fanatics": 2500
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC North - Win Division",
+          "odds": 550,
+          "odds_by_book": {
+            "betmgm": 550,
+            "fanduel": 550,
+            "draftkings": 550,
+            "bet365": 550
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "New England Patriots",
+      "abbr": "NE",
+      "markets": {
+        "week1_implied_total": 20.5,
+        "week1_opponent": "at SEA",
+        "implied_ppg": 23.6,
+        "implied_season_points": 401.2,
+        "fantasy_playoffs_w15_17_implied": 67.25,
+        "win_total": 10.5,
+        "win_total_over_odds": 120,
+        "win_total_under_odds": -145,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 10,
+        "vegas_sos_win_total_ref": 10.5,
+        "rg_win_total": 10.5,
+        "sbr_win_total": 9.5,
+        "sbr_win_total_over_odds": -140,
+        "sbr_win_total_under_odds": 115,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 1500,
+          "odds_by_book": {
+            "betmgm": 1500,
+            "fanduel": 1700,
+            "draftkings": 1300,
+            "bet365": 1400,
+            "fanatics": 170
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 900,
+          "odds_by_book": {
+            "betmgm": 900,
+            "fanduel": 750,
+            "draftkings": 900,
+            "bet365": 900,
+            "fanatics": 800
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC East - Win Division",
+          "odds": 150,
+          "odds_by_book": {
+            "betmgm": 150,
+            "fanduel": 130,
+            "draftkings": 150,
+            "bet365": 145
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "New Orleans Saints",
+      "abbr": "NO",
+      "markets": {
+        "week1_implied_total": 21.75,
+        "week1_opponent": "at DET",
+        "implied_ppg": 21.3,
+        "implied_season_points": 362.1,
+        "fantasy_playoffs_w15_17_implied": 65.25,
+        "win_total": 7.5,
+        "win_total_over_odds": -125,
+        "win_total_under_odds": 105,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 3,
+        "vegas_sos_win_total_ref": 7.5,
+        "rg_win_total": 7.5,
+        "sbr_win_total": 7.5,
+        "sbr_win_total_over_odds": 100,
+        "sbr_win_total_under_odds": -120,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 15000,
+          "odds_by_book": {
+            "betmgm": 15000,
+            "fanduel": 17500,
+            "draftkings": 15000,
+            "bet365": 15000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 5000,
+          "odds_by_book": {
+            "betmgm": 5000,
+            "fanduel": 4500,
+            "draftkings": 4000,
+            "bet365": 4000,
+            "fanatics": 7500
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC South - Win Division",
+          "odds": 325,
+          "odds_by_book": {
+            "betmgm": 325,
+            "fanduel": 340,
+            "draftkings": 285,
+            "bet365": 300
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "New York Giants",
+      "abbr": "NYG",
+      "markets": {
+        "week1_implied_total": 23.0,
+        "week1_opponent": "vs DAL",
+        "implied_ppg": 21.8,
+        "implied_season_points": 370.6,
+        "fantasy_playoffs_w15_17_implied": 65.5,
+        "win_total": 7.5,
+        "win_total_over_odds": -110,
+        "win_total_under_odds": -110,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 21,
+        "vegas_sos_win_total_ref": 7.5,
+        "rg_win_total": 7.5,
+        "sbr_win_total": 7.5,
+        "sbr_win_total_over_odds": 110,
+        "sbr_win_total_under_odds": -130,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 6600,
+          "odds_by_book": {
+            "betmgm": 6600,
+            "fanduel": 7500,
+            "draftkings": 7000,
+            "bet365": 7500
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 4000,
+          "odds_by_book": {
+            "betmgm": 4000,
+            "fanduel": 3500,
+            "draftkings": 4000,
+            "bet365": 3500,
+            "fanatics": 3250
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC East - Win Division",
+          "odds": 700,
+          "odds_by_book": {
+            "betmgm": 700,
+            "fanduel": 550,
+            "draftkings": 700,
+            "bet365": 600,
+            "fanatics": 5000
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "New York Jets",
+      "abbr": "NYJ",
+      "markets": {
+        "week1_implied_total": 18.25,
+        "week1_opponent": "at TEN",
+        "implied_ppg": 18.3,
+        "implied_season_points": 311.1,
+        "fantasy_playoffs_w15_17_implied": 55.25,
+        "win_total": 5.5,
+        "win_total_over_odds": -110,
+        "win_total_under_odds": -110,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 4,
+        "vegas_sos_win_total_ref": 5.5,
+        "rg_win_total": 5.5,
+        "sbr_win_total": 5.5,
+        "sbr_win_total_over_odds": 115,
+        "sbr_win_total_under_odds": -140,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 25000,
+          "odds_by_book": {
+            "betmgm": 25000,
+            "fanduel": 25000,
+            "draftkings": 20000,
+            "bet365": 20000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 10000,
+          "odds_by_book": {
+            "betmgm": 10000,
+            "fanduel": 12500,
+            "draftkings": 10000,
+            "bet365": 12500,
+            "fanatics": 12000
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC East - Win Division",
+          "odds": 2500,
+          "odds_by_book": {
+            "betmgm": 2500,
+            "fanduel": 2000,
+            "draftkings": 1800,
+            "bet365": 1600
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Philadelphia Eagles",
+      "abbr": "PHI",
+      "markets": {
+        "week1_implied_total": 25.0,
+        "week1_opponent": "vs WAS",
+        "implied_ppg": 23.5,
+        "implied_season_points": 399.5,
+        "fantasy_playoffs_w15_17_implied": 63.75,
+        "win_total": 10.5,
+        "win_total_over_odds": 120,
+        "win_total_under_odds": -145,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 8,
+        "vegas_sos_win_total_ref": 10.5,
+        "rg_win_total": 10.5,
+        "sbr_win_total": 10.5,
+        "sbr_win_total_over_odds": 105,
+        "sbr_win_total_under_odds": -125,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 1400,
+          "odds_by_book": {
+            "betmgm": 1400,
+            "fanduel": 1500,
+            "draftkings": 1300,
+            "bet365": 1400
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 800,
+          "odds_by_book": {
+            "betmgm": 800,
+            "fanduel": 1000,
+            "draftkings": 900,
+            "bet365": 850,
+            "fanatics": 800
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC East - Win Division",
+          "odds": 105,
+          "odds_by_book": {
+            "betmgm": 105,
+            "fanduel": 150,
+            "draftkings": 120,
+            "bet365": 120
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Pittsburgh Steelers",
+      "abbr": "PIT",
+      "markets": {
+        "week1_implied_total": 22.75,
+        "week1_opponent": "vs ATL",
+        "implied_ppg": 20.7,
+        "implied_season_points": 351.9,
+        "fantasy_playoffs_w15_17_implied": 63.25,
+        "win_total": 8.5,
+        "win_total_over_odds": 115,
+        "win_total_under_odds": -140,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 17,
+        "vegas_sos_win_total_ref": 8.5,
+        "rg_win_total": 8.5,
+        "sbr_win_total": 8.5,
+        "sbr_win_total_over_odds": 115,
+        "sbr_win_total_under_odds": -140,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 8000,
+          "odds_by_book": {
+            "betmgm": 8000,
+            "fanduel": 10000,
+            "draftkings": 6000,
+            "bet365": 7500
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 3500,
+          "odds_by_book": {
+            "betmgm": 3500,
+            "fanduel": 3300,
+            "draftkings": 2000,
+            "bet365": 2800,
+            "fanatics": 4000
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC North - Win Division",
+          "odds": 500,
+          "odds_by_book": {
+            "betmgm": 500,
+            "fanduel": 600,
+            "draftkings": 450,
+            "bet365": 475
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Seattle Seahawks",
+      "abbr": "SEA",
+      "markets": {
+        "week1_implied_total": 24.0,
+        "week1_opponent": "vs NE",
+        "implied_ppg": 24.4,
+        "implied_season_points": 414.8,
+        "fantasy_playoffs_w15_17_implied": 67.25,
+        "win_total": 10.5,
+        "win_total_over_odds": -125,
+        "win_total_under_odds": 105,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 23,
+        "vegas_sos_win_total_ref": 10.5,
+        "rg_win_total": 10.5,
+        "sbr_win_total": 10.5,
+        "sbr_win_total_over_odds": -130,
+        "sbr_win_total_under_odds": 110,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 800,
+          "odds_by_book": {
+            "betmgm": 800,
+            "fanduel": 750,
+            "draftkings": 950,
+            "bet365": 800,
+            "fanatics": 115
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 450,
+          "odds_by_book": {
+            "betmgm": 450,
+            "fanduel": 500,
+            "draftkings": 500,
+            "bet365": 475,
+            "fanatics": 450
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC West - Win Division",
+          "odds": 160,
+          "odds_by_book": {
+            "betmgm": 160,
+            "fanduel": 175,
+            "draftkings": 175,
+            "bet365": 160
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "San Francisco 49ers",
+      "abbr": "SF",
+      "markets": {
+        "week1_implied_total": 22.5,
+        "week1_opponent": "at LAR",
+        "implied_ppg": 25.1,
+        "implied_season_points": 426.7,
+        "fantasy_playoffs_w15_17_implied": 68.5,
+        "win_total": 10.5,
+        "win_total_over_odds": 115,
+        "win_total_under_odds": -140,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 7,
+        "vegas_sos_win_total_ref": 9.5,
+        "rg_win_total": 10.5,
+        "sbr_win_total": 10.5,
+        "sbr_win_total_over_odds": 125,
+        "sbr_win_total_under_odds": -150,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 1700,
+          "odds_by_book": {
+            "betmgm": 1700,
+            "fanduel": 1800,
+            "draftkings": 1700,
+            "bet365": 1800
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 1000,
+          "odds_by_book": {
+            "betmgm": 1000,
+            "fanduel": 800,
+            "draftkings": 800,
+            "bet365": 850,
+            "fanatics": 950
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC West - Win Division",
+          "odds": 275,
+          "odds_by_book": {
+            "betmgm": 275,
+            "fanduel": 270,
+            "draftkings": 245,
+            "bet365": 250,
+            "fanatics": 160
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Tampa Bay Buccaneers",
+      "abbr": "TB",
+      "markets": {
+        "week1_implied_total": 23.5,
+        "week1_opponent": "at CIN",
+        "implied_ppg": 22.8,
+        "implied_season_points": 387.6,
+        "fantasy_playoffs_w15_17_implied": 69.25,
+        "win_total": 8.5,
+        "win_total_over_odds": 120,
+        "win_total_under_odds": -145,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 25,
+        "vegas_sos_win_total_ref": 8.5,
+        "rg_win_total": 8.5,
+        "sbr_win_total": 8.5,
+        "sbr_win_total_over_odds": -140,
+        "sbr_win_total_under_odds": 115,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 4000,
+          "odds_by_book": {
+            "betmgm": 4000,
+            "fanduel": 5000,
+            "draftkings": 4000,
+            "bet365": 4000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 2200,
+          "odds_by_book": {
+            "betmgm": 2200,
+            "fanduel": 2200,
+            "draftkings": 2000,
+            "bet365": 2000,
+            "fanatics": 2800
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC South - Win Division",
+          "odds": 155,
+          "odds_by_book": {
+            "betmgm": 155,
+            "fanduel": 175,
+            "draftkings": 150,
+            "bet365": 155
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Tennessee Titans",
+      "abbr": "TEN",
+      "markets": {
+        "week1_implied_total": 20.75,
+        "week1_opponent": "vs NYJ",
+        "implied_ppg": 20.0,
+        "implied_season_points": 340.0,
+        "fantasy_playoffs_w15_17_implied": 61.75,
+        "win_total": 6.5,
+        "win_total_over_odds": -105,
+        "win_total_under_odds": -115,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 16,
+        "vegas_sos_win_total_ref": 6.5,
+        "rg_win_total": 6.5,
+        "sbr_win_total": 6.5,
+        "sbr_win_total_over_odds": -140,
+        "sbr_win_total_under_odds": 115,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 10000,
+          "odds_by_book": {
+            "betmgm": 10000,
+            "fanduel": 15000,
+            "draftkings": 10000,
+            "bet365": 12500
+          }
+        },
+        "conference_winner_odds": {
+          "event": "AFC - Win Conference",
+          "odds": 6600,
+          "odds_by_book": {
+            "betmgm": 6600,
+            "fanduel": 6500,
+            "draftkings": 5000,
+            "bet365": 6000,
+            "fanatics": 7000
+          }
+        },
+        "division_winner_odds": {
+          "event": "AFC South - Win Division",
+          "odds": 800,
+          "odds_by_book": {
+            "betmgm": 800,
+            "fanduel": 900,
+            "draftkings": 750,
+            "bet365": 900
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    },
+    {
+      "name": "Washington Commanders",
+      "abbr": "WAS",
+      "markets": {
+        "week1_implied_total": 20.5,
+        "week1_opponent": "at PHI",
+        "implied_ppg": 23.3,
+        "implied_season_points": 396.1,
+        "fantasy_playoffs_w15_17_implied": 69.75,
+        "win_total": 7.5,
+        "win_total_over_odds": -110,
+        "win_total_under_odds": -110,
+        "win_total_source": "sharp_football",
+        "vegas_sos_rank": 29,
+        "vegas_sos_win_total_ref": 7.5,
+        "rg_win_total": 7.5,
+        "sbr_win_total": 7.5,
+        "sbr_win_total_over_odds": -110,
+        "sbr_win_total_under_odds": -110,
+        "super_bowl_odds": {
+          "event": "Super Bowl Winner",
+          "odds": 5000,
+          "odds_by_book": {
+            "betmgm": 5000,
+            "fanduel": 4500,
+            "draftkings": 6000,
+            "bet365": 5000
+          }
+        },
+        "conference_winner_odds": {
+          "event": "NFC - Win Conference",
+          "odds": 3000,
+          "odds_by_book": {
+            "betmgm": 3000,
+            "fanduel": 2500,
+            "draftkings": 3000,
+            "bet365": 2500,
+            "fanatics": 2200
+          }
+        },
+        "division_winner_odds": {
+          "event": "NFC East - Win Division",
+          "odds": 500,
+          "odds_by_book": {
+            "betmgm": 500,
+            "fanduel": 400,
+            "draftkings": 450,
+            "bet365": 425,
+            "fanatics": 475
+          }
+        }
+      },
+      "provider": "rotogrinders,sbr,sharp_football"
+    }
+  ],
+  "sos": {
+    "passing": {
+      "PHI": 1,
+      "MIN": 2,
+      "SEA": 3,
+      "DET": 4,
+      "LA": 5,
+      "ATL": 6,
+      "LAC": 7,
+      "CLE": 8,
+      "NYG": 9,
+      "MIA": 10,
+      "DEN": 11,
+      "NYJ": 12,
+      "BUF": 13,
+      "CIN": 14,
+      "KC": 15,
+      "JAX": 16,
+      "GB": 17,
+      "NO": 18,
+      "TEN": 19,
+      "IND": 20,
+      "HOU": 21,
+      "ARI": 22,
+      "DAL": 23,
+      "BAL": 24,
+      "SF": 25,
+      "LV": 26,
+      "TB": 27,
+      "NE": 28,
+      "WAS": 29,
+      "PIT": 30,
+      "CHI": 31,
+      "CAR": 32
+    },
+    "rushing": {
+      "DET": 1,
+      "NO": 2,
+      "SEA": 3,
+      "LA": 4,
+      "MIN": 5,
+      "TB": 6,
+      "PHI": 7,
+      "GB": 8,
+      "WAS": 9,
+      "MIA": 10,
+      "ATL": 11,
+      "HOU": 12,
+      "BAL": 13,
+      "CHI": 14,
+      "NYJ": 15,
+      "DAL": 16,
+      "NYG": 17,
+      "IND": 18,
+      "JAX": 19,
+      "SF": 20,
+      "CLE": 21,
+      "KC": 22,
+      "NE": 23,
+      "TEN": 24,
+      "DEN": 25,
+      "ARI": 26,
+      "CAR": 27,
+      "PIT": 28,
+      "BUF": 29,
+      "CIN": 30,
+      "LV": 31,
+      "LAC": 32
+    }
+  },
+  "notes": "Sharp fantasy SOS: passing=32 teams, rushing=32 teams (1=easiest). Sharp implied totals: week1=32, season PPG=32 (odds ~2026-08-31). Sharp win totals: 32 teams. Sharp Vegas-based SOS ranks: 32 (1=easiest). Sharp season-long player props captured for 7 players. RotoGrinders team-preview Vegas win totals: 32/32. RotoGrinders best season prop bets: 6 rows (public snippet). SBR win totals table: 32 teams (DraftKings-referenced article). SBR futures: 11 markets (Super Bowl, conference, divisions) via live odds board. SBR MVP futures: 30 players (2026-27 article).",
+  "errors": [
+    "RotoGrinders season player prop projections grid is subscriber-gated; HTML only exposes a small sample table (appears weekly-scale, not full season).",
+    "SBR win-totals HTML table listed Eagles at 0.5; corrected to 10.5 from article context (Under 10.5 / odds +105/-125).",
+    "SBR passing yards leader page is stale 2023 content ('Most Regular Season Passing Yards Odds 2023: Can Tua Hold off Purdy?'); not ingested as 2026 player props.",
+    "SBR rushing yards leader page is stale 2023 content ('Most Regular Season Rushing Yards Odds 2023: McCaffrey a Runaway Favorite'); not ingested as 2026 player props.",
+    "SBR receiving yards leader page is stale 2023 content ('Most Regular Season Receiving Yards Odds 2023: Hill Still Favored'); not ingested as 2026 player props.",
+    "No dedicated 2026 SBR season-long team points/yardage totals page found; captured win totals + SB/conference/division futures + MVP odds.",
+    "Sharp Football public pages did not expose full-team season yardage projection tables (book/paywalled); captured implied PPG/points, win totals, SOS, and highlighted player props."
+  ]
+}

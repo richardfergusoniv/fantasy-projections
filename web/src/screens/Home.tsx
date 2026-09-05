@@ -128,7 +128,7 @@ export function HomeScreen() {
 
       <Panel title="Draft assistant">
         <p className="muted">
-          Market ADP checklist with context checks, plus the league VORP board.
+          Market ADP checklist with Vegas/Sharp SOS ranks, plus the league VORP board.
           Open Draft in the bottom nav, or jump straight to the checklist.
         </p>
         <div className="stack">

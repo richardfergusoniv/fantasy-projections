@@ -1,0 +1,2150 @@
+{
+  "source": "vegasinsider",
+  "fetched_at": "2026-09-05T04:11:01.937123+00:00",
+  "urls": [
+    "https://www.vegasinsider.com/nfl/odds/win-totals/",
+    "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+    "https://www.vegasinsider.com/nfl/odds/most-rushing-yards/",
+    "https://www.vegasinsider.com/nfl/odds/most-receiving-yards/",
+    "https://www.vegasinsider.com/nfl/odds/most-passing-touchdowns/",
+    "https://www.vegasinsider.com/nfl/odds/most-receiving-touchdowns/",
+    "https://www.vegasinsider.com/nfl/odds/player-props/",
+    "https://www.vegasinsider.com/nfl/odds/futures/"
+  ],
+  "players": [
+    {
+      "name": "Aaron Rodgers",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3050.5,
+          "over_odds": -105,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3050.5,
+              "over_odds": -105
+            },
+            "DraftKings": {
+              "line": 3099.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3025.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3050.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3150.5,
+              "over_odds": 107
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Baker Mayfield",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3550.5,
+          "over_odds": -110,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3550.5,
+              "over_odds": -110
+            },
+            "DraftKings": {
+              "line": 3599.5,
+              "over_odds": 100
+            },
+            "Caesars": {
+              "line": 3500.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3500.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3500.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Bo Nix",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3475.5,
+          "over_odds": -120,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3475.5,
+              "over_odds": -120
+            },
+            "DraftKings": {
+              "line": 3499.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3475.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3400.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3450.5,
+              "over_odds": -106
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Brock Purdy",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3775.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3775.5,
+              "over_odds": -115
+            },
+            "DraftKings": {
+              "line": 3749.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3750.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3700.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3750.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Bryce Young",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 2875.5,
+          "over_odds": -110,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 2875.5,
+              "over_odds": -110
+            },
+            "DraftKings": {
+              "line": 2874.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 2875.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 2875.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 2900.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "C.J. Stroud",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3500.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "caesars",
+          "books": {
+            "DraftKings": {
+              "line": 3549.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3500.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3500.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3550.5,
+              "over_odds": -106
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Caleb Williams",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3600.5,
+          "over_odds": -125,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3600.5,
+              "over_odds": -125
+            },
+            "DraftKings": {
+              "line": 3649.5,
+              "over_odds": -120
+            },
+            "Caesars": {
+              "line": 3650.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3650.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3650.5,
+              "over_odds": -114
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Cam Ward",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3250.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3250.5,
+              "over_odds": -115
+            },
+            "DraftKings": {
+              "line": 3249.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3200.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3200.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3250.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Dak Prescott",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 4025.5,
+          "over_odds": -102,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 4025.5,
+              "over_odds": -102
+            },
+            "DraftKings": {
+              "line": 3999.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3975.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3950.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 4000.5,
+              "over_odds": -103
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Daniel Jones",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3275.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3275.5,
+              "over_odds": -115
+            },
+            "DraftKings": {
+              "line": 3299.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3300.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3250.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3350.5,
+              "over_odds": 107
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Deshaun Watson",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 1749.5,
+          "over_odds": 105,
+          "under_odds": null,
+          "board": "draftkings",
+          "books": {
+            "DraftKings": {
+              "line": 1749.5,
+              "over_odds": 105
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Drake Maye",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3750.5,
+          "over_odds": -120,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3750.5,
+              "over_odds": -120
+            },
+            "DraftKings": {
+              "line": 3799.5,
+              "over_odds": -120
+            },
+            "Caesars": {
+              "line": 3775.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3750.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3750.5,
+              "over_odds": -115
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Fernando Mendoza",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 1950.5,
+          "over_odds": -114,
+          "under_odds": null,
+          "board": "fanduel",
+          "books": {
+            "FanDuel": {
+              "line": 1950.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 1950.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Geno Smith",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 2850.5,
+          "over_odds": -114,
+          "under_odds": null,
+          "board": "fanduel",
+          "books": {
+            "FanDuel": {
+              "line": 2850.5,
+              "over_odds": -114
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Jacoby Brissett",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 2550.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "caesars",
+          "books": {
+            "Caesars": {
+              "line": 2550.5,
+              "over_odds": -115
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Jalen Hurts",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3200.5,
+          "over_odds": -110,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3200.5,
+              "over_odds": -110
+            },
+            "DraftKings": {
+              "line": 3249.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3200.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3150.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3200.5,
+              "over_odds": -106
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Jared Goff",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 4050.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 4050.5,
+              "over_odds": -115
+            },
+            "DraftKings": {
+              "line": 4099.5,
+              "over_odds": 100
+            },
+            "Caesars": {
+              "line": 4050.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 4050.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 4000.5,
+              "over_odds": -121
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Jaxson Dart",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3100.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3100.5,
+              "over_odds": -115
+            },
+            "DraftKings": {
+              "line": 3150.5,
+              "over_odds": -105
+            },
+            "Caesars": {
+              "line": 3100.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3100.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3150.5,
+              "over_odds": 107
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Jayden Daniels",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3225.5,
+          "over_odds": -110,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3225.5,
+              "over_odds": -110
+            },
+            "DraftKings": {
+              "line": 3199.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3150.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3100.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3200.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Joe Burrow",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 4000.5,
+          "over_odds": -105,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 4000.5,
+              "over_odds": -105
+            },
+            "DraftKings": {
+              "line": 3999.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3875.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3900.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3950.5,
+              "over_odds": 100
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Jordan Love",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3525.5,
+          "over_odds": 100,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3525.5,
+              "over_odds": 100
+            },
+            "DraftKings": {
+              "line": 3549.5,
+              "over_odds": 100
+            },
+            "Caesars": {
+              "line": 3525.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3700.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3500.5,
+              "over_odds": -106
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Josh Allen",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3600.5,
+          "over_odds": -120,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3600.5,
+              "over_odds": -120
+            },
+            "DraftKings": {
+              "line": 3624.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3650.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3600.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3600.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Justin Herbert",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3600.5,
+          "over_odds": -120,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3600.5,
+              "over_odds": -120
+            },
+            "DraftKings": {
+              "line": 3650.5,
+              "over_odds": -115
+            },
+            "Caesars": {
+              "line": 3650.5,
+              "over_odds": -120
+            },
+            "FanDuel": {
+              "line": 3600.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3650.5,
+              "over_odds": -115
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Kyler Murray",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3000.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "caesars",
+          "books": {
+            "DraftKings": {
+              "line": 3049.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3000.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3150.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3000.5,
+              "over_odds": -106
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Lamar Jackson",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3200.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3200.5,
+              "over_odds": -115
+            },
+            "DraftKings": {
+              "line": 3249.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3225.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3200.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3250.5,
+              "over_odds": -106
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Malik Willis",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 2925.5,
+          "over_odds": 105,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 2925.5,
+              "over_odds": 105
+            },
+            "DraftKings": {
+              "line": 2949.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 2800.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 2925.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 2950.5,
+              "over_odds": -106
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Matthew Stafford",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3850.5,
+          "over_odds": -110,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3850.5,
+              "over_odds": -110
+            },
+            "DraftKings": {
+              "line": 3899.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3850.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3825.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3850.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Patrick Mahomes",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3550.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "caesars",
+          "books": {
+            "DraftKings": {
+              "line": 3649.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3550.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3600.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3700.5,
+              "over_odds": -106
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Sam Darnold",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3700.5,
+          "over_odds": 100,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3700.5,
+              "over_odds": 100
+            },
+            "DraftKings": {
+              "line": 3699.5,
+              "over_odds": -110
+            },
+            "Caesars": {
+              "line": 3675.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3650.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3650.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Trevor Lawrence",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3750.5,
+          "over_odds": -120,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3750.5,
+              "over_odds": -120
+            },
+            "DraftKings": {
+              "line": 3774.5,
+              "over_odds": -105
+            },
+            "Caesars": {
+              "line": 3775.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3750.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3750.5,
+              "over_odds": -106
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    },
+    {
+      "name": "Tyler Shough",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3400.5,
+          "over_odds": -115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3400.5,
+              "over_odds": -115
+            },
+            "DraftKings": {
+              "line": 3449.5,
+              "over_odds": -120
+            },
+            "Caesars": {
+              "line": 3450.5,
+              "over_odds": -115
+            },
+            "FanDuel": {
+              "line": 3400.5,
+              "over_odds": -114
+            },
+            "RiversCasino": {
+              "line": 3400.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/most-passing-yards/",
+          "market_type": "season_pass_yards_ou"
+        }
+      }
+    }
+  ],
+  "teams": [
+    {
+      "name": "Arizona Cardinals",
+      "abbr": "ARI",
+      "markets": {
+        "win_total": {
+          "line": 3.5,
+          "over_odds": -155,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3.5,
+              "over_odds": -155
+            },
+            "DraftKings": {
+              "line": 8.5,
+              "over_odds": 2200
+            },
+            "Caesars": {
+              "line": 4.5,
+              "over_odds": 130
+            },
+            "RiversCasino": {
+              "line": 3.5,
+              "over_odds": -139
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Atlanta Falcons",
+      "abbr": "ATL",
+      "markets": {
+        "win_total": {
+          "line": 6.5,
+          "over_odds": -140,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 6.5,
+              "over_odds": -140
+            },
+            "DraftKings": {
+              "line": 4.5,
+              "over_odds": -500
+            },
+            "Caesars": {
+              "line": 7.5,
+              "over_odds": 120
+            },
+            "RiversCasino": {
+              "line": 6.5,
+              "over_odds": -136
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Baltimore Ravens",
+      "abbr": "BAL",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -155,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 10.5,
+              "over_odds": -155
+            },
+            "DraftKings": {
+              "line": 6.5,
+              "over_odds": -2000
+            },
+            "Caesars": {
+              "line": 11.5,
+              "over_odds": 135
+            },
+            "RiversCasino": {
+              "line": 10.5,
+              "over_odds": -148
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Buffalo Bills",
+      "abbr": "BUF",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -130,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 10.5,
+              "over_odds": -130
+            },
+            "DraftKings": {
+              "line": 7.5,
+              "over_odds": -750
+            },
+            "Caesars": {
+              "line": 10.5,
+              "over_odds": -135
+            },
+            "RiversCasino": {
+              "line": 10.5,
+              "over_odds": -139
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Carolina Panthers",
+      "abbr": "CAR",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": 125,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 7.5,
+              "over_odds": 125
+            },
+            "DraftKings": {
+              "line": 4.5,
+              "over_odds": -600
+            },
+            "Caesars": {
+              "line": 6.5,
+              "over_odds": -145
+            },
+            "RiversCasino": {
+              "line": 7.5,
+              "over_odds": 120
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Chicago Bears",
+      "abbr": "CHI",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": 105,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 9.5,
+              "over_odds": 105
+            },
+            "DraftKings": {
+              "line": 6.5,
+              "over_odds": -600
+            },
+            "Caesars": {
+              "line": 9.5,
+              "over_odds": 100
+            },
+            "RiversCasino": {
+              "line": 9.5,
+              "over_odds": 100
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Cincinnati Bengals",
+      "abbr": "CIN",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 100,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 10.5,
+              "over_odds": 100
+            },
+            "DraftKings": {
+              "line": 6.5,
+              "over_odds": -900
+            },
+            "Caesars": {
+              "line": 10.5,
+              "over_odds": 100
+            },
+            "RiversCasino": {
+              "line": 10.5,
+              "over_odds": 110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Cleveland Browns",
+      "abbr": "CLE",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -125,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 5.5,
+              "over_odds": -125
+            },
+            "DraftKings": {
+              "line": 9.5,
+              "over_odds": 600
+            },
+            "Caesars": {
+              "line": 5.5,
+              "over_odds": -115
+            },
+            "RiversCasino": {
+              "line": 5.5,
+              "over_odds": -115
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Dallas Cowboys",
+      "abbr": "DAL",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -110,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 9.5,
+              "over_odds": -110
+            },
+            "DraftKings": {
+              "line": 6.5,
+              "over_odds": -550
+            },
+            "Caesars": {
+              "line": 9.5,
+              "over_odds": -115
+            },
+            "RiversCasino": {
+              "line": 9.5,
+              "over_odds": -106
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Denver Broncos",
+      "abbr": "DEN",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -125,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 9.5,
+              "over_odds": -125
+            },
+            "DraftKings": {
+              "line": 6.5,
+              "over_odds": -750
+            },
+            "Caesars": {
+              "line": 9.5,
+              "over_odds": -135
+            },
+            "RiversCasino": {
+              "line": 9.5,
+              "over_odds": -127
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Detroit Lions",
+      "abbr": "DET",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -130,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 10.5,
+              "over_odds": -130
+            },
+            "DraftKings": {
+              "line": 7.5,
+              "over_odds": -750
+            },
+            "Caesars": {
+              "line": 10.5,
+              "over_odds": -120
+            },
+            "RiversCasino": {
+              "line": 10.5,
+              "over_odds": -134
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Green Bay Packers",
+      "abbr": "GB",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -130,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 9.5,
+              "over_odds": -130
+            },
+            "DraftKings": {
+              "line": 7.5,
+              "over_odds": -400
+            },
+            "Caesars": {
+              "line": 10.5,
+              "over_odds": 160
+            },
+            "RiversCasino": {
+              "line": 9.5,
+              "over_odds": -134
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Houston Texans",
+      "abbr": "HOU",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 120,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 10.5,
+              "over_odds": 120
+            },
+            "DraftKings": {
+              "line": 6.5,
+              "over_odds": -1000
+            },
+            "Caesars": {
+              "line": 9.5,
+              "over_odds": -155
+            },
+            "RiversCasino": {
+              "line": 9.5,
+              "over_odds": -148
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Indianapolis Colts",
+      "abbr": "IND",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": 115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 8.5,
+              "over_odds": 115
+            },
+            "DraftKings": {
+              "line": 4.5,
+              "over_odds": -900
+            },
+            "Caesars": {
+              "line": 8.5,
+              "over_odds": 115
+            },
+            "RiversCasino": {
+              "line": 7.5,
+              "over_odds": -136
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Jacksonville Jaguars",
+      "abbr": "JAX",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": -140,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 8.5,
+              "over_odds": -140
+            },
+            "DraftKings": {
+              "line": 6.5,
+              "over_odds": -500
+            },
+            "Caesars": {
+              "line": 9.5,
+              "over_odds": 122
+            },
+            "RiversCasino": {
+              "line": 8.5,
+              "over_odds": -134
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Kansas City Chiefs",
+      "abbr": "KC",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 120,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 10.5,
+              "over_odds": 120
+            },
+            "DraftKings": {
+              "line": 7.5,
+              "over_odds": -650
+            },
+            "Caesars": {
+              "line": 10.5,
+              "over_odds": 120
+            },
+            "RiversCasino": {
+              "line": 10.5,
+              "over_odds": 115
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Las Vegas Raiders",
+      "abbr": "LV",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -135,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 5.5,
+              "over_odds": -135
+            },
+            "DraftKings": {
+              "line": 9.5,
+              "over_odds": 750
+            },
+            "Caesars": {
+              "line": 6.5,
+              "over_odds": 135
+            },
+            "RiversCasino": {
+              "line": 5.5,
+              "over_odds": -148
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Los Angeles Chargers",
+      "abbr": "LAC",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -140,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 9.5,
+              "over_odds": -140
+            },
+            "DraftKings": {
+              "line": 7.5,
+              "over_odds": -550
+            },
+            "Caesars": {
+              "line": 10.5,
+              "over_odds": 120
+            },
+            "RiversCasino": {
+              "line": 9.5,
+              "over_odds": -148
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Los Angeles Rams",
+      "abbr": "LAR",
+      "markets": {
+        "win_total": {
+          "line": 11.5,
+          "over_odds": -140,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 11.5,
+              "over_odds": -140
+            },
+            "DraftKings": {
+              "line": 8.5,
+              "over_odds": -1200
+            },
+            "Caesars": {
+              "line": 11.5,
+              "over_odds": -120
+            },
+            "RiversCasino": {
+              "line": 11.5,
+              "over_odds": -134
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Miami Dolphins",
+      "abbr": "MIA",
+      "markets": {
+        "win_total": {
+          "line": 3.5,
+          "over_odds": -135,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 3.5,
+              "over_odds": -135
+            },
+            "DraftKings": {
+              "line": 8.5,
+              "over_odds": 1300
+            },
+            "Caesars": {
+              "line": 3.5,
+              "over_odds": -135
+            },
+            "RiversCasino": {
+              "line": 3.5,
+              "over_odds": -139
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Minnesota Vikings",
+      "abbr": "MIN",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": -125,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 8.5,
+              "over_odds": -125
+            },
+            "DraftKings": {
+              "line": 5.5,
+              "over_odds": -750
+            },
+            "Caesars": {
+              "line": 8.5,
+              "over_odds": -140
+            },
+            "RiversCasino": {
+              "line": 8.5,
+              "over_odds": -121
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "New England Patriots",
+      "abbr": "NE",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -145,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 9.5,
+              "over_odds": -145
+            },
+            "DraftKings": {
+              "line": 6.5,
+              "over_odds": -1000
+            },
+            "Caesars": {
+              "line": 9.5,
+              "over_odds": -145
+            },
+            "RiversCasino": {
+              "line": 9.5,
+              "over_odds": -148
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "New Orleans Saints",
+      "abbr": "NO",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": -125,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 7.5,
+              "over_odds": -125
+            },
+            "DraftKings": {
+              "line": 4.5,
+              "over_odds": -850
+            },
+            "Caesars": {
+              "line": 7.5,
+              "over_odds": -120
+            },
+            "RiversCasino": {
+              "line": 7.5,
+              "over_odds": -121
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "New York Giants",
+      "abbr": "NYG",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": -102,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 7.5,
+              "over_odds": -102
+            },
+            "DraftKings": {
+              "line": 4.5,
+              "over_odds": -900
+            },
+            "Caesars": {
+              "line": 7.5,
+              "over_odds": 105
+            },
+            "RiversCasino": {
+              "line": 7.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "New York Jets",
+      "abbr": "NYJ",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -110,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 5.5,
+              "over_odds": -110
+            },
+            "DraftKings": {
+              "line": 9.5,
+              "over_odds": 1000
+            },
+            "Caesars": {
+              "line": 5.5,
+              "over_odds": -110
+            },
+            "RiversCasino": {
+              "line": 5.5,
+              "over_odds": -110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Philadelphia Eagles",
+      "abbr": "PHI",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 10.5,
+              "over_odds": 115
+            },
+            "DraftKings": {
+              "line": 7.5,
+              "over_odds": -600
+            },
+            "Caesars": {
+              "line": 10.5,
+              "over_odds": 125
+            },
+            "RiversCasino": {
+              "line": 10.5,
+              "over_odds": 120
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Pittsburgh Steelers",
+      "abbr": "PIT",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": 110,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 8.5,
+              "over_odds": 110
+            },
+            "DraftKings": {
+              "line": 5.5,
+              "over_odds": -650
+            },
+            "Caesars": {
+              "line": 8.5,
+              "over_odds": 115
+            },
+            "RiversCasino": {
+              "line": 8.5,
+              "over_odds": 110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "San Francisco 49ers",
+      "abbr": "SF",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 10.5,
+              "over_odds": 115
+            },
+            "DraftKings": {
+              "line": 7.5,
+              "over_odds": -550
+            },
+            "Caesars": {
+              "line": 10.5,
+              "over_odds": 140
+            },
+            "RiversCasino": {
+              "line": 9.5,
+              "over_odds": -134
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Seattle Seahawks",
+      "abbr": "SEA",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -120,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 10.5,
+              "over_odds": -120
+            },
+            "DraftKings": {
+              "line": 7.5,
+              "over_odds": -850
+            },
+            "Caesars": {
+              "line": 10.5,
+              "over_odds": -130
+            },
+            "RiversCasino": {
+              "line": 10.5,
+              "over_odds": -121
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Tampa Bay Buccaneers",
+      "abbr": "TB",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": 115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 8.5,
+              "over_odds": 115
+            },
+            "DraftKings": {
+              "line": 5.5,
+              "over_odds": -650
+            },
+            "Caesars": {
+              "line": 8.5,
+              "over_odds": 122
+            },
+            "RiversCasino": {
+              "line": 8.5,
+              "over_odds": 110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Tennessee Titans",
+      "abbr": "TEN",
+      "markets": {
+        "win_total": {
+          "line": 6.5,
+          "over_odds": 115,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 6.5,
+              "over_odds": 115
+            },
+            "DraftKings": {
+              "line": 9.5,
+              "over_odds": 550
+            },
+            "Caesars": {
+              "line": 6.5,
+              "over_odds": 110
+            },
+            "RiversCasino": {
+              "line": 6.5,
+              "over_odds": 110
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    },
+    {
+      "name": "Washington Commanders",
+      "abbr": "WAS",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": 110,
+          "under_odds": null,
+          "board": "betmgm",
+          "books": {
+            "BetMGM": {
+              "line": 7.5,
+              "over_odds": 110
+            },
+            "DraftKings": {
+              "line": 4.5,
+              "over_odds": -800
+            },
+            "Caesars": {
+              "line": 7.5,
+              "over_odds": 110
+            },
+            "RiversCasino": {
+              "line": 7.5,
+              "over_odds": 105
+            }
+          },
+          "source_page": "https://www.vegasinsider.com/nfl/odds/win-totals/",
+          "market_type": "season_win_total"
+        }
+      }
+    }
+  ],
+  "notes": "Public VegasInsider NFL odds pages scraped via HTTP HTML (SSR odds tables). Win totals from /nfl/odds/win-totals/ (2026-27 page); consensus prefers BetMGM/Caesars/FanDuel/Rivers and filters DraftKings cells with extreme juice (|odds|>=400) that appear to be wrong/alt markets. Season pass yards O/U from /nfl/odds/most-passing-yards/ 'Total Passing Yards Odds' table (page title/meta still say 2024-25 but board players/lines align with 2026 DK season O/Us, e.g. Drake Maye 3799.5). Under prices generally not shown in the SSR table (over line + over juice only). Attempts/targets/receptions/rush yards/rec yards/TDs/team points/team yards: not found as season O/U on public VI.",
+  "errors": [
+    "https://www.vegasinsider.com/nfl/odds/most-rushing-yards/ has leader/futures prices only (rows=74, moneyline-like=74); no season-long rush_yards O/U numeric lines on public page",
+    "https://www.vegasinsider.com/nfl/odds/most-receiving-yards/ has leader/futures prices only (rows=137, moneyline-like=137); no season-long rec_yards O/U numeric lines on public page",
+    "https://www.vegasinsider.com/nfl/odds/most-passing-touchdowns/ has leader/futures prices only (rows=41, moneyline-like=41); no season-long pass_tds O/U numeric lines on public page",
+    "https://www.vegasinsider.com/nfl/odds/most-receiving-touchdowns/ has leader/futures prices only (rows=139, moneyline-like=139); no season-long rec_tds O/U numeric lines on public page",
+    "player-props page is game-level props only (PrizePicks/Underdog style); no season-long attempts/targets/yards O/Us"
+  ],
+  "coverage_summary": "VegasInsider public NFL futures/props scout for 2026: players=31 (markets={'pass_yards': 31}), teams=32 (markets={'win_total': 32}). Found season-long numeric O/U for pass_yards and team win_total only. Missing requested: ['pass_attempts', 'rush_attempts', 'targets', 'receptions', 'rush_yards', 'rec_yards', 'pass_tds', 'rush_tds', 'rec_tds', 'team:points_scored', 'team:total_yards']. Rush/rec/pass-TD/rec-TD 'most-*' pages expose leader futures (moneyline), not season O/U. No public VI pages for pass_attempts, rush_attempts, targets, receptions, team points scored, or team total yards season O/Us.",
+  "summary": {
+    "players": 31,
+    "teams": 32,
+    "player_market_counts": {
+      "pass_yards": 31
+    },
+    "team_market_counts": {
+      "win_total": 32
+    },
+    "has_pass_attempts": false,
+    "has_rush_attempts": false,
+    "has_targets": false,
+    "has_receptions": false,
+    "has_pass_yards": true,
+    "has_rush_yards": false,
+    "has_rec_yards": false,
+    "has_pass_tds": false,
+    "has_rush_tds": false,
+    "has_rec_tds": false,
+    "has_fantasy_points": false,
+    "has_team_points_scored": false,
+    "has_team_total_yards": false,
+    "has_win_totals": true
+  }
+}

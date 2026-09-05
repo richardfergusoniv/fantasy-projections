@@ -263,10 +263,15 @@ export interface DraftChecklistEntry {
   adp?: number | null;
   ecr?: number | null;
   prior_pts?: number | null;
+  /** Half-PPR season points aggregated from Vegas volume O/Us. */
+  vegas_fp?: number | null;
   rank_tier: DraftRankTier;
   pos_market_rank?: number;
   unranked_break?: boolean;
-  checks: Record<string, boolean>;
+  /** Numeric criterion ranks (1 = best). Prefer this over legacy boolean checks. */
+  ranks: Record<string, number | null>;
+  /** @deprecated Prefer `ranks`. Kept for older checklist payloads. */
+  checks?: Record<string, boolean>;
 }
 
 export interface DraftChecklistTeam {
