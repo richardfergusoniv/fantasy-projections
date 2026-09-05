@@ -103,7 +103,7 @@ def test_sealed_ol_unit_ranks_load_and_apply(tmp_path: Path):
     assert "ol_rank" in payload["meta"]["criteria_labels"]
     assert "ol_rank" in payload["criteria_by_position"]["QB"]
     assert "ol_rank" in payload["criteria_by_position"]["RB"]
-    assert "ol_rank" not in payload["criteria_by_position"]["WR"]
+    assert "ol_rank" in payload["criteria_by_position"]["WR"]
     by_abbr = {t["abbr"]: t for t in payload["teams"]}
     assert by_abbr["DEN"]["ol_unit_rank"] == 1
     assert by_abbr["DET"]["ol_unit_rank"] == 17
@@ -111,7 +111,7 @@ def test_sealed_ol_unit_ranks_load_and_apply(tmp_path: Path):
     assert by_id["qb-den"]["ranks"]["ol_rank"] == 1
     assert by_id["rb-det"]["ranks"]["ol_rank"] == 17
     assert by_id["qb-kc"]["ranks"]["ol_rank"] == 23
-    assert "ol_rank" not in by_id["wr-den"]["ranks"]
+    assert by_id["wr-den"]["ranks"]["ol_rank"] == 1
 
 
 def test_committed_ol_unit_ranks_cover_all_32_teams():
@@ -139,14 +139,14 @@ def test_committed_checklist_json_loads():
     assert payload["meta"]["player_count"] >= 700
     assert len(payload["players"]) == payload["meta"]["player_count"]
     assert "ranks" in payload["players"][0]
-    assert "fp_rank" in payload["criteria_by_position"]["QB"]
-    assert "total_yds_rank" in payload["criteria_by_position"]["QB"]
-    assert "pass_td_rank" in payload["criteria_by_position"]["QB"]
-    assert "fp_rank" in payload["criteria_by_position"]["WR"]
-    assert "rec_rank" in payload["criteria_by_position"]["WR"]
-    assert "rec_yds_rank" in payload["criteria_by_position"]["WR"]
-    assert "rec_td_rank" in payload["criteria_by_position"]["TE"]
-    assert "total_td_rank" in payload["criteria_by_position"]["RB"]
+    for pos in ("QB", "RB", "WR", "TE"):
+        assert payload["criteria_by_position"][pos] == [
+            "fp_rank",
+            "offense_pts_rank",
+            "offense_yds_rank",
+            "ol_rank",
+            "sos_rank",
+        ]
     assert payload["meta"]["scoring_flavor"] == "half_ppr"
 
 
@@ -160,24 +160,26 @@ def test_committed_checklist_has_vegas_ranks_for_stars():
     assert chase["pos_market_rank"] == 1
     assert chase["vegas_fp"] is not None
     assert chase["ranks"]["fp_rank"] is not None
-    assert chase["ranks"]["rec_rank"] is not None
-    assert chase["ranks"]["rec_yds_rank"] is not None
-    assert chase["ranks"]["rec_td_rank"] is not None
-    assert chase["ranks"]["qb_rank"] is not None
     assert chase["ranks"]["offense_pts_rank"] is not None
     assert chase["ranks"]["offense_yds_rank"] is not None
+    assert chase["ranks"]["ol_rank"] is not None
     assert chase["ranks"]["sos_rank"] is not None
+    assert set(chase["ranks"]) == {
+        "fp_rank",
+        "offense_pts_rank",
+        "offense_yds_rank",
+        "ol_rank",
+        "sos_rank",
+    }
 
     allen = next(p for p in payload["players"] if p["name"] == "Josh Allen")
     assert allen["vegas_fp"] is not None
     assert allen["ranks"]["fp_rank"] is not None
-    assert allen["ranks"]["total_yds_rank"] is not None
-    assert allen["ranks"]["pass_td_rank"] is not None
     assert allen["ranks"]["ol_rank"] is not None
 
     barkley = next(p for p in payload["players"] if p["name"] == "Saquon Barkley")
     assert barkley["ranks"]["fp_rank"] is not None
-    assert barkley["ranks"]["total_td_rank"] is not None
+    assert barkley["ranks"]["ol_rank"] is not None
 
 
 def test_market_average_skips_missing_sources():
@@ -201,20 +203,14 @@ def test_committed_checklist_ol_ranks_match_sealed_board():
     ranks = load_sealed_ol_unit_ranks(ranks_path)
     assert payload["meta"]["ol_included"] is True
     assert str(payload["meta"]["ol_source"]).startswith("sealed:")
-    assert "ol_rank" in payload["criteria_by_position"]["QB"]
-    assert "ol_rank" in payload["criteria_by_position"]["RB"]
-    assert "ol_rank" not in payload["criteria_by_position"]["WR"]
-    assert "ol_rank" not in payload["criteria_by_position"]["TE"]
+    for pos in ("QB", "RB", "WR", "TE"):
+        assert "ol_rank" in payload["criteria_by_position"][pos]
 
     by_abbr = {t["abbr"]: t for t in payload["teams"]}
     for abbr, rank in ranks.items():
         assert by_abbr[abbr]["ol_unit_rank"] == rank
 
     for player in payload["players"]:
-        pos = player["position"]
-        if pos not in ("QB", "RB"):
-            assert "ol_rank" not in (player.get("ranks") or {})
-            continue
         team = player.get("team")
         assert player["ranks"]["ol_rank"] == ranks.get(str(team))
 

@@ -7,14 +7,12 @@
 # Raw multi-book scrapes live under:
 #   draft_assistant/data/vegas_raw/
 #
-# Volume ranks (public boards lack season attempt/target O/Us — checked
-# DraftKings/FanDuel/BettingPros/VegasInsider/Unabated/Kalshi/Polymarket):
-#   QB: total yards (pass + rush), rush yards, passing TDs
-#   RB: receptions, total yards (rush + receiving), total TDs (rush + receiving)
-#   WR/TE: receptions, receiving yards, receiving TDs
-# Fantasy points: aggregate those Vegas lines into half-PPR / 4-pt pass TD
-#   season points, then rank within position (fp_rank). INTs/fumbles omitted.
-# Yardage / team points: median sportsbook season O/Us + Vegas-implied PPG.
+# Checklist columns (all positions):
+#   FP, offense pts, offense yards, O-line, Sharp fantasy SOS
+# FP = half-PPR / 4-pt pass TD from the median of scraped Vegas
+#   yards/receptions/TD O/Us (component volume ranks folded into FP).
+#   Attempts/targets are not publicly posted. INTs/fumbles omitted.
+# Offense pts/yards: median Vegas-implied team season totals.
 # Board: every rostered QB/RB/WR/TE in team_stats_{season}.json
 #
 # Board order: market average of available sources

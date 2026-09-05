@@ -2,11 +2,9 @@
 
 Context columns are ranks (1 = best), not boolean checks.
 
-- Player volume: Vegas season O/U yards/receptions/TDs (attempts/targets are not
-  publicly posted). QB volume uses total yards (pass + rush), rush yards, and
-  passing TDs; RB uses receptions, total yards (rush + receiving), and total
-  TDs (rush + receiving); WR/TE uses receptions, receiving yards, and receiving
-  TDs. Aggregated half-PPR fantasy points (4-pt pass TD) are ranked per position.
+- Fantasy points: half-PPR season points (4-pt pass TD) from median Vegas
+  yards/receptions/TDs, ranked within position. Component volume ranks are folded
+  into FP (attempts/targets are not publicly posted).
 - Team offense: Vegas-implied points scored and total yards, ranked 1-32.
 - O-line: sealed ol_unit_ranks_{season}.json.
 - SOS: Sharp Football Analysis fantasy SOS (pass for QB/WR/TE, rush for RB).
@@ -45,23 +43,17 @@ RUSH_REC_TD_POINTS = 6.0
 VOLUME_CAVEAT = (
     "Season-long attempt/target O/Us are not posted on public boards "
     "(DraftKings/FanDuel/BettingPros/VegasInsider/Kalshi/Polymarket checked). "
-    "Volume ranks therefore use Vegas yards/receptions/TDs: QB total yards "
-    "(pass + rush), rush yards, and passing TDs; RB receptions, total yards "
-    "(rush + receiving), and total TDs (rush + receiving); WR/TE receptions, "
-    "receiving yards, and receiving TDs. Fantasy points rank aggregates those "
-    "Vegas lines into half-PPR / 4-pt pass TD season points. Team offense ranks "
-    "combine Vegas-implied points scored and total yards. O-line ranks stay on "
-    "the sealed screenshot board. SOS is Sharp Football Analysis fantasy SOS "
-    "(passing for QB/WR/TE, rushing for RB). Board includes every rostered "
-    "QB/RB/WR/TE."
+    "Fantasy points rank uses the median of scraped Vegas yards/receptions/TD "
+    "O/Us (DraftKings/FanDuel/RotoWire/Oddschecker/FTA/ESPN-Fox/Action/"
+    "Sharp-RG-SBR + VI/BettingPros/Unabated/prediction markets when present), "
+    "scored half-PPR / 4-pt pass TD. Checklist columns are FP, offense points, "
+    "offense yards, O-line, and Sharp fantasy SOS (passing for QB/WR/TE, "
+    "rushing for RB). Board includes every rostered QB/RB/WR/TE."
 )
 
 CRITERIA_BASE: dict[str, list[str]] = {
     "QB": [
         "fp_rank",
-        "total_yds_rank",
-        "rush_yds_rank",
-        "pass_td_rank",
         "offense_pts_rank",
         "offense_yds_rank",
         "ol_rank",
@@ -69,9 +61,6 @@ CRITERIA_BASE: dict[str, list[str]] = {
     ],
     "RB": [
         "fp_rank",
-        "rec_rank",
-        "total_yds_rank",
-        "total_td_rank",
         "offense_pts_rank",
         "offense_yds_rank",
         "ol_rank",
@@ -79,40 +68,26 @@ CRITERIA_BASE: dict[str, list[str]] = {
     ],
     "WR": [
         "fp_rank",
-        "rec_rank",
-        "rec_yds_rank",
-        "rec_td_rank",
-        "qb_rank",
         "offense_pts_rank",
         "offense_yds_rank",
+        "ol_rank",
         "sos_rank",
     ],
     "TE": [
         "fp_rank",
-        "rec_rank",
-        "rec_yds_rank",
-        "rec_td_rank",
-        "qb_rank",
         "offense_pts_rank",
         "offense_yds_rank",
+        "ol_rank",
         "sos_rank",
     ],
 }
 
 CRITERIA_LABELS: dict[str, str] = {
     "fp_rank": "FANTASY PTS RANK",
-    "total_yds_rank": "TOTAL YDS RANK",
-    "rush_yds_rank": "RUSH YDS RANK",
-    "pass_td_rank": "PASS TD RANK",
-    "total_td_rank": "TOTAL TD RANK",
     "offense_pts_rank": "OFFENSE PTS RANK",
     "offense_yds_rank": "OFFENSE YDS RANK",
     "ol_rank": "O-LINE RANK",
     "sos_rank": "SOS RANK",
-    "rec_rank": "RECEPTIONS RANK",
-    "rec_yds_rank": "REC YDS RANK",
-    "rec_td_rank": "REC TD RANK",
-    "qb_rank": "QB RANK",
 }
 
 
@@ -573,31 +548,13 @@ def build_checklist(
                 "fp_rank": fp_ranks_by_pos[pos].get(row["player_id"]),
                 "offense_pts_rank": offense_pts_ranks.get(team),
                 "offense_yds_rank": offense_yds_ranks.get(team),
+                "ol_rank": ol_unit_ranks.get(team),
+                "sos_rank": (
+                    sos["rushing"].get(team)
+                    if pos == "RB"
+                    else sos["passing"].get(team)
+                ),
             }
-            if pos == "QB":
-                ranks["total_yds_rank"] = qb_total_yds_ranks.get(row["player_id"])
-                ranks["rush_yds_rank"] = qb_rush_yds_ranks.get(row["player_id"])
-                ranks["pass_td_rank"] = qb_pass_td_ranks.get(row["player_id"])
-                ranks["ol_rank"] = ol_unit_ranks.get(team)
-                ranks["sos_rank"] = sos["passing"].get(team)
-            elif pos == "RB":
-                ranks["rec_rank"] = rb_rec_ranks.get(row["player_id"])
-                ranks["total_yds_rank"] = rb_total_yds_ranks.get(row["player_id"])
-                ranks["total_td_rank"] = rb_total_td_ranks.get(row["player_id"])
-                ranks["ol_rank"] = ol_unit_ranks.get(team)
-                ranks["sos_rank"] = sos["rushing"].get(team)
-            elif pos == "WR":
-                ranks["rec_rank"] = wr_rec_ranks.get(row["player_id"])
-                ranks["rec_yds_rank"] = wr_rec_yds_ranks.get(row["player_id"])
-                ranks["rec_td_rank"] = wr_rec_td_ranks.get(row["player_id"])
-                ranks["qb_rank"] = team_qb_ranks.get(team)
-                ranks["sos_rank"] = sos["passing"].get(team)
-            else:
-                ranks["rec_rank"] = te_rec_ranks.get(row["player_id"])
-                ranks["rec_yds_rank"] = te_rec_yds_ranks.get(row["player_id"])
-                ranks["rec_td_rank"] = te_rec_td_ranks.get(row["player_id"])
-                ranks["qb_rank"] = team_qb_ranks.get(team)
-                ranks["sos_rank"] = sos["passing"].get(team)
 
             allowed = list(criteria.get(pos) or [])
             ranks = {key: ranks.get(key) for key in allowed}
