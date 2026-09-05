@@ -32,6 +32,22 @@ def normalize_player_name(name: str) -> str:
     return " ".join(text.split())
 
 
+# Nickname / alternate-spelling merges used when joining Vegas raw scrapes and
+# the sealed checklist. Keep the longer/formal form as the canonical key.
+PLAYER_NAME_ALIASES: dict[str, str] = {
+    "kenny gainwell": "kenneth gainwell",
+    "chig okonkwo": "chigoziem okonkwo",
+    "cam skattebo": "cameron skattebo",
+    "cam ward": "cameron ward",
+}
+
+
+def canonicalize_player_name(name: str) -> str:
+    """Normalize then apply known nickname aliases."""
+    norm = normalize_player_name(name)
+    return PLAYER_NAME_ALIASES.get(norm, norm)
+
+
 def mfl_name_to_display(name: str) -> str:
     """Convert ``Last, First`` to ``First Last``."""
     raw = str(name or "").strip()

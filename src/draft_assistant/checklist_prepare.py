@@ -23,6 +23,7 @@ from typing import Any
 
 from src.draft_assistant.market_adp import (
     average_market_value,
+    canonicalize_player_name,
     fetch_market_maps,
     market_components_for_player,
     normalize_player_name,
@@ -443,7 +444,7 @@ def build_checklist(
         raise ValueError(f"sealed OL ranks empty: {ranks_path}")
 
     vegas_by_norm = {
-        str(row.get("name_norm") or normalize_player_name(str(row.get("name") or ""))): row
+        str(row.get("name_norm") or canonicalize_player_name(str(row.get("name") or ""))): row
         for row in vegas.get("players") or []
         if row.get("name")
     }
@@ -481,7 +482,7 @@ def build_checklist(
             continue
         display_name = str(player.get("display_name") or player.get("name") or "")
         player_id = str(player.get("player_id") or "")
-        norm = normalize_player_name(display_name)
+        norm = canonicalize_player_name(display_name)
         markets = dict((vegas_by_norm.get(norm) or {}).get("markets") or {})
 
         season_stats = player.get("season") or {}
