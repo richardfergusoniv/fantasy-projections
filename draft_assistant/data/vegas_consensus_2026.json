@@ -1,6 +1,6 @@
 {
   "season": 2026,
-  "generated_at": "2026-09-05T19:59:24.392335+00:00",
+  "generated_at": "2026-09-05T20:23:57.450483+00:00",
   "source_files": [
     "action_numberfire",
     "bettingpros",
@@ -1535,7 +1535,7 @@
         "targets": 0.0,
         "receptions": 0.0,
         "pass_yards": 3650.25,
-        "rush_yards": 338.95,
+        "rush_yards": 355.975,
         "rec_yards": 0.0,
         "pass_tds": 24.5,
         "rush_tds": 3.34,
@@ -1597,8 +1597,7 @@
       "sources": [
         "action_numberfire",
         "action_numberfire:numberfire",
-        "bettingpros",
-        "rotowire"
+        "bettingpros"
       ]
     },
     {
@@ -3263,7 +3262,6 @@
         "draftkings",
         "espn_fox_articles",
         "fantasy_team_advice",
-        "rotowire",
         "vegasinsider"
       ]
     },
@@ -4141,14 +4139,15 @@
         "receptions": 37.91,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 321.69,
+        "rec_yards": 299.345,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 2.0,
         "fantasy_points": 62.44
       },
       "sources": [
-        "action_numberfire:numberfire"
+        "action_numberfire:numberfire",
+        "rotowire"
       ]
     },
     {
@@ -4477,8 +4476,7 @@
       "sources": [
         "action_numberfire",
         "action_numberfire:numberfire",
-        "bettingpros",
-        "rotowire"
+        "bettingpros"
       ]
     },
     {
@@ -4823,8 +4821,7 @@
       },
       "sources": [
         "action_numberfire:numberfire",
-        "fantasy_team_advice",
-        "rotowire"
+        "fantasy_team_advice"
       ]
     },
     {
@@ -6600,7 +6597,7 @@
         "targets": 16.21,
         "receptions": 12.21,
         "pass_yards": 0.0,
-        "rush_yards": 787.5,
+        "rush_yards": 575.5,
         "rec_yards": 85.44,
         "pass_tds": 0.0,
         "rush_tds": 3.24,
@@ -6609,8 +6606,7 @@
       },
       "sources": [
         "action_numberfire",
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -6897,17 +6893,16 @@
         "receptions": 62.3,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 824.5,
+        "rec_yards": 793.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
-        "rec_tds": 9.5,
+        "rec_tds": 3.19,
         "fantasy_points": 115.97
       },
       "sources": [
         "action_numberfire:numberfire",
         "fantasy_team_advice",
-        "oddschecker",
-        "rotowire"
+        "oddschecker"
       ]
     },
     {
@@ -6924,13 +6919,12 @@
         "rush_yards": 711.15,
         "rec_yards": 175.04,
         "pass_tds": 0.0,
-        "rush_tds": 11.5,
+        "rush_tds": 6.32,
         "rec_tds": 1.06,
         "fantasy_points": 142.92
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -7840,10 +7834,10 @@
         "rush_attempts": 4.44,
         "targets": 0.0,
         "receptions": 0.0,
-        "pass_yards": 1859.57,
+        "pass_yards": 1249.2849999999999,
         "rush_yards": 16.83,
         "rec_yards": 0.0,
-        "pass_tds": 24.5,
+        "pass_tds": 7.47,
         "rush_tds": 0.17,
         "rec_tds": 0.0,
         "fantasy_points": 110.44
@@ -8583,14 +8577,15 @@
         "receptions": 52.18,
         "pass_yards": 0.0,
         "rush_yards": 20.69,
-        "rec_yards": 546.18,
+        "rec_yards": 450.5,
         "pass_tds": 0.0,
         "rush_tds": 0.18,
         "rec_tds": 2.59,
         "fantasy_points": 98.74
       },
       "sources": [
-        "action_numberfire:numberfire"
+        "action_numberfire:numberfire",
+        "rotowire"
       ]
     },
     {
@@ -8995,14 +8990,13 @@
         "pass_yards": 81.72,
         "rush_yards": 0.0,
         "rec_yards": 0.0,
-        "pass_tds": 24.5,
+        "pass_tds": 0.39,
         "rush_tds": 0.0,
         "rec_tds": 0.0,
         "fantasy_points": 4.49
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -9646,7 +9640,7 @@
         "rec_yards": 425.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
-        "rec_tds": 7.5,
+        "rec_tds": 3.42,
         "fantasy_points": 93.17
       },
       "sources": [
@@ -10756,7 +10750,7 @@
         "receptions": 59.11,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 762.0,
+        "rec_yards": 749.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 4.5,
@@ -10897,12 +10891,11 @@
         "rec_yards": 0.0,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
-        "rec_tds": 4.5,
+        "rec_tds": 0.0,
         "fantasy_points": 0.0
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -11463,7 +11456,7 @@
       ]
     },
     {
-      "name": "Tre Harris",
+      "name": "Tre' Harris",
       "name_norm": "tre harris",
       "team": "LAC",
       "position": "WR",
@@ -11474,14 +11467,15 @@
         "receptions": 42.19,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 497.15,
+        "rec_yards": 495.075,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 2.87,
         "fantasy_points": 88.03
       },
       "sources": [
-        "action_numberfire:numberfire"
+        "action_numberfire:numberfire",
+        "rotowire"
       ]
     },
     {
@@ -11570,7 +11564,7 @@
         "targets": 0.0,
         "receptions": 0.0,
         "pass_yards": 3768.5,
-        "rush_yards": 477.92,
+        "rush_yards": 408.46000000000004,
         "rec_yards": 0.0,
         "pass_tds": 25.5,
         "rush_tds": 4.5,
@@ -11743,14 +11737,13 @@
         "pass_yards": 3856.69,
         "rush_yards": 115.58,
         "rec_yards": 0.0,
-        "pass_tds": 24.5,
+        "pass_tds": 23.52,
         "rush_tds": 1.1,
         "rec_tds": 0.0,
         "fantasy_points": 247.72
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {

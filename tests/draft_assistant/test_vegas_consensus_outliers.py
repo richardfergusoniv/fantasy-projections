@@ -82,6 +82,38 @@ def test_extract_quote_prefers_traditional_books_over_kalshi():
     assert value == 799.5
 
 
+def test_extract_quote_drops_juiced_td_line_vs_projection():
+    # Josh Downs Caesars 9.5 rec TDs vs RotoWire proj 4.0.
+    assert (
+        _extract_quote(
+            {
+                "line": 9.5,
+                "rotowire_proj": 4.0,
+                "books": {"caesars": {"line": 9.5}},
+            }
+        )
+        is None
+    )
+
+
+def test_extract_quote_drops_juiced_yard_line_vs_projection():
+    # Josh Downs 999.5 (+220) vs RotoWire proj 770.
+    assert (
+        _extract_quote(
+            {
+                "line": 999.5,
+                "over_odds": 220,
+                "rotowire_proj": 770.0,
+                "books": {
+                    "draftkings": {"line": 999.5, "over_odds": 220},
+                    "caesars": {"line": 999.5},
+                },
+            }
+        )
+        is None
+    )
+
+
 def test_canonicalize_merges_common_nicknames():
     assert canonicalize_player_name("Kenny Gainwell") == "kenneth gainwell"
     assert canonicalize_player_name("Chig Okonkwo") == "chigoziem okonkwo"
@@ -103,7 +135,6 @@ def test_build_consensus_gainwell_not_above_bucky_from_kalshi_junk():
     assert "kenny gainwell" not in by_norm
     gainwell = by_norm["kenneth gainwell"]
     bucky = by_norm["bucky irving"]
-    # Kalshi 749.5 / 5.5 must not survive; NF ~317 rush yards remains.
     assert gainwell["markets"]["rush_yards"] < 400
     assert bucky["markets"]["rush_yards"] > 750
     assert gainwell["markets"]["rush_yards"] < bucky["markets"]["rush_yards"]
@@ -112,5 +143,11 @@ def test_build_consensus_gainwell_not_above_bucky_from_kalshi_junk():
 def test_build_consensus_prefers_books_over_numberfire_when_both_exist():
     payload = build_consensus(season=2026)
     bucky = next(player for player in payload["players"] if player["name"] == "Bucky Irving")
-    # NF ~990 rush yards must not blend into the sportsbook ~800 median.
     assert 780 <= bucky["markets"]["rush_yards"] <= 830
+
+
+def test_build_consensus_downs_not_inflated_by_caesars_tds():
+    payload = build_consensus(season=2026)
+    downs = next(player for player in payload["players"] if player["name"] == "Josh Downs")
+    assert downs["markets"]["rec_tds"] < 5.0
+    assert downs["markets"]["rec_yards"] < 900

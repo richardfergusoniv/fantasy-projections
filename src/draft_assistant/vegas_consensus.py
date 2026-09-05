@@ -151,6 +151,22 @@ def _odds_skewed(over: Any, under: Any, *, gap: float = SKEWED_ODDS_GAP) -> bool
     return abs(over_p - under_p) > gap
 
 
+def _one_sided_longshot(over: Any, under: Any, *, threshold: float = 200.0) -> bool:
+    """Reject threshold props posted as huge plus-money on only one side."""
+
+    def _is_longshot(odds: Any) -> bool:
+        try:
+            return float(odds) >= threshold
+        except (TypeError, ValueError):
+            return False
+
+    if over is not None and under is None and _is_longshot(over):
+        return True
+    if under is not None and over is None and _is_longshot(under):
+        return True
+    return False
+
+
 def _is_prediction_market_book(name: str) -> bool:
     key = str(name or "").strip().lower()
     if key in PREDICTION_MARKET_BOOKS:
@@ -161,8 +177,13 @@ def _is_prediction_market_book(name: str) -> bool:
 def _book_entry_line(raw: Any) -> float | None:
     if not isinstance(raw, dict):
         return _scalar_line(raw)
-    if _odds_skewed(raw.get("over_odds"), raw.get("under_odds")) or _odds_skewed(
-        raw.get("over_odds_american"), raw.get("under_odds_american")
+    if (
+        _odds_skewed(raw.get("over_odds"), raw.get("under_odds"))
+        or _odds_skewed(raw.get("over_odds_american"), raw.get("under_odds_american"))
+        or _one_sided_longshot(raw.get("over_odds"), raw.get("under_odds"))
+        or _one_sided_longshot(
+            raw.get("over_odds_american"), raw.get("under_odds_american")
+        )
     ):
         return None
     for key in ("line", "value", "ou", "total"):
@@ -237,8 +258,13 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
                 top_line = _scalar_line(raw[key])
                 if top_line is not None:
                     break
-        skewed = _odds_skewed(raw.get("over_odds"), raw.get("under_odds")) or _odds_skewed(
-            raw.get("over_odds_american"), raw.get("under_odds_american")
+        skewed = (
+            _odds_skewed(raw.get("over_odds"), raw.get("under_odds"))
+            or _odds_skewed(raw.get("over_odds_american"), raw.get("under_odds_american"))
+            or _one_sided_longshot(raw.get("over_odds"), raw.get("under_odds"))
+            or _one_sided_longshot(
+                raw.get("over_odds_american"), raw.get("under_odds_american")
+            )
         )
         if top_line is not None and not only_prediction_markets and not skewed:
             line = top_line
@@ -249,8 +275,16 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
 
     if line is not None and projection is not None:
         scale = max(abs(projection), 1.0)
-        if abs(line - projection) / scale > 0.5 and abs(line - projection) > 100:
-            # Same-source book vs proj conflict (Kupp / Caesars pattern).
+        delta = abs(line - projection)
+        rel = delta / scale
+        # TD-aware floor: 9.5 vs 4.0 must drop. Yardage juicing (999.5 vs 770)
+        # drops on a milder relative miss with a large absolute gap.
+        conflict = (rel > 0.5 and delta > max(1.5, 0.05 * scale)) or (
+            rel > 0.25 and delta > 150
+        )
+        if conflict:
+            # Drop the source quote entirely (Kupp: a 364 RotoWire proj must not
+            # blend with NumberFire after the Caesars line is rejected).
             return None
     if line is not None:
         return (line, "book")
