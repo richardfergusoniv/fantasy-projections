@@ -1,0 +1,194 @@
+{
+  "generated_at": "2026-09-03T18:09:43.084092+00:00",
+  "decision": {
+    "verdict": "NO-GO",
+    "reasons": [
+      "holdout_bootstrap_ci_does_not_exclude_zero",
+      "model_feature_patch_did_not_improve_all_fit_folds",
+      "model_feature_patch_did_not_improve_holdout",
+      "model_feature_patch_holdout_bootstrap_ci_does_not_exclude_zero",
+      "full_fantasy_point_gates_unavailable_without_historical_raw_boards_retrain"
+    ],
+    "gates": {
+      "rate_pool_fit_mae": true,
+      "rate_pool_holdout_mae": true,
+      "rate_pool_holdout_bootstrap_ci": false,
+      "model_patch_fit_mae": false,
+      "model_patch_holdout_mae": false,
+      "model_patch_holdout_bootstrap_ci": false,
+      "non_qb_invariance": true,
+      "passing_volume_conservation_2026_joint": true,
+      "season_points_mae": false,
+      "ppg_mae": false,
+      "rank_correlation": false,
+      "top12_recall_ordering": false,
+      "rushing_attempt_calibration_by_archetype": true,
+      "stability_across_seasons": false
+    },
+    "selected_configuration": null,
+    "note": "2026 sanity table is diagnostic only and was not used for selection. Existing release gates were not weakened."
+  },
+  "pooling": {
+    "metric": "carries_pg",
+    "folds": [
+      {
+        "season": 2023,
+        "n": 32,
+        "carry_forward_mae": 0.957308597244259,
+        "pooled_mae": 0.8703153016790037,
+        "delta_mae": -0.08699329556525526,
+        "bootstrap_delta_mean": -0.08526683569749333,
+        "bootstrap_delta_ci95": [
+          -0.2818384892154744,
+          0.11028501153683289
+        ],
+        "spearman_cf": 0.7280396601913701,
+        "spearman_pooled": 0.7759142182711495
+      },
+      {
+        "season": 2024,
+        "n": 34,
+        "carry_forward_mae": 0.8854681962597186,
+        "pooled_mae": 0.8822246470012667,
+        "delta_mae": -0.0032435492584519388,
+        "bootstrap_delta_mean": -0.0007183016901075626,
+        "bootstrap_delta_ci95": [
+          -0.17296375298758324,
+          0.17276457516249208
+        ],
+        "spearman_cf": 0.7425122336082354,
+        "spearman_pooled": 0.73292589763178
+      },
+      {
+        "season": 2025,
+        "n": 32,
+        "carry_forward_mae": 1.059858898760553,
+        "pooled_mae": 0.9682427747671272,
+        "delta_mae": -0.09161612399342589,
+        "bootstrap_delta_mean": -0.09227461785974753,
+        "bootstrap_delta_ci95": [
+          -0.3000584187508985,
+          0.09196366508092954
+        ],
+        "spearman_cf": 0.8188067122648772,
+        "spearman_pooled": 0.8446521894149438
+      }
+    ]
+  },
+  "model_patch": {
+    "model": "QB_carries.joblib",
+    "folds": [
+      {
+        "season": 2023,
+        "n": 32,
+        "baseline_mae": 0.948872447390444,
+        "patched_mae": 0.9507949584185479,
+        "delta_mae": 0.0019225110281039237,
+        "bootstrap_delta_mean": 0.0004800797622142358,
+        "bootstrap_delta_ci95": [
+          -0.0960364758551776,
+          0.09293517491575541
+        ],
+        "baseline_bias": -0.254208431255319,
+        "patched_bias": -0.21665750195105196,
+        "baseline_spearman": 0.759417105196639,
+        "patched_spearman": 0.7810466534498861,
+        "mean_abs_pred_delta": 0.1687271595495377
+      },
+      {
+        "season": 2024,
+        "n": 36,
+        "baseline_mae": 0.9235170833560381,
+        "patched_mae": 0.9937924785828736,
+        "delta_mae": 0.07027539522683546,
+        "bootstrap_delta_mean": 0.07039093274406857,
+        "bootstrap_delta_ci95": [
+          -0.0461009026471315,
+          0.18734470367212522
+        ],
+        "baseline_bias": -0.18895488156086332,
+        "patched_bias": -0.1502281024512243,
+        "baseline_spearman": 0.6889761260164269,
+        "patched_spearman": 0.6898770848959551,
+        "mean_abs_pred_delta": 0.31567674780972205
+      },
+      {
+        "season": 2025,
+        "n": 32,
+        "baseline_mae": 0.7705628326331739,
+        "patched_mae": 0.8115739276678545,
+        "delta_mae": 0.04101109503468059,
+        "bootstrap_delta_mean": 0.040393641167511346,
+        "bootstrap_delta_ci95": [
+          -0.11470839278051626,
+          0.2199962905313816
+        ],
+        "baseline_bias": -0.27362414831737036,
+        "patched_bias": -0.08345979621558802,
+        "baseline_spearman": 0.8353038253393879,
+        "patched_spearman": 0.8107414569840053,
+        "mean_abs_pred_delta": 0.24125410925631707
+      }
+    ]
+  },
+  "joint_allocation": {
+    "non_qb_invariance": {
+      "pass": true,
+      "n_compared": 3271,
+      "n_changed": 0,
+      "max_abs_delta": 0.0
+    },
+    "burrow_attempts_baseline": 17.97066823591866,
+    "burrow_attempts_joint": 23.95858819348171
+  },
+  "sanity_2026_diagnostic_only": {
+    "Josh Allen": {
+      "rank": 1,
+      "ppg": 18.260362147741485,
+      "attempts": 23.963468580332346,
+      "carries": 6.089131560753759
+    },
+    "Lamar Jackson": {
+      "rank": 16,
+      "ppg": 13.25488137822263,
+      "attempts": 22.07900399211793,
+      "carries": 4.422580581350364
+    },
+    "Jayden Daniels": {
+      "rank": 21,
+      "ppg": 12.925866299819127,
+      "attempts": 23.679983589237256,
+      "carries": 6.440275807116136
+    },
+    "Jalen Hurts": {
+      "rank": 10,
+      "ppg": 14.726118767247202,
+      "attempts": 22.326895386453828,
+      "carries": 4.309725888921528
+    },
+    "Joe Burrow": {
+      "rank": 25,
+      "ppg": 11.931163485443369,
+      "attempts": 23.95858819348171,
+      "carries": 1.8944483377122696
+    },
+    "Patrick Mahomes": {
+      "rank": 9,
+      "ppg": 14.754802131296687,
+      "attempts": 23.826442939815053,
+      "carries": 4.563030519281061
+    },
+    "Drake Maye": {
+      "rank": 2,
+      "ppg": 17.872228909442754,
+      "attempts": 29.902413077950936,
+      "carries": 5.01393504386697
+    },
+    "Bo Nix": {
+      "rank": 5,
+      "ppg": 16.50054218538528,
+      "attempts": 29.822016456463043,
+      "carries": 4.040699263198057
+    }
+  }
+}

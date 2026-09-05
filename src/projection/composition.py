@@ -72,6 +72,10 @@ class CompositionContext:
     team_volume_shares: dict | None = None
     team_volume_siblings: dict | None = None
     reconcile_alpha: float | None = None
+    # Experimental joint QB-room allocation (starter share first, backups
+    # residual on expected missed games). Shipped default False keeps the
+    # existing reconcile_team_volume path bit-identical.
+    qb_joint_room_allocation: bool = False
     stage_coverage: dict = field(default_factory=dict)
 
     def describe_coverage(self):
@@ -241,12 +245,38 @@ def run_compose_stages(rows, ctx, *, capture_checkpoints: bool = False):
 
     # Top-down: pull each team's summed volume toward its own anchor before
     # the counting-stat identities and the season totals are materialised.
-    out = reconcile_team_volume(
-        out,
-        alpha=ctx.reconcile_alpha,
-        volume_shares=ctx.team_volume_shares,
-        volume_siblings=ctx.team_volume_siblings,
-    )
+    if ctx.qb_joint_room_allocation:
+        from src.projection.qb_joint_allocation import reconcile_qb_joint_room
+
+        # Non-QB positions keep the shipped reconciler; QB uses joint room.
+        out = reconcile_team_volume(
+            out,
+            alpha=ctx.reconcile_alpha,
+            volume_shares=ctx.team_volume_shares,
+            volume_siblings=ctx.team_volume_siblings,
+        )
+        qb = out["position"].astype(str).eq("QB")
+        if qb.any():
+            scale = pd.to_numeric(out.loc[qb, "team_volume_scale"], errors="coerce").replace(0, pd.NA).fillna(1.0)
+            for col in ("pred_pg", "pred_pg_low", "pred_pg_high"):
+                if col in out.columns:
+                    out.loc[qb, col] = pd.to_numeric(out.loc[qb, col], errors="coerce") / scale
+            out.loc[qb, "team_volume_scale"] = 1.0
+            out, _qb_report = reconcile_qb_joint_room(
+                out,
+                target_season=ctx.target_season,
+                alpha=ctx.reconcile_alpha,
+                volume_shares=ctx.team_volume_shares,
+                volume_siblings=ctx.team_volume_siblings,
+            )
+            ctx.stage_coverage["qb_joint_room_allocation"] = "active"
+    else:
+        out = reconcile_team_volume(
+            out,
+            alpha=ctx.reconcile_alpha,
+            volume_shares=ctx.team_volume_shares,
+            volume_siblings=ctx.team_volume_siblings,
+        )
     _capture("team_volume_reconcile", out)
 
     out = apply_concentration(out)

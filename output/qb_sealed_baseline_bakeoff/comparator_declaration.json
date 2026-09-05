@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-09-03T18:34:09.504215+00:00",
+  "prior_reported_comparator": "A",
+  "prior_comparator_detail": "baseline_conflated in qb_active_archetype.evaluate.predict_player \u2014 last-season injury-diluted per-game rates \u00d7 carried-forward games. NOT sealed v2_baseline_20260830 final after reconcile/compose/ensemble.",
+  "this_bakeoff_comparator": "B",
+  "this_bakeoff_detail": "fantasy_evaluation model_points_end_to_end (sealed historical end-to-end pipeline points). Final fantasy season points and PPG compared to actuals.",
+  "thresholds_frozen": true,
+  "no_2025_retune": true,
+  "artifact_hashes": {
+    "thresholds.py": "16134a6e4d63c81d239f8efea49f77c99e1e3e60cd67869ae07f691e41ee4230",
+    "predeclared_thresholds.json": "4febc1dc4490a525dac740f8303bc9f44ceb020e21fc46098cca63a9cb4aedd9"
+  }
+}

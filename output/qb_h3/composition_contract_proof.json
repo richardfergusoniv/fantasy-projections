@@ -1,0 +1,12 @@
+{
+  "identity_once_passes": true,
+  "double_avail_detected_on_synthetic": true,
+  "starter_backup_conservation": {
+    "starter_season_attempts": 555,
+    "backup_season_attempts": 45,
+    "starter_attempts_per_active_preserved": 37,
+    "conserved_total": 600,
+    "team_claim": 600
+  },
+  "note": "Full board team-volume conservation requires sealed team reconcile with projections.db"
+}

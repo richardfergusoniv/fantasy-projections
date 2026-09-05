@@ -1,0 +1,116 @@
+{
+  "schema_version": "qb_h3_reconcile_contract_v1",
+  "data_cutoff": "prediction_side uses only seasons < prediction_season",
+  "content_hash": "077f63268cf79cd84770a874f8ff58ed838895e65b4ca75062e8423de75ea3a5",
+  "n_rows": 312,
+  "seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "rows_per_season": {
+    "2023": 100,
+    "2024": 105,
+    "2025": 107
+  },
+  "row_count_expectations": {
+    "min_rows_per_eval_season": 60,
+    "min_teams_per_eval_season": 32,
+    "min_depth1_per_eval_season": 28,
+    "eval_seasons": [
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "source_hashes": {
+    "weekly_qb": "485740dd56b1566bb232d8c3b680f3d68df1c6196ed0b55abae5a7651ee003fd",
+    "active_season_rates": "1a52fe3525a52258c5127b35471c4642c6118e373ddbbc3c7f281b7cf93ddb43",
+    "fantasy_evaluation_2023": "46523ce578301c796e2687cf20df12faff963bd897204d93002b4fca0ac3ebae",
+    "fantasy_evaluation_2024": "64beabfc4d35f86781a89794c5a657a68bbdb4dc641ace9e390b6880b58b1524",
+    "fantasy_evaluation_2025": "0ee5c432be0d6c69aa9f13f4cd496d857f09ec05d8b4057a744d4f0d49858d6d"
+  },
+  "prediction_columns": [
+    "prediction_season",
+    "prediction_cutoff",
+    "team",
+    "player_id",
+    "display_name",
+    "preseason_depth_tier",
+    "preseason_role",
+    "is_rookie_at_cutoff",
+    "prior_active_starts_sum",
+    "prior_active_starts_mean",
+    "prior_partial_exits_sum",
+    "prior_player_attempts_per_active",
+    "prior_player_carries_per_active",
+    "prior_team_pass_attempts",
+    "prior_team_qb_carries",
+    "pred_team_pass_attempts_pg",
+    "pred_team_qb_carries_pg",
+    "destination_team_at_cutoff"
+  ],
+  "label_columns": [
+    "actual_starts",
+    "actual_attempts",
+    "actual_carries",
+    "actual_passing_yards",
+    "actual_rushing_yards",
+    "actual_passing_tds",
+    "actual_rushing_tds",
+    "actual_points",
+    "sealed_model_points_end_to_end",
+    "sealed_projected_games"
+  ],
+  "leakage_audit": {
+    "ok": true,
+    "leaked_columns": [],
+    "prediction_columns": [
+      "prediction_season",
+      "prediction_cutoff",
+      "team",
+      "player_id",
+      "display_name",
+      "preseason_depth_tier",
+      "preseason_role",
+      "is_rookie_at_cutoff",
+      "prior_active_starts_sum",
+      "prior_active_starts_mean",
+      "prior_partial_exits_sum",
+      "prior_player_attempts_per_active",
+      "prior_player_carries_per_active",
+      "prior_team_pass_attempts",
+      "prior_team_qb_carries",
+      "pred_team_pass_attempts_pg",
+      "pred_team_qb_carries_pg",
+      "destination_team_at_cutoff"
+    ],
+    "label_columns_present": [
+      "actual_starts",
+      "actual_attempts",
+      "actual_carries",
+      "actual_passing_yards",
+      "actual_rushing_yards",
+      "actual_passing_tds",
+      "actual_rushing_tds",
+      "actual_points",
+      "sealed_model_points_end_to_end",
+      "sealed_projected_games"
+    ],
+    "season_games": 17
+  },
+  "committed_as": "versioned_evaluation_fixture",
+  "does_not_include": [
+    "projections.db",
+    "player_week_panel.parquet",
+    "sleeper league data",
+    "secrets",
+    "database URLs"
+  ],
+  "builder": "scripts/qb_h3_build_portable_fixture.py",
+  "n_players": 144,
+  "large_sources_not_used": [
+    "data/projections.db",
+    "data/processed/player_week_panel.parquet"
+  ]
+}
