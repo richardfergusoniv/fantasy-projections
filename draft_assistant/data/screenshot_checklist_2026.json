@@ -1,0 +1,1661 @@
+{
+  "season": 2026,
+  "source": "sunday_sports_society_checklist_screenshots",
+  "as_of": "2026-09-04",
+  "notes": "Player order and non-OL checks transcribed from SSS checklist screenshots. OL top-16 for QB/RB is applied at prepare time from ol_unit_ranks_2026.json (O-line unit rankings screenshot), not from the SSS OL column.",
+  "name_aliases": {
+    "Michael Pittman Jr.": "Michael Pittman",
+    "DeZhaun Stribling": "De'Zhaun Stribling",
+    "CJ Stroud": "C.J. Stroud",
+    "James Cook III": "James Cook",
+    "Denry Henry": "Derrick Henry",
+    "Travis Etienne Jr.": "Travis Etienne",
+    "Kenneth Gainwell": "Kenny Gainwell",
+    "Sam Laporta": "Sam LaPorta",
+    "Harold Fannin": "Harold Fannin Jr.",
+    "TJ Hockenson": "T.J. Hockenson",
+    "Oronde Gadsden": "Oronde Gadsden II"
+  },
+  "positions": {
+    "QB": [
+      {
+        "rank": 1,
+        "name": "Josh Allen",
+        "checks": {
+          "pass_att_top16": false,
+          "rush_vol_top16": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 2,
+        "name": "Lamar Jackson",
+        "checks": {
+          "pass_att_top16": false,
+          "rush_vol_top16": true,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 3,
+        "name": "Drake Maye",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": true,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 4,
+        "name": "Joe Burrow",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": false,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 5,
+        "name": "Jayden Daniels",
+        "checks": {
+          "pass_att_top16": false,
+          "rush_vol_top16": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 6,
+        "name": "Jalen Hurts",
+        "checks": {
+          "pass_att_top16": false,
+          "rush_vol_top16": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 7,
+        "name": "Caleb Williams",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 8,
+        "name": "Dak Prescott",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": false,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 9,
+        "name": "Trevor Lawrence",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": true,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 10,
+        "name": "Justin Herbert",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 11,
+        "name": "Jaxson Dart",
+        "checks": {
+          "pass_att_top16": false,
+          "rush_vol_top16": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 12,
+        "name": "Matthew Stafford",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": false,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 13,
+        "name": "Brock Purdy",
+        "checks": {
+          "pass_att_top16": false,
+          "rush_vol_top16": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 14,
+        "name": "Patrick Mahomes",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 15,
+        "name": "Bo Nix",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": true,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 16,
+        "name": "Jared Goff",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": false,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 17,
+        "name": "Kyler Murray",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": true,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 18,
+        "name": "Baker Mayfield",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": true,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 19,
+        "name": "Jordan Love",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": false,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 20,
+        "name": "Tyler Shough",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": true,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 21,
+        "name": "Malik Willis",
+        "checks": {
+          "pass_att_top16": false,
+          "rush_vol_top16": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 22,
+        "name": "Daniel Jones",
+        "checks": {
+          "pass_att_top16": false,
+          "rush_vol_top16": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 23,
+        "name": "CJ Stroud",
+        "checks": {
+          "pass_att_top16": true,
+          "rush_vol_top16": false,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 24,
+        "name": "Sam Darnold",
+        "checks": {
+          "pass_att_top16": false,
+          "rush_vol_top16": false,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      }
+    ],
+    "RB": [
+      {
+        "rank": 1,
+        "name": "Jahmyr Gibbs",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 2,
+        "name": "Bijan Robinson",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 3,
+        "name": "Christian McCaffrey",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 4,
+        "name": "Jonathan Taylor",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 5,
+        "name": "James Cook III",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 6,
+        "name": "Ashton Jeanty",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 7,
+        "name": "De'Von Achane",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 8,
+        "name": "Chase Brown",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 9,
+        "name": "Saquon Barkley",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 10,
+        "name": "Kenneth Walker III",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 11,
+        "name": "Omarion Hampton",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 12,
+        "name": "Denry Henry",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 13,
+        "name": "Jeremiyah Love",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 14,
+        "name": "Kyren Williams",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 15,
+        "name": "Breece Hall",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 16,
+        "name": "Javonte Williams",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 17,
+        "name": "Josh Jacobs",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 18,
+        "name": "Cam Skattebo",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 19,
+        "name": "Travis Etienne Jr.",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 20,
+        "name": "D'Andre Swift",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 21,
+        "name": "David Montgomery",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 22,
+        "name": "Quinshon Judkins",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 23,
+        "name": "Bucky Irving",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 24,
+        "name": "Bhayshul Tuten",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 25,
+        "name": "TreVeyon Henderson",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 26,
+        "name": "Jadarian Price",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 27,
+        "name": "Jaylen Warren",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 28,
+        "name": "Rhamondre Stevenson",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": true,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 29,
+        "name": "Tony Pollard",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 30,
+        "name": "Jonathon Brooks",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 31,
+        "name": "Rico Dowdle",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 32,
+        "name": "RJ Harvey",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 33,
+        "name": "J.K. Dobbins",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 34,
+        "name": "Chuba Hubbard",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 35,
+        "name": "Kenneth Gainwell",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 36,
+        "name": "Blake Corum",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 37,
+        "name": "Jordan Mason",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 38,
+        "name": "Kyle Monangai",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 39,
+        "name": "Jacory Croskey-Merritt",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": true,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 40,
+        "name": "Rachaad White",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 41,
+        "name": "Aaron Jones",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 42,
+        "name": "Tyrone Tracy Jr.",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 43,
+        "name": "Keaton Mitchell",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 44,
+        "name": "Zach Charbonnet",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 45,
+        "name": "Tyler Allgeier",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 46,
+        "name": "Tyjae Spears",
+        "checks": {
+          "target_leader_in_group": true,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": false,
+          "ol_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 47,
+        "name": "Alvin Kamara",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": false,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 48,
+        "name": "Isiah Pacheco",
+        "checks": {
+          "target_leader_in_group": false,
+          "rush_vol_leader_in_group": false,
+          "offense_top16": true,
+          "ol_top16": true,
+          "sos_top16": true
+        }
+      }
+    ],
+    "WR": [
+      {
+        "rank": 1,
+        "name": "Ja'Marr Chase",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 2,
+        "name": "Puka Nacua",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 3,
+        "name": "Jaxon Smith-Njigba",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 4,
+        "name": "Amon-Ra St. Brown",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 5,
+        "name": "CeeDee Lamb",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 6,
+        "name": "Justin Jefferson",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 7,
+        "name": "Drake London",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 8,
+        "name": "A.J. Brown",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 9,
+        "name": "Nico Collins",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 10,
+        "name": "George Pickens",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 11,
+        "name": "Rashee Rice",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 12,
+        "name": "Malik Nabers",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 13,
+        "name": "Chris Olave",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 14,
+        "name": "DeVonta Smith",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 15,
+        "name": "Zay Flowers",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 16,
+        "name": "Emeka Egbuka",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 17,
+        "name": "Tee Higgins",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 18,
+        "name": "Garrett Wilson",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 19,
+        "name": "Tetairoa McMillan",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 20,
+        "name": "Ladd McConkey",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 21,
+        "name": "Jaylen Waddle",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 22,
+        "name": "Terry McLaurin",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 23,
+        "name": "Luther Burden III",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 24,
+        "name": "Davante Adams",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 25,
+        "name": "DJ Moore",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 26,
+        "name": "Jameson Williams",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 27,
+        "name": "Rome Odunze",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 28,
+        "name": "Mike Evans",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 29,
+        "name": "Christian Watson",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 30,
+        "name": "Parker Washington",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 31,
+        "name": "Carnell Tate",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 32,
+        "name": "Marvin Harrison Jr.",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 33,
+        "name": "Brian Thomas Jr.",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 34,
+        "name": "DK Metcalf",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 35,
+        "name": "Courtland Sutton",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 36,
+        "name": "Josh Downs",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 37,
+        "name": "Quentin Johnston",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 38,
+        "name": "Chris Godwin Jr.",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 39,
+        "name": "Alec Pierce",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 40,
+        "name": "Michael Wilson",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 41,
+        "name": "Jordyn Tyson",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 42,
+        "name": "Michael Pittman Jr.",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 43,
+        "name": "Stefon Diggs",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 44,
+        "name": "Wan'Dale Robinson",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 45,
+        "name": "Jordan Addison",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 46,
+        "name": "Jayden Reed",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 47,
+        "name": "Makai Lemon",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 48,
+        "name": "Matthew Golden",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 49,
+        "name": "Jakobi Meyers",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 50,
+        "name": "Xavier Worthy",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 51,
+        "name": "KC Concepcion",
+        "checks": {
+          "target_leader_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 52,
+        "name": "Romeo Doubs",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 53,
+        "name": "Deebo Samuel Sr.",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 54,
+        "name": "DeZhaun Stribling",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 55,
+        "name": "Khalil Shakir",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 56,
+        "name": "Jalen Coker",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 57,
+        "name": "Rashid Shaheed",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 58,
+        "name": "Denzel Boston",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 59,
+        "name": "Tre Tucker",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 60,
+        "name": "Jerry Jeudy",
+        "checks": {
+          "target_leader_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      }
+    ],
+    "TE": [
+      {
+        "rank": 1,
+        "name": "Brock Bowers",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 2,
+        "name": "Trey McBride",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 3,
+        "name": "Colston Loveland",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 4,
+        "name": "Tyler Warren",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": false,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 5,
+        "name": "Sam Laporta",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 6,
+        "name": "Tucker Kraft",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 7,
+        "name": "Kyle Pitts",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 8,
+        "name": "Harold Fannin",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 9,
+        "name": "George Kittle",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 10,
+        "name": "Travis Kelce",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 11,
+        "name": "Dallas Goedert",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": false,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 12,
+        "name": "Isaiah Likely",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 13,
+        "name": "Dalton Kincaid",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 14,
+        "name": "Jake Ferguson",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 15,
+        "name": "Mark Andrews",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 16,
+        "name": "Juwan Johnson",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 17,
+        "name": "Brenton Strange",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 18,
+        "name": "Hunter Henry",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 19,
+        "name": "TJ Hockenson",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 20,
+        "name": "Kenyon Sadiq",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 21,
+        "name": "Dalton Schultz",
+        "checks": {
+          "te_top2_targets_in_group": true,
+          "qb_top16": false,
+          "offense_top16": false,
+          "sos_top16": true
+        }
+      },
+      {
+        "rank": 22,
+        "name": "AJ Barner",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 23,
+        "name": "Oronde Gadsden",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      },
+      {
+        "rank": 24,
+        "name": "Terrance Ferguson",
+        "checks": {
+          "te_top2_targets_in_group": false,
+          "qb_top16": true,
+          "offense_top16": true,
+          "sos_top16": false
+        }
+      }
+    ]
+  }
+}

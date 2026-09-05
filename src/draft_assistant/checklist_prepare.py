@@ -1,17 +1,14 @@
-"""Build sealed draft-checklist JSON (market ranks + context checks).
+"""Build sealed draft-checklist JSON from Sunday Sports Society screenshots.
 
-Volume-leader flags come only from sealed ``team_stats_*`` history blocks.
-Offense / SOS ranks require ``projections.db`` when available; both can fall
-back to the same nflverse sources ``src.db.load`` would ingest.
+Player order and non-OL context checks come from
+``draft_assistant/data/screenshot_checklist_{season}.json`` (transcribed from
+the SSS checklist screenshots). QB/RB ``ol_top16`` is overwritten from
+``ol_unit_ranks_{season}.json`` (the O-line unit rankings screenshot) — not
+from the SSS OL column and not from ``projections.db``.
 
-OL unit ranks prefer the sealed screenshot board
-``draft_assistant/data/ol_unit_ranks_{season}.json`` (manual composite unit
-ranks). When that file is absent, OL falls back to ``projections.db``
-ol_quality; if both are missing, OL checks are omitted.
-
-Market order is half-PPR / 12-team ADP only (the single committed flavor).
-Refresh ``comparison_{season}.json`` via ``compare_prepare`` before this
-module when drafting live.
+Identity fields (player_id / team) are joined from sealed ``team_stats_*`` by
+name so drafted toggles still work. ADP/ECR/our offense-SOS ranks are not used
+for checklist order or checks.
 """
 
 from __future__ import annotations
@@ -76,14 +73,29 @@ CRITERIA_BASE: dict[str, list[str]] = {
 
 CRITERIA_LABELS: dict[str, str] = {
     "pass_att_top16": "TOP 16 PASS ATT",
-    "rush_vol_top16": "TOP 16 RUSH VOL",
+    "rush_vol_top16": "TOP 16 RUSH ATT",
     "offense_top16": "TOP 16 OFFENSE",
     "ol_top16": "TOP 16 O-LINE",
     "sos_top16": "TOP 16 SOS",
-    "target_leader_in_group": "2025 TGT LEADER IN GROUP",
-    "rush_vol_leader_in_group": "2025 RUSH VOL LEADER IN GROUP",
+    "target_leader_in_group": "TEAM TARGET LEADER",
+    "rush_vol_leader_in_group": "RUSH ATT LEADER",
     "qb_top16": "TOP 16 QB",
-    "te_top2_targets_in_group": "2025 TOP-2 TGT IN GROUP",
+    "te_top2_targets_in_group": "TOP-2 IN TEAM TARGETS",
+}
+
+# Screenshot lettering → sealed team_stats display_name.
+SCREENSHOT_NAME_ALIASES: dict[str, str] = {
+    "Michael Pittman Jr.": "Michael Pittman",
+    "DeZhaun Stribling": "De'Zhaun Stribling",
+    "CJ Stroud": "C.J. Stroud",
+    "James Cook III": "James Cook",
+    "Denry Henry": "Derrick Henry",
+    "Travis Etienne Jr.": "Travis Etienne",
+    "Kenneth Gainwell": "Kenny Gainwell",
+    "Sam Laporta": "Sam LaPorta",
+    "Harold Fannin": "Harold Fannin Jr.",
+    "TJ Hockenson": "T.J. Hockenson",
+    "Oronde Gadsden": "Oronde Gadsden II",
 }
 
 
@@ -615,6 +627,37 @@ def criteria_for_meta(*, ol_included: bool, sos_included: bool) -> dict[str, lis
     return out
 
 
+def screenshot_checklist_path(season: int = 2026) -> Path:
+    return DRAFT_DATA_DIR / f"screenshot_checklist_{season}.json"
+
+
+def load_screenshot_board(path: Path) -> dict[str, Any]:
+    with path.open(encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def resolve_screenshot_name(name: str, aliases: dict[str, str]) -> str:
+    return aliases.get(name, name)
+
+
+def index_team_stats_by_pos_name(
+    players: list[dict[str, Any]],
+) -> dict[str, dict[str, dict[str, Any]]]:
+    out: dict[str, dict[str, dict[str, Any]]] = {}
+    for player in players:
+        pos = str(player.get("position") or "")
+        name = str(player.get("display_name") or player.get("name") or "")
+        if not pos or not name:
+            continue
+        out.setdefault(pos, {})[name] = player
+    return out
+
+
+def _history_prior_pts(player: dict[str, Any]) -> float | None:
+    hist = _history_2025(player) or {}
+    return _num(hist.get("fantasy_pts_season"))
+
+
 def build_checklist(
     *,
     season: int = 2026,
@@ -622,160 +665,127 @@ def build_checklist(
     comparison_path: Path | None = None,
     db_path: str | Path | None = None,
     top_n: int = TOP_N,
+    screenshot_path: Path | None = None,
+    ol_ranks_path: Path | None = None,
 ) -> dict[str, Any]:
+    """Build checklist from sealed SSS screenshots + O-line unit ranks.
+
+    ``comparison_path`` / ``db_path`` remain on the signature for CLI
+    compatibility but are not used for ranks or non-OL checks.
+    """
+    del comparison_path, db_path
+
     team_stats_path = team_stats_path or DRAFT_DATA_DIR / f"team_stats_{season}.json"
-    comparison_path = comparison_path or DRAFT_DATA_DIR / f"comparison_{season}.json"
-    players = load_team_stats(team_stats_path)
-    comparison = load_comparison(comparison_path)
-    comparison_by_id = {
-        str(row["player_id"]): row
-        for row in (comparison.get("players") or [])
-        if row.get("player_id") is not None
-    }
+    board_path = screenshot_path or screenshot_checklist_path(season)
+    if not board_path.is_file():
+        raise FileNotFoundError(f"screenshot checklist board not found: {board_path}")
 
-    volume = volume_flags_for_players(players, top_n=top_n)
-    enriched = assign_rank_tiers(players, comparison_by_id)
+    board = load_screenshot_board(board_path)
+    aliases = dict(SCREENSHOT_NAME_ALIASES)
+    aliases.update({str(k): str(v) for k, v in (board.get("name_aliases") or {}).items()})
 
-    db_file = Path(db_path or DB_PATH)
-    ol_included = False
-    sos_included = False
-    offense_source = "missing"
-    sos_source = "missing"
-    ol_source = "missing"
-    schedule_games = 0
-    offense_ranks: dict[str, int] = {}
-    ol_pass_ranks: dict[str, int] = {}
-    ol_run_ranks: dict[str, int] = {}
-    ol_unit_ranks: dict[str, int] = {}
-    sos_pass_ranks: dict[str, int] = {}
-    sos_rush_ranks: dict[str, int] = {}
-    sos_unit_ranks: dict[str, int] = {}
+    roster = load_team_stats(team_stats_path)
+    by_pos_name = index_team_stats_by_pos_name(roster)
 
-    used_db = False
-    if db_has_tables(db_file, ("pbp", "schedules")):
-        conn = sqlite3.connect(str(db_file))
-        try:
-            offense_ranks = load_offense_ranks_from_db(conn, HISTORY_SEASON)
-            offense_source = "projections.db:team_season_yardage_totals"
-            ol_pass_ranks, ol_run_ranks, ol_unit_ranks = load_ol_ranks_from_db(
-                conn, HISTORY_SEASON
-            )
-            if ol_unit_ranks:
-                ol_included = True
-                ol_source = "projections.db:ol_quality"
-            schedule_games = count_2026_reg_schedules(conn, season)
-            if schedule_games > 0:
-                sos_pass_ranks, sos_rush_ranks, sos_unit_ranks = load_sos_ranks_from_db(
-                    conn, season
-                )
-                if sos_unit_ranks:
-                    sos_included = True
-                    sos_source = "projections.db:team_season_opponent_strength"
-            used_db = True
-        finally:
-            conn.close()
+    ranks_path = ol_ranks_path or sealed_ol_ranks_path(season)
+    if not ranks_path.is_file():
+        raise FileNotFoundError(f"sealed OL ranks not found: {ranks_path}")
+    ol_unit_ranks = load_sealed_ol_unit_ranks(ranks_path)
+    if not ol_unit_ranks:
+        raise ValueError(f"sealed OL ranks empty: {ranks_path}")
 
-    if not used_db:
-        # Same nflverse underlying data as db.load — not a sum of the 778 pool.
-        offense_ranks = load_offense_ranks_from_nflverse(HISTORY_SEASON)
-        offense_source = "nflverse_pbp:team_pass_rush_yards"
-        schedule_games = count_2026_reg_schedules_nflverse(season)
-        if schedule_games > 0:
-            sos_pass_ranks, sos_rush_ranks, sos_unit_ranks = load_sos_ranks_from_nflverse(
-                season
-            )
-            if sos_unit_ranks:
-                sos_included = True
-                sos_source = "nflverse_schedules+pbp:opponent_strength"
-        ol_included = False
-        ol_source = "unavailable_without_projections.db"
-
-    # Sealed screenshot board wins over DB ol_quality for checklist TOP-16 OL.
-    sealed_ol_path = sealed_ol_ranks_path(season)
-    if sealed_ol_path.is_file():
-        sealed_ranks = load_sealed_ol_unit_ranks(sealed_ol_path)
-        if sealed_ranks:
-            ol_unit_ranks = sealed_ranks
-            # Pass/run splits are not part of the sealed unit board.
-            ol_pass_ranks = {}
-            ol_run_ranks = {}
-            ol_included = True
-            ol_source = f"sealed:{sealed_ol_path.name}"
-
-    criteria = criteria_for_meta(ol_included=ol_included, sos_included=sos_included)
+    criteria = criteria_for_meta(ol_included=True, sos_included=True)
 
     teams_out: list[dict[str, Any]] = []
     for meta in TEAM_META:
         abbr = meta["abbr"]
-        row: dict[str, Any] = {
-            "abbr": abbr,
-            "name": meta["name"],
-            "offense_rank": offense_ranks.get(abbr),
-        }
-        if ol_included:
-            row["ol_pass_rank"] = ol_pass_ranks.get(abbr)
-            row["ol_run_rank"] = ol_run_ranks.get(abbr)
-            row["ol_unit_rank"] = ol_unit_ranks.get(abbr)
-        if sos_included:
-            row["sos_pass_rank"] = sos_pass_ranks.get(abbr)
-            row["sos_rush_rank"] = sos_rush_ranks.get(abbr)
-            row["sos_unit_rank"] = sos_unit_ranks.get(abbr)
-        teams_out.append(row)
-
-    players_out: list[dict[str, Any]] = []
-    for row in enriched:
-        pid = row["player_id"]
-        team = row.get("team")
-        checks: dict[str, bool] = {}
-        for key in criteria.get(row["position"], []):
-            if key in ("offense_top16", "ol_top16", "sos_top16"):
-                if not team:
-                    checks[key] = False
-                    continue
-                if key == "offense_top16":
-                    checks[key] = (offense_ranks.get(team) or 99) <= top_n
-                elif key == "ol_top16":
-                    checks[key] = (ol_unit_ranks.get(team) or 99) <= top_n
-                else:
-                    checks[key] = (sos_unit_ranks.get(team) or 99) <= top_n
-            else:
-                checks[key] = bool(volume.get(pid, {}).get(key, False))
-        players_out.append(
+        teams_out.append(
             {
-                **row,
-                "checks": checks,
+                "abbr": abbr,
+                "name": meta["name"],
+                "offense_rank": None,
+                "ol_pass_rank": None,
+                "ol_run_rank": None,
+                "ol_unit_rank": ol_unit_ranks.get(abbr),
+                "sos_pass_rank": None,
+                "sos_rush_rank": None,
+                "sos_unit_rank": None,
             }
         )
 
-    market_meta = comparison.get("meta") or {}
-    adp_meta = market_meta.get("adp") or {}
-    ecr_meta = market_meta.get("ecr") or {}
+    players_out: list[dict[str, Any]] = []
+    missing: list[str] = []
+    positions = board.get("positions") or {}
+    for pos in ("QB", "RB", "WR", "TE"):
+        rows = list(positions.get(pos) or [])
+        rows.sort(key=lambda row: int(row.get("rank") or 9999))
+        pool = by_pos_name.get(pos) or {}
+        for row in rows:
+            raw_name = str(row.get("name") or "")
+            resolved = resolve_screenshot_name(raw_name, aliases)
+            identity = pool.get(resolved)
+            if identity is None:
+                missing.append(f"{pos}:{raw_name}")
+                continue
+            team = identity.get("team")
+            shot_checks = dict(row.get("checks") or {})
+            checks: dict[str, bool] = {}
+            for key in criteria.get(pos, []):
+                if key == "ol_top16":
+                    checks[key] = bool(team) and (
+                        (ol_unit_ranks.get(str(team)) or 99) <= top_n
+                    )
+                elif key in shot_checks:
+                    checks[key] = bool(shot_checks[key])
+                else:
+                    checks[key] = False
+            players_out.append(
+                {
+                    "player_id": str(identity["player_id"]),
+                    "name": identity.get("display_name") or resolved,
+                    "position": pos,
+                    "team": team,
+                    "adp": None,
+                    "ecr": None,
+                    "prior_pts": _history_prior_pts(identity),
+                    "rank_tier": "screenshot",
+                    "pos_market_rank": int(row["rank"]),
+                    "unranked_break": False,
+                    "checks": checks,
+                }
+            )
+
+    if missing:
+        raise ValueError(
+            "screenshot names not found in team_stats: " + ", ".join(missing)
+        )
 
     return {
         "season": season,
         "meta": {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "top_n": top_n,
-            "rank_source": "adp",
-            "scoring_flavor": "half-ppr",
-            "team_count": int(adp_meta.get("teams") or 12),
+            "rank_source": "screenshot",
+            "scoring_flavor": "ppr",
+            "team_count": 12,
             "market_as_of": {
-                "adp_start": adp_meta.get("start_date"),
-                "adp_end": adp_meta.get("end_date"),
-                "ecr_scrape": ecr_meta.get("scrape_date"),
-                "scoring": adp_meta.get("scoring") or "half-ppr",
-                "teams": int(adp_meta.get("teams") or 12),
-                "comparison_generated_at": market_meta.get("generated_at"),
-                "matched_adp": market_meta.get("matched_adp"),
-                "matched_ecr": market_meta.get("matched_ecr"),
+                "source": board.get("source") or "sunday_sports_society_screenshots",
+                "as_of": board.get("as_of"),
+                "scoring": "ppr",
+                "teams": 12,
             },
-            "sos_included": sos_included,
-            "schedule_2026_reg_games": schedule_games,
-            "ol_included": ol_included,
-            "offense_source": offense_source,
-            "sos_source": sos_source,
-            "ol_source": ol_source,
-            "volume_caveat": VOLUME_CAVEAT,
+            "sos_included": True,
+            "schedule_2026_reg_games": None,
+            "ol_included": True,
+            "offense_source": "screenshot_checklist",
+            "sos_source": "screenshot_checklist",
+            "ol_source": f"sealed:{ranks_path.name}",
+            "rank_board_source": f"sealed:{board_path.name}",
+            "volume_caveat": (
+                "Checks and positional ranks transcribed from SSS checklist "
+                "screenshots. QB/RB TOP 16 O-LINE uses the sealed O-line unit "
+                "rankings screenshot, not the SSS OL column."
+            ),
             "criteria_labels": {
                 key: CRITERIA_LABELS[key]
                 for keys in criteria.values()

@@ -252,7 +252,7 @@ export interface DraftBoard {
   meta: ApiMeta;
 }
 
-export type DraftRankTier = "adp" | "ecr" | "prior_pts" | "none";
+export type DraftRankTier = "adp" | "ecr" | "prior_pts" | "screenshot" | "none";
 
 export interface DraftChecklistEntry {
   player_id: string;
@@ -290,6 +290,8 @@ export interface DraftChecklistMarketAsOf {
   comparison_generated_at?: string | null;
   matched_adp?: number | null;
   matched_ecr?: number | null;
+  source?: string | null;
+  as_of?: string | null;
 }
 
 export interface DraftChecklist {
@@ -305,9 +307,12 @@ export interface DraftChecklist {
     sos_included?: boolean;
     ol_included?: boolean;
     volume_caveat?: string;
-    schedule_2026_reg_games?: number;
+    schedule_2026_reg_games?: number | null;
     scoring_flavor?: string;
     team_count?: number;
+    rank_source?: string;
+    ol_source?: string;
+    rank_board_source?: string;
   };
   meta: ApiMeta;
 }

@@ -80,16 +80,30 @@ const CHECK_SHORT_LABELS: Record<string, string> = {
 };
 
 const RANK_TIER_ORDER: Record<string, number> = {
-  adp: 0,
-  ecr: 1,
-  prior_pts: 2,
-  none: 3,
+  screenshot: 0,
+  adp: 1,
+  ecr: 2,
+  prior_pts: 3,
+  none: 4,
+};
+
+const POSITION_BOARD_ORDER: Record<string, number> = {
+  QB: 0,
+  RB: 1,
+  WR: 2,
+  TE: 3,
 };
 
 function checklistMarketSort(a: DraftChecklistEntry, b: DraftChecklistEntry): number {
   const tierA = RANK_TIER_ORDER[a.rank_tier] ?? 9;
   const tierB = RANK_TIER_ORDER[b.rank_tier] ?? 9;
   if (tierA !== tierB) return tierA - tierB;
+  if (a.rank_tier === "screenshot") {
+    const posA = POSITION_BOARD_ORDER[a.position] ?? 9;
+    const posB = POSITION_BOARD_ORDER[b.position] ?? 9;
+    if (posA !== posB) return posA - posB;
+    return (a.pos_market_rank ?? 9999) - (b.pos_market_rank ?? 9999);
+  }
   if (a.rank_tier === "adp") return (a.adp ?? 9999) - (b.adp ?? 9999);
   if (a.rank_tier === "ecr") return (a.ecr ?? 9999) - (b.ecr ?? 9999);
   if (a.rank_tier === "prior_pts") return (b.prior_pts ?? 0) - (a.prior_pts ?? 0);
@@ -289,12 +303,15 @@ export function DraftScreen() {
   }
 
   const market = checklist?.checklist_meta.market_as_of;
+  const rankSource = checklist?.checklist_meta.rank_source;
   const marketBadge =
-    market?.adp_end || market?.ecr_scrape
-      ? `Market as of ADP ${market.adp_end ?? "—"} · ECR ${market.ecr_scrape ?? "—"} · ${
-          market.scoring ?? "half-ppr"
-        } · ${market.teams ?? 12}-team`
-      : null;
+    rankSource === "screenshot"
+      ? `Checklist board · SSS screenshots · ${market?.scoring ?? "ppr"} · OL from sealed unit ranks`
+      : market?.adp_end || market?.ecr_scrape
+        ? `Market as of ADP ${market.adp_end ?? "—"} · ECR ${market.ecr_scrape ?? "—"} · ${
+            market.scoring ?? "half-ppr"
+          } · ${market.teams ?? 12}-team`
+        : null;
 
   const olineTeams: DraftChecklistTeam[] = useMemo(() => {
     const teams = [...(checklist?.teams ?? [])];
@@ -315,8 +332,9 @@ export function DraftScreen() {
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Draft Checklist is the market ADP/ECR assistant with context checks. Our Rankings is the
-          league VORP board. O-line is team context. Mark drafted to hide a player across all three.
+          Draft Checklist follows the sealed SSS screenshot board (with O-line checks from the
+          O-line unit ranks screenshot). Our Rankings is the league VORP board. O-line is team
+          context. Mark drafted to hide a player across all three.
         </p>
 
         <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">

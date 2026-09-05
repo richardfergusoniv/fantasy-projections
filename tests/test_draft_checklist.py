@@ -279,10 +279,27 @@ def test_committed_checklist_json_loads():
     if not path.is_file():
         pytest.skip("checklist artifact not present")
     payload = json.loads(path.read_text(encoding="utf-8"))
-    assert payload["meta"]["market_as_of"]["scoring"] == "half-ppr"
+    assert payload["meta"]["rank_source"] == "screenshot"
+    assert payload["meta"]["market_as_of"]["scoring"] == "ppr"
     assert payload["meta"]["market_as_of"]["teams"] == 12
     assert "vorp" not in (payload["players"][0] or {})
-    assert payload["players"][0]["rank_tier"] in {"adp", "ecr", "prior_pts", "none"}
+    assert payload["players"][0]["rank_tier"] == "screenshot"
+    assert len(payload["players"]) == 156
+
+
+def test_committed_checklist_matches_screenshot_board_for_jamarr_chase():
+    checklist_path = Path("draft_assistant/data/draft_checklist_2026.json")
+    board_path = Path("draft_assistant/data/screenshot_checklist_2026.json")
+    if not checklist_path.is_file() or not board_path.is_file():
+        pytest.skip("checklist or screenshot board not present")
+    payload = json.loads(checklist_path.read_text(encoding="utf-8"))
+    board = json.loads(board_path.read_text(encoding="utf-8"))
+    shot = board["positions"]["WR"][0]
+    assert shot["name"] == "Ja'Marr Chase"
+    assert all(shot["checks"].values())
+    chase = next(p for p in payload["players"] if p["name"] == "Ja'Marr Chase")
+    assert chase["pos_market_rank"] == 1
+    assert chase["checks"] == shot["checks"]
 
 
 def test_committed_checklist_ol_matches_sealed_screenshot_board():
