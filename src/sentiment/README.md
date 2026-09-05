@@ -5,13 +5,14 @@ The current `markdown_market_v1` snapshot uses the 32 reviewed summaries in
 `perplexity research/` plus the contemporaneous ECR-versus-ADP gap in
 `data/consensus/consensus_<season>.json`.
 
-Cross-team daily summaries for 2026-08-26 through 2026-08-29 are preserved in
+Cross-team daily summaries for 2026-08-26 through 2026-09-04 are preserved in
 `perplexity research/daily/` and imported separately into
 `data/sentiment/ledger/legacy_daily_2026.jsonl`. They contain placeholder
 citations rather than recoverable source URLs, so every row is permanently
-`legacy_unverified` and `training_eligible=false`. They do not change the
-active diagnostic snapshot until the daily set is complete and explicitly
-promoted into the diagnostic aggregation.
+`legacy_unverified` and `training_eligible=false`. The draft checklist stop-light
+reads the most recent daily claim per player (falling back to the
+`2026-08-24` diagnostic snapshot). Production projection models still ignore
+sentiment until a position is enabled in `models/sentiment_manifest.json`.
 
 The score is **relative within position**, after removing observable depth and
 availability structure. `+50` means roughly the 75th percentile of residual

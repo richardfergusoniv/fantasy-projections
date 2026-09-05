@@ -9,6 +9,8 @@
 #
 # Checklist columns (all positions):
 #   FP, offense pts, offense yards, O-line, Sharp fantasy SOS
+#   + SENT stop-light (positive / neutral / negative) from most-recent daily
+#     claim through 2026-09-04, falling back to the 2026-08-24 snapshot.
 # FP = half-PPR / 4-pt pass TD from the median of scraped Vegas
 #   yards/receptions/TD O/Us (component volume ranks folded into FP).
 #   Attempts/targets are not publicly posted. INTs/fumbles omitted.
@@ -27,6 +29,10 @@
 #
 # OL-only rewrite:
 #   python -m src.draft_assistant.checklist_prepare --season 2026 --patch-ol-only
+#
+# Sentiment-only rewrite (after daily ledger import):
+#   python -m src.sentiment.ledger --season 2026 --daily
+#   python -m src.draft_assistant.checklist_prepare --season 2026 --patch-sentiment-only
 #
 # Output:
 #   draft_assistant/data/draft_checklist_{season}.json
