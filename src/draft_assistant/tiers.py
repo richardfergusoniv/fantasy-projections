@@ -50,8 +50,9 @@ def assign_tiers(
 ) -> pd.Series:
     """Return 1-based tier labels for a descending-sorted point series.
 
-    A new tier starts when the drop to the next player exceeds `gap` points
-    or `pct_gap` relative to the higher player's projection (whichever applies).
+    Players stay in the current tier while their value is within `gap` points
+    (or `pct_gap` relative) of that tier's anchor — the first player in the
+    tier. A larger drop from the anchor starts a new tier.
     """
     if points.empty:
         return pd.Series(dtype=int)
@@ -59,15 +60,16 @@ def assign_tiers(
     values = points.astype(float).tolist()
     tiers: list[int] = [1]
     current_tier = 1
+    anchor = values[0]
     for idx in range(1, len(values)):
-        prev = values[idx - 1]
-        drop = prev - values[idx]
-        rel_drop = drop / prev if prev > 0 else 0.0
+        drop = anchor - values[idx]
+        rel_drop = drop / anchor if anchor > 0 else 0.0
         cliff = drop > gap
         if pct_gap is not None:
             cliff = cliff or rel_drop > pct_gap
         if cliff:
             current_tier += 1
+            anchor = values[idx]
         tiers.append(current_tier)
     return pd.Series(tiers, index=points.index, dtype=int)
 

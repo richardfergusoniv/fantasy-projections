@@ -79,7 +79,7 @@ def _load_vegas_fp_by_player(season: int) -> dict[str, float]:
 def _number(value: Any, default: float = 0.0) -> float:
     try:
         parsed = float(value)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return default
     return parsed if np.isfinite(parsed) else default
 
@@ -90,13 +90,13 @@ def _draft_sort_value(row: dict) -> float:
     if vorp is not None:
         try:
             return float(vorp)
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             pass
     season_pts = row.get("fantasy_pts_season")
     if season_pts is not None:
         try:
             return float(season_pts)
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             pass
     return 0.0
 
@@ -204,7 +204,9 @@ def _apply_league_vorp(
     )
     if enriched:
         values = pd.Series([_number(row.get("vorp")) for row in enriched])
-        tiers = assign_tiers(values, gap=OVERALL_TIER_GAP, pct_gap=0.04).tolist()
+        # Season VORP is already on a wide absolute scale; absolute cliffs from
+        # the tier anchor (no relative %) keep draftable groups usable.
+        tiers = assign_tiers(values, gap=OVERALL_TIER_GAP, pct_gap=None).tolist()
         for index, (row, tier) in enumerate(zip(enriched, tiers), start=1):
             row["rank"] = index
             row["tier"] = int(tier)
