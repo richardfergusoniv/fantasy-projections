@@ -16,7 +16,7 @@ from pathlib import Path
 from statistics import median
 from typing import Any
 
-from src.draft_assistant.market_adp import normalize_player_name
+from src.draft_assistant.market_adp import canonicalize_player_name, normalize_player_name
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DRAFT_DATA_DIR = REPO_ROOT / "draft_assistant" / "data"
@@ -120,36 +120,65 @@ ABBR_ALIASES = {
 }
 
 
-def _line_value(raw: Any) -> float | None:
+PREDICTION_MARKET_BOOKS = frozenset(
+    {
+        "kalshi",
+        "polymarket",
+        "polymarket us",
+        "polymarket.com",
+    }
+)
+SKEWED_ODDS_GAP = 0.35  # implied-probability gap between over and under
+
+
+def _american_implied_prob(odds: Any) -> float | None:
+    try:
+        value = float(odds)
+    except (TypeError, ValueError):
+        return None
+    if value == 0:
+        return None
+    if value > 0:
+        return 100.0 / (value + 100.0)
+    return abs(value) / (abs(value) + 100.0)
+
+
+def _odds_skewed(over: Any, under: Any, *, gap: float = SKEWED_ODDS_GAP) -> bool:
+    over_p = _american_implied_prob(over)
+    under_p = _american_implied_prob(under)
+    if over_p is None or under_p is None:
+        return False
+    return abs(over_p - under_p) > gap
+
+
+def _is_prediction_market_book(name: str) -> bool:
+    key = str(name or "").strip().lower()
+    if key in PREDICTION_MARKET_BOOKS:
+        return True
+    return "kalshi" in key or "polymarket" in key
+
+
+def _book_entry_line(raw: Any) -> float | None:
+    if not isinstance(raw, dict):
+        return _scalar_line(raw)
+    if _odds_skewed(raw.get("over_odds"), raw.get("under_odds")) or _odds_skewed(
+        raw.get("over_odds_american"), raw.get("under_odds_american")
+    ):
+        return None
+    for key in ("line", "value", "ou", "total"):
+        if key in raw:
+            value = _scalar_line(raw[key])
+            if value is not None:
+                return value
+    return None
+
+
+def _scalar_line(raw: Any) -> float | None:
     if raw is None or isinstance(raw, bool):
         return None
     if isinstance(raw, (int, float)):
         value = float(raw)
         return value if math.isfinite(value) else None
-    if isinstance(raw, dict):
-        # Prefer the posted O/U line, but drop it when the same record's own
-        # projection violently disagrees (e.g. Caesars 1499.5 vs RotoWire 364
-        # for Cooper Kupp). Those bad book lines otherwise dominate a 2-source
-        # median and inflate checklist/VORP ranks.
-        line = None
-        for key in ("line", "value", "ou", "total"):
-            if key in raw:
-                line = _line_value(raw[key])
-                if line is not None:
-                    break
-        projection = None
-        for key in ("rotowire_proj", "projection", "proj", "projected"):
-            if key in raw:
-                projection = _line_value(raw[key])
-                if projection is not None:
-                    break
-        if line is not None and projection is not None:
-            scale = max(abs(projection), 1.0)
-            if abs(line - projection) / scale > 0.5 and abs(line - projection) > 100:
-                return None
-        if line is not None:
-            return line
-        return projection
     if isinstance(raw, str):
         text = raw.strip().replace(",", "")
         try:
@@ -157,6 +186,82 @@ def _line_value(raw: Any) -> float | None:
         except ValueError:
             return None
     return None
+
+
+def _extract_quote(raw: Any) -> tuple[float, str] | None:
+    """Return ``(value, kind)`` where kind is ``book`` or ``projection``.
+
+    Prediction-market-only boards and heavily skewed O/U prices (Kalshi /
+    Polymarket thresholds such as Kenny Gainwell 749.5 rush yards at +355/-567)
+    are rejected so they cannot inflate consensus.
+    """
+    if raw is None or isinstance(raw, bool):
+        return None
+    if isinstance(raw, (int, float, str)):
+        value = _scalar_line(raw)
+        return (value, "book") if value is not None else None
+    if not isinstance(raw, dict):
+        return None
+
+    projection = None
+    for key in ("rotowire_proj", "projection", "proj", "projected"):
+        if key in raw:
+            projection = _scalar_line(raw[key])
+            if projection is not None:
+                break
+
+    books = raw.get("books")
+    traditional_lines: list[float] = []
+    if isinstance(books, dict) and books:
+        for book_name, book_raw in books.items():
+            if _is_prediction_market_book(str(book_name)):
+                continue
+            book_line = _book_entry_line(book_raw)
+            if book_line is not None:
+                traditional_lines.append(book_line)
+
+    line = None
+    if traditional_lines:
+        line = float(median(traditional_lines))
+    else:
+        # No traditional sportsbook quotes. Reject prediction-market-only boards
+        # and top-level lines with heavily skewed over/under prices.
+        only_prediction_markets = False
+        if isinstance(books, dict) and books:
+            only_prediction_markets = all(
+                _is_prediction_market_book(str(name)) for name in books
+            )
+        top_line = None
+        for key in ("line", "value", "ou", "total"):
+            if key in raw:
+                top_line = _scalar_line(raw[key])
+                if top_line is not None:
+                    break
+        skewed = _odds_skewed(raw.get("over_odds"), raw.get("under_odds")) or _odds_skewed(
+            raw.get("over_odds_american"), raw.get("under_odds_american")
+        )
+        if top_line is not None and not only_prediction_markets and not skewed:
+            line = top_line
+        elif top_line is not None and only_prediction_markets:
+            line = None
+        elif top_line is not None and skewed:
+            line = None
+
+    if line is not None and projection is not None:
+        scale = max(abs(projection), 1.0)
+        if abs(line - projection) / scale > 0.5 and abs(line - projection) > 100:
+            # Same-source book vs proj conflict (Kupp / Caesars pattern).
+            return None
+    if line is not None:
+        return (line, "book")
+    if projection is not None:
+        return (projection, "projection")
+    return None
+
+
+def _line_value(raw: Any) -> float | None:
+    quote = _extract_quote(raw)
+    return None if quote is None else quote[0]
 
 
 def _robust_median(values: list[float]) -> float:
@@ -196,7 +301,7 @@ def _load_raw_files() -> list[tuple[str, dict[str, Any]]]:
 
 
 def _add_line(
-    store: dict[str, dict[str, list[float]]],
+    store: dict[str, dict[str, list[tuple[float, str]]]],
     meta: dict[str, dict[str, Any]],
     *,
     name: str,
@@ -205,16 +310,20 @@ def _add_line(
     market: str,
     value: float,
     source: str,
+    kind: str = "book",
 ) -> None:
     canon = PLAYER_MARKET_ALIASES.get(market)
     if not canon:
         return
-    key = normalize_player_name(name)
-    store.setdefault(key, {}).setdefault(canon, []).append(value)
+    key = canonicalize_player_name(name)
+    store.setdefault(key, {}).setdefault(canon, []).append((float(value), kind))
     identity = meta.setdefault(
         key,
         {"name": name, "team": team, "position": position, "sources": set()},
     )
+    # Prefer the longer/formal display name when nicknames merge (Kenny -> Kenneth).
+    if len(str(name)) > len(str(identity.get("name") or "")):
+        identity["name"] = name
     if team and not identity.get("team"):
         identity["team"] = team
     if position and not identity.get("position"):
@@ -225,7 +334,7 @@ def _add_line(
 def _collect_player_lines(
     files: list[tuple[str, dict[str, Any]]],
 ) -> tuple[dict[str, dict[str, list[float]]], dict[str, dict[str, Any]]]:
-    lines: dict[str, dict[str, list[float]]] = {}
+    lines: dict[str, dict[str, list[tuple[float, str]]]] = {}
     meta: dict[str, dict[str, Any]] = {}
 
     nf_map = {
@@ -254,7 +363,7 @@ def _collect_player_lines(
             nf = projections.get("numberfire") if isinstance(projections, dict) else None
             if isinstance(nf, dict):
                 for nf_key, canon in nf_map.items():
-                    value = _line_value(nf.get(nf_key))
+                    value = _scalar_line(nf.get(nf_key))
                     if value is not None:
                         _add_line(
                             lines,
@@ -265,11 +374,13 @@ def _collect_player_lines(
                             market=canon,
                             value=value,
                             source=f"{source}:numberfire",
+                            kind="projection",
                         )
             for market, raw in markets.items():
-                value = _line_value(raw)
-                if value is None:
+                quote = _extract_quote(raw)
+                if quote is None:
                     continue
+                value, kind = quote
                 _add_line(
                     lines,
                     meta,
@@ -279,6 +390,7 @@ def _collect_player_lines(
                     market=str(market),
                     value=value,
                     source=source,
+                    kind=kind,
                 )
     return lines, meta
 
@@ -325,8 +437,25 @@ def _collect_team_lines(
     return lines
 
 
-def _median_map(values: dict[str, list[float]]) -> dict[str, float]:
-    return {key: _robust_median(vals) for key, vals in values.items() if vals}
+def _median_map(values: dict[str, list]) -> dict[str, float]:
+    """Prefer sportsbook O/U quotes; fall back to model projections when needed.
+
+    Player quotes are ``(value, kind)`` tuples. Team quotes may still be bare floats.
+    """
+    out: dict[str, float] = {}
+    for key, quotes in values.items():
+        if not quotes:
+            continue
+        if isinstance(quotes[0], tuple):
+            books = [value for value, kind in quotes if kind == "book"]
+            projections = [value for value, kind in quotes if kind == "projection"]
+            if books:
+                out[key] = _robust_median(books)
+            elif projections:
+                out[key] = _robust_median(projections)
+        else:
+            out[key] = _robust_median([float(value) for value in quotes])
+    return out
 
 
 def build_consensus(*, season: int = 2026) -> dict[str, Any]:
@@ -372,7 +501,11 @@ def build_consensus(*, season: int = 2026) -> dict[str, Any]:
                 "median of DraftKings/FanDuel/RotoWire/Oddschecker/FTA/"
                 "ESPN-Fox/Action/Sharp-RG-SBR lines; book lines that conflict "
                 "with the same source's projection (>50% and >100 absolute) "
-                "are dropped before the median"
+                "are dropped; prediction-market-only / heavily skewed O/U "
+                "prices (Kalshi/Polymarket thresholds) are dropped; numberFire "
+                "projections fill only when no sportsbook quote remains; "
+                "nickname aliases (Kenny/Kenneth, Chig/Chigoziem, Cam/Cameron) "
+                "are merged before the median"
             ),
             "volume_attempts_targets": (
                 "not used for checklist ranks; public boards lack attempt/target "
