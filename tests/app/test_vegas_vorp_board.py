@@ -25,3 +25,18 @@ def test_sealed_draft_board_ranks_by_vegas_vorp():
     assert [entry["rank"] for entry in board["entries"]] == list(
         range(1, len(board["entries"]) + 1)
     )
+
+
+def test_sealed_draft_board_assigns_usable_vegas_vorp_tiers():
+    board = DraftBoardService().load_board(2026, limit=120)
+    if not board["entries"]:
+        return
+    tiers = [entry["tier"] for entry in board["entries"] if entry.get("tier") is not None]
+    assert tiers
+    assert tiers == sorted(tiers)
+    # Absolute cliffs from the VORP anchor should yield a handful of draftable
+    # groups among the top ~100, not one-player micro-tiers.
+    positive = [entry for entry in board["entries"] if (entry.get("vorp") or 0) > 0]
+    positive_tiers = {entry["tier"] for entry in positive}
+    assert 4 <= len(positive_tiers) <= 20
+    assert board["entries"][0]["tier"] == 1
