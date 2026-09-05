@@ -1,0 +1,3228 @@
+{
+  "source": "fanduel",
+  "fetched_at": "2026-09-05T03:16:03Z",
+  "urls": [
+    "https://sportsbook.fanduel.com/navigation/nfl",
+    "https://sportsbook.fanduel.com/navigation/nfl?tab=player-props",
+    "https://sportsbook.fanduel.com/navigation/nfl?tab=win-totals",
+    "https://sportsbook.fanduel.com/football?tab=nfl-futures",
+    "https://sbapi.nj.sportsbook.fanduel.com/api/content-managed-page?currencyCode=USD&exchangeLocale=en_US&includePrices=true&language=en&regionCode=NAMERICA&timezone=America%2FNew_York&_ak=FhMFpcPWXMeyZxOx&page=CUSTOM&customPageId=nfl"
+  ],
+  "players": [
+    {
+      "name": "A.J. Brown",
+      "team": "NE",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1125.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.171261967",
+          "market_name": "A.J. Brown Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Aaron Rodgers",
+      "team": "PIT",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3050.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.169273261",
+          "market_name": "Aaron Rodgers Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Amon-Ra St. Brown",
+      "team": "DET",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1225.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168822100",
+          "market_name": "Amon-Ra St. Brown Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Baker Mayfield",
+      "team": "TB",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3500.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166720382",
+          "market_name": "Baker Mayfield Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 25.5,
+          "over_odds": 102,
+          "under_odds": -136,
+          "market_id": "734.168962526",
+          "market_name": "Baker Mayfield Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Bijan Robinson",
+      "team": "ATL",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1150.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167803104",
+          "market_name": "Bijan Robinson Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 9.5,
+          "over_odds": -108,
+          "under_odds": -122,
+          "market_id": "734.170709370",
+          "market_name": "Bijan Robinson Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Breece Hall",
+      "team": "NYJ",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 900.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167807552",
+          "market_name": "Breece Hall Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": 116,
+          "under_odds": -154,
+          "market_id": "734.170729678",
+          "market_name": "Breece Hall Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Brock Bowers",
+      "team": "LV",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 925.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168827027",
+          "market_name": "Brock Bowers Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Brock Purdy",
+      "team": "SF",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3700.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166721260",
+          "market_name": "Brock Purdy Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 27.5,
+          "over_odds": -108,
+          "under_odds": -122,
+          "market_id": "734.168954359",
+          "market_name": "Brock Purdy Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Bryce Young",
+      "team": "CAR",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 2875.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166724054",
+          "market_name": "Bryce Young Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 20.5,
+          "over_odds": -108,
+          "under_odds": -122,
+          "market_id": "734.168965084",
+          "market_name": "Bryce Young Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "C.J. Stroud",
+      "team": "HOU",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3500.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166723323",
+          "market_name": "C.J. Stroud Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 22.5,
+          "over_odds": -122,
+          "under_odds": -108,
+          "market_id": "734.168964799",
+          "market_name": "C.J. Stroud Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Caleb Williams",
+      "team": "CHI",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3650.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166724404",
+          "market_name": "Caleb Williams Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 24.5,
+          "over_odds": -122,
+          "under_odds": -108,
+          "market_id": "734.168963170",
+          "market_name": "Caleb Williams Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Cam Ward",
+      "team": "TEN",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3200.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166719795",
+          "market_name": "Cam Ward Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 19.5,
+          "over_odds": 106,
+          "under_odds": -140,
+          "market_id": "734.168970978",
+          "market_name": "Cam Ward Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Carnell Tate",
+      "team": "TEN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 775.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.165477708",
+          "market_name": "Carnell Tate Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "CeeDee Lamb",
+      "team": "DAL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1175.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168822362",
+          "market_name": "CeeDee Lamb Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Chase Brown",
+      "team": "CIN",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 850.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167807805",
+          "market_name": "Chase Brown Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 6.5,
+          "over_odds": 106,
+          "under_odds": -140,
+          "market_id": "734.170716642",
+          "market_name": "Chase Brown Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Chris Olave",
+      "team": "NO",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1050.5,
+          "over_odds": -114,
+          "under_odds": null,
+          "market_id": "734.168822832",
+          "market_name": "Chris Olave Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Christian McCaffrey",
+      "team": "SF",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 900.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167805209",
+          "market_name": "Christian McCaffrey Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "receiving_yards": {
+          "line": 550.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173388677",
+          "market_name": "Christian McCaffrey Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 8.5,
+          "over_odds": 106,
+          "under_odds": -140,
+          "market_id": "734.170711098",
+          "market_name": "Christian McCaffrey Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Christian Watson",
+      "team": "GB",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 825.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168826694",
+          "market_name": "Christian Watson Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Colston Loveland",
+      "team": "CHI",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 825.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168829643",
+          "market_name": "Colston Loveland Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Courtland Sutton",
+      "team": "DEN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 725.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173386738",
+          "market_name": "Courtland Sutton Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "D'Andre Swift",
+      "team": "CHI",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 800.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167808238",
+          "market_name": "D'Andre Swift Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": -158,
+          "under_odds": 118,
+          "market_id": "734.170715572",
+          "market_name": "D'Andre Swift Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Dak Prescott",
+      "team": "DAL",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3950.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166724706",
+          "market_name": "Dak Prescott Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 27.5,
+          "over_odds": -102,
+          "under_odds": -130,
+          "market_id": "734.168956660",
+          "market_name": "Dak Prescott Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Daniel Jones",
+      "team": "IND",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3250.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.179655648",
+          "market_name": "Daniel Jones Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 18.5,
+          "over_odds": -136,
+          "under_odds": 102,
+          "market_id": "734.179656097",
+          "market_name": "Daniel Jones Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Davante Adams",
+      "team": "LA",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 750.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168825608",
+          "market_name": "Davante Adams Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "David Montgomery",
+      "team": "HOU",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 800.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167808000",
+          "market_name": "David Montgomery Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 7.5,
+          "over_odds": -102,
+          "under_odds": -130,
+          "market_id": "734.170713422",
+          "market_name": "David Montgomery Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "De'Von Achane",
+      "team": "MIA",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 975.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167804250",
+          "market_name": "De'Von Achane Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Derrick Henry",
+      "team": "BAL",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1225.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167802692",
+          "market_name": "Derrick Henry Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 12.5,
+          "over_odds": -132,
+          "under_odds": -102,
+          "market_id": "734.170707200",
+          "market_name": "Derrick Henry Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Drake London",
+      "team": "ATL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1100.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168823035",
+          "market_name": "Drake London Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Drake Maye",
+      "team": "NE",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3750.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166724957",
+          "market_name": "Drake Maye Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "rush_yards": {
+          "line": 400.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167809706",
+          "market_name": "Drake Maye Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 25.5,
+          "over_odds": -144,
+          "under_odds": 108,
+          "market_id": "734.168957516",
+          "market_name": "Drake Maye Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -122,
+          "market_id": "734.170731385",
+          "market_name": "Drake Maye Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Fernando Mendoza",
+      "team": "LV",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 1950.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.165172832",
+          "market_name": "Fernando Mendoza Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 11.5,
+          "over_odds": 102,
+          "under_odds": -136,
+          "market_id": "734.165173606",
+          "market_name": "Fernando Mendoza Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Garrett Wilson",
+      "team": "NYJ",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 975.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168824926",
+          "market_name": "Garrett Wilson Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "George Kittle",
+      "team": "SF",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 700.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173383992",
+          "market_name": "George Kittle Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "George Pickens",
+      "team": "DAL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1050.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168822582",
+          "market_name": "George Pickens Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "J.K. Dobbins",
+      "team": "DEN",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 700.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173456504",
+          "market_name": "J.K. Dobbins Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Ja'Marr Chase",
+      "team": "CIN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1325.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168821910",
+          "market_name": "Ja'Marr Chase Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jahmyr Gibbs",
+      "team": "DET",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1200.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167803928",
+          "market_name": "Jahmyr Gibbs Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "receiving_yards": {
+          "line": 475.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173389639",
+          "market_name": "Jahmyr Gibbs Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 11.5,
+          "over_odds": -166,
+          "under_odds": 120,
+          "market_id": "734.170709000",
+          "market_name": "Jahmyr Gibbs Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jalen Hurts",
+      "team": "PHI",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3150.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166788657",
+          "market_name": "Jalen Hurts Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "rush_yards": {
+          "line": 425.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167809061",
+          "market_name": "Jalen Hurts Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 21.5,
+          "over_odds": -122,
+          "under_odds": -108,
+          "market_id": "734.168964534",
+          "market_name": "Jalen Hurts Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 7.5,
+          "over_odds": -148,
+          "under_odds": 112,
+          "market_id": "734.170714373",
+          "market_name": "Jalen Hurts Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "James Cook",
+      "team": "BUF",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1175.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167793136",
+          "market_name": "James Cook Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 10.5,
+          "over_odds": 106,
+          "under_odds": -140,
+          "market_id": "734.170709728",
+          "market_name": "James Cook Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jameson Williams",
+      "team": "DET",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 900.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168824259",
+          "market_name": "Jameson Williams Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jared Goff",
+      "team": "DET",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 4050.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166723712",
+          "market_name": "Jared Goff Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 29.5,
+          "over_odds": -108,
+          "under_odds": -122,
+          "market_id": "734.168978716",
+          "market_name": "Jared Goff Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Javonte Williams",
+      "team": "DAL",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 950.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167805898",
+          "market_name": "Javonte Williams Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 9.5,
+          "over_odds": -128,
+          "under_odds": -104,
+          "market_id": "734.170710683",
+          "market_name": "Javonte Williams Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jaxon Smith-Njigba",
+      "team": "SEA",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1325.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168818309",
+          "market_name": "Jaxon Smith-Njigba Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jaxson Dart",
+      "team": "NYG",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3100.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166722576",
+          "market_name": "Jaxson Dart Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "rush_yards": {
+          "line": 475.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167809389",
+          "market_name": "Jaxson Dart Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 19.5,
+          "over_odds": -108,
+          "under_odds": -122,
+          "market_id": "734.168970695",
+          "market_name": "Jaxson Dart Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": -118,
+          "under_odds": -112,
+          "market_id": "734.170729919",
+          "market_name": "Jaxson Dart Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jayden Daniels",
+      "team": "WAS",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3100.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166718537",
+          "market_name": "Jayden Daniels Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 21.5,
+          "over_odds": -102,
+          "under_odds": -130,
+          "market_id": "734.168965249",
+          "market_name": "Jayden Daniels Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jaylen Waddle",
+      "team": "DEN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 925.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168826439",
+          "market_name": "Jaylen Waddle Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jaylen Warren",
+      "team": "PIT",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 625.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173457998",
+          "market_name": "Jaylen Warren Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jeremiyah Love",
+      "team": "ARI",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 775.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.165234605",
+          "market_name": "Jeremiyah Love Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": -122,
+          "under_odds": -108,
+          "market_id": "734.170715917",
+          "market_name": "Jeremiyah Love Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Joe Burrow",
+      "team": "CIN",
+      "position": "QB",
+      "markets": {
+        "pass_tds": {
+          "line": 32.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168952492",
+          "market_name": "Joe Burrow Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jonathan Taylor",
+      "team": "IND",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1225.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167792793",
+          "market_name": "Jonathan Taylor Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 11.5,
+          "over_odds": -122,
+          "under_odds": -108,
+          "market_id": "734.170707584",
+          "market_name": "Jonathan Taylor Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Jordan Love",
+      "team": "GB",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3700.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166723057",
+          "market_name": "Jordan Love Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 26.5,
+          "over_odds": -108,
+          "under_odds": -122,
+          "market_id": "734.168963845",
+          "market_name": "Jordan Love Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Josh Allen",
+      "team": "BUF",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3600.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166720004",
+          "market_name": "Josh Allen Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "rush_yards": {
+          "line": 500.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167808901",
+          "market_name": "Josh Allen Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 24.5,
+          "over_odds": -120,
+          "under_odds": -110,
+          "market_id": "734.168962906",
+          "market_name": "Josh Allen Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 10.5,
+          "over_odds": -128,
+          "under_odds": -104,
+          "market_id": "734.170710083",
+          "market_name": "Josh Allen Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Justin Herbert",
+      "team": "LAC",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3600.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166722642",
+          "market_name": "Justin Herbert Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 25.5,
+          "over_odds": -108,
+          "under_odds": -122,
+          "market_id": "734.168962249",
+          "market_name": "Justin Herbert Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Justin Jefferson",
+      "team": "MIN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1150.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168822484",
+          "market_name": "Justin Jefferson Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "KC Concepcion",
+      "team": "CLE",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 600.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.165481143",
+          "market_name": "KC Concepcion Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Kenneth Walker",
+      "team": "KC",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 950.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167804909",
+          "market_name": "Kenneth Walker Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Kenneth Walker III",
+      "team": "KC",
+      "position": "RB",
+      "markets": {
+        "rush_tds": {
+          "line": 7.5,
+          "over_odds": -130,
+          "under_odds": -102,
+          "market_id": "734.170714037",
+          "market_name": "Kenneth Walker III Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Kenyon Sadiq",
+      "team": "NYJ",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 425.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.165481576",
+          "market_name": "Kenyon Sadiq Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Kyle Pitts",
+      "team": "ATL",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 725.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168830350",
+          "market_name": "Kyle Pitts Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Kyren Williams",
+      "team": "LA",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 925.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173390899",
+          "market_name": "Kyren Williams Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Ladd McConkey",
+      "team": "LAC",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 900.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168826101",
+          "market_name": "Ladd McConkey Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Lamar Jackson",
+      "team": "BAL",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3200.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166722506",
+          "market_name": "Lamar Jackson Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "rush_yards": {
+          "line": 550.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167808706",
+          "market_name": "Lamar Jackson Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 24.5,
+          "over_odds": -122,
+          "under_odds": -108,
+          "market_id": "734.168963530",
+          "market_name": "Lamar Jackson Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 3.5,
+          "over_odds": -130,
+          "under_odds": -102,
+          "market_id": "734.170730739",
+          "market_name": "Lamar Jackson Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Luther Burden III",
+      "team": "CHI",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 850.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168829278",
+          "market_name": "Luther Burden III Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Makai Lemon",
+      "team": "PHI",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 575.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.165478741",
+          "market_name": "Makai Lemon Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Malik Nabers",
+      "team": "NYG",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 925.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168824754",
+          "market_name": "Malik Nabers Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Mark Andrews",
+      "team": "BAL",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 500.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173388983",
+          "market_name": "Mark Andrews Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Marvin Harrison Jr.",
+      "team": "ARI",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 800.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168828841",
+          "market_name": "Marvin Harrison Jr. Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Matthew Stafford",
+      "team": "LA",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3825.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166722133",
+          "market_name": "Matthew Stafford Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 29.5,
+          "over_odds": -132,
+          "under_odds": 100,
+          "market_id": "734.168955131",
+          "market_name": "Matthew Stafford Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Michael Pittman Jr.",
+      "team": "PIT",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 725.5,
+          "over_odds": null,
+          "under_odds": -114,
+          "market_id": "734.173387729",
+          "market_name": "Michael Pittman Jr. Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Mike Evans",
+      "team": "SF",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 775.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173384792",
+          "market_name": "Mike Evans Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Nico Collins",
+      "team": "HOU",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1150.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168822733",
+          "market_name": "Nico Collins Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Omar Cooper Jr.",
+      "team": "NYJ",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 425.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.165478894",
+          "market_name": "Omar Cooper Jr. Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Omarion Hampton",
+      "team": "LAC",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 950.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167806205",
+          "market_name": "Omarion Hampton Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 7.5,
+          "over_odds": -148,
+          "under_odds": 112,
+          "market_id": "734.170711516",
+          "market_name": "Omarion Hampton Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Puka Nacua",
+      "team": "LA",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 1325.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168818186",
+          "market_name": "Puka Nacua Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Quinshon Judkins",
+      "team": "CLE",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 850.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173456322",
+          "market_name": "Quinshon Judkins Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Rashid Shaheed",
+      "team": "SEA",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 500.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173390009",
+          "market_name": "Rashid Shaheed Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Rhamondre Stevenson",
+      "team": "NE",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 650.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173457061",
+          "market_name": "Rhamondre Stevenson Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": -128,
+          "under_odds": -104,
+          "market_id": "734.170716896",
+          "market_name": "Rhamondre Stevenson Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Rome Odunze",
+      "team": "CHI",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 800.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168828650",
+          "market_name": "Rome Odunze Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Sam Darnold",
+      "team": "SEA",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3650.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166721281",
+          "market_name": "Sam Darnold Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 23.5,
+          "over_odds": -102,
+          "under_odds": -130,
+          "market_id": "734.168964142",
+          "market_name": "Sam Darnold Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Sam LaPorta",
+      "team": "DET",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 650.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173387187",
+          "market_name": "Sam LaPorta Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Saquon Barkley",
+      "team": "PHI",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 1050.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167793591",
+          "market_name": "Saquon Barkley Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 7.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.170714805",
+          "market_name": "Saquon Barkley Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Tee Higgins",
+      "team": "CIN",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 900.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168825059",
+          "market_name": "Tee Higgins Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Terry McLaurin",
+      "team": "WAS",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 900.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173384290",
+          "market_name": "Terry McLaurin Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Tetairoa McMillan",
+      "team": "CAR",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 950.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168825836",
+          "market_name": "Tetairoa McMillan Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Tony Pollard",
+      "team": "TEN",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 775.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.167806372",
+          "market_name": "Tony Pollard Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": 112,
+          "under_odds": -148,
+          "market_id": "734.170716283",
+          "market_name": "Tony Pollard Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Travis Etienne",
+      "team": "NO",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 875.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173457905",
+          "market_name": "Travis Etienne Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": 124,
+          "under_odds": -166,
+          "market_id": "734.170729332",
+          "market_name": "Travis Etienne Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Travis Kelce",
+      "team": "KC",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 675.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168830942",
+          "market_name": "Travis Kelce Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "TreVeyon Henderson",
+      "team": "NE",
+      "position": "RB",
+      "markets": {
+        "rush_yards": {
+          "line": 675.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.173456674",
+          "market_name": "TreVeyon Henderson Regular Season Rushing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        },
+        "rush_tds": {
+          "line": 5.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.170717474",
+          "market_name": "TreVeyon Henderson Regular Season Rushing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_RUNNING_BACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Trevor Lawrence",
+      "team": "JAX",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3750.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166720568",
+          "market_name": "Trevor Lawrence Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 25.5,
+          "over_odds": -102,
+          "under_odds": -130,
+          "market_id": "734.168957143",
+          "market_name": "Trevor Lawrence Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Trey McBride",
+      "team": "ARI",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 950.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168823147",
+          "market_name": "Trey McBride Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Tyler Shough",
+      "team": "NO",
+      "position": "QB",
+      "markets": {
+        "pass_yards": {
+          "line": 3400.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.166722925",
+          "market_name": "Tyler Shough Regular Season Passing Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        },
+        "pass_tds": {
+          "line": 19.5,
+          "over_odds": -148,
+          "under_odds": 112,
+          "market_id": "734.168971311",
+          "market_name": "Tyler Shough Regular Season Passing TDs 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_QUARTERBACKS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Tyler Warren",
+      "team": "IND",
+      "position": "TE",
+      "markets": {
+        "receiving_yards": {
+          "line": 750.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168830135",
+          "market_name": "Tyler Warren Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    },
+    {
+      "name": "Zay Flowers",
+      "team": "BAL",
+      "position": "WR",
+      "markets": {
+        "receiving_yards": {
+          "line": 975.5,
+          "over_odds": -114,
+          "under_odds": -114,
+          "market_id": "734.168823315",
+          "market_name": "Zay Flowers Regular Season Receiving Yards 2026-27",
+          "market_type": "REGULAR_SEASON_PROPS_-_WIDE_RECEIVERS",
+          "market_status": "OPEN"
+        }
+      }
+    }
+  ],
+  "teams": [
+    {
+      "name": "Arizona Cardinals",
+      "abbr": "ARI",
+      "markets": {
+        "win_total": {
+          "line": 3.5,
+          "over_odds": -145,
+          "under_odds": 125,
+          "market_id": "734.159186402",
+          "market_name": "Arizona Cardinals - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 2.5,
+              "over_odds": -320,
+              "under_odds": 260
+            },
+            {
+              "line": 3.5,
+              "over_odds": -145,
+              "under_odds": 125
+            },
+            {
+              "line": 4.5,
+              "over_odds": 135,
+              "under_odds": -160
+            },
+            {
+              "line": 5.5,
+              "over_odds": 250,
+              "under_odds": -300
+            },
+            {
+              "line": 6.5,
+              "over_odds": 460,
+              "under_odds": -600
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Atlanta Falcons",
+      "abbr": "ATL",
+      "markets": {
+        "win_total": {
+          "line": 6.5,
+          "over_odds": -135,
+          "under_odds": 115,
+          "market_id": "734.159186469",
+          "market_name": "Atlanta Falcons - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 5.5,
+              "over_odds": -230,
+              "under_odds": 190
+            },
+            {
+              "line": 6.5,
+              "over_odds": -135,
+              "under_odds": 115
+            },
+            {
+              "line": 7.5,
+              "over_odds": 125,
+              "under_odds": -145
+            },
+            {
+              "line": 8.5,
+              "over_odds": 210,
+              "under_odds": -250
+            },
+            {
+              "line": 9.5,
+              "over_odds": 350,
+              "under_odds": -450
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Baltimore Ravens",
+      "abbr": "BAL",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -135,
+          "under_odds": 115,
+          "market_id": "734.159186487",
+          "market_name": "Baltimore Ravens - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 9.5,
+              "over_odds": -230,
+              "under_odds": 190
+            },
+            {
+              "line": 10.5,
+              "over_odds": -135,
+              "under_odds": 115
+            },
+            {
+              "line": 11.5,
+              "over_odds": 130,
+              "under_odds": -155
+            },
+            {
+              "line": 12.5,
+              "over_odds": 230,
+              "under_odds": -280
+            },
+            {
+              "line": 13.5,
+              "over_odds": 450,
+              "under_odds": -600
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Buffalo Bills",
+      "abbr": "BUF",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -125,
+          "under_odds": 105,
+          "market_id": "734.159186510",
+          "market_name": "Buffalo Bills - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 8.5,
+              "over_odds": -400,
+              "under_odds": 320
+            },
+            {
+              "line": 9.5,
+              "over_odds": -210,
+              "under_odds": 175
+            },
+            {
+              "line": 10.5,
+              "over_odds": -125,
+              "under_odds": 105
+            },
+            {
+              "line": 11.5,
+              "over_odds": 145,
+              "under_odds": -170
+            },
+            {
+              "line": 12.5,
+              "over_odds": 250,
+              "under_odds": -310
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Carolina Panthers",
+      "abbr": "CAR",
+      "markets": {
+        "win_total": {
+          "line": 6.5,
+          "over_odds": -125,
+          "under_odds": 105,
+          "market_id": "734.159186555",
+          "market_name": "Carolina Panthers - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 5.5,
+              "over_odds": -210,
+              "under_odds": 175
+            },
+            {
+              "line": 6.5,
+              "over_odds": -125,
+              "under_odds": 105
+            },
+            {
+              "line": 7.5,
+              "over_odds": 135,
+              "under_odds": -160
+            },
+            {
+              "line": 8.5,
+              "over_odds": 220,
+              "under_odds": -270
+            },
+            {
+              "line": 9.5,
+              "over_odds": 360,
+              "under_odds": -460
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Chicago Bears",
+      "abbr": "CHI",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": 105,
+          "under_odds": -125,
+          "market_id": "734.159186591",
+          "market_name": "Chicago Bears - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 7.5,
+              "over_odds": -270,
+              "under_odds": 220
+            },
+            {
+              "line": 8.5,
+              "over_odds": -160,
+              "under_odds": 135
+            },
+            {
+              "line": 9.5,
+              "over_odds": 105,
+              "under_odds": -125
+            },
+            {
+              "line": 10.5,
+              "over_odds": 175,
+              "under_odds": -210
+            },
+            {
+              "line": 11.5,
+              "over_odds": 300,
+              "under_odds": -370
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cincinnati Bengals",
+      "abbr": "CIN",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 100,
+          "under_odds": -120,
+          "market_id": "734.159186645",
+          "market_name": "Cincinnati Bengals - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 7.5,
+              "over_odds": -550,
+              "under_odds": 420
+            },
+            {
+              "line": 8.5,
+              "over_odds": -300,
+              "under_odds": 250
+            },
+            {
+              "line": 9.5,
+              "over_odds": -170,
+              "under_odds": 145
+            },
+            {
+              "line": 10.5,
+              "over_odds": 100,
+              "under_odds": -120
+            },
+            {
+              "line": 11.5,
+              "over_odds": 170,
+              "under_odds": -200
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cleveland Browns",
+      "abbr": "CLE",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -110,
+          "under_odds": -110,
+          "market_id": "734.159186653",
+          "market_name": "Cleveland Browns - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 4.5,
+              "over_odds": -200,
+              "under_odds": 170
+            },
+            {
+              "line": 5.5,
+              "over_odds": -110,
+              "under_odds": -110
+            },
+            {
+              "line": 6.5,
+              "over_odds": 155,
+              "under_odds": -180
+            },
+            {
+              "line": 7.5,
+              "over_odds": 260,
+              "under_odds": -320
+            },
+            {
+              "line": 8.5,
+              "over_odds": 450,
+              "under_odds": -600
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Dallas Cowboys",
+      "abbr": "DAL",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -110,
+          "under_odds": -110,
+          "market_id": "734.159186674",
+          "market_name": "Dallas Cowboys - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 7.5,
+              "over_odds": -320,
+              "under_odds": 260
+            },
+            {
+              "line": 8.5,
+              "over_odds": -190,
+              "under_odds": 160
+            },
+            {
+              "line": 9.5,
+              "over_odds": -110,
+              "under_odds": -110
+            },
+            {
+              "line": 10.5,
+              "over_odds": 155,
+              "under_odds": -180
+            },
+            {
+              "line": 11.5,
+              "over_odds": 260,
+              "under_odds": -320
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Denver Broncos",
+      "abbr": "DEN",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -130,
+          "under_odds": 110,
+          "market_id": "734.159187349",
+          "market_name": "Denver Broncos - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 7.5,
+              "over_odds": -400,
+              "under_odds": 320
+            },
+            {
+              "line": 8.5,
+              "over_odds": -220,
+              "under_odds": 175
+            },
+            {
+              "line": 9.5,
+              "over_odds": -130,
+              "under_odds": 110
+            },
+            {
+              "line": 10.5,
+              "over_odds": 135,
+              "under_odds": -160
+            },
+            {
+              "line": 11.5,
+              "over_odds": 230,
+              "under_odds": -280
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Detroit Lions",
+      "abbr": "DET",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -120,
+          "under_odds": 100,
+          "market_id": "734.159187359",
+          "market_name": "Detroit Lions - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 8.5,
+              "over_odds": -370,
+              "under_odds": 300
+            },
+            {
+              "line": 9.5,
+              "over_odds": -210,
+              "under_odds": 175
+            },
+            {
+              "line": 10.5,
+              "over_odds": -120,
+              "under_odds": 100
+            },
+            {
+              "line": 11.5,
+              "over_odds": 145,
+              "under_odds": -170
+            },
+            {
+              "line": 12.5,
+              "over_odds": 250,
+              "under_odds": -310
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Green Bay Packers",
+      "abbr": "GB",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -110,
+          "under_odds": -110,
+          "market_id": "734.159187884",
+          "market_name": "Green Bay Packers - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 7.5,
+              "over_odds": -320,
+              "under_odds": 270
+            },
+            {
+              "line": 8.5,
+              "over_odds": -180,
+              "under_odds": 155
+            },
+            {
+              "line": 9.5,
+              "over_odds": -110,
+              "under_odds": -110
+            },
+            {
+              "line": 10.5,
+              "over_odds": 160,
+              "under_odds": -195
+            },
+            {
+              "line": 11.5,
+              "over_odds": 280,
+              "under_odds": -340
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Houston Texans",
+      "abbr": "HOU",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -135,
+          "under_odds": 115,
+          "market_id": "734.159187981",
+          "market_name": "Houston Texans - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 7.5,
+              "over_odds": -400,
+              "under_odds": 320
+            },
+            {
+              "line": 8.5,
+              "over_odds": -230,
+              "under_odds": 180
+            },
+            {
+              "line": 9.5,
+              "over_odds": -135,
+              "under_odds": 115
+            },
+            {
+              "line": 10.5,
+              "over_odds": 125,
+              "under_odds": -145
+            },
+            {
+              "line": 11.5,
+              "over_odds": 220,
+              "under_odds": -270
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Indianapolis Colts",
+      "abbr": "IND",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": 115,
+          "under_odds": -135,
+          "market_id": "734.159188034",
+          "market_name": "Indianapolis Colts - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 5.5,
+              "over_odds": -490,
+              "under_odds": 360
+            },
+            {
+              "line": 6.5,
+              "over_odds": -250,
+              "under_odds": 210
+            },
+            {
+              "line": 7.5,
+              "over_odds": -145,
+              "under_odds": 125
+            },
+            {
+              "line": 8.5,
+              "over_odds": 115,
+              "under_odds": -135
+            },
+            {
+              "line": 9.5,
+              "over_odds": 190,
+              "under_odds": -230
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Jacksonville Jaguars",
+      "abbr": "JAX",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": -135,
+          "under_odds": 115,
+          "market_id": "734.159188312",
+          "market_name": "Jacksonville Jaguars - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 7.5,
+              "over_odds": -230,
+              "under_odds": 190
+            },
+            {
+              "line": 8.5,
+              "over_odds": -135,
+              "under_odds": 115
+            },
+            {
+              "line": 9.5,
+              "over_odds": 125,
+              "under_odds": -145
+            },
+            {
+              "line": 10.5,
+              "over_odds": 210,
+              "under_odds": -250
+            },
+            {
+              "line": 11.5,
+              "over_odds": 360,
+              "under_odds": -460
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Kansas City Chiefs",
+      "abbr": "KC",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -140,
+          "under_odds": 120,
+          "market_id": "734.159188340",
+          "market_name": "Kansas City Chiefs - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 8.5,
+              "over_odds": -250,
+              "under_odds": 210
+            },
+            {
+              "line": 9.5,
+              "over_odds": -140,
+              "under_odds": 120
+            },
+            {
+              "line": 10.5,
+              "over_odds": 120,
+              "under_odds": -140
+            },
+            {
+              "line": 11.5,
+              "over_odds": 210,
+              "under_odds": -250
+            },
+            {
+              "line": 12.5,
+              "over_odds": 410,
+              "under_odds": -550
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Las Vegas Raiders",
+      "abbr": "LV",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -130,
+          "under_odds": 110,
+          "market_id": "734.159188359",
+          "market_name": "Las Vegas Raiders - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 3.5,
+              "over_odds": -550,
+              "under_odds": 400
+            },
+            {
+              "line": 4.5,
+              "over_odds": -240,
+              "under_odds": 200
+            },
+            {
+              "line": 5.5,
+              "over_odds": -130,
+              "under_odds": 110
+            },
+            {
+              "line": 6.5,
+              "over_odds": 135,
+              "under_odds": -160
+            },
+            {
+              "line": 7.5,
+              "over_odds": 220,
+              "under_odds": -270
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Los Angeles Chargers",
+      "abbr": "LAC",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -125,
+          "under_odds": 105,
+          "market_id": "734.159188378",
+          "market_name": "Los Angeles Chargers - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 7.5,
+              "over_odds": -400,
+              "under_odds": 310
+            },
+            {
+              "line": 8.5,
+              "over_odds": -210,
+              "under_odds": 175
+            },
+            {
+              "line": 9.5,
+              "over_odds": -125,
+              "under_odds": 105
+            },
+            {
+              "line": 10.5,
+              "over_odds": 140,
+              "under_odds": -165
+            },
+            {
+              "line": 11.5,
+              "over_odds": 240,
+              "under_odds": -290
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Los Angeles Rams",
+      "abbr": "LAR",
+      "markets": {
+        "win_total": {
+          "line": 11.5,
+          "over_odds": -140,
+          "under_odds": 120,
+          "market_id": "734.159188404",
+          "market_name": "Los Angeles Rams - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 9.5,
+              "over_odds": -450,
+              "under_odds": 360
+            },
+            {
+              "line": 10.5,
+              "over_odds": -250,
+              "under_odds": 210
+            },
+            {
+              "line": 11.5,
+              "over_odds": -140,
+              "under_odds": 120
+            },
+            {
+              "line": 12.5,
+              "over_odds": 130,
+              "under_odds": -155
+            },
+            {
+              "line": 13.5,
+              "over_odds": 250,
+              "under_odds": -300
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Miami Dolphins",
+      "abbr": "MIA",
+      "markets": {
+        "win_total": {
+          "line": 3.5,
+          "over_odds": -135,
+          "under_odds": 115,
+          "market_id": "734.159188415",
+          "market_name": "Miami Dolphins - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 2.5,
+              "over_odds": -290,
+              "under_odds": 240
+            },
+            {
+              "line": 3.5,
+              "over_odds": -135,
+              "under_odds": 115
+            },
+            {
+              "line": 4.5,
+              "over_odds": 140,
+              "under_odds": -165
+            },
+            {
+              "line": 5.5,
+              "over_odds": 250,
+              "under_odds": -310
+            },
+            {
+              "line": 6.5,
+              "over_odds": 460,
+              "under_odds": -600
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Minnesota Vikings",
+      "abbr": "MIN",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": -120,
+          "under_odds": 100,
+          "market_id": "734.159188440",
+          "market_name": "Minnesota Vikings - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 6.5,
+              "over_odds": -370,
+              "under_odds": 300
+            },
+            {
+              "line": 7.5,
+              "over_odds": -200,
+              "under_odds": 170
+            },
+            {
+              "line": 8.5,
+              "over_odds": -120,
+              "under_odds": 100
+            },
+            {
+              "line": 9.5,
+              "over_odds": 140,
+              "under_odds": -165
+            },
+            {
+              "line": 10.5,
+              "over_odds": 230,
+              "under_odds": -280
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "New England Patriots",
+      "abbr": "NE",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -140,
+          "under_odds": 115,
+          "market_id": "734.159188461",
+          "market_name": "New England Patriots - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 7.5,
+              "over_odds": -450,
+              "under_odds": 350
+            },
+            {
+              "line": 8.5,
+              "over_odds": -240,
+              "under_odds": 200
+            },
+            {
+              "line": 9.5,
+              "over_odds": -140,
+              "under_odds": 115
+            },
+            {
+              "line": 10.5,
+              "over_odds": 125,
+              "under_odds": -145
+            },
+            {
+              "line": 11.5,
+              "over_odds": 220,
+              "under_odds": -270
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "New Orleans Saints",
+      "abbr": "NO",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": 100,
+          "under_odds": -120,
+          "market_id": "734.159188476",
+          "market_name": "New Orleans Saints - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 5.5,
+              "over_odds": -290,
+              "under_odds": 240
+            },
+            {
+              "line": 6.5,
+              "over_odds": -170,
+              "under_odds": 145
+            },
+            {
+              "line": 7.5,
+              "over_odds": 100,
+              "under_odds": -120
+            },
+            {
+              "line": 8.5,
+              "over_odds": 170,
+              "under_odds": -200
+            },
+            {
+              "line": 9.5,
+              "over_odds": 280,
+              "under_odds": -340
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "New York Giants",
+      "abbr": "NYG",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": 105,
+          "under_odds": -125,
+          "market_id": "734.159188516",
+          "market_name": "New York Giants - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 5.5,
+              "over_odds": -290,
+              "under_odds": 240
+            },
+            {
+              "line": 6.5,
+              "over_odds": -165,
+              "under_odds": 140
+            },
+            {
+              "line": 7.5,
+              "over_odds": 105,
+              "under_odds": -125
+            },
+            {
+              "line": 8.5,
+              "over_odds": 175,
+              "under_odds": -210
+            },
+            {
+              "line": 9.5,
+              "over_odds": 300,
+              "under_odds": -370
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "New York Jets",
+      "abbr": "NYJ",
+      "markets": {
+        "win_total": {
+          "line": 5.5,
+          "over_odds": -110,
+          "under_odds": -110,
+          "market_id": "734.159188535",
+          "market_name": "New York Jets - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 3.5,
+              "over_odds": -400,
+              "under_odds": 320
+            },
+            {
+              "line": 4.5,
+              "over_odds": -195,
+              "under_odds": 165
+            },
+            {
+              "line": 5.5,
+              "over_odds": -110,
+              "under_odds": -110
+            },
+            {
+              "line": 6.5,
+              "over_odds": 170,
+              "under_odds": -200
+            },
+            {
+              "line": 7.5,
+              "over_odds": 300,
+              "under_odds": -370
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Philadelphia Eagles",
+      "abbr": "PHI",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": 115,
+          "under_odds": -135,
+          "market_id": "734.159188582",
+          "market_name": "Philadelphia Eagles - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 8.5,
+              "over_odds": -250,
+              "under_odds": 210
+            },
+            {
+              "line": 9.5,
+              "over_odds": -145,
+              "under_odds": 125
+            },
+            {
+              "line": 10.5,
+              "over_odds": 115,
+              "under_odds": -135
+            },
+            {
+              "line": 11.5,
+              "over_odds": 200,
+              "under_odds": -240
+            },
+            {
+              "line": 12.5,
+              "over_odds": 360,
+              "under_odds": -450
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Pittsburgh Steelers",
+      "abbr": "PIT",
+      "markets": {
+        "win_total": {
+          "line": 7.5,
+          "over_odds": -140,
+          "under_odds": 120,
+          "market_id": "734.159188610",
+          "market_name": "Pittsburgh Steelers - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 5.5,
+              "over_odds": -460,
+              "under_odds": 360
+            },
+            {
+              "line": 6.5,
+              "over_odds": -250,
+              "under_odds": 210
+            },
+            {
+              "line": 7.5,
+              "over_odds": -140,
+              "under_odds": 120
+            },
+            {
+              "line": 8.5,
+              "over_odds": 120,
+              "under_odds": -140
+            },
+            {
+              "line": 9.5,
+              "over_odds": 200,
+              "under_odds": -250
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "San Francisco 49ers",
+      "abbr": "SF",
+      "markets": {
+        "win_total": {
+          "line": 9.5,
+          "over_odds": -130,
+          "under_odds": 110,
+          "market_id": "734.159188622",
+          "market_name": "San Francisco 49ers - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 8.5,
+              "over_odds": -210,
+              "under_odds": 175
+            },
+            {
+              "line": 9.5,
+              "over_odds": -130,
+              "under_odds": 110
+            },
+            {
+              "line": 10.5,
+              "over_odds": 135,
+              "under_odds": -160
+            },
+            {
+              "line": 11.5,
+              "over_odds": 230,
+              "under_odds": -280
+            },
+            {
+              "line": 12.5,
+              "over_odds": 420,
+              "under_odds": -550
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Seattle Seahawks",
+      "abbr": "SEA",
+      "markets": {
+        "win_total": {
+          "line": 10.5,
+          "over_odds": -120,
+          "under_odds": 100,
+          "market_id": "734.159188962",
+          "market_name": "Seattle Seahawks - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 8.5,
+              "over_odds": -370,
+              "under_odds": 300
+            },
+            {
+              "line": 9.5,
+              "over_odds": -200,
+              "under_odds": 170
+            },
+            {
+              "line": 10.5,
+              "over_odds": -120,
+              "under_odds": 100
+            },
+            {
+              "line": 11.5,
+              "over_odds": 150,
+              "under_odds": -175
+            },
+            {
+              "line": 12.5,
+              "over_odds": 270,
+              "under_odds": -330
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tampa Bay Buccaneers",
+      "abbr": "TB",
+      "markets": {
+        "win_total": {
+          "line": 8.5,
+          "over_odds": 110,
+          "under_odds": -130,
+          "market_id": "734.159188972",
+          "market_name": "Tampa Bay Buccaneers - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 6.5,
+              "over_odds": -250,
+              "under_odds": 210
+            },
+            {
+              "line": 7.5,
+              "over_odds": -150,
+              "under_odds": 125
+            },
+            {
+              "line": 8.5,
+              "over_odds": 110,
+              "under_odds": -130
+            },
+            {
+              "line": 9.5,
+              "over_odds": 190,
+              "under_odds": -230
+            },
+            {
+              "line": 10.5,
+              "over_odds": 320,
+              "under_odds": -410
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Tennessee Titans",
+      "abbr": "TEN",
+      "markets": {
+        "win_total": {
+          "line": 6.5,
+          "over_odds": 115,
+          "under_odds": -135,
+          "market_id": "734.159188997",
+          "market_name": "Tennessee Titans - Regular Season Wins 2026-27",
+          "market_status": "OPEN",
+          "ladder": [
+            {
+              "line": 4.5,
+              "over_odds": -280,
+              "under_odds": 230
+            },
+            {
+              "line": 5.5,
+              "over_odds": -155,
+              "under_odds": 130
+            },
+            {
+              "line": 6.5,
+              "over_odds": 115,
+              "under_odds": -135
+            },
+            {
+              "line": 7.5,
+              "over_odds": 190,
+              "under_odds": -230
+            },
+            {
+              "line": 8.5,
+              "over_odds": 320,
+              "under_odds": -400
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "notes": "Fetched FanDuel NJ sportsbook public SBAPI content-managed NFL page (customPageId=nfl). Season labeled 2026-27 on FanDuel boards. Active Player Props tab markets present: ['pass_tds', 'pass_yards', 'receiving_yards', 'rush_tds', 'rush_yards']. Requested market types not currently offered on public board: ['pass_attempts', 'rush_attempts', 'receptions', 'targets', 'receiving_tds', 'fantasy_points']. Receiving TDs coupon stubs exist on card 'Regular Season Receiving TDs' (51 coupons) but markets have hasAttachments=false / no marketId. No team season points/yards totals or fantasy-point season O/Us found on NFL navigation/player-props/win-totals boards. Team win_total.line is the ladder rung with over/under odds closest to -110/-110; full alternate ladder included. Player team/position enriched from draft_assistant/data/players_2026.json when name matched. Washington Commanders regular-season win total not present on FanDuel NJ NFL board (31/32 teams captured). File contains 92 players and 31 teams.",
+  "errors": []
+}
