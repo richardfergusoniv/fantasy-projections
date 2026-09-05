@@ -76,7 +76,7 @@ function checklist(): DraftChecklist {
     pos_market_rank: index + 1,
     unranked_break: index === 20,
     ranks: {
-      tgt_rank: index % 2 === 0 ? 3 : 18,
+      rec_rank: index % 2 === 0 ? 3 : 18,
       qb_rank: index % 3 === 0 ? 5 : 22,
       offense_pts_rank: 7,
       sos_rank: index < 5 ? 4 : 20,
@@ -95,8 +95,8 @@ function checklist(): DraftChecklist {
       pos_market_rank: 1,
       unranked_break: false,
       ranks: {
-        pass_att_rank: 2,
-        rush_att_rank: 6,
+        total_yds_rank: 2,
+        rush_yds_rank: 6,
         offense_pts_rank: 4,
         sos_rank: 19,
       },
@@ -122,19 +122,19 @@ function checklist(): DraftChecklist {
       },
     ],
     criteria_by_position: {
-      WR: ["tgt_rank", "qb_rank", "offense_pts_rank", "sos_rank"],
-      QB: ["pass_att_rank", "rush_att_rank", "offense_pts_rank", "sos_rank"],
-      RB: ["tgt_rank", "rush_att_rank", "offense_pts_rank", "sos_rank"],
-      TE: ["tgt_rank", "qb_rank", "offense_pts_rank", "sos_rank"],
+      WR: ["rec_rank", "qb_rank", "offense_pts_rank", "sos_rank"],
+      QB: ["total_yds_rank", "rush_yds_rank", "offense_pts_rank", "sos_rank"],
+      RB: ["rec_rank", "rush_yds_rank", "offense_pts_rank", "sos_rank"],
+      TE: ["rec_rank", "qb_rank", "offense_pts_rank", "sos_rank"],
     },
     criteria_labels: {
-      tgt_rank: "TGT RANK",
+      rec_rank: "REC RANK",
       qb_rank: "QB RANK",
       offense_pts_rank: "OFFENSE PTS RANK",
       offense_yds_rank: "OFFENSE YDS RANK",
       sos_rank: "SOS RANK",
-      pass_att_rank: "PASS ATT RANK",
-      rush_att_rank: "RUSH ATT RANK",
+      total_yds_rank: "TOTAL YDS RANK",
+      rush_yds_rank: "RUSH YDS RANK",
       ol_rank: "OL RANK",
     },
     checklist_meta: {
@@ -191,7 +191,7 @@ describe("DraftScreen", () => {
     const checkboxes = screen.getAllByRole("checkbox", { name: /Mark .+ drafted/i });
     expect(checkboxes[0]).toHaveAccessibleName("Mark QB Player 1 drafted");
     expect(checkboxes[1]).toHaveAccessibleName("Mark WR Player 1 drafted");
-    expect(screen.getByText("PASS 2")).toBeInTheDocument();
+    expect(screen.getByText("YDS 2")).toBeInTheDocument();
     expect(screen.getByText("RUSH 6")).toBeInTheDocument();
     expect(screen.getByLabelText("Max avg rank")).toBeInTheDocument();
     expect(screen.getByText(/Unranked \/ off market/i)).toBeInTheDocument();

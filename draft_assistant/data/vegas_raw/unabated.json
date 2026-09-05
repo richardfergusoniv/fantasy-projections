@@ -1,0 +1,715 @@
+{
+  "source": "unabated",
+  "fetched_at": "2026-09-05T04:11:04Z",
+  "urls": [
+    "https://unabated.com/",
+    "https://unabated.com/nfl/odds",
+    "https://unabated.com/sports/nfl",
+    "https://unabated.com/tools/core/futures",
+    "https://unabated.com/tools/core/props-tool",
+    "https://unabated.com/tools/core/futures-simulator",
+    "https://unabated.com/tools/core/props-simulator",
+    "https://unabated.com/tools/core/massey-peabody-ratings",
+    "https://tools.unabated.com/",
+    "https://tools.unabated.com/pricing",
+    "https://data.unabated.com/market/nfl/futures/odds",
+    "https://data.unabated.com/market/nfl/props/odds",
+    "https://docs.unabated.com/",
+    "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png",
+    "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png"
+  ],
+  "players": [
+    {
+      "name": "Matthew Stafford",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 300,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Drake Maye",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 300,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Jonathan Taylor",
+      "team": null,
+      "position": "RB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 600,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Patrick Mahomes",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 600,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Josh Allen",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 700,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Sam Darnold",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 1000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Lamar Jackson",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 2500,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Jordan Love",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 2800,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Justin Herbert",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 3000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Baker Mayfield",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 3000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Jared Goff",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 3000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Daniel Jones",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 6600,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Jaxon Smith-Njigba",
+      "team": null,
+      "position": "WR",
+      "markets": {
+        "mvp_odds": {
+          "odds": 10000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Puka Nacua",
+      "team": null,
+      "position": "WR",
+      "markets": {
+        "mvp_odds": {
+          "odds": 20000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Caleb Williams",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 25000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Aaron Rodgers",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 25000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Bo Nix",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 25000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Micah Parsons",
+      "team": null,
+      "position": "DL",
+      "markets": {
+        "mvp_odds": {
+          "odds": 30000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Dak Prescott",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 40000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Bijan Robinson",
+      "team": null,
+      "position": "RB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 40000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Christian McCaffrey",
+      "team": null,
+      "position": "RB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 40000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Trevor Lawrence",
+      "team": null,
+      "position": "QB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 40000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    },
+    {
+      "name": "Jahmyr Gibbs",
+      "team": null,
+      "position": "RB",
+      "markets": {
+        "mvp_odds": {
+          "odds": 50000,
+          "market_name": "NFL MVP",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/69129f49e2fc3a826de5e323_Futures%20Hero.png"
+        }
+      }
+    }
+  ],
+  "teams": [
+    {
+      "team": "SEA",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 1,
+          "rating": 8.34,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "LAR",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 2,
+          "rating": 7.26,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "KC",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 3,
+          "rating": 6.47,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "PHI",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 4,
+          "rating": 5.73,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "BUF",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 5,
+          "rating": 5.24,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "BAL",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 6,
+          "rating": 5.0,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "GB",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 7,
+          "rating": 4.69,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "DET",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 8,
+          "rating": 4.55,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "SF",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 9,
+          "rating": 4.49,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "IND",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 10,
+          "rating": 3.95,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "DEN",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 11,
+          "rating": 3.31,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "TB",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 12,
+          "rating": 1.3,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "PIT",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 13,
+          "rating": 1.1,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "JAC",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 14,
+          "rating": 1.02,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "LAC",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 15,
+          "rating": 0.68,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "DAL",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 16,
+          "rating": 0.33,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "NE",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 17,
+          "rating": 0.28,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "MIN",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 18,
+          "rating": -0.87,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "HOU",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 19,
+          "rating": -1.23,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "MIA",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 20,
+          "rating": -1.34,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "ATL",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 21,
+          "rating": -1.61,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "CHI",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 22,
+          "rating": -1.68,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "WAS",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 23,
+          "rating": -2.04,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    },
+    {
+      "team": "NYJ",
+      "markets": {
+        "massey_peabody_power_rating": {
+          "rank": 24,
+          "rating": -3.07,
+          "season_label": "2025",
+          "as_of": "2025-11-20",
+          "provenance": "ocr_marketing_screenshot",
+          "screenshot_url": "https://cdn.prod.website-files.com/68b0aad805e02c547879b073/691f7c2a98474d24e273b119_M-P%20Hero.png",
+          "note": "Power rating only; not a win total / points total market"
+        }
+      }
+    }
+  ],
+  "notes": [
+    "Unabated NFL Futures Odds Screen, Prop Odds Screen, Futures Simulator, and Massey-Peabody live boards require authenticated Premium login at tools.unabated.com (Auth0).",
+    "Enterprise/data API at data.unabated.com requires X-API-KEY / Bearer auth; unauthenticated GETs to /market/nfl/futures/odds and /market/nfl/props/odds return HTTP 401.",
+    "No public HTML dump of 2026 season player props (yards/TDs/receptions/targets/attempts) or team win/points totals was available without credentials.",
+    "players[] contains NFL MVP American odds OCR'd from the public Futures Odds Screen marketing hero screenshot (BEST LINE column). Screenshot date is unknown; treat as illustrative Unabated board snapshot, not a live API pull.",
+    "teams[] contains Massey-Peabody power ratings OCR'd from a marketing screenshot explicitly labeled 'Massey-Peabody 2025 NFL Power Rankings' (Last Updated Thu Nov 20 2025). Not 2026 win totals.",
+    "Futures board UI also lists collapsed markets Number Of Wins / Make Playoffs / Conference Top Seed, but those sections were not expanded in public screenshots.",
+    "Props tool public marketing page showed WNBA projection UI, not NFL season-long player props."
+  ],
+  "errors": [
+    {
+      "url": "https://data.unabated.com/market/nfl/futures/odds",
+      "status": 401,
+      "detail": "Unauthorized; WWW-Authenticate: Bearer. Requires X-API-KEY."
+    },
+    {
+      "url": "https://data.unabated.com/market/nfl/props/odds",
+      "status": 401,
+      "detail": "Unauthorized; WWW-Authenticate: Bearer. Requires X-API-KEY."
+    },
+    {
+      "url": "https://data.unabated.com/team/nfl",
+      "status": 401,
+      "detail": "Unauthorized problem+json."
+    },
+    {
+      "url": "https://data.unabated.com/player/nfl",
+      "status": 401,
+      "detail": "Unauthorized problem+json."
+    },
+    {
+      "url": "https://tools.unabated.com/initialize",
+      "status": 302,
+      "detail": "Redirects to Auth0 login.unabated.com; no anonymous access to live futures/props boards."
+    },
+    {
+      "url": "https://tools.unabated.com/api/auth/me",
+      "status": 401,
+      "detail": "not_authenticated"
+    },
+    {
+      "market": "season_player_props",
+      "detail": "Unable to retrieve yards/TDs/attempts/receptions/targets season props from Unabated without subscription/API key."
+    },
+    {
+      "market": "team_win_totals_points",
+      "detail": "Unable to retrieve complete NFL win totals or team points totals; only collapsed Number Of Wins UI and partial Arizona Cardinals vignette OCR (incomplete lines discarded)."
+    }
+  ],
+  "counts": {
+    "players": 23,
+    "teams": 24,
+    "player_markets": 23,
+    "team_markets": 24
+  }
+}

@@ -1,9 +1,10 @@
 """Merge multi-book Vegas raw scrapes into a sealed consensus board.
 
 Yardage / TD / receptions prefer the median of public sportsbook O/U lines.
-Pass attempts, rush attempts, and targets are almost never posted as season
-O/Us; for those we use numberFire remaining-season projections captured in the
-Action Network + numberFire scrape.
+Pass attempts, rush attempts, and targets are not posted as public season
+O/Us (sportsbooks + prediction markets checked). Checklist volume ranks use
+Vegas yards and receptions instead; numberFire attempt/target projections may
+still appear in the consensus for reference.
 """
 
 from __future__ import annotations
@@ -341,8 +342,13 @@ def build_consensus(*, season: int = 2026) -> dict[str, Any]:
                 "ESPN-Fox/Action/Sharp-RG-SBR lines"
             ),
             "volume_attempts_targets": (
-                "numberFire remaining-season projections "
-                "(season O/U boards unavailable publicly)"
+                "not used for checklist ranks; public boards lack attempt/target "
+                "season O/Us (VI/BettingPros/Unabated/Kalshi/Polymarket checked). "
+                "Checklist uses Vegas yards + receptions instead."
+            ),
+            "extra_sources": (
+                "vegasinsider, bettingpros, unabated, prediction_markets "
+                "(kalshi/polymarket) merged when present"
             ),
             "team_points": "median Vegas-implied season points (Sharp/AN/volume scrape)",
             "team_yards": "numberFire team aggregates and/or QB pass-yard proxies",

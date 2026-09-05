@@ -57,13 +57,13 @@ function formatVorp(value: number | undefined): string {
 const CHECKLIST_POSITIONS = ["ALL", "QB", "RB", "WR", "TE"] as const;
 
 const CHECK_SHORT_LABELS: Record<string, string> = {
-  pass_att_rank: "PASS",
-  rush_att_rank: "RUSH",
+  total_yds_rank: "YDS",
+  rush_yds_rank: "RUSH",
   offense_pts_rank: "PTS",
-  offense_yds_rank: "YDS",
+  offense_yds_rank: "OFF",
   ol_rank: "OL",
   sos_rank: "SOS",
-  tgt_rank: "TGT",
+  rec_rank: "REC",
   qb_rank: "QB",
 };
 

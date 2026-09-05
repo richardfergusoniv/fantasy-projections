@@ -53,9 +53,9 @@ def test_sealed_ol_unit_ranks_load_and_apply(tmp_path: Path):
             "criteria_labels": {"offense_pts_rank": "OFFENSE PTS RANK"},
         },
         "criteria_by_position": {
-            "QB": ["pass_att_rank", "offense_pts_rank", "sos_rank"],
-            "RB": ["tgt_rank", "offense_pts_rank", "sos_rank"],
-            "WR": ["tgt_rank", "offense_pts_rank", "sos_rank"],
+            "QB": ["total_yds_rank", "offense_pts_rank", "sos_rank"],
+            "RB": ["rec_rank", "offense_pts_rank", "sos_rank"],
+            "WR": ["rec_rank", "offense_pts_rank", "sos_rank"],
         },
         "teams": [
             {"abbr": "DEN", "name": "Denver Broncos", "offense_rank": 12},
@@ -139,8 +139,8 @@ def test_committed_checklist_json_loads():
     assert payload["meta"]["player_count"] >= 700
     assert len(payload["players"]) == payload["meta"]["player_count"]
     assert "ranks" in payload["players"][0]
-    assert "pass_att_rank" in payload["criteria_by_position"]["QB"]
-    assert "tgt_rank" in payload["criteria_by_position"]["WR"]
+    assert "total_yds_rank" in payload["criteria_by_position"]["QB"]
+    assert "rec_rank" in payload["criteria_by_position"]["WR"]
 
 
 def test_committed_checklist_has_vegas_ranks_for_stars():
@@ -151,14 +151,14 @@ def test_committed_checklist_has_vegas_ranks_for_stars():
     chase = next(p for p in payload["players"] if p["name"] == "Ja'Marr Chase")
     assert chase["position"] == "WR"
     assert chase["pos_market_rank"] == 1
-    assert chase["ranks"]["tgt_rank"] is not None
+    assert chase["ranks"]["rec_rank"] is not None
     assert chase["ranks"]["qb_rank"] is not None
     assert chase["ranks"]["offense_pts_rank"] is not None
     assert chase["ranks"]["offense_yds_rank"] is not None
     assert chase["ranks"]["sos_rank"] is not None
 
     allen = next(p for p in payload["players"] if p["name"] == "Josh Allen")
-    assert allen["ranks"]["pass_att_rank"] is not None
+    assert allen["ranks"]["total_yds_rank"] is not None
     assert allen["ranks"]["ol_rank"] is not None
 
 
