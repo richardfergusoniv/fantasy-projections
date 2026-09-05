@@ -347,7 +347,15 @@ export class ApiClient {
         profile: {
           league_specific: Boolean(board.league_specific),
           ranking_basis:
-            board.ranking_basis === "league_vorp" ? "league_vorp" : "sealed_vorp",
+            board.ranking_basis === "league_vorp"
+              ? "league_vorp"
+              : board.ranking_basis === "vegas_vorp"
+                ? "vegas_vorp"
+                : "sealed_vorp",
+          points_source:
+            board.points_source === "vegas_fp" || board.points_source === "model"
+              ? board.points_source
+              : undefined,
           points_unit: "season_total",
           team_count: board.team_count != null ? Number(board.team_count) : undefined,
           roster_positions: ((board.roster_positions as unknown[]) ?? []).map(String),

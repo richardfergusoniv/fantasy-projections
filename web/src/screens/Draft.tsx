@@ -342,7 +342,7 @@ export function DraftScreen() {
       >
         <p className="muted">
           Draft Checklist All and FLEX tabs are ordered by ADP (FLEX = RB/WR/TE); context pills are
-          Vegas volume/offense and Sharp SOS ranks. Our Rankings is the league VORP board. Mark
+          Vegas volume/offense and Sharp SOS ranks. Our Rankings is VORP from Vegas season lines. Mark
           drafted to hide a player across both.
         </p>
 
@@ -590,9 +590,9 @@ export function DraftScreen() {
         {pane === "ours" && entries.length ? (
           <>
             <p className="muted">
-              League-specific season rankings from the sealed release. Scoring, team count, fixed
-              starters, FLEX, and SUPER_FLEX determine replacement value. Raw season points never
-              determine the overall draft order.
+              Rankings use Vegas season fantasy points (half-PPR / 4-pt pass TD from yards,
+              receptions, and TDs). Scoring seats, FLEX, and SUPER_FLEX still set replacement.
+              Raw quarterback points never set the overall order by themselves.
             </p>
             <div className="draft-status">
               <span className="on-clock">Best available: {top?.name ?? "not available"}</span>
@@ -619,7 +619,13 @@ export function DraftScreen() {
                   {profile.scoring_fidelity ? ` · ${profile.scoring_fidelity}` : ""}
                 </p>
                 <p className="muted">
-                  Ranked by {profile.ranking_basis === "league_vorp" ? "league VORP" : "sealed VORP"},
+                  Ranked by{" "}
+                  {profile.ranking_basis === "league_vorp"
+                    ? "league VORP"
+                    : profile.ranking_basis === "vegas_vorp"
+                      ? "Vegas VORP"
+                      : "sealed VORP"}
+                  {profile.points_source === "vegas_fp" ? " (Vegas FP)" : ""},
                   not raw quarterback points · projected points are season totals
                 </p>
                 {profile.roster_positions.length ? (
