@@ -96,6 +96,13 @@ function checklistMarketSort(a: DraftChecklistEntry, b: DraftChecklistEntry): nu
   return a.name.localeCompare(b.name);
 }
 
+function checklistBoardSort(a: DraftChecklistEntry, b: DraftChecklistEntry): number {
+  const rankA = a.overall_rank ?? 9999;
+  const rankB = b.overall_rank ?? 9999;
+  if (rankA !== rankB) return rankA - rankB;
+  return a.name.localeCompare(b.name);
+}
+
 function criteriaForEntry(
   checklist: DraftChecklist | null,
   entry: DraftChecklistEntry,
@@ -229,10 +236,13 @@ export function DraftScreen() {
       return true;
     });
     // Single-position views keep the prepared positional order; All re-sorts
-    // into overall market ADP → ECR → prior points so the board reads like a
-    // real draft queue.
+    // into a draft queue. Prefer league-VORP overall ranks when the checklist
+    // was ordered from that board; otherwise fall back to market ADP → ECR.
     if (positionFilter === "ALL") {
-      return [...filtered].sort(checklistMarketSort);
+      const rankSource = checklist?.checklist_meta.rank_source;
+      const sorter =
+        rankSource === "league_vorp" ? checklistBoardSort : checklistMarketSort;
+      return [...filtered].sort(sorter);
     }
     return filtered;
   }, [checklist, positionFilter, normalizedSearch, hideDrafted, draftedPlayerSet, minChecks]);
@@ -242,9 +252,15 @@ export function DraftScreen() {
   // entry's own unranked_break flag loses it whenever that one player is
   // filtered out (drafted, min-checks) and strands it at the top when every
   // ranked player is filtered away.
-  const unrankedBreakIndex = checklistVisible.findIndex(
-    (entry) => entry.rank_tier === "prior_pts" || entry.rank_tier === "none",
-  );
+  const usesLeagueVorp = checklist?.checklist_meta.rank_source === "league_vorp";
+
+  // Market ADP boards draw a divider before prior-pts/none rows. League-VORP
+  // order already places unmatched players at the bottom — skip the ADP break.
+  const unrankedBreakIndex = usesLeagueVorp
+    ? -1
+    : checklistVisible.findIndex(
+        (entry) => entry.rank_tier === "prior_pts" || entry.rank_tier === "none",
+      );
 
   const positionEntries = entries.filter(
     (entry) => positionFilter === "ALL" || entry.position === positionFilter,
@@ -289,8 +305,12 @@ export function DraftScreen() {
   }
 
   const market = checklist?.checklist_meta.market_as_of;
-  const marketBadge =
-    market?.adp_end || market?.ecr_scrape
+  const boardOrder = checklist?.checklist_meta.board_order;
+  const marketBadge = usesLeagueVorp
+    ? `Ordered by league VORP${boardOrder?.as_of ? ` · board ${boardOrder.as_of}` : ""}${
+        market?.adp_end ? ` · market ADP ${market.adp_end}` : ""
+      }`
+    : market?.adp_end || market?.ecr_scrape
       ? `Market as of ADP ${market.adp_end ?? "—"} · ECR ${market.ecr_scrape ?? "—"} · ${
           market.scoring ?? "half-ppr"
         } · ${market.teams ?? 12}-team`
@@ -315,8 +335,9 @@ export function DraftScreen() {
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Draft Checklist is the market ADP/ECR assistant with context checks. Our Rankings is the
-          league VORP board. O-line is team context. Mark drafted to hide a player across all three.
+          Draft Checklist is the league VORP draft queue with context checks (market ADP still shown).
+          Our Rankings is the sealed league board. O-line is team context. Mark drafted to hide a
+          player across all three.
         </p>
 
         <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">
@@ -469,11 +490,15 @@ export function DraftScreen() {
                   <span className="muted">
                     {" "}
                     · {checklistTop.position}
-                    {checklistTop.adp != null
+                    {checklistTop.adp != null && !usesLeagueVorp
                       ? ` · ADP ${checklistTop.adp}`
-                      : checklistTop.ecr != null
-                        ? ` · ECR ${checklistTop.ecr}`
-                        : ""}
+                      : usesLeagueVorp && checklistTop.league_pts != null
+                        ? ` · ${checklistTop.league_pts.toFixed(1)} pts`
+                        : checklistTop.adp != null
+                          ? ` · ADP ${checklistTop.adp}`
+                          : checklistTop.ecr != null
+                            ? ` · ECR ${checklistTop.ecr}`
+                            : ""}
                   </span>
                 ) : null}
               </span>
@@ -512,13 +537,15 @@ export function DraftScreen() {
                           <span className={`pos-badge ${entry.position}`}>{entry.position}</span>
                           <span className="muted">
                             {entry.team ?? ""}
-                            {entry.adp != null
-                              ? ` · ADP ${entry.adp}`
-                              : entry.ecr != null
-                                ? ` · ECR ${entry.ecr}`
-                                : entry.prior_pts != null
-                                  ? ` · ${entry.prior_pts.toFixed(0)} pts`
-                                  : ""}
+                            {usesLeagueVorp && entry.league_pts != null
+                              ? ` · ${entry.league_pts.toFixed(1)} pts`
+                              : entry.adp != null
+                                ? ` · ADP ${entry.adp}`
+                                : entry.ecr != null
+                                  ? ` · ECR ${entry.ecr}`
+                                  : entry.prior_pts != null
+                                    ? ` · ${entry.prior_pts.toFixed(0)} pts`
+                                    : ""}
                           </span>
                         </div>
                         <div className="draft-check-pills" aria-label={`${entry.name} checks`}>

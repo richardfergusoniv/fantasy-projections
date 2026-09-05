@@ -95,22 +95,27 @@ class DraftChecklistService:
         entries = []
         for row in payload.get("players") or []:
             player_id = str(row.get("player_id") or "")
-            entries.append(
-                {
-                    "player_id": player_id,
-                    "sleeper_id": sleeper_by_gsis.get(player_id),
-                    "name": row.get("name") or player_id,
-                    "position": row.get("position"),
-                    "team": row.get("team"),
-                    "adp": row.get("adp"),
-                    "ecr": row.get("ecr"),
-                    "prior_pts": row.get("prior_pts"),
-                    "rank_tier": row.get("rank_tier"),
-                    "pos_market_rank": row.get("pos_market_rank"),
-                    "unranked_break": bool(row.get("unranked_break")),
-                    "checks": dict(row.get("checks") or {}),
-                }
-            )
+            entry = {
+                "player_id": player_id,
+                "sleeper_id": sleeper_by_gsis.get(player_id),
+                "name": row.get("name") or player_id,
+                "position": row.get("position"),
+                "team": row.get("team"),
+                "adp": row.get("adp"),
+                "ecr": row.get("ecr"),
+                "prior_pts": row.get("prior_pts"),
+                "rank_tier": row.get("rank_tier"),
+                "pos_market_rank": row.get("pos_market_rank"),
+                "unranked_break": bool(row.get("unranked_break")),
+                "checks": dict(row.get("checks") or {}),
+            }
+            # Optional league-VORP board order (checklist All tab). Never expose
+            # sealed-board ``vorp`` here — that belongs on /draft/board only.
+            if row.get("overall_rank") is not None:
+                entry["overall_rank"] = row.get("overall_rank")
+            if row.get("league_pts") is not None:
+                entry["league_pts"] = row.get("league_pts")
+            entries.append(entry)
 
         meta = dict(payload.get("meta") or {})
         return {
