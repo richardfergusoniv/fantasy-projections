@@ -14,6 +14,9 @@ const LEAGUE_KEY = "fantasy-decisions:selected-league";
 const WEEK_KEY = "fantasy-decisions:selected-week";
 const SHOW_ALL_LEAGUES_KEY = "fantasy-decisions:show-all-leagues";
 
+/** Current fantasy season for default league filtering (draft / checklist). */
+export const ACTIVE_SEASON = 2026;
+
 interface AppStateValue {
   leagues: LeagueSummary[];
   visibleLeagues: LeagueSummary[];
@@ -29,6 +32,8 @@ interface AppStateValue {
 
   /** Season of the selected league, straight from `GET /leagues`. */
   season: number | null;
+  /** Active fantasy season used when historical leagues are hidden. */
+  activeSeason: number;
 
   /** Roster snapshots for the selected league, from `GET /leagues/{id}/rosters`. */
   rosters: Roster[];
@@ -56,6 +61,34 @@ function readStoredWeek(leagueId: string | null): number | null {
   if (!raw) return null;
   const parsed = Number(raw);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function pickPreferredLeagueId(
+  items: LeagueSummary[],
+  configured: string[],
+  current: string | null,
+  options: { showAll: boolean },
+): string | null {
+  const { showAll } = options;
+  const configuredSet = new Set(configured);
+  const hasConfiguredOverlap =
+    configured.length > 0 && items.some((league) => configuredSet.has(league.id));
+
+  let pool = showAll
+    ? items
+    : items.filter((league) => league.season === ACTIVE_SEASON);
+  if (!pool.length && !showAll) {
+    pool = items.filter((league) => league.season === ACTIVE_SEASON);
+  }
+  if (hasConfiguredOverlap) {
+    const configuredPool = pool.filter((league) => configuredSet.has(league.id));
+    if (configuredPool.length) pool = configuredPool;
+  }
+
+  if (current && pool.some((league) => league.id === current)) {
+    return current;
+  }
+  return pool[0]?.id ?? null;
 }
 
 /**
@@ -104,16 +137,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setLeagues(items);
       setConfiguredLeagueIds(configured);
       setSelectedLeagueId((current) => {
-        if (current && items.some((league) => league.id === current)) {
-          return current;
-        }
-        const configuredSet = new Set(configured);
-        const hasConfiguredOverlap =
-          configured.length > 0 && items.some((league) => configuredSet.has(league.id));
-        const preferred = hasConfiguredOverlap
-          ? items.filter((league) => configuredSet.has(league.id))
-          : items;
-        const next = preferred[0]?.id ?? null;
+        const showAll = localStorage.getItem(SHOW_ALL_LEAGUES_KEY) === "true";
+        const next = pickPreferredLeagueId(items, configured, current, {
+          showAll,
+        });
         if (next) {
           localStorage.setItem(LEAGUE_KEY, next);
         }
@@ -185,11 +212,38 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const hasConfiguredOverlap =
       configuredLeagueIds.length > 0 &&
       leagues.some((league) => configuredSet.has(league.id));
-    if (showAllLeagues || !hasConfiguredOverlap) {
-      return leagues;
+
+    let pool = showAllLeagues
+      ? leagues
+      : leagues.filter((league) => league.season === ACTIVE_SEASON);
+
+    if (!showAllLeagues && hasConfiguredOverlap) {
+      const configuredPool = pool.filter((league) => configuredSet.has(league.id));
+      if (configuredPool.length) pool = configuredPool;
     }
-    return leagues.filter((league) => configuredSet.has(league.id));
+    return pool;
   }, [configuredLeagueIds, leagues, showAllLeagues]);
+
+  // Snap off-season selections back to the active season when history is hidden.
+  useEffect(() => {
+    if (showAllLeagues || leaguesLoading || !leagues.length) return;
+    const selected = leagues.find((league) => league.id === selectedLeagueId);
+    if (selected?.season === ACTIVE_SEASON) return;
+    const next = pickPreferredLeagueId(leagues, configuredLeagueIds, null, {
+      showAll: false,
+    });
+    if (next && next !== selectedLeagueId) {
+      setSelectedLeagueId(next);
+      localStorage.setItem(LEAGUE_KEY, next);
+      setWeekOverride(readStoredWeek(next));
+    }
+  }, [
+    configuredLeagueIds,
+    leagues,
+    leaguesLoading,
+    selectedLeagueId,
+    showAllLeagues,
+  ]);
 
   const selectedLeague =
     leagues.find((league) => league.id === selectedLeagueId) ?? null;
@@ -208,6 +262,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       leaguesError,
       refreshLeagues,
       season: selectedLeague?.season ?? null,
+      activeSeason: ACTIVE_SEASON,
       rosters,
       rostersLoading,
       rostersError,
