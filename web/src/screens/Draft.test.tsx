@@ -249,7 +249,21 @@ describe("DraftScreen", () => {
     expect(wrRow).not.toBeNull();
     expect(within(qbRow as HTMLElement).getByText("VORP 9")).toBeInTheDocument();
     expect(within(wrRow as HTMLElement).getByText("VORP 4")).toBeInTheDocument();
+    expect(within(qbRow as HTMLElement).getByText("Tier 2")).toBeInTheDocument();
+    expect(within(wrRow as HTMLElement).getByText("Tier 1")).toBeInTheDocument();
   });
+
+  it("shows Vegas VORP tier break headers on Our Rankings", async () => {
+    renderDraft("/draft?pane=ours");
+    await screen.findByText("Draft Player 1");
+    const breaks = screen.getAllByRole("separator").filter((node) =>
+      /^Tier \d+$/.test(node.textContent ?? ""),
+    );
+    expect(breaks.length).toBeGreaterThanOrEqual(2);
+    expect(breaks[0]).toHaveTextContent("Tier 1");
+    expect(breaks[1]).toHaveTextContent("Tier 2");
+  });
+
 
 
   it("hides checklist rows when drafted via checkbox", async () => {

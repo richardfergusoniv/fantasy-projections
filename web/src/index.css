@@ -1156,6 +1156,19 @@ a {
   text-align: center;
 }
 
+.draft-tier-break-row {
+  margin: 0.35rem 0 0.15rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius);
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
 .draft-status {
   display: flex;
   flex-wrap: wrap;

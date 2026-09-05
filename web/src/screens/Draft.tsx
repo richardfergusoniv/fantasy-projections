@@ -240,12 +240,22 @@ export function DraftScreen() {
 
   const criteriaLabels = checklist?.criteria_labels ?? {};
 
-  /** League VORP board rank (Our Rankings), keyed for checklist pills. ADP order stays untouched. */
+  /** League VORP board rank + tier (Our Rankings), keyed for checklist pills. ADP order stays untouched. */
   const vorpRankByPlayerId = useMemo(() => {
     const map = new Map<string, number>();
     for (const entry of entries) {
       if (entry.player_id && entry.rank != null) {
         map.set(entry.player_id, entry.rank);
+      }
+    }
+    return map;
+  }, [entries]);
+
+  const vorpTierByPlayerId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const entry of entries) {
+      if (entry.player_id && entry.tier != null) {
+        map.set(entry.player_id, entry.tier);
       }
     }
     return map;
@@ -520,6 +530,7 @@ export function DraftScreen() {
                   ? index + 1
                   : entry.pos_market_rank;
                 const vorpRank = vorpRankByPlayerId.get(entry.player_id);
+                const vorpTier = vorpTierByPlayerId.get(entry.player_id);
                 return (
                   <Fragment key={entry.player_id}>
                     {index === unrankedBreakIndex ? (
@@ -584,6 +595,15 @@ export function DraftScreen() {
                           >
                             VORP{" "}
                             {vorpRank == null || Number.isNaN(vorpRank) ? "—" : String(vorpRank)}
+                          </span>
+                          <span
+                            className={`draft-rank-pill ${rankTierClass(vorpTier)}`}
+                            title={`Vegas VORP tier: ${
+                              vorpTier == null || Number.isNaN(vorpTier) ? "—" : String(vorpTier)
+                            }`}
+                          >
+                            Tier{" "}
+                            {vorpTier == null || Number.isNaN(vorpTier) ? "—" : String(vorpTier)}
                           </span>
                         </div>
                       </div>
@@ -668,11 +688,19 @@ export function DraftScreen() {
               </div>
             ) : null}
             <div className="draft-player-grid" role="list">
-              {visibleEntries.map((entry) => {
+              {visibleEntries.map((entry, index) => {
                 const drafted = draftedPlayerSet.has(entry.player_id);
+                const prevTier = index > 0 ? visibleEntries[index - 1]?.tier : undefined;
+                const showTierBreak =
+                  entry.tier != null && (index === 0 || entry.tier !== prevTier);
                 return (
+                  <Fragment key={entry.player_id}>
+                    {showTierBreak ? (
+                      <div className="draft-tier-break-row" role="separator">
+                        Tier {entry.tier}
+                      </div>
+                    ) : null}
                   <article
-                    key={entry.player_id}
                     className={`draft-player-card${drafted ? " is-drafted" : ""}`}
                     role="listitem"
                     aria-label={`${entry.name} draft card`}
@@ -722,6 +750,7 @@ export function DraftScreen() {
                         : ""}
                     </p>
                   </article>
+                  </Fragment>
                 );
               })}
             </div>

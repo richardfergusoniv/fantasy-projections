@@ -126,7 +126,7 @@ def load_component_projections(
                 continue
             try:
                 value = float(row.get(value_column) or 0.0)
-            except TypeError, ValueError:
+            except (TypeError, ValueError):
                 continue
             bucket = by_player.setdefault(player_id, {})
             bucket[draw_stat] = bucket.get(draw_stat, 0.0) + value
@@ -138,7 +138,7 @@ def load_component_projections(
                     bucket["_projected_games"] = float(
                         row.get("projected_games") or 17.0
                     )
-                except TypeError, ValueError:
+                except (TypeError, ValueError):
                     bucket["_projected_games"] = 17.0
     return by_player
 

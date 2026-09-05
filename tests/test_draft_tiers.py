@@ -21,6 +21,17 @@ def test_assign_tiers_splits_on_pct_gap():
     assert tiers.tolist() == [1, 2, 3]
 
 
+def test_assign_tiers_uses_tier_anchor_not_adjacent_drop():
+    """Accumulated drop from the tier leader opens a new tier.
+
+    Consecutive 3% dips stay in-tier under a 4% rule, but the third player is
+    6% below the tier-1 anchor and must start tier 2.
+    """
+    pts = pd.Series([100.0, 97.0, 94.0, 91.0], index=[0, 1, 2, 3])
+    tiers = assign_tiers(pts, gap=99.0, pct_gap=0.04)
+    assert tiers.tolist() == [1, 1, 2, 2]
+
+
 def test_add_tier_columns_per_position():
     df = pd.DataFrame(
         {
