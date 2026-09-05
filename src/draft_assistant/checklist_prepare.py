@@ -27,10 +27,14 @@ from src.draft_assistant.market_adp import (
     market_components_for_player,
     normalize_player_name,
 )
+from src.sentiment.diagnostics import PEER_SCORE_ABOVE, PEER_SCORE_BELOW
 from src.team_stats.prepare import TEAM_META
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DRAFT_DATA_DIR = REPO_ROOT / "draft_assistant" / "data"
+SENTIMENT_DIR = REPO_ROOT / "data" / "sentiment"
+DEFAULT_SENTIMENT_SNAPSHOT_AS_OF = "2026-08-24"
+DEFAULT_DAILY_LEDGER = SENTIMENT_DIR / "ledger" / "legacy_daily_2026.jsonl"
 
 HISTORY_SEASON = 2025
 TOP_N = 16
@@ -173,6 +177,158 @@ def vegas_fantasy_points(markets: dict[str, Any]) -> float | None:
         + (_num(markets.get("rec_tds")) or 0.0) * RUSH_REC_TD_POINTS
         + (_num(markets.get("receptions")) or 0.0) * RECEPTION_POINTS
     )
+
+
+def _polarity_to_label(polarity: float) -> str:
+    if polarity > 0:
+        return "positive"
+    if polarity < 0:
+        return "negative"
+    return "neutral"
+
+
+def _score_to_label(score: float) -> str:
+    if score > PEER_SCORE_ABOVE:
+        return "positive"
+    if score < PEER_SCORE_BELOW:
+        return "negative"
+    return "neutral"
+
+
+def load_daily_sentiment_labels(
+    ledger_path: Path | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Most-recent daily claim polarity per player (not a blend across days)."""
+    path = ledger_path or DEFAULT_DAILY_LEDGER
+    if not path.is_file():
+        return {}
+
+    best: dict[str, dict[str, Any]] = {}
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            row = json.loads(line)
+            player_id = str(row.get("player_id") or "")
+            cutoff = str(row.get("research_cutoff") or "")
+            polarity = _num(row.get("polarity"))
+            if not player_id or not cutoff or polarity is None:
+                continue
+            current = best.get(player_id)
+            if current is None or cutoff > str(current["as_of"]):
+                best[player_id] = {
+                    "label": _polarity_to_label(polarity),
+                    "score": None,
+                    "as_of": cutoff,
+                    "coverage": "daily",
+                    "source": "daily_ledger",
+                    "polarity": polarity,
+                }
+            elif cutoff == str(current["as_of"]):
+                # Same day: keep the strongest absolute polarity (matches markdown collapse).
+                prior = _num(current.get("polarity")) or 0.0
+                if abs(polarity) > abs(prior):
+                    best[player_id] = {
+                        "label": _polarity_to_label(polarity),
+                        "score": None,
+                        "as_of": cutoff,
+                        "coverage": "daily",
+                        "source": "daily_ledger",
+                        "polarity": polarity,
+                    }
+    for value in best.values():
+        value.pop("polarity", None)
+    return best
+
+
+def load_snapshot_sentiment_labels(
+    *,
+    season: int = 2026,
+    as_of: str = DEFAULT_SENTIMENT_SNAPSHOT_AS_OF,
+) -> dict[str, dict[str, Any]]:
+    """Peer stop-light from the diagnostic snapshot (±15 residual score)."""
+    path = SENTIMENT_DIR / f"sentiment_{season}_{as_of}.csv"
+    if not path.is_file():
+        return {}
+
+    import csv
+
+    out: dict[str, dict[str, Any]] = {}
+    with path.open(encoding="utf-8", newline="") as fh:
+        for row in csv.DictReader(fh):
+            player_id = str(row.get("player_id") or "")
+            if not player_id:
+                continue
+            coverage = str(row.get("sentiment_coverage") or "none")
+            score = _num(row.get("sentiment_score"))
+            snapshot_as_of = str(row.get("sentiment_as_of") or as_of)
+            if score is None or coverage == "none":
+                out[player_id] = {
+                    "label": None,
+                    "score": None,
+                    "as_of": snapshot_as_of,
+                    "coverage": coverage,
+                    "source": "snapshot",
+                }
+                continue
+            out[player_id] = {
+                "label": _score_to_label(score),
+                "score": score,
+                "as_of": snapshot_as_of,
+                "coverage": coverage,
+                "source": "snapshot",
+            }
+    return out
+
+
+def resolve_checklist_sentiment(
+    player_id: str,
+    *,
+    daily: dict[str, dict[str, Any]],
+    snapshot: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    """Prefer most-recent daily claim; fall back to diagnostic snapshot."""
+    if player_id in daily:
+        return dict(daily[player_id])
+    if player_id in snapshot:
+        return dict(snapshot[player_id])
+    return {
+        "label": None,
+        "score": None,
+        "as_of": None,
+        "coverage": "none",
+        "source": None,
+    }
+
+
+def apply_checklist_sentiment(
+    payload: dict[str, Any],
+    *,
+    season: int = 2026,
+    ledger_path: Path | None = None,
+    snapshot_as_of: str = DEFAULT_SENTIMENT_SNAPSHOT_AS_OF,
+) -> dict[str, Any]:
+    """Attach non-rank sentiment stop-lights onto checklist players + meta."""
+    daily = load_daily_sentiment_labels(ledger_path)
+    snapshot = load_snapshot_sentiment_labels(season=season, as_of=snapshot_as_of)
+    labeled = 0
+    for row in payload.get("players") or []:
+        player_id = str(row.get("player_id") or "")
+        sentiment = resolve_checklist_sentiment(player_id, daily=daily, snapshot=snapshot)
+        row["sentiment"] = sentiment
+        if sentiment.get("label") is not None:
+            labeled += 1
+
+    meta = dict(payload.get("meta") or {})
+    daily_as_of = max((row["as_of"] for row in daily.values()), default=None)
+    meta["sentiment_included"] = True
+    meta["sentiment_snapshot_as_of"] = snapshot_as_of
+    meta["sentiment_daily_as_of"] = daily_as_of
+    meta["sentiment_labeled_players"] = labeled
+    meta["sentiment_mode"] = "most_recent_daily_then_snapshot"
+    payload["meta"] = meta
+    return payload
 
 
 def criteria_for_meta(*, ol_included: bool, sos_included: bool) -> dict[str, list[str]]:
@@ -633,6 +789,7 @@ def export_checklist(
     db_path: str | Path | None = None,
 ) -> Path:
     payload = build_checklist(season=season, db_path=db_path)
+    apply_checklist_sentiment(payload, season=season)
     destination = out_path or DRAFT_DATA_DIR / f"draft_checklist_{season}.json"
     destination.parent.mkdir(parents=True, exist_ok=True)
     with destination.open("w", encoding="utf-8") as fh:
@@ -667,6 +824,31 @@ def patch_checklist_ol(
     return destination
 
 
+def patch_checklist_sentiment(
+    season: int = 2026,
+    *,
+    checklist_path: Path | None = None,
+    ledger_path: Path | None = None,
+    snapshot_as_of: str = DEFAULT_SENTIMENT_SNAPSHOT_AS_OF,
+) -> Path:
+    """Inject sentiment stop-lights into an existing checklist JSON only."""
+    destination = checklist_path or DRAFT_DATA_DIR / f"draft_checklist_{season}.json"
+    if not destination.is_file():
+        raise FileNotFoundError(f"checklist not found: {destination}")
+    with destination.open(encoding="utf-8") as fh:
+        payload = json.load(fh)
+    apply_checklist_sentiment(
+        payload,
+        season=season,
+        ledger_path=ledger_path,
+        snapshot_as_of=snapshot_as_of,
+    )
+    with destination.open("w", encoding="utf-8") as fh:
+        json.dump(payload, fh, indent=2, allow_nan=False)
+        fh.write("\n")
+    return destination
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Export draft checklist JSON")
     parser.add_argument("--season", type=int, default=2026)
@@ -677,9 +859,21 @@ def main() -> None:
         action="store_true",
         help="Inject sealed ol_unit_ranks into the existing checklist JSON only",
     )
+    parser.add_argument(
+        "--patch-sentiment-only",
+        action="store_true",
+        help="Inject sentiment stop-lights into the existing checklist JSON only",
+    )
     args = parser.parse_args()
+    if args.patch_ol_only and args.patch_sentiment_only:
+        raise SystemExit("Choose only one of --patch-ol-only / --patch-sentiment-only")
     if args.patch_ol_only:
         path = patch_checklist_ol(
+            args.season,
+            checklist_path=Path(args.out) if args.out else None,
+        )
+    elif args.patch_sentiment_only:
+        path = patch_checklist_sentiment(
             args.season,
             checklist_path=Path(args.out) if args.out else None,
         )

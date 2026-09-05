@@ -119,12 +119,18 @@ def test_audit_expectations_match_current_corpus():
     assert int((frame["extraction_method"] == "bullet").sum()) == 146
 
 
-def test_daily_registry_covers_august_26_through_29():
+def test_daily_registry_covers_august_26_through_september_4():
     assert list(DAILY_RESEARCH_FILES) == [
         "2026-08-26",
         "2026-08-27",
         "2026-08-28",
         "2026-08-29",
+        "2026-08-30",
+        "2026-08-31",
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03",
+        "2026-09-04",
     ]
     root = REPO_ROOT / "perplexity research" / "daily"
     assert all((root / filename).exists() for filename in DAILY_RESEARCH_FILES.values())

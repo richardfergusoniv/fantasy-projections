@@ -129,6 +129,20 @@ function rankTierClass(rank: number | null | undefined): string {
   return "is-muted";
 }
 
+function sentimentTierClass(label: string | null | undefined): string {
+  if (label === "positive") return "is-strong";
+  if (label === "neutral") return "is-mild";
+  if (label === "negative") return "is-negative";
+  return "is-muted";
+}
+
+function sentimentDisplay(label: string | null | undefined): string {
+  if (label === "positive") return "+";
+  if (label === "neutral") return "~";
+  if (label === "negative") return "−";
+  return "—";
+}
+
 /** Average of available numeric ranks for the player's position criteria. */
 function averageAvailableRank(entry: DraftChecklistEntry, keys: string[]): number | null {
   const values = keys
@@ -584,6 +598,20 @@ export function DraftScreen() {
                           >
                             VORP{" "}
                             {vorpRank == null || Number.isNaN(vorpRank) ? "—" : String(vorpRank)}
+                          </span>
+                          <span
+                            className={`draft-rank-pill ${sentimentTierClass(
+                              entry.sentiment?.label,
+                            )}`}
+                            title={
+                              entry.sentiment?.label
+                                ? `Sentiment ${entry.sentiment.label}${
+                                    entry.sentiment.as_of ? ` as of ${entry.sentiment.as_of}` : ""
+                                  }`
+                                : "No reviewed sentiment signal"
+                            }
+                          >
+                            SENT {sentimentDisplay(entry.sentiment?.label)}
                           </span>
                         </div>
                       </div>

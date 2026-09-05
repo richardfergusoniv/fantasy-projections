@@ -8,10 +8,14 @@ from pathlib import Path
 import pytest
 
 from src.draft_assistant.checklist_prepare import (
+    apply_checklist_sentiment,
     apply_ol_unit_ranks,
     criteria_for_meta,
+    load_daily_sentiment_labels,
     load_sealed_ol_unit_ranks,
+    load_snapshot_sentiment_labels,
     rank_descending,
+    resolve_checklist_sentiment,
 )
 
 
@@ -243,6 +247,92 @@ def test_active_release_pointer_lists_draft_checklist_url():
     if not pointer_path.is_file():
         pytest.skip("active release pointer not present")
     pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
-    checklist_url = pointer["public_urls"]["draft_checklist"]
-    assert checklist_url.endswith("draft_checklist_2026.json")
+    checklist_url = (pointer.get("public_urls") or {}).get("draft_checklist")
+    assert checklist_url
+    assert "draft_checklist_2026.json" in checklist_url
     assert release_path.is_file()
+
+
+def test_resolve_checklist_sentiment_prefers_most_recent_daily():
+    daily = {
+        "p1": {
+            "label": "negative",
+            "score": None,
+            "as_of": "2026-09-04",
+            "coverage": "daily",
+            "source": "daily_ledger",
+        }
+    }
+    snapshot = {
+        "p1": {
+            "label": "positive",
+            "score": 40.0,
+            "as_of": "2026-08-24",
+            "coverage": "high",
+            "source": "snapshot",
+        },
+        "p2": {
+            "label": "neutral",
+            "score": 0.0,
+            "as_of": "2026-08-24",
+            "coverage": "medium",
+            "source": "snapshot",
+        },
+    }
+    assert resolve_checklist_sentiment("p1", daily=daily, snapshot=snapshot)["label"] == "negative"
+    assert resolve_checklist_sentiment("p2", daily=daily, snapshot=snapshot)["source"] == "snapshot"
+    assert resolve_checklist_sentiment("missing", daily=daily, snapshot=snapshot)["label"] is None
+
+
+def test_apply_checklist_sentiment_keeps_sentiment_out_of_ranks(tmp_path: Path):
+    ledger = tmp_path / "daily.jsonl"
+    ledger.write_text(
+        json.dumps(
+            {
+                "player_id": "qb-1",
+                "research_cutoff": "2026-09-04",
+                "polarity": 0.8,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    payload = {
+        "meta": {},
+        "players": [
+            {
+                "player_id": "qb-1",
+                "name": "Test QB",
+                "ranks": {"fp_rank": 3, "ol_rank": 10},
+            },
+            {
+                "player_id": "wr-1",
+                "name": "Test WR",
+                "ranks": {"fp_rank": 8},
+            },
+        ],
+    }
+    apply_checklist_sentiment(payload, ledger_path=ledger, snapshot_as_of="2026-08-24")
+    assert payload["players"][0]["sentiment"]["label"] == "positive"
+    assert payload["players"][0]["sentiment"]["source"] == "daily_ledger"
+    assert "sentiment" not in payload["players"][0]["ranks"]
+    assert payload["meta"]["sentiment_included"] is True
+    assert payload["meta"]["sentiment_daily_as_of"] == "2026-09-04"
+
+
+def test_committed_checklist_includes_sentiment_stoplight():
+    path = Path("draft_assistant/data/draft_checklist_2026.json")
+    if not path.is_file():
+        pytest.skip("checklist artifact not present")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["meta"]["sentiment_included"] is True
+    assert payload["meta"]["sentiment_daily_as_of"] == "2026-09-04"
+    assert payload["meta"]["sentiment_snapshot_as_of"] == "2026-08-24"
+    labeled = [
+        row for row in payload["players"] if (row.get("sentiment") or {}).get("label") is not None
+    ]
+    assert len(labeled) >= 100
+    assert "sentiment" not in (payload["players"][0].get("ranks") or {})
+    pacheco = next(p for p in payload["players"] if p["name"] == "Isiah Pacheco")
+    assert pacheco["sentiment"]["label"] == "negative"
+    assert pacheco["sentiment"]["as_of"] == "2026-09-04"

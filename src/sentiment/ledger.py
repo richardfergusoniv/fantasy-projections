@@ -28,6 +28,12 @@ DAILY_RESEARCH_FILES = {
     "2026-08-27": "player_sentiment_2026-08-27.md",
     "2026-08-28": "player_sentiment_2026-08-28.md",
     "2026-08-29": "player_sentiment_2026-08-29.md",
+    "2026-08-30": "player_sentiment_2026-08-30.md",
+    "2026-08-31": "player_sentiment_2026-08-31.md",
+    "2026-09-01": "player_sentiment_2026-09-01.md",
+    "2026-09-02": "player_sentiment_2026-09-02.md",
+    "2026-09-03": "player_sentiment_2026-09-03.md",
+    "2026-09-04": "player_sentiment_2026-09-04.md",
 }
 
 

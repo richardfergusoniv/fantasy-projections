@@ -273,6 +273,18 @@ export interface DraftChecklistEntry {
   ranks: Record<string, number | null>;
   /** @deprecated Prefer `ranks`. Kept for older checklist payloads. */
   checks?: Record<string, boolean>;
+  /** Stop-light sentiment (not a rank). Missing evidence stays null. */
+  sentiment?: DraftChecklistSentiment | null;
+}
+
+export type DraftSentimentLabel = "positive" | "neutral" | "negative";
+
+export interface DraftChecklistSentiment {
+  label: DraftSentimentLabel | null;
+  score?: number | null;
+  as_of?: string | null;
+  coverage?: string | null;
+  source?: string | null;
 }
 
 export interface DraftChecklistTeam {

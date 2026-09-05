@@ -82,6 +82,12 @@ function checklist(): DraftChecklist {
       offense_pts_rank: 7,
       sos_rank: index < 5 ? 4 : 20,
     },
+    sentiment:
+      index === 0
+        ? { label: "positive" as const, as_of: "2026-09-04", source: "daily_ledger" }
+        : index === 1
+          ? { label: "negative" as const, as_of: "2026-09-03", source: "daily_ledger" }
+          : { label: null, as_of: null, source: null },
   }));
   const qb = [
     {
@@ -101,6 +107,7 @@ function checklist(): DraftChecklist {
         offense_pts_rank: 4,
         sos_rank: 19,
       },
+      sentiment: { label: "neutral" as const, as_of: "2026-08-24", source: "snapshot" },
     },
   ];
   return {
@@ -249,6 +256,8 @@ describe("DraftScreen", () => {
     expect(wrRow).not.toBeNull();
     expect(within(qbRow as HTMLElement).getByText("VORP 9")).toBeInTheDocument();
     expect(within(wrRow as HTMLElement).getByText("VORP 4")).toBeInTheDocument();
+    expect(within(qbRow as HTMLElement).getByText("SENT ~")).toBeInTheDocument();
+    expect(within(wrRow as HTMLElement).getByText("SENT +")).toBeInTheDocument();
   });
 
 

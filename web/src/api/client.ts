@@ -413,6 +413,25 @@ export class ApiClient {
               Boolean(value),
             ]),
           ),
+          sentiment: (() => {
+            const rawSentiment = row.sentiment as RawRecord | null | undefined;
+            if (!rawSentiment || typeof rawSentiment !== "object") return null;
+            const label = rawSentiment.label;
+            return {
+              label:
+                label === "positive" || label === "neutral" || label === "negative"
+                  ? label
+                  : null,
+              score:
+                rawSentiment.score != null && rawSentiment.score !== ""
+                  ? Number(rawSentiment.score)
+                  : null,
+              as_of: rawSentiment.as_of != null ? String(rawSentiment.as_of) : null,
+              coverage:
+                rawSentiment.coverage != null ? String(rawSentiment.coverage) : null,
+              source: rawSentiment.source != null ? String(rawSentiment.source) : null,
+            };
+          })(),
         })),
         teams: ((raw.teams as RawRecord[]) ?? []).map((team) => ({
           abbr: String(team.abbr),

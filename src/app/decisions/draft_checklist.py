@@ -159,6 +159,7 @@ class DraftChecklistService:
                     "unranked_break": bool(row.get("unranked_break")),
                     "ranks": _coerce_rank_map(row.get("ranks")),
                     "checks": dict(row.get("checks") or {}),
+                    "sentiment": dict(row.get("sentiment") or {}) or None,
                 }
             )
 
