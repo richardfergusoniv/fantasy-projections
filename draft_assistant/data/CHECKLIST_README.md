@@ -9,9 +9,9 @@
 #
 # Volume ranks (public boards lack season attempt/target O/Us — checked
 # DraftKings/FanDuel/BettingPros/VegasInsider/Unabated/Kalshi/Polymarket):
-#   QB: total yards (pass + rush), rush yards
-#   RB: receptions, total yards (rush + receiving)
-#   WR/TE: receptions
+#   QB: total yards (pass + rush), rush yards, passing TDs
+#   RB: receptions, total yards (rush + receiving), total TDs (rush + receiving)
+#   WR/TE: receptions, receiving yards, receiving TDs
 # Yardage / team points: median sportsbook season O/Us + Vegas-implied PPG.
 # Board: every rostered QB/RB/WR/TE in team_stats_{season}.json
 #

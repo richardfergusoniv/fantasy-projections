@@ -59,11 +59,15 @@ const CHECKLIST_POSITIONS = ["ALL", "QB", "RB", "WR", "TE"] as const;
 const CHECK_SHORT_LABELS: Record<string, string> = {
   total_yds_rank: "YDS",
   rush_yds_rank: "RUSH",
+  pass_td_rank: "PTD",
+  total_td_rank: "TD",
   offense_pts_rank: "PTS",
   offense_yds_rank: "OFF",
   ol_rank: "OL",
   sos_rank: "SOS",
   rec_rank: "REC",
+  rec_yds_rank: "RYDS",
+  rec_td_rank: "RTD",
   qb_rank: "QB",
 };
 

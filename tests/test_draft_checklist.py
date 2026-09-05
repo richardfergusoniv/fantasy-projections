@@ -140,7 +140,11 @@ def test_committed_checklist_json_loads():
     assert len(payload["players"]) == payload["meta"]["player_count"]
     assert "ranks" in payload["players"][0]
     assert "total_yds_rank" in payload["criteria_by_position"]["QB"]
+    assert "pass_td_rank" in payload["criteria_by_position"]["QB"]
     assert "rec_rank" in payload["criteria_by_position"]["WR"]
+    assert "rec_yds_rank" in payload["criteria_by_position"]["WR"]
+    assert "rec_td_rank" in payload["criteria_by_position"]["TE"]
+    assert "total_td_rank" in payload["criteria_by_position"]["RB"]
 
 
 def test_committed_checklist_has_vegas_ranks_for_stars():
@@ -152,6 +156,8 @@ def test_committed_checklist_has_vegas_ranks_for_stars():
     assert chase["position"] == "WR"
     assert chase["pos_market_rank"] == 1
     assert chase["ranks"]["rec_rank"] is not None
+    assert chase["ranks"]["rec_yds_rank"] is not None
+    assert chase["ranks"]["rec_td_rank"] is not None
     assert chase["ranks"]["qb_rank"] is not None
     assert chase["ranks"]["offense_pts_rank"] is not None
     assert chase["ranks"]["offense_yds_rank"] is not None
@@ -159,7 +165,11 @@ def test_committed_checklist_has_vegas_ranks_for_stars():
 
     allen = next(p for p in payload["players"] if p["name"] == "Josh Allen")
     assert allen["ranks"]["total_yds_rank"] is not None
+    assert allen["ranks"]["pass_td_rank"] is not None
     assert allen["ranks"]["ol_rank"] is not None
+
+    barkley = next(p for p in payload["players"] if p["name"] == "Saquon Barkley")
+    assert barkley["ranks"]["total_td_rank"] is not None
 
 
 def test_market_average_skips_missing_sources():

@@ -2,9 +2,11 @@
 
 Context columns are ranks (1 = best), not boolean checks.
 
-- Player volume: Vegas season O/U yards/receptions (attempts/targets are not
-  publicly posted). QB volume uses total yards (pass + rush) and rush yards;
-  skill volume uses receptions and total yards (rush + receiving).
+- Player volume: Vegas season O/U yards/receptions/TDs (attempts/targets are not
+  publicly posted). QB volume uses total yards (pass + rush), rush yards, and
+  passing TDs; RB uses receptions, total yards (rush + receiving), and total
+  TDs (rush + receiving); WR/TE uses receptions, receiving yards, and receiving
+  TDs.
 - Team offense: Vegas-implied points scored and total yards, ranked 1-32.
 - O-line: sealed ol_unit_ranks_{season}.json.
 - SOS: Sharp Football Analysis fantasy SOS (pass for QB/WR/TE, rush for RB).
@@ -38,18 +40,21 @@ TOP_N = 16
 VOLUME_CAVEAT = (
     "Season-long attempt/target O/Us are not posted on public boards "
     "(DraftKings/FanDuel/BettingPros/VegasInsider/Kalshi/Polymarket checked). "
-    "Volume ranks therefore use Vegas yards/receptions: QB total yards "
-    "(pass + rush) and rush yards; skill receptions and total yards "
-    "(rush + receiving). Team offense ranks combine Vegas-implied points "
-    "scored and total yards. O-line ranks stay on the sealed screenshot board. "
-    "SOS is Sharp Football Analysis fantasy SOS (passing for QB/WR/TE, "
-    "rushing for RB). Board includes every rostered QB/RB/WR/TE."
+    "Volume ranks therefore use Vegas yards/receptions/TDs: QB total yards "
+    "(pass + rush), rush yards, and passing TDs; RB receptions, total yards "
+    "(rush + receiving), and total TDs (rush + receiving); WR/TE receptions, "
+    "receiving yards, and receiving TDs. Team offense ranks combine "
+    "Vegas-implied points scored and total yards. O-line ranks stay on the "
+    "sealed screenshot board. SOS is Sharp Football Analysis fantasy SOS "
+    "(passing for QB/WR/TE, rushing for RB). Board includes every rostered "
+    "QB/RB/WR/TE."
 )
 
 CRITERIA_BASE: dict[str, list[str]] = {
     "QB": [
         "total_yds_rank",
         "rush_yds_rank",
+        "pass_td_rank",
         "offense_pts_rank",
         "offense_yds_rank",
         "ol_rank",
@@ -58,6 +63,7 @@ CRITERIA_BASE: dict[str, list[str]] = {
     "RB": [
         "rec_rank",
         "total_yds_rank",
+        "total_td_rank",
         "offense_pts_rank",
         "offense_yds_rank",
         "ol_rank",
@@ -65,6 +71,8 @@ CRITERIA_BASE: dict[str, list[str]] = {
     ],
     "WR": [
         "rec_rank",
+        "rec_yds_rank",
+        "rec_td_rank",
         "qb_rank",
         "offense_pts_rank",
         "offense_yds_rank",
@@ -72,6 +80,8 @@ CRITERIA_BASE: dict[str, list[str]] = {
     ],
     "TE": [
         "rec_rank",
+        "rec_yds_rank",
+        "rec_td_rank",
         "qb_rank",
         "offense_pts_rank",
         "offense_yds_rank",
@@ -82,11 +92,15 @@ CRITERIA_BASE: dict[str, list[str]] = {
 CRITERIA_LABELS: dict[str, str] = {
     "total_yds_rank": "TOTAL YDS RANK",
     "rush_yds_rank": "RUSH YDS RANK",
+    "pass_td_rank": "PASS TD RANK",
+    "total_td_rank": "TOTAL TD RANK",
     "offense_pts_rank": "OFFENSE PTS RANK",
     "offense_yds_rank": "OFFENSE YDS RANK",
     "ol_rank": "O-LINE RANK",
     "sos_rank": "SOS RANK",
     "rec_rank": "RECEPTIONS RANK",
+    "rec_yds_rank": "REC YDS RANK",
+    "rec_td_rank": "REC TD RANK",
     "qb_rank": "QB RANK",
 }
 
@@ -318,10 +332,18 @@ def build_checklist(
             fallback = _num(season_stats.get("passing_yards"))
             if fallback is not None:
                 markets["pass_yards"] = fallback
+        if _num(markets.get("pass_tds")) is None and pos == "QB":
+            fallback = _num(season_stats.get("passing_tds"))
+            if fallback is not None:
+                markets["pass_tds"] = fallback
         if _num(markets.get("rush_yards")) is None and pos in ("QB", "RB"):
             fallback = _num(season_stats.get("rushing_yards"))
             if fallback is not None:
                 markets["rush_yards"] = fallback
+        if _num(markets.get("rush_tds")) is None and pos in ("QB", "RB"):
+            fallback = _num(season_stats.get("rushing_tds"))
+            if fallback is not None:
+                markets["rush_tds"] = fallback
         if _num(markets.get("rec_yards")) is None and pos in ("RB", "WR", "TE"):
             fallback = _num(season_stats.get("receiving_yards"))
             if fallback is not None:
@@ -330,6 +352,10 @@ def build_checklist(
             fallback = _num(season_stats.get("receptions"))
             if fallback is not None:
                 markets["receptions"] = fallback
+        if _num(markets.get("rec_tds")) is None and pos in ("RB", "WR", "TE"):
+            fallback = _num(season_stats.get("receiving_tds"))
+            if fallback is not None:
+                markets["rec_tds"] = fallback
 
         components = market_components_for_player(
             position=pos,
@@ -374,6 +400,14 @@ def build_checklist(
             return None
         return rush_yards + rec_yards
 
+    def _total_tds(row: dict[str, Any]) -> float | None:
+        markets = row["markets"]
+        rush_tds = _num(markets.get("rush_tds"))
+        rec_tds = _num(markets.get("rec_tds"))
+        if rush_tds is None and rec_tds is None:
+            return None
+        return (rush_tds or 0.0) + (rec_tds or 0.0)
+
     qb_total_yds = {
         row["player_id"]: float(total)
         for row in candidates
@@ -384,15 +418,35 @@ def build_checklist(
         for row in candidates
         if row["position"] == "QB" and _num(row["markets"].get("rush_yards")) is not None
     }
+    qb_pass_tds = {
+        row["player_id"]: float(row["markets"]["pass_tds"])
+        for row in candidates
+        if row["position"] == "QB" and _num(row["markets"].get("pass_tds")) is not None
+    }
     rb_total_yds = {
         row["player_id"]: float(total)
         for row in candidates
         if row["position"] == "RB" and (total := _total_yards(row)) is not None
     }
+    rb_total_tds = {
+        row["player_id"]: float(total)
+        for row in candidates
+        if row["position"] == "RB" and (total := _total_tds(row)) is not None
+    }
     wr_rec = {
         row["player_id"]: float(row["markets"]["receptions"])
         for row in candidates
         if row["position"] == "WR" and _num(row["markets"].get("receptions")) is not None
+    }
+    wr_rec_yds = {
+        row["player_id"]: float(row["markets"]["rec_yards"])
+        for row in candidates
+        if row["position"] == "WR" and _num(row["markets"].get("rec_yards")) is not None
+    }
+    wr_rec_tds = {
+        row["player_id"]: float(row["markets"]["rec_tds"])
+        for row in candidates
+        if row["position"] == "WR" and _num(row["markets"].get("rec_tds")) is not None
     }
     rb_rec = {
         row["player_id"]: float(row["markets"]["receptions"])
@@ -404,13 +458,29 @@ def build_checklist(
         for row in candidates
         if row["position"] == "TE" and _num(row["markets"].get("receptions")) is not None
     }
+    te_rec_yds = {
+        row["player_id"]: float(row["markets"]["rec_yards"])
+        for row in candidates
+        if row["position"] == "TE" and _num(row["markets"].get("rec_yards")) is not None
+    }
+    te_rec_tds = {
+        row["player_id"]: float(row["markets"]["rec_tds"])
+        for row in candidates
+        if row["position"] == "TE" and _num(row["markets"].get("rec_tds")) is not None
+    }
 
     qb_total_yds_ranks = rank_descending(qb_total_yds)
     qb_rush_yds_ranks = rank_descending(qb_rush_yds)
+    qb_pass_td_ranks = rank_descending(qb_pass_tds)
     rb_total_yds_ranks = rank_descending(rb_total_yds)
+    rb_total_td_ranks = rank_descending(rb_total_tds)
     wr_rec_ranks = rank_descending(wr_rec)
+    wr_rec_yds_ranks = rank_descending(wr_rec_yds)
+    wr_rec_td_ranks = rank_descending(wr_rec_tds)
     rb_rec_ranks = rank_descending(rb_rec)
     te_rec_ranks = rank_descending(te_rec)
+    te_rec_yds_ranks = rank_descending(te_rec_yds)
+    te_rec_td_ranks = rank_descending(te_rec_tds)
 
     team_qb1_fp: dict[str, float] = {}
     for row in candidates:
@@ -462,19 +532,25 @@ def build_checklist(
             if pos == "QB":
                 ranks["total_yds_rank"] = qb_total_yds_ranks.get(row["player_id"])
                 ranks["rush_yds_rank"] = qb_rush_yds_ranks.get(row["player_id"])
+                ranks["pass_td_rank"] = qb_pass_td_ranks.get(row["player_id"])
                 ranks["ol_rank"] = ol_unit_ranks.get(team)
                 ranks["sos_rank"] = sos["passing"].get(team)
             elif pos == "RB":
                 ranks["rec_rank"] = rb_rec_ranks.get(row["player_id"])
                 ranks["total_yds_rank"] = rb_total_yds_ranks.get(row["player_id"])
+                ranks["total_td_rank"] = rb_total_td_ranks.get(row["player_id"])
                 ranks["ol_rank"] = ol_unit_ranks.get(team)
                 ranks["sos_rank"] = sos["rushing"].get(team)
             elif pos == "WR":
                 ranks["rec_rank"] = wr_rec_ranks.get(row["player_id"])
+                ranks["rec_yds_rank"] = wr_rec_yds_ranks.get(row["player_id"])
+                ranks["rec_td_rank"] = wr_rec_td_ranks.get(row["player_id"])
                 ranks["qb_rank"] = team_qb_ranks.get(team)
                 ranks["sos_rank"] = sos["passing"].get(team)
             else:
                 ranks["rec_rank"] = te_rec_ranks.get(row["player_id"])
+                ranks["rec_yds_rank"] = te_rec_yds_ranks.get(row["player_id"])
+                ranks["rec_td_rank"] = te_rec_td_ranks.get(row["player_id"])
                 ranks["qb_rank"] = team_qb_ranks.get(team)
                 ranks["sos_rank"] = sos["passing"].get(team)
 
