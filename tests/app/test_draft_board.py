@@ -92,8 +92,15 @@ def test_draft_checklist_endpoint(client: TestClient):
     assert body.get("available") is True
     assert body["entries"]
     assert "vorp" not in body["entries"][0]
-    assert body["entries"][0]["rank_tier"] in {"adp", "ecr", "prior_pts", "none"}
-    assert body["meta"]["market_as_of"]["scoring"] == "half-ppr"
+    assert body["entries"][0]["rank_tier"] in {
+        "market_avg",
+        "screenshot",
+        "adp",
+        "ecr",
+        "prior_pts",
+        "none",
+    }
+    assert body["meta"]["market_as_of"]["scoring"] in {"ppr", "half-ppr"}
     assert body["meta"]["market_as_of"]["teams"] == 12
     assert "checks" in body["entries"][0]
     # Freshness must describe the checklist artifact, not the league rule

@@ -432,6 +432,8 @@ export class ApiClient {
                 : null,
             matched_adp: market.matched_adp != null ? Number(market.matched_adp) : null,
             matched_ecr: market.matched_ecr != null ? Number(market.matched_ecr) : null,
+            source: market.source != null ? String(market.source) : null,
+            as_of: market.as_of != null ? String(market.as_of) : null,
           },
           sos_included: checklistMeta.sos_included != null ? Boolean(checklistMeta.sos_included) : undefined,
           ol_included: checklistMeta.ol_included != null ? Boolean(checklistMeta.ol_included) : undefined,
@@ -447,6 +449,13 @@ export class ApiClient {
               : undefined,
           team_count:
             checklistMeta.team_count != null ? Number(checklistMeta.team_count) : undefined,
+          rank_source:
+            checklistMeta.rank_source != null ? String(checklistMeta.rank_source) : undefined,
+          ol_source: checklistMeta.ol_source != null ? String(checklistMeta.ol_source) : undefined,
+          rank_board_source:
+            checklistMeta.rank_board_source != null
+              ? String(checklistMeta.rank_board_source)
+              : undefined,
         },
         meta: {
           data_as_of: String(raw.data_as_of ?? new Date().toISOString()),
