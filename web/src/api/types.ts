@@ -252,7 +252,7 @@ export interface DraftBoard {
   meta: ApiMeta;
 }
 
-export type DraftRankTier = "adp" | "ecr" | "prior_pts" | "screenshot" | "none";
+export type DraftRankTier = "adp" | "ecr" | "prior_pts" | "market_avg" | "screenshot" | "none";
 
 export interface DraftChecklistEntry {
   player_id: string;

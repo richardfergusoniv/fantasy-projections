@@ -279,11 +279,11 @@ def test_committed_checklist_json_loads():
     if not path.is_file():
         pytest.skip("checklist artifact not present")
     payload = json.loads(path.read_text(encoding="utf-8"))
-    assert payload["meta"]["rank_source"] == "screenshot"
+    assert payload["meta"]["rank_source"] == "market_avg"
     assert payload["meta"]["market_as_of"]["scoring"] == "ppr"
     assert payload["meta"]["market_as_of"]["teams"] == 12
     assert "vorp" not in (payload["players"][0] or {})
-    assert payload["players"][0]["rank_tier"] == "screenshot"
+    assert payload["players"][0]["rank_tier"] == "market_avg"
     assert len(payload["players"]) == 156
 
 
@@ -298,8 +298,22 @@ def test_committed_checklist_matches_screenshot_board_for_jamarr_chase():
     assert shot["name"] == "Ja'Marr Chase"
     assert all(shot["checks"].values())
     chase = next(p for p in payload["players"] if p["name"] == "Ja'Marr Chase")
+    assert chase["screenshot_rank"] == 1
     assert chase["pos_market_rank"] == 1
     assert chase["checks"] == shot["checks"]
+    assert chase["market_avg"] is not None
+    assert chase["ecr"] is not None
+
+
+def test_market_average_skips_missing_sources():
+    from src.draft_assistant.market_adp import average_market_value
+
+    assert average_market_value(
+        {"adp_espn": 10.0, "adp_ffc": None, "adp_mfl": 14.0, "ecr": 12.0}
+    ) == pytest.approx(12.0)
+    assert average_market_value(
+        {"adp_espn": None, "adp_ffc": None, "adp_mfl": None, "ecr": None}
+    ) is None
 
 
 def test_committed_checklist_ol_matches_sealed_screenshot_board():

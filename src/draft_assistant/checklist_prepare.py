@@ -1,14 +1,13 @@
 """Build sealed draft-checklist JSON from Sunday Sports Society screenshots.
 
-Player order and non-OL context checks come from
-``draft_assistant/data/screenshot_checklist_{season}.json`` (transcribed from
-the SSS checklist screenshots). QB/RB ``ol_top16`` is overwritten from
-``ol_unit_ranks_{season}.json`` (the O-line unit rankings screenshot) — not
-from the SSS OL column and not from ``projections.db``.
+Context checks come from ``screenshot_checklist_{season}.json`` (SSS
+screenshots). QB/RB ``ol_top16`` is overwritten from
+``ol_unit_ranks_{season}.json``.
 
-Identity fields (player_id / team) are joined from sealed ``team_stats_*`` by
-name so drafted toggles still work. ADP/ECR/our offense-SOS ranks are not used
-for checklist order or checks.
+Positional *order* is market-driven: a simple average of available platform
+ADPs (ESPN, Fantasy Football Calculator, MyFantasyLeague) plus FantasyPros
+ECR from ``comparison_{season}.json``. Screenshot ranks are kept only as
+analysis metadata, not as the board order.
 """
 
 from __future__ import annotations
@@ -25,6 +24,11 @@ import pandas as pd
 
 from src.paths import DB_PATH
 from src.team_stats.prepare import TEAM_META
+from src.draft_assistant.market_adp import (
+    average_market_value,
+    fetch_market_maps,
+    market_components_for_player,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DRAFT_DATA_DIR = REPO_ROOT / "draft_assistant" / "data"
@@ -668,17 +672,19 @@ def build_checklist(
     screenshot_path: Path | None = None,
     ol_ranks_path: Path | None = None,
 ) -> dict[str, Any]:
-    """Build checklist from sealed SSS screenshots + O-line unit ranks.
+    """Build checklist from SSS screenshot checks + market ADP/ECR order.
 
-    ``comparison_path`` / ``db_path`` remain on the signature for CLI
-    compatibility but are not used for ranks or non-OL checks.
+    ``db_path`` remains for CLI compatibility and is unused for ranks/checks.
     """
-    del comparison_path, db_path
+    del db_path
 
     team_stats_path = team_stats_path or DRAFT_DATA_DIR / f"team_stats_{season}.json"
+    comparison_path = comparison_path or DRAFT_DATA_DIR / f"comparison_{season}.json"
     board_path = screenshot_path or screenshot_checklist_path(season)
     if not board_path.is_file():
         raise FileNotFoundError(f"screenshot checklist board not found: {board_path}")
+    if not comparison_path.is_file():
+        raise FileNotFoundError(f"comparison board not found: {comparison_path}")
 
     board = load_screenshot_board(board_path)
     aliases = dict(SCREENSHOT_NAME_ALIASES)
@@ -693,6 +699,10 @@ def build_checklist(
     ol_unit_ranks = load_sealed_ol_unit_ranks(ranks_path)
     if not ol_unit_ranks:
         raise ValueError(f"sealed OL ranks empty: {ranks_path}")
+
+    espn_adp, ffc_adp, mfl_adp, ecr_by_id, market_meta = fetch_market_maps(
+        comparison_path=comparison_path
+    )
 
     criteria = criteria_for_meta(ol_included=True, sos_included=True)
 
@@ -713,12 +723,11 @@ def build_checklist(
             }
         )
 
-    players_out: list[dict[str, Any]] = []
+    drafted: list[dict[str, Any]] = []
     missing: list[str] = []
     positions = board.get("positions") or {}
     for pos in ("QB", "RB", "WR", "TE"):
         rows = list(positions.get(pos) or [])
-        rows.sort(key=lambda row: int(row.get("rank") or 9999))
         pool = by_pos_name.get(pos) or {}
         for row in rows:
             raw_name = str(row.get("name") or "")
@@ -739,17 +748,34 @@ def build_checklist(
                     checks[key] = bool(shot_checks[key])
                 else:
                     checks[key] = False
-            players_out.append(
+
+            display_name = str(identity.get("display_name") or resolved)
+            player_id = str(identity["player_id"])
+            components = market_components_for_player(
+                position=pos,
+                name=display_name,
+                player_id=player_id,
+                espn=espn_adp,
+                ffc=ffc_adp,
+                mfl=mfl_adp,
+                ecr_by_id=ecr_by_id,
+            )
+            market_avg = average_market_value(components)
+            drafted.append(
                 {
-                    "player_id": str(identity["player_id"]),
-                    "name": identity.get("display_name") or resolved,
+                    "player_id": player_id,
+                    "name": display_name,
                     "position": pos,
                     "team": team,
-                    "adp": None,
-                    "ecr": None,
+                    "adp": round(market_avg, 2) if market_avg is not None else None,
+                    "adp_espn": components["adp_espn"],
+                    "adp_ffc": components["adp_ffc"],
+                    "adp_mfl": components["adp_mfl"],
+                    "ecr": components["ecr"],
                     "prior_pts": _history_prior_pts(identity),
-                    "rank_tier": "screenshot",
-                    "pos_market_rank": int(row["rank"]),
+                    "rank_tier": "market_avg" if market_avg is not None else "screenshot",
+                    "screenshot_rank": int(row["rank"]),
+                    "market_avg": round(market_avg, 2) if market_avg is not None else None,
                     "unranked_break": False,
                     "checks": checks,
                 }
@@ -760,19 +786,41 @@ def build_checklist(
             "screenshot names not found in team_stats: " + ", ".join(missing)
         )
 
+    players_out: list[dict[str, Any]] = []
+    for pos in ("QB", "RB", "WR", "TE"):
+        cohort = [row for row in drafted if row["position"] == pos]
+        cohort.sort(
+            key=lambda row: (
+                row["market_avg"] is None,
+                row["market_avg"] if row["market_avg"] is not None else 9999.0,
+                row["screenshot_rank"],
+                row["name"],
+            )
+        )
+        for index, row in enumerate(cohort, start=1):
+            row["pos_market_rank"] = index
+            players_out.append(row)
+
+    comparison = load_comparison(comparison_path)
+    comparison_meta = comparison.get("meta") or {}
+    ecr_meta = comparison_meta.get("ecr") or {}
+
     return {
         "season": season,
         "meta": {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "top_n": top_n,
-            "rank_source": "screenshot",
+            "rank_source": "market_avg",
             "scoring_flavor": "ppr",
             "team_count": 12,
             "market_as_of": {
-                "source": board.get("source") or "sunday_sports_society_screenshots",
-                "as_of": board.get("as_of"),
+                "source": "espn+ffc+mfl+fantasypros_ecr",
                 "scoring": "ppr",
                 "teams": 12,
+                "ecr_scrape": ecr_meta.get("scrape_date"),
+                "fetched_at": market_meta.get("fetched_at"),
+                "formula": market_meta.get("formula"),
+                "sources": market_meta.get("sources"),
             },
             "sos_included": True,
             "schedule_2026_reg_games": None,
@@ -781,10 +829,11 @@ def build_checklist(
             "sos_source": "screenshot_checklist",
             "ol_source": f"sealed:{ranks_path.name}",
             "rank_board_source": f"sealed:{board_path.name}",
+            "checks_source": "screenshot_checklist",
             "volume_caveat": (
-                "Checks and positional ranks transcribed from SSS checklist "
-                "screenshots. QB/RB TOP 16 O-LINE uses the sealed O-line unit "
-                "rankings screenshot, not the SSS OL column."
+                "Checks transcribed from SSS checklist screenshots; QB/RB TOP 16 "
+                "O-LINE uses the sealed O-line unit rankings screenshot. Board "
+                "order is the mean of available ESPN/FFC/MFL ADPs and FantasyPros ECR."
             ),
             "criteria_labels": {
                 key: CRITERIA_LABELS[key]
@@ -796,6 +845,7 @@ def build_checklist(
         "teams": teams_out,
         "players": players_out,
     }
+
 
 
 def export_checklist(
