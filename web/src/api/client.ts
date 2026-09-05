@@ -387,6 +387,7 @@ export class ApiClient {
           adp: row.adp != null ? Number(row.adp) : null,
           ecr: row.ecr != null ? Number(row.ecr) : null,
           prior_pts: row.prior_pts != null ? Number(row.prior_pts) : null,
+          vegas_fp: row.vegas_fp != null ? Number(row.vegas_fp) : null,
           rank_tier: String(row.rank_tier ?? "none") as DraftChecklist["entries"][number]["rank_tier"],
           pos_market_rank:
             row.pos_market_rank != null ? Number(row.pos_market_rank) : undefined,

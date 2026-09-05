@@ -57,6 +57,7 @@ function formatVorp(value: number | undefined): string {
 const CHECKLIST_POSITIONS = ["ALL", "QB", "RB", "WR", "TE"] as const;
 
 const CHECK_SHORT_LABELS: Record<string, string> = {
+  fp_rank: "FP",
   total_yds_rank: "YDS",
   rush_yds_rank: "RUSH",
   pass_td_rank: "PTD",
@@ -525,6 +526,9 @@ export function DraftScreen() {
                                 : entry.prior_pts != null
                                   ? ` · ${entry.prior_pts.toFixed(0)} pts`
                                   : ""}
+                            {entry.vegas_fp != null
+                              ? ` · Vegas FP ${entry.vegas_fp.toFixed(1)}`
+                              : ""}
                           </span>
                         </div>
                         <div className="draft-rank-pills" aria-label={`${entry.name} ranks`}>

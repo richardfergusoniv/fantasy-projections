@@ -6,7 +6,7 @@ Context columns are ranks (1 = best), not boolean checks.
   publicly posted). QB volume uses total yards (pass + rush), rush yards, and
   passing TDs; RB uses receptions, total yards (rush + receiving), and total
   TDs (rush + receiving); WR/TE uses receptions, receiving yards, and receiving
-  TDs.
+  TDs. Aggregated half-PPR fantasy points (4-pt pass TD) are ranked per position.
 - Team offense: Vegas-implied points scored and total yards, ranked 1-32.
 - O-line: sealed ol_unit_ranks_{season}.json.
 - SOS: Sharp Football Analysis fantasy SOS (pass for QB/WR/TE, rush for RB).
@@ -37,21 +37,28 @@ DRAFT_DATA_DIR = REPO_ROOT / "draft_assistant" / "data"
 HISTORY_SEASON = 2025
 TOP_N = 16
 
+# Half-PPR, 4-pt passing TD — matches project scoring for aggregated FP ranks.
+RECEPTION_POINTS = 0.5
+PASS_TD_POINTS = 4.0
+RUSH_REC_TD_POINTS = 6.0
+
 VOLUME_CAVEAT = (
     "Season-long attempt/target O/Us are not posted on public boards "
     "(DraftKings/FanDuel/BettingPros/VegasInsider/Kalshi/Polymarket checked). "
     "Volume ranks therefore use Vegas yards/receptions/TDs: QB total yards "
     "(pass + rush), rush yards, and passing TDs; RB receptions, total yards "
     "(rush + receiving), and total TDs (rush + receiving); WR/TE receptions, "
-    "receiving yards, and receiving TDs. Team offense ranks combine "
-    "Vegas-implied points scored and total yards. O-line ranks stay on the "
-    "sealed screenshot board. SOS is Sharp Football Analysis fantasy SOS "
+    "receiving yards, and receiving TDs. Fantasy points rank aggregates those "
+    "Vegas lines into half-PPR / 4-pt pass TD season points. Team offense ranks "
+    "combine Vegas-implied points scored and total yards. O-line ranks stay on "
+    "the sealed screenshot board. SOS is Sharp Football Analysis fantasy SOS "
     "(passing for QB/WR/TE, rushing for RB). Board includes every rostered "
     "QB/RB/WR/TE."
 )
 
 CRITERIA_BASE: dict[str, list[str]] = {
     "QB": [
+        "fp_rank",
         "total_yds_rank",
         "rush_yds_rank",
         "pass_td_rank",
@@ -61,6 +68,7 @@ CRITERIA_BASE: dict[str, list[str]] = {
         "sos_rank",
     ],
     "RB": [
+        "fp_rank",
         "rec_rank",
         "total_yds_rank",
         "total_td_rank",
@@ -70,6 +78,7 @@ CRITERIA_BASE: dict[str, list[str]] = {
         "sos_rank",
     ],
     "WR": [
+        "fp_rank",
         "rec_rank",
         "rec_yds_rank",
         "rec_td_rank",
@@ -79,6 +88,7 @@ CRITERIA_BASE: dict[str, list[str]] = {
         "sos_rank",
     ],
     "TE": [
+        "fp_rank",
         "rec_rank",
         "rec_yds_rank",
         "rec_td_rank",
@@ -90,6 +100,7 @@ CRITERIA_BASE: dict[str, list[str]] = {
 }
 
 CRITERIA_LABELS: dict[str, str] = {
+    "fp_rank": "FANTASY PTS RANK",
     "total_yds_rank": "TOTAL YDS RANK",
     "rush_yds_rank": "RUSH YDS RANK",
     "pass_td_rank": "PASS TD RANK",
@@ -165,12 +176,27 @@ def _history_prior_pts(player: dict[str, Any]) -> float | None:
     return _num(player.get("fantasy_pts_season"))
 
 
-def _qb_fantasy_from_markets(markets: dict[str, Any]) -> float:
+def vegas_fantasy_points(markets: dict[str, Any]) -> float | None:
+    """Half-PPR season points from Vegas volume O/Us (no INTs / fumbles)."""
+    components = (
+        markets.get("pass_yards"),
+        markets.get("pass_tds"),
+        markets.get("rush_yards"),
+        markets.get("rush_tds"),
+        markets.get("rec_yards"),
+        markets.get("rec_tds"),
+        markets.get("receptions"),
+    )
+    if all(_num(value) is None for value in components):
+        return None
     return (
         (_num(markets.get("pass_yards")) or 0.0) / 25.0
-        + (_num(markets.get("pass_tds")) or 0.0) * 4.0
+        + (_num(markets.get("pass_tds")) or 0.0) * PASS_TD_POINTS
         + (_num(markets.get("rush_yards")) or 0.0) / 10.0
-        + (_num(markets.get("rush_tds")) or 0.0) * 6.0
+        + (_num(markets.get("rush_tds")) or 0.0) * RUSH_REC_TD_POINTS
+        + (_num(markets.get("rec_yards")) or 0.0) / 10.0
+        + (_num(markets.get("rec_tds")) or 0.0) * RUSH_REC_TD_POINTS
+        + (_num(markets.get("receptions")) or 0.0) * RECEPTION_POINTS
     )
 
 
@@ -482,13 +508,31 @@ def build_checklist(
     te_rec_yds_ranks = rank_descending(te_rec_yds)
     te_rec_td_ranks = rank_descending(te_rec_tds)
 
+    fp_by_id: dict[str, float] = {}
+    for row in candidates:
+        fp = vegas_fantasy_points(row["markets"])
+        if fp is None:
+            continue
+        fp_by_id[row["player_id"]] = float(fp)
+        row["vegas_fp"] = round(float(fp), 2)
+
+    # Rank fantasy points within each position cohort.
+    fp_ranks_by_pos: dict[str, dict[str, int]] = {}
+    for pos in ("QB", "RB", "WR", "TE"):
+        values = {
+            row["player_id"]: fp_by_id[row["player_id"]]
+            for row in candidates
+            if row["position"] == pos and row["player_id"] in fp_by_id
+        }
+        fp_ranks_by_pos[pos] = rank_descending(values)
+
     team_qb1_fp: dict[str, float] = {}
     for row in candidates:
         if row["position"] != "QB":
             continue
-        fp = _num(row["markets"].get("fantasy_points"))
+        fp = fp_by_id.get(row["player_id"])
         if fp is None:
-            fp = _qb_fantasy_from_markets(row["markets"])
+            continue
         prev = team_qb1_fp.get(row["team"])
         if prev is None or fp > prev:
             team_qb1_fp[row["team"]] = float(fp)
@@ -526,6 +570,7 @@ def build_checklist(
         for index, row in enumerate(cohort, start=1):
             team = row["team"]
             ranks: dict[str, int | None] = {
+                "fp_rank": fp_ranks_by_pos[pos].get(row["player_id"]),
                 "offense_pts_rank": offense_pts_ranks.get(team),
                 "offense_yds_rank": offense_yds_ranks.get(team),
             }
@@ -574,6 +619,7 @@ def build_checklist(
                     "rank_tier": row["rank_tier"],
                     "pos_market_rank": index,
                     "market_avg": row["market_avg"],
+                    "vegas_fp": row.get("vegas_fp"),
                     "unranked_break": False,
                     "ranks": ranks,
                     "checks": checks,
@@ -590,7 +636,8 @@ def build_checklist(
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "top_n": top_n,
             "rank_source": "market_avg",
-            "scoring_flavor": "ppr",
+            "scoring_flavor": "half_ppr",
+            "vegas_fp_scoring": "half_ppr_4pt_pass_td",
             "team_count": 12,
             "market_as_of": {
                 "source": "espn+ffc+mfl+fantasypros_ecr",

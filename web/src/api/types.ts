@@ -263,6 +263,8 @@ export interface DraftChecklistEntry {
   adp?: number | null;
   ecr?: number | null;
   prior_pts?: number | null;
+  /** Half-PPR season points aggregated from Vegas volume O/Us. */
+  vegas_fp?: number | null;
   rank_tier: DraftRankTier;
   pos_market_rank?: number;
   unranked_break?: boolean;

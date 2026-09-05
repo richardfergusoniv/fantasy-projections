@@ -105,6 +105,7 @@ class DraftChecklistService:
                     "adp": row.get("adp"),
                     "ecr": row.get("ecr"),
                     "prior_pts": row.get("prior_pts"),
+                    "vegas_fp": row.get("vegas_fp"),
                     "rank_tier": row.get("rank_tier"),
                     "pos_market_rank": row.get("pos_market_rank"),
                     "unranked_break": bool(row.get("unranked_break")),

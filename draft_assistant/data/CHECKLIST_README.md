@@ -12,6 +12,8 @@
 #   QB: total yards (pass + rush), rush yards, passing TDs
 #   RB: receptions, total yards (rush + receiving), total TDs (rush + receiving)
 #   WR/TE: receptions, receiving yards, receiving TDs
+# Fantasy points: aggregate those Vegas lines into half-PPR / 4-pt pass TD
+#   season points, then rank within position (fp_rank). INTs/fumbles omitted.
 # Yardage / team points: median sportsbook season O/Us + Vegas-implied PPG.
 # Board: every rostered QB/RB/WR/TE in team_stats_{season}.json
 #
