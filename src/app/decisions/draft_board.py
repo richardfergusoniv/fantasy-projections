@@ -447,14 +447,45 @@ class DraftBoardService:
         }
 
     def _players_path(self, season: int, pointer: dict | None) -> Path | None:
-        if pointer and pointer.get("public_urls", {}).get("players"):
-            rel = pointer["public_urls"]["players"]
-            if rel.startswith("data/"):
-                rel = rel.removeprefix("data/")
-            candidate = Path(REPO_ROOT) / "draft_assistant" / "data" / rel
-            if candidate.exists():
+        """Resolve the sealed players artifact — never silently use the loose board.
+
+        Production release pointers often store HTTPS Supabase URLs in
+        ``public_urls.players``. Treating those as relative paths fails, and the
+        old fallback to ``draft_assistant/data/players_{season}.json`` served the
+        pre-seal board (Ja'Marr Chase #2 / ~239 pts instead of sealed #1 / ~273).
+        Prefer the sealed namespace directory whenever the pointer names one.
+        """
+        data_root = Path(REPO_ROOT) / "draft_assistant" / "data"
+        candidates: list[Path] = []
+
+        namespace = (pointer or {}).get("namespace")
+        if namespace:
+            candidates.append(data_root / "releases" / str(namespace) / f"players_{season}.json")
+
+        public_players = ((pointer or {}).get("public_urls") or {}).get("players")
+        if isinstance(public_players, str) and public_players.strip():
+            rel = public_players.strip()
+            if rel.startswith(("http://", "https://")):
+                # Map storage URLs back onto the sealed local tree when present.
+                marker = f"/releases/"
+                if marker in rel:
+                    after = rel.split(marker, 1)[1]
+                    candidates.append(data_root / "releases" / after)
+            else:
+                if rel.startswith("data/"):
+                    rel = rel.removeprefix("data/")
+                candidates.append(data_root / rel)
+                candidates.append(Path(REPO_ROOT) / "draft_assistant" / rel)
+
+        for candidate in candidates:
+            if candidate.is_file():
                 return candidate
-        fallback = (
-            Path(REPO_ROOT) / "draft_assistant" / "data" / f"players_{season}.json"
-        )
-        return fallback if fallback.exists() else None
+
+        # Loose players_{season}.json is the pre-seal board. Only use it when no
+        # active sealed release is configured — otherwise "Our Rankings" silently
+        # regresses to stale Chase/ADP-era numbers.
+        if not namespace:
+            fallback = data_root / f"players_{season}.json"
+            if fallback.is_file():
+                return fallback
+        return None

@@ -6,6 +6,7 @@ import re
 import uuid
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -163,6 +164,56 @@ def create_app() -> FastAPI:
 
             pointer = read_active_pointer(2026)
             checks["release_pointer"] = pointer is not None
+            checks["release_namespace"] = (
+                pointer.get("namespace") if isinstance(pointer, dict) else None
+            )
+            # Fingerprint the board Our Rankings actually loads so a silent
+            # fallback to the loose/pre-seal players file is obvious in prod.
+            try:
+                from src.app.decisions.draft_board import DraftBoardService
+
+                board_svc = DraftBoardService()
+                players_path = board_svc._players_path(2026, pointer)
+                if players_path is not None:
+                    try:
+                        from src.projection.contracts import REPO_ROOT
+
+                        checks["draft_board_players_path"] = str(
+                            players_path.resolve().relative_to(Path(REPO_ROOT).resolve())
+                        )
+                    except ValueError:
+                        checks["draft_board_players_path"] = players_path.name
+                else:
+                    checks["draft_board_players_path"] = None
+                checks["draft_board_sealed"] = bool(
+                    players_path and "releases/" in players_path.as_posix()
+                )
+                chase_rank = None
+                if players_path and players_path.is_file():
+                    import json as _json
+
+                    payload = _json.loads(players_path.read_text(encoding="utf-8"))
+                    rows = (
+                        payload
+                        if isinstance(payload, list)
+                        else payload.get("players") or payload.get("entries") or []
+                    )
+                    for row in rows:
+                        if not isinstance(row, dict):
+                            continue
+                        pid = str(row.get("player_id") or row.get("gsis_id") or "")
+                        name = str(row.get("name") or row.get("player_name") or "")
+                        if pid == "00-0036900" or "Ja'Marr Chase" in name or "Ja’marr Chase" in name:
+                            chase_rank = (
+                                row.get("overall_rank")
+                                or row.get("rank")
+                                or row.get("overall")
+                            )
+                            break
+                checks["jamarr_chase_overall_rank"] = chase_rank
+            except Exception:  # noqa: BLE001 - readiness must not fail closed on fingerprinting
+                checks["draft_board_sealed"] = False
+                checks["jamarr_chase_overall_rank"] = None
             checks["storage"] = probe_storage_round_trip()
             from src.app.projections.status_overlay import read_active_overlay
 
