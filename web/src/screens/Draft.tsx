@@ -367,7 +367,9 @@ export function DraftScreen() {
           missing={missing}
           emptyMessage={
             pane === "checklist"
-              ? "No draft checklist published. Run checklist_prepare after compare_prepare."
+              ? checklist == null
+                ? "Draft checklist request failed. Check the API error above, then confirm draft_checklist_2026.json is published."
+                : "No draft checklist published for this season. Run checklist_prepare and ensure draft_checklist_2026.json is in draft_assistant/data/ (and the active release)."
               : `No draft board published for ${
                   selectedLeague?.name ?? "this league"
                 }. Promote a release to populate it.`

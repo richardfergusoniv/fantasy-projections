@@ -50,12 +50,50 @@ def _checklist_candidates(season: int) -> list[Path]:
 
 
 def load_checklist_payload(season: int = 2026) -> dict[str, Any] | None:
-    for path in _checklist_candidates(season):
-        if not path.is_file():
-            continue
-        with path.open(encoding="utf-8") as fh:
-            return json.load(fh)
+    """Load the sealed checklist for ``season``, falling back to 2026 if needed.
+
+    Historical Sleeper leagues often carry a prior ``season`` value even when the
+    only published draft board is for the current fantasy year. Prefer an exact
+    season match, then serve the 2026 artifact rather than an empty checklist.
+    """
+    seasons = [int(season)]
+    if int(season) != 2026:
+        seasons.append(2026)
+    for candidate_season in seasons:
+        for path in _checklist_candidates(candidate_season):
+            if not path.is_file():
+                continue
+            try:
+                with path.open(encoding="utf-8") as fh:
+                    payload = json.load(fh)
+            except (OSError, json.JSONDecodeError):
+                continue
+            if not isinstance(payload, dict) or not isinstance(payload.get("players"), list):
+                continue
+            if candidate_season != int(season):
+                meta = dict(payload.get("meta") or {})
+                meta["season_fallback"] = {
+                    "requested": int(season),
+                    "served": candidate_season,
+                    "reason": "requested_season_checklist_missing",
+                }
+                payload["meta"] = meta
+            return payload
     return None
+
+
+
+def _coerce_rank_map(raw: Any) -> dict[str, int | None]:
+    ranks: dict[str, int | None] = {}
+    for key, value in dict(raw or {}).items():
+        if value is None or value == "":
+            ranks[str(key)] = None
+            continue
+        try:
+            ranks[str(key)] = int(value)
+        except (TypeError, ValueError):
+            ranks[str(key)] = None
+    return ranks
 
 
 class DraftChecklistService:
@@ -67,11 +105,14 @@ class DraftChecklistService:
     def _sleeper_map(self) -> dict[str, str]:
         if self.db is None:
             return {}
-        rows = (
-            self.db.query(PlayerIdentity.gsis_id, PlayerIdentity.sleeper_id)
-            .filter(PlayerIdentity.gsis_id.isnot(None))
-            .all()
-        )
+        try:
+            rows = (
+                self.db.query(PlayerIdentity.gsis_id, PlayerIdentity.sleeper_id)
+                .filter(PlayerIdentity.gsis_id.isnot(None))
+                .all()
+            )
+        except Exception:
+            return {}
         return {
             str(gsis): str(sleeper)
             for gsis, sleeper in rows
@@ -88,7 +129,14 @@ class DraftChecklistService:
                 "entries": [],
                 "teams": [],
                 "criteria_by_position": {},
-                "meta": {"error": "draft_checklist_missing"},
+                "meta": {
+                    "error": "draft_checklist_missing",
+                    "hint": (
+                        "Publish draft_checklist_{season}.json under "
+                        "draft_assistant/data/ (and the active release "
+                        "public_base) via checklist_prepare."
+                    ).format(season=season),
+                },
             }
 
         sleeper_by_gsis = self._sleeper_map()
@@ -109,18 +157,16 @@ class DraftChecklistService:
                     "rank_tier": row.get("rank_tier"),
                     "pos_market_rank": row.get("pos_market_rank"),
                     "unranked_break": bool(row.get("unranked_break")),
-                    "ranks": {
-                        key: (int(value) if value is not None else None)
-                        for key, value in dict(row.get("ranks") or {}).items()
-                    },
+                    "ranks": _coerce_rank_map(row.get("ranks")),
                     "checks": dict(row.get("checks") or {}),
                 }
             )
 
         meta = dict(payload.get("meta") or {})
+        served_season = int(payload.get("season") or season)
         return {
             "league_id": league_id,
-            "season": season,
+            "season": served_season,
             "available": True,
             "entries": entries,
             "teams": list(payload.get("teams") or []),
@@ -132,5 +178,5 @@ class DraftChecklistService:
             ),
             "meta": meta,
             "data_as_of": meta.get("generated_at"),
-            "projection_run_id": f"checklist-{season}",
+            "projection_run_id": f"checklist-{served_season}",
         }
