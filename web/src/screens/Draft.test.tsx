@@ -186,8 +186,11 @@ describe("DraftScreen", () => {
     expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "All", pressed: true })).toBeInTheDocument();
     // All tab sorts by overall ADP — QB at 0.5 beats WR Player 1 at ADP 1.
-    expect(screen.getByRole("checkbox", { name: "Mark QB Player 1 drafted" })).toBeInTheDocument();
+    const checkboxes = screen.getAllByRole("checkbox", { name: /Mark .+ drafted/i });
+    expect(checkboxes[0]).toHaveAccessibleName("Mark QB Player 1 drafted");
+    expect(checkboxes[1]).toHaveAccessibleName("Mark WR Player 1 drafted");
     expect(screen.getByText(/Unranked \/ off market/i)).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: /O-line/i })).not.toBeInTheDocument();
   });
 
   it("filters the checklist to a single position from the All tab", async () => {
@@ -252,13 +255,6 @@ describe("DraftScreen", () => {
       screen.queryByRole("checkbox", { name: /WR Player 21 drafted/i }),
     ).not.toBeInTheDocument();
     expect(screen.getByText(/Unranked \/ off market/i)).toBeInTheDocument();
-  });
-
-  it("shows o-line offense ranks when OL is unavailable", async () => {
-    renderDraft();
-    fireEvent.click(await screen.findByRole("tab", { name: /O-line/i }));
-    expect(await screen.findByText(/Offense #1/i)).toBeInTheDocument();
-    expect(screen.getAllByText(/OL ranks unavailable/i).length).toBeGreaterThan(0);
   });
 
   it("shows the league format and paginates beyond the first 15 players", async () => {
