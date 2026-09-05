@@ -190,6 +190,68 @@ describe("DraftScreen", () => {
     expect(screen.getByText(/Unranked \/ off market/i)).toBeInTheDocument();
   });
 
+  it("orders the All checklist by league VORP overall_rank when rank_source is set", async () => {
+    const payload = checklist();
+    payload.checklist_meta.rank_source = "league_vorp";
+    payload.checklist_meta.board_order = {
+      scoring: "league",
+      as_of: "2026-09-04",
+      replacement: { QB: 12, RB: 30, WR: 42, TE: 12 },
+    };
+    // Chase-like WR has the best ADP but a worse overall_rank than Bijan-like RB.
+    payload.entries = [
+      {
+        ...payload.entries[0],
+        player_id: "chase",
+        name: "Ja'Marr Chase",
+        position: "WR",
+        adp: 1.5,
+        overall_rank: 7,
+        league_pts: 191.7,
+        pos_market_rank: 3,
+      },
+      {
+        ...payload.entries[1],
+        player_id: "bijan",
+        name: "Bijan Robinson",
+        position: "RB",
+        adp: 2.3,
+        overall_rank: 1,
+        league_pts: 248.8,
+        pos_market_rank: 1,
+      },
+      {
+        ...payload.entries[2],
+        player_id: "puka",
+        name: "Puka Nacua",
+        position: "WR",
+        adp: 2.8,
+        overall_rank: 2,
+        league_pts: 206.5,
+        pos_market_rank: 1,
+      },
+    ];
+    getDraftChecklist.mockResolvedValue(payload);
+
+    renderDraft("/draft?pane=checklist");
+    expect(await screen.findByText(/Ordered by league VORP · board 2026-09-04/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Unranked \/ off market/i)).not.toBeInTheDocument();
+
+    const checkboxes = [
+      screen.getByRole("checkbox", { name: /Bijan Robinson drafted/i }),
+      screen.getByRole("checkbox", { name: /Puka Nacua drafted/i }),
+      screen.getByRole("checkbox", { name: /Ja'Marr Chase drafted/i }),
+    ];
+    const rowOrder = screen
+      .getAllByRole("checkbox", { name: /Mark .+ drafted/i })
+      .map((node) => node.getAttribute("aria-label") ?? "");
+    expect(rowOrder[0]).toMatch(/Bijan Robinson/);
+    expect(rowOrder[1]).toMatch(/Puka Nacua/);
+    expect(rowOrder[2]).toMatch(/Ja'Marr Chase/);
+    expect(checkboxes[0]).toBeInTheDocument();
+    expect(screen.getAllByText(/248\.8 pts/i).length).toBeGreaterThan(0);
+  });
+
   it("filters the checklist to a single position from the All tab", async () => {
     renderDraft("/draft?pane=checklist");
     await screen.findByRole("checkbox", { name: "Mark QB Player 1 drafted" });

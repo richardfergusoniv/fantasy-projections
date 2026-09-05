@@ -390,6 +390,9 @@ export class ApiClient {
           rank_tier: String(row.rank_tier ?? "none") as DraftChecklist["entries"][number]["rank_tier"],
           pos_market_rank:
             row.pos_market_rank != null ? Number(row.pos_market_rank) : undefined,
+          overall_rank:
+            row.overall_rank != null ? Number(row.overall_rank) : undefined,
+          league_pts: row.league_pts != null ? Number(row.league_pts) : null,
           unranked_break: Boolean(row.unranked_break),
           checks: Object.fromEntries(
             Object.entries((row.checks as RawRecord | undefined) ?? {}).map(([key, value]) => [
@@ -447,6 +450,28 @@ export class ApiClient {
               : undefined,
           team_count:
             checklistMeta.team_count != null ? Number(checklistMeta.team_count) : undefined,
+          rank_source:
+            checklistMeta.rank_source != null
+              ? String(checklistMeta.rank_source)
+              : undefined,
+          board_order: (() => {
+            const board = checklistMeta.board_order as RawRecord | undefined;
+            if (!board) return undefined;
+            const replacementRaw = board.replacement as RawRecord | undefined;
+            return {
+              scoring: board.scoring != null ? String(board.scoring) : undefined,
+              as_of: board.as_of != null ? String(board.as_of) : null,
+              source: board.source != null ? String(board.source) : undefined,
+              replacement: replacementRaw
+                ? Object.fromEntries(
+                    Object.entries(replacementRaw).map(([key, value]) => [
+                      key,
+                      Number(value),
+                    ]),
+                  )
+                : undefined,
+            };
+          })(),
         },
         meta: {
           data_as_of: String(raw.data_as_of ?? new Date().toISOString()),

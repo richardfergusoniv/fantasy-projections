@@ -265,6 +265,9 @@ export interface DraftChecklistEntry {
   prior_pts?: number | null;
   rank_tier: DraftRankTier;
   pos_market_rank?: number;
+  /** League-scoring VORP overall rank when meta.rank_source is league_vorp. */
+  overall_rank?: number;
+  league_pts?: number | null;
   unranked_break?: boolean;
   checks: Record<string, boolean>;
 }
@@ -308,6 +311,13 @@ export interface DraftChecklist {
     schedule_2026_reg_games?: number;
     scoring_flavor?: string;
     team_count?: number;
+    rank_source?: string;
+    board_order?: {
+      scoring?: string;
+      as_of?: string | null;
+      source?: string;
+      replacement?: Record<string, number>;
+    };
   };
   meta: ApiMeta;
 }
