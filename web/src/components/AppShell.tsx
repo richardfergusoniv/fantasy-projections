@@ -2,16 +2,18 @@ import { Outlet } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
 import { LeagueSwitcher } from "./LeagueSwitcher";
 import { useAuth } from "../hooks/useAuth";
+import { useHideChromeOnScroll } from "../hooks/useHideChromeOnScroll";
 
 export function AppShell() {
   const { user, logout, error } = useAuth();
+  const chromeCollapsed = useHideChromeOnScroll();
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${chromeCollapsed ? " is-chrome-collapsed" : ""}`}>
       <a className="skip-link" href="#app-main">
         Skip to main content
       </a>
-      <header className="app-topbar">
+      <header className="app-topbar" inert={chromeCollapsed || undefined}>
         <div className="topbar-row">
           <div className="brand-block">
             <p className="brand-label">Fantasy Decisions</p>
@@ -38,7 +40,7 @@ export function AppShell() {
       <main className="app-main" id="app-main" tabIndex={-1}>
         <Outlet />
       </main>
-      <BottomNav />
+      <BottomNav chromeCollapsed={chromeCollapsed} />
     </div>
   );
 }

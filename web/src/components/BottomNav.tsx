@@ -17,7 +17,12 @@ const MORE_NAV = [
 
 const MORE_PATHS = new Set<string>(MORE_NAV.map((item) => item.to));
 
-export function BottomNav() {
+type BottomNavProps = {
+  /** When true, shell chrome is sliding away — close More and mark nav inert. */
+  chromeCollapsed?: boolean;
+};
+
+export function BottomNav({ chromeCollapsed = false }: BottomNavProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -26,6 +31,10 @@ export function BottomNav() {
   useEffect(() => {
     setMoreOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (chromeCollapsed) setMoreOpen(false);
+  }, [chromeCollapsed]);
 
   return (
     <>
@@ -52,7 +61,7 @@ export function BottomNav() {
           </ul>
         </div>
       ) : null}
-      <nav className="bottom-nav" aria-label="Primary">
+      <nav className="bottom-nav" aria-label="Primary" inert={chromeCollapsed || undefined}>
         <ul>
           {PRIMARY_NAV.map((item) => (
             <li key={item.to}>

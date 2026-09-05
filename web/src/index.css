@@ -136,6 +136,34 @@ a {
   margin: 0 auto;
 }
 
+/*
+ * Hide sticky topbar + fixed bottom nav while scrolling down long lists
+ * (Draft checklist, boards, etc.). Scroll up or return near the top to reveal.
+ */
+.app-topbar,
+.bottom-nav,
+.bottom-nav-more {
+  transition: transform 180ms ease, opacity 180ms ease;
+  will-change: transform;
+}
+
+.app-shell.is-chrome-collapsed .app-topbar {
+  transform: translateY(-110%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-shell.is-chrome-collapsed .bottom-nav,
+.app-shell.is-chrome-collapsed .bottom-nav-more {
+  transform: translateY(110%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.app-shell.is-chrome-collapsed .app-main {
+  padding-bottom: calc(var(--safe-bottom) + 1rem);
+}
+
 .app-topbar {
   position: sticky;
   top: 0;
