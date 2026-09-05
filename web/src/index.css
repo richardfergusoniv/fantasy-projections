@@ -1225,6 +1225,18 @@ a {
   order: -1;
 }
 
+.draft-sort-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  grid-column: 1 / -1;
+}
+
+.draft-board-controls.is-checklist .draft-sort-chips {
+  grid-column: 1 / -1;
+}
+
+
 .draft-board-controls.is-checklist .draft-search-field {
   min-width: 0;
 }

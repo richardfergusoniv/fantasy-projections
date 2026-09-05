@@ -16,6 +16,7 @@ import type {
 const DRAFTED_STORAGE_PREFIX = "fantasy-decisions:drafted";
 
 type DraftPane = "checklist" | "ours";
+type ChecklistSort = "adp" | "vorp";
 
 const DRAFT_PANES: Array<[DraftPane, string]> = [
   ["ours", "Our Rankings"],
@@ -111,6 +112,22 @@ function checklistAdpSort(a: DraftChecklistEntry, b: DraftChecklistEntry): numbe
   return a.name.localeCompare(b.name);
 }
 
+/** Order checklist rows by league VORP board rank (missing VORP last). */
+function checklistVorpSort(
+  a: DraftChecklistEntry,
+  b: DraftChecklistEntry,
+  vorpRankByPlayerId: Map<string, number>,
+): number {
+  const rankA = vorpRankByPlayerId.get(a.player_id);
+  const rankB = vorpRankByPlayerId.get(b.player_id);
+  const missingA = rankA == null || Number.isNaN(rankA);
+  const missingB = rankB == null || Number.isNaN(rankB);
+  if (missingA !== missingB) return missingA ? 1 : -1;
+  if (!missingA && !missingB && rankA !== rankB) return rankA - rankB;
+  return checklistAdpSort(a, b);
+}
+
+
 function criteriaForEntry(
   checklist: DraftChecklist | null,
   entry: DraftChecklistEntry,
@@ -161,6 +178,7 @@ export function DraftScreen() {
   const [context, setContext] = useState<DraftBoard["context"]>();
   const [profile, setProfile] = useState<DraftBoard["profile"]>();
   const [positionFilter, setPositionFilter] = useState("ALL");
+  const [checklistSort, setChecklistSort] = useState<ChecklistSort>("adp");
   const [search, setSearch] = useState("");
   const [visibleCount, setVisibleCount] = useState(25);
   const [draftedPlayerIds, setDraftedPlayerIds] = useState<string[]>([]);
@@ -254,7 +272,7 @@ export function DraftScreen() {
 
   const criteriaLabels = checklist?.criteria_labels ?? {};
 
-  /** League VORP board rank + tier (Our Rankings), keyed for checklist pills. ADP order stays untouched. */
+  /** League VORP board rank + tier (Our Rankings), keyed for checklist VORP sort. */
   const vorpRankByPlayerId = useMemo(() => {
     const map = new Map<string, number>();
     for (const entry of entries) {
@@ -265,15 +283,6 @@ export function DraftScreen() {
     return map;
   }, [entries]);
 
-  const vorpTierByPlayerId = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const entry of entries) {
-      if (entry.player_id && entry.tier != null) {
-        map.set(entry.player_id, entry.tier);
-      }
-    }
-    return map;
-  }, [entries]);
 
   const checklistFiltered = useMemo(() => {
     const rows = checklist?.entries ?? [];
@@ -294,14 +303,25 @@ export function DraftScreen() {
       }
       return true;
     });
-    // Single-position views keep the prepared positional order; All / FLEX
-    // re-sort into overall market ADP → ECR → prior points so the board reads
-    // like a real draft queue across eligible seats.
+    // ADP: All/FLEX re-sort by market ADP; single-pos tabs keep board order.
+    // VORP: always order by league VORP board rank (Our Rankings).
+    if (checklistSort === "vorp") {
+      return [...filtered].sort((a, b) => checklistVorpSort(a, b, vorpRankByPlayerId));
+    }
     if (isCrossPositionFilter(positionFilter)) {
       return [...filtered].sort(checklistAdpSort);
     }
     return filtered;
-  }, [checklist, positionFilter, normalizedSearch, hideDrafted, draftedPlayerSet, maxAvgRank]);
+  }, [
+    checklist,
+    positionFilter,
+    checklistSort,
+    normalizedSearch,
+    hideDrafted,
+    draftedPlayerSet,
+    maxAvgRank,
+    vorpRankByPlayerId,
+  ]);
 
   const checklistVisible = checklistFiltered.slice(0, visibleCount);
   // Derive the divider from what is actually on screen. Anchoring it to the
@@ -358,7 +378,7 @@ export function DraftScreen() {
   const rankSource = checklist?.checklist_meta.rank_source;
   const marketBadge =
     rankSource === "market_avg"
-      ? `All/FLEX by ADP (ESPN/FFC/MFL + FP ECR avg) · position tabs by board · Vegas + Sharp SOS ranks · ${
+      ? `Sort by ADP or VORP · All/FLEX ADP uses ESPN/FFC/MFL + FP ECR avg · Vegas + Sharp SOS ranks · ${
           market?.scoring ?? "ppr"
         }`
       : rankSource === "screenshot"
@@ -376,9 +396,9 @@ export function DraftScreen() {
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Draft Checklist All and FLEX tabs are ordered by ADP (FLEX = RB/WR/TE); context pills are
-          Vegas volume/offense and Sharp SOS ranks. Our Rankings is VORP from Vegas season lines. Mark
-          drafted to hide a player across both.
+          Draft Checklist sorts by ADP or VORP (toggle above the list). FLEX = RB/WR/TE. Context pills
+          are Vegas volume/offense and Sharp SOS ranks. Our Rankings is VORP from Vegas season lines.
+          Mark drafted to hide a player across both.
         </p>
 
         <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">
@@ -440,6 +460,7 @@ export function DraftScreen() {
             />
           </div>
           {pane === "checklist" ? (
+            <>
             <div className="draft-pos-chips" role="group" aria-label="Position">
               {CHECKLIST_POSITIONS.map((position) => (
                 <button
@@ -456,6 +477,28 @@ export function DraftScreen() {
                 </button>
               ))}
             </div>
+            <div className="draft-sort-chips" role="group" aria-label="Sort checklist">
+              {(
+                [
+                  ["adp", "ADP"],
+                  ["vorp", "VORP"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`draft-pos-chip${checklistSort === value ? " is-active" : ""}`}
+                  aria-pressed={checklistSort === value}
+                  onClick={() => {
+                    setChecklistSort(value);
+                    setVisibleCount(25);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            </>
           ) : (
             <div className="field">
               <label htmlFor="draft-position-filter">Position</label>
@@ -527,11 +570,16 @@ export function DraftScreen() {
                   <span className="muted">
                     {" "}
                     · {checklistTop.position}
-                    {checklistTop.adp != null
-                      ? ` · ADP ${checklistTop.adp}`
-                      : checklistTop.ecr != null
-                        ? ` · ECR ${checklistTop.ecr}`
-                        : ""}
+                    {checklistSort === "vorp"
+                      ? (() => {
+                          const rank = vorpRankByPlayerId.get(checklistTop.player_id);
+                          return rank != null ? ` · VORP ${rank}` : " · VORP —";
+                        })()
+                      : checklistTop.adp != null
+                        ? ` · ADP ${checklistTop.adp}`
+                        : checklistTop.ecr != null
+                          ? ` · ECR ${checklistTop.ecr}`
+                          : ""}
                   </span>
                 ) : null}
               </span>
@@ -540,14 +588,16 @@ export function DraftScreen() {
               {checklistVisible.map((entry: DraftChecklistEntry, index: number) => {
                 const drafted = draftedPlayerSet.has(entry.player_id);
                 const keys = criteriaForEntry(checklist, entry);
-                const overallRank = isCrossPositionFilter(positionFilter)
-                  ? index + 1
-                  : entry.pos_market_rank;
                 const vorpRank = vorpRankByPlayerId.get(entry.player_id);
-                const vorpTier = vorpTierByPlayerId.get(entry.player_id);
+                const overallRank =
+                  checklistSort === "vorp"
+                    ? vorpRank
+                    : isCrossPositionFilter(positionFilter)
+                      ? index + 1
+                      : entry.pos_market_rank;
                 return (
                   <Fragment key={entry.player_id}>
-                    {index === unrankedBreakIndex ? (
+                    {index === unrankedBreakIndex && checklistSort === "adp" ? (
                       <div className="draft-unranked-break-row" role="separator">
                         Unranked / off market — by 2025 pts
                       </div>
@@ -568,18 +618,31 @@ export function DraftScreen() {
                       </label>
                       <div className="draft-checklist-main">
                         <div className="draft-checklist-identity">
-                          <span className="draft-rank">#{overallRank}</span>
+                          <span className="draft-rank">#{overallRank ?? "—"}</span>
                           <strong>{entry.name}</strong>
                           <span className={`pos-badge ${entry.position}`}>{entry.position}</span>
                           <span className="muted">
                             {entry.team ?? ""}
-                            {entry.adp != null
-                              ? ` · ADP ${entry.adp}`
-                              : entry.ecr != null
-                                ? ` · ECR ${entry.ecr}`
-                                : entry.prior_pts != null
-                                  ? ` · ${entry.prior_pts.toFixed(0)} pts`
-                                  : ""}
+                            {checklistSort === "vorp"
+                              ? vorpRank != null && !Number.isNaN(vorpRank)
+                                ? ` · VORP ${vorpRank}`
+                                : " · VORP —"
+                              : entry.adp != null
+                                ? ` · ADP ${entry.adp}`
+                                : entry.ecr != null
+                                  ? ` · ECR ${entry.ecr}`
+                                  : entry.prior_pts != null
+                                    ? ` · ${entry.prior_pts.toFixed(0)} pts`
+                                    : ""}
+                            {checklistSort === "vorp"
+                              ? entry.adp != null
+                                ? ` · ADP ${entry.adp}`
+                                : entry.ecr != null
+                                  ? ` · ECR ${entry.ecr}`
+                                  : ""
+                              : vorpRank != null && !Number.isNaN(vorpRank)
+                                ? ` · VORP ${vorpRank}`
+                                : ""}
                             {entry.vegas_fp != null
                               ? ` · Vegas FP ${entry.vegas_fp.toFixed(1)}`
                               : ""}
@@ -601,24 +664,6 @@ export function DraftScreen() {
                               </span>
                             );
                           })}
-                          <span
-                            className={`draft-rank-pill ${rankTierClass(vorpRank)}`}
-                            title={`League VORP rank: ${
-                              vorpRank == null || Number.isNaN(vorpRank) ? "—" : String(vorpRank)
-                            }`}
-                          >
-                            VORP{" "}
-                            {vorpRank == null || Number.isNaN(vorpRank) ? "—" : String(vorpRank)}
-                          </span>
-                          <span
-                            className={`draft-rank-pill ${rankTierClass(vorpTier)}`}
-                            title={`Vegas VORP tier: ${
-                              vorpTier == null || Number.isNaN(vorpTier) ? "—" : String(vorpTier)
-                            }`}
-                          >
-                            Tier{" "}
-                            {vorpTier == null || Number.isNaN(vorpTier) ? "—" : String(vorpTier)}
-                          </span>
                           <span
                             className={`draft-rank-pill ${sentimentTierClass(
                               entry.sentiment?.label,
