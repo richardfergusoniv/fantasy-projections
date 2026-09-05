@@ -1,7 +1,7 @@
 {
   "season": 2026,
   "meta": {
-    "generated_at": "2026-09-05T20:23:59.377895+00:00",
+    "generated_at": "2026-09-05T20:26:47.267175+00:00",
     "top_n": 16,
     "rank_source": "market_avg",
     "scoring_flavor": "half_ppr",
@@ -12,7 +12,7 @@
       "scoring": "ppr",
       "teams": 12,
       "ecr_scrape": "2026-08-28",
-      "fetched_at": "2026-09-05T20:23:59.366414+00:00",
+      "fetched_at": "2026-09-05T20:26:47.255828+00:00",
       "formula": "mean(available among ESPN ADP, FFC ADP, MFL ADP, FantasyPros ECR)",
       "sources": {
         "espn": {
@@ -531,7 +531,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 1,
       "market_avg": 21.33,
-      "vegas_fp": 355.55,
+      "vegas_fp": 358.55,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 1,
@@ -607,7 +607,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 3,
       "market_avg": 42.05,
-      "vegas_fp": 319.72,
+      "vegas_fp": 319.47,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 4,
@@ -797,7 +797,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 8,
       "market_avg": 72.99,
-      "vegas_fp": 299.65,
+      "vegas_fp": 299.66,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 11,
@@ -873,7 +873,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 10,
       "market_avg": 81.89,
-      "vegas_fp": 286.88,
+      "vegas_fp": 286.4,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 16,
@@ -987,7 +987,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 13,
       "market_avg": 95.79,
-      "vegas_fp": 281.57,
+      "vegas_fp": 281.07,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 17,
@@ -1028,7 +1028,7 @@
       "vegas_fp": 288.14,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 15,
+        "fp_rank": 14,
         "offense_pts_rank": 20,
         "offense_yds_rank": 16,
         "ol_rank": 1,
@@ -1101,7 +1101,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 16,
       "market_avg": 106.38,
-      "vegas_fp": 296.56,
+      "vegas_fp": 296.81,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 12,
@@ -1177,10 +1177,10 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 18,
       "market_avg": 123.81,
-      "vegas_fp": 288.61,
+      "vegas_fp": 288.11,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 14,
+        "fp_rank": 15,
         "offense_pts_rank": 18,
         "offense_yds_rank": 22,
         "ol_rank": 7,
@@ -1215,7 +1215,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 19,
       "market_avg": 129.46,
-      "vegas_fp": 270.64,
+      "vegas_fp": 270.63,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 19,
@@ -1443,7 +1443,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 25,
       "market_avg": 156.54,
-      "vegas_fp": 232.51,
+      "vegas_fp": 233.51,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 28,
@@ -1557,7 +1557,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 28,
       "market_avg": 169.57,
-      "vegas_fp": 142.41,
+      "vegas_fp": 140.41,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 31,
@@ -2013,7 +2013,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 40,
       "market_avg": 174.63,
-      "vegas_fp": 222.51,
+      "vegas_fp": 222.27,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 29,
@@ -4179,7 +4179,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 1,
       "market_avg": 1.7,
-      "vegas_fp": 298.3,
+      "vegas_fp": 299.8,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 1,
@@ -4217,7 +4217,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 2,
       "market_avg": 2.83,
-      "vegas_fp": 279.75,
+      "vegas_fp": 279.7,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 2,
@@ -4407,7 +4407,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 7,
       "market_avg": 15.72,
-      "vegas_fp": 231.76,
+      "vegas_fp": 231.71,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 6,
@@ -4521,7 +4521,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 10,
       "market_avg": 21.37,
-      "vegas_fp": 258.02,
+      "vegas_fp": 256.82,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 5,
@@ -4673,7 +4673,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 14,
       "market_avg": 32.98,
-      "vegas_fp": 187.01,
+      "vegas_fp": 186.98,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 15,
@@ -4711,7 +4711,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 15,
       "market_avg": 35.49,
-      "vegas_fp": 193.69,
+      "vegas_fp": 193.64,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 13,
@@ -4863,7 +4863,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 19,
       "market_avg": 47.75,
-      "vegas_fp": 185.05,
+      "vegas_fp": 184.42,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 16,
@@ -4939,7 +4939,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 21,
       "market_avg": 53.64,
-      "vegas_fp": 154.04,
+      "vegas_fp": 153.44,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 24,
@@ -5053,7 +5053,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 24,
       "market_avg": 63.59,
-      "vegas_fp": 112.8,
+      "vegas_fp": 112.78,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 42,
@@ -5129,10 +5129,10 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 26,
       "market_avg": 68.67,
-      "vegas_fp": 143.51,
+      "vegas_fp": 142.26,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 28,
+        "fp_rank": 29,
         "offense_pts_rank": 13,
         "offense_yds_rank": 1,
         "ol_rank": 14,
@@ -5243,7 +5243,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 29,
       "market_avg": 79.06,
-      "vegas_fp": 150.07,
+      "vegas_fp": 148.88,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 25,
@@ -5281,10 +5281,10 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 30,
       "market_avg": 85.95,
-      "vegas_fp": 123.62,
+      "vegas_fp": 125.12,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 36,
+        "fp_rank": 35,
         "offense_pts_rank": 25,
         "offense_yds_rank": 24,
         "ol_rank": 29,
@@ -5357,7 +5357,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 32,
       "market_avg": 93.88,
-      "vegas_fp": 136.54,
+      "vegas_fp": 134.09,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 32,
@@ -5398,7 +5398,7 @@
       "vegas_fp": 124.7,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 35,
+        "fp_rank": 36,
         "offense_pts_rank": 20,
         "offense_yds_rank": 16,
         "ol_rank": 1,
@@ -5474,7 +5474,7 @@
       "vegas_fp": 142.92,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 29,
+        "fp_rank": 28,
         "offense_pts_rank": 20,
         "offense_yds_rank": 16,
         "ol_rank": 1,
@@ -5585,10 +5585,10 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 38,
       "market_avg": 115.18,
-      "vegas_fp": 116.06,
+      "vegas_fp": 115.46,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 40,
+        "fp_rank": 41,
         "offense_pts_rank": 1,
         "offense_yds_rank": 3,
         "ol_rank": 5,
@@ -5626,7 +5626,7 @@
       "vegas_fp": 115.98,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 41,
+        "fp_rank": 40,
         "offense_pts_rank": 15,
         "offense_yds_rank": 27,
         "ol_rank": 31,
@@ -11057,7 +11057,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 1,
       "market_avg": 3.49,
-      "vegas_fp": 246.75,
+      "vegas_fp": 249.8,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 1,
@@ -11209,7 +11209,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 5,
       "market_avg": 11.2,
-      "vegas_fp": 216.37,
+      "vegas_fp": 217.57,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 5,
@@ -11247,7 +11247,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 6,
       "market_avg": 12.12,
-      "vegas_fp": 201.5,
+      "vegas_fp": 200.3,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 6,
@@ -11399,7 +11399,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 10,
       "market_avg": 23.56,
-      "vegas_fp": 183.5,
+      "vegas_fp": 181.7,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 13,
@@ -11627,7 +11627,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 16,
       "market_avg": 34.49,
-      "vegas_fp": 175.89,
+      "vegas_fp": 177.39,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 15,
@@ -11668,7 +11668,7 @@
       "vegas_fp": 170.3,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 17,
+        "fp_rank": 18,
         "offense_pts_rank": 26,
         "offense_yds_rank": 28,
         "ol_rank": 22,
@@ -11741,10 +11741,10 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 19,
       "market_avg": 40.52,
-      "vegas_fp": 167.75,
+      "vegas_fp": 170.7,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 18,
+        "fp_rank": 17,
         "offense_pts_rank": 4,
         "offense_yds_rank": 9,
         "ol_rank": 30,
@@ -11817,7 +11817,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 21,
       "market_avg": 44.84,
-      "vegas_fp": 159.75,
+      "vegas_fp": 159.7,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 22,
@@ -11893,7 +11893,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 23,
       "market_avg": 52.36,
-      "vegas_fp": 160.6,
+      "vegas_fp": 160.0,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 21,
@@ -12311,7 +12311,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 34,
       "market_avg": 77.67,
-      "vegas_fp": 144.7,
+      "vegas_fp": 143.5,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 35,
@@ -12542,7 +12542,7 @@
       "vegas_fp": 131.5,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 43,
+        "fp_rank": 44,
         "offense_pts_rank": 15,
         "offense_yds_rank": 27,
         "ol_rank": 31,
@@ -12577,7 +12577,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 41,
       "market_avg": 98.9,
-      "vegas_fp": 127.02,
+      "vegas_fp": 124.52,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 49,
@@ -12691,10 +12691,10 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 44,
       "market_avg": 107.88,
-      "vegas_fp": 131.39,
+      "vegas_fp": 131.99,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 44,
+        "fp_rank": 43,
         "offense_pts_rank": 21,
         "offense_yds_rank": 21,
         "ol_rank": 11,
@@ -12919,7 +12919,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 50,
       "market_avg": 120.96,
-      "vegas_fp": 116.8,
+      "vegas_fp": 116.74,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 54,
@@ -12995,7 +12995,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 52,
       "market_avg": 122.63,
-      "vegas_fp": 121.52,
+      "vegas_fp": 121.42,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 51,
@@ -13299,7 +13299,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 60,
       "market_avg": 151.88,
-      "vegas_fp": 95.04,
+      "vegas_fp": 94.94,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 65,
@@ -23562,7 +23562,7 @@
       "vegas_fp": 150.2,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 3,
+        "fp_rank": 4,
         "offense_pts_rank": 8,
         "offense_yds_rank": 13,
         "ol_rank": 3,
@@ -23597,10 +23597,10 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 4,
       "market_avg": 56.79,
-      "vegas_fp": 149.72,
+      "vegas_fp": 151.22,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 4,
+        "fp_rank": 3,
         "offense_pts_rank": 17,
         "offense_yds_rank": 8,
         "ol_rank": 19,
@@ -23635,7 +23635,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 5,
       "market_avg": 74.45,
-      "vegas_fp": 135.75,
+      "vegas_fp": 135.7,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 7,
@@ -23673,7 +23673,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 6,
       "market_avg": 75.31,
-      "vegas_fp": 141.69,
+      "vegas_fp": 142.89,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 5,
@@ -23825,7 +23825,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 10,
       "market_avg": 96.74,
-      "vegas_fp": 127.78,
+      "vegas_fp": 127.75,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 11,
@@ -23863,7 +23863,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 11,
       "market_avg": 105.08,
-      "vegas_fp": 125.31,
+      "vegas_fp": 125.28,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 12,
@@ -23901,7 +23901,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 12,
       "market_avg": 117.1,
-      "vegas_fp": 111.72,
+      "vegas_fp": 111.7,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 16,
@@ -23939,7 +23939,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 13,
       "market_avg": 121.22,
-      "vegas_fp": 112.17,
+      "vegas_fp": 112.15,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 15,
@@ -23977,7 +23977,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 14,
       "market_avg": 124.59,
-      "vegas_fp": 122.22,
+      "vegas_fp": 123.72,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 13,
@@ -24015,10 +24015,10 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 15,
       "market_avg": 124.72,
-      "vegas_fp": 108.79,
+      "vegas_fp": 111.52,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 19,
+        "fp_rank": 17,
         "offense_pts_rank": 2,
         "offense_yds_rank": 4,
         "ol_rank": 4,
@@ -24132,7 +24132,7 @@
       "vegas_fp": 109.45,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 18,
+        "fp_rank": 19,
         "offense_pts_rank": 13,
         "offense_yds_rank": 1,
         "ol_rank": 14,
@@ -24170,7 +24170,7 @@
       "vegas_fp": 110.32,
       "unranked_break": false,
       "ranks": {
-        "fp_rank": 17,
+        "fp_rank": 18,
         "offense_pts_rank": 16,
         "offense_yds_rank": 10,
         "ol_rank": 25,
@@ -24281,7 +24281,7 @@
       "rank_tier": "market_avg",
       "pos_market_rank": 22,
       "market_avg": 162.53,
-      "vegas_fp": 99.94,
+      "vegas_fp": 99.29,
       "unranked_break": false,
       "ranks": {
         "fp_rank": 20,

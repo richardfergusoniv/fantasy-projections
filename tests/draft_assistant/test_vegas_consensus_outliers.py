@@ -151,3 +151,42 @@ def test_build_consensus_downs_not_inflated_by_caesars_tds():
     downs = next(player for player in payload["players"] if player["name"] == "Josh Downs")
     assert downs["markets"]["rec_tds"] < 5.0
     assert downs["markets"]["rec_yards"] < 900
+
+
+def test_extract_quote_prefers_two_sided_books_over_odds_less_alts():
+    # Fernando Mendoza RotoWire: FanDuel 1950.5 (-114/-114) vs DK/Caesars 3499.5.
+    value, kind = _extract_quote(
+        {
+            "line": 1950.5,
+            "over_odds": -114,
+            "rotowire_proj": 2894.0,
+            "books": {
+                "fanduel": {
+                    "line": 1950.5,
+                    "over_odds": -114,
+                    "under_odds": -114,
+                },
+                "draftkings": {"line": 3499.5},
+                "caesars": {"line": 3499.5},
+            },
+        }
+    )
+    assert kind == "book"
+    assert value == 1950.5
+
+
+def test_extract_quote_rejects_longshot_alt_and_keeps_real_line():
+    # Khalil Shakir: DK 999.5 at +400 vs Caesars 700.5.
+    value, kind = _extract_quote(
+        {
+            "line": 999.5,
+            "over_odds": 400,
+            "rotowire_proj": 747.0,
+            "books": {
+                "draftkings": {"line": 999.5, "over_odds": 400},
+                "caesars": {"line": 700.5},
+            },
+        }
+    )
+    assert kind == "book"
+    assert value == 700.5

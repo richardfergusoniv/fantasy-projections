@@ -232,14 +232,33 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
                 break
 
     books = raw.get("books")
-    traditional_lines: list[float] = []
+    sided_lines: list[float] = []
+    unsided_lines: list[float] = []
     if isinstance(books, dict) and books:
         for book_name, book_raw in books.items():
             if _is_prediction_market_book(str(book_name)):
                 continue
             book_line = _book_entry_line(book_raw)
-            if book_line is not None:
-                traditional_lines.append(book_line)
+            if book_line is None:
+                continue
+            # Prefer two-sided prices. Odds-less alt totals (DK/Caesars 3499.5
+            # next to a fair FanDuel 1950.5 for Fernando Mendoza) are often
+            # juice thresholds and can dominate a plain median.
+            if isinstance(book_raw, dict) and (
+                (
+                    book_raw.get("over_odds") is not None
+                    and book_raw.get("under_odds") is not None
+                )
+                or (
+                    book_raw.get("over_odds_american") is not None
+                    and book_raw.get("under_odds_american") is not None
+                )
+            ):
+                sided_lines.append(book_line)
+            else:
+                unsided_lines.append(book_line)
+
+    traditional_lines = sided_lines if sided_lines else unsided_lines
 
     line = None
     if traditional_lines:
@@ -279,8 +298,10 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
         rel = delta / scale
         # TD-aware floor: 9.5 vs 4.0 must drop. Yardage juicing (999.5 vs 770)
         # drops on a milder relative miss with a large absolute gap.
+        # Only treat large upward juice as conflict (999.5 vs 770, 9.5 vs 4).
+        # Books below a model proj (Mendoza 1950 vs 2894) are market disagreement.
         conflict = (rel > 0.5 and delta > max(1.5, 0.05 * scale)) or (
-            rel > 0.25 and delta > 150
+            line > projection and rel > 0.25 and delta > 150
         )
         if conflict:
             # Drop the source quote entirely (Kupp: a 364 RotoWire proj must not
