@@ -7,8 +7,11 @@
 # Raw multi-book scrapes live under:
 #   draft_assistant/data/vegas_raw/
 #
-# Volume (attempts/targets): numberFire projections inside Vegas consensus
-#   (season attempt/target O/Us are not publicly posted).
+# Volume ranks (public boards lack season attempt/target O/Us — checked
+# DraftKings/FanDuel/BettingPros/VegasInsider/Unabated/Kalshi/Polymarket):
+#   QB: total yards (pass + rush), rush yards
+#   RB: receptions, total yards (rush + receiving)
+#   WR/TE: receptions
 # Yardage / team points: median sportsbook season O/Us + Vegas-implied PPG.
 # Board: every rostered QB/RB/WR/TE in team_stats_{season}.json
 #
