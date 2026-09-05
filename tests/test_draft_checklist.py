@@ -215,3 +215,34 @@ def test_committed_checklist_ol_ranks_match_sealed_board():
         assert player["ranks"]["ol_rank"] == ranks.get(str(team))
 
 
+def test_load_checklist_payload_falls_back_to_2026_for_historical_season():
+    from src.app.decisions.draft_checklist import DraftChecklistService, load_checklist_payload
+
+    path = Path("draft_assistant/data/draft_checklist_2026.json")
+    if not path.is_file():
+        pytest.skip("checklist artifact not present")
+
+    payload = load_checklist_payload(2025)
+    assert payload is not None
+    assert payload["season"] == 2026
+    assert payload["meta"]["season_fallback"]["requested"] == 2025
+    assert payload["meta"]["season_fallback"]["served"] == 2026
+    assert len(payload["players"]) >= 700
+
+    served = DraftChecklistService(None).load(2025, league_id="hist")
+    assert served["available"] is True
+    assert served["season"] == 2026
+    assert len(served["entries"]) >= 700
+
+
+def test_active_release_pointer_lists_draft_checklist_url():
+    pointer_path = Path("draft_assistant/data/active_release_2026.json")
+    release_path = Path(
+        "draft_assistant/data/releases/v2_baseline_20260830/draft_checklist_2026.json"
+    )
+    if not pointer_path.is_file():
+        pytest.skip("active release pointer not present")
+    pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+    checklist_url = pointer["public_urls"]["draft_checklist"]
+    assert checklist_url.endswith("draft_checklist_2026.json")
+    assert release_path.is_file()

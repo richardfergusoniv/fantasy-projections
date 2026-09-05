@@ -1,12 +1,18 @@
+import { useLocation } from "react-router-dom";
 import { useAppState } from "../hooks/useAppState";
 
 /**
- * League and week controls for the app shell.
+ * League and week/season controls for the app shell.
  *
  * Both live here rather than on Home so every screen can switch without
  * navigating away, and both read the one shared `GET /leagues` fetch.
+ *
+ * Draft / checklist is season-scoped (no weekly board), so the Week control is
+ * replaced with a Season readout on `/draft`.
  */
 export function LeagueSwitcher() {
+  const location = useLocation();
+  const onDraftScreen = location.pathname.startsWith("/draft");
   const {
     visibleLeagues,
     configuredLeagueIds,
@@ -21,11 +27,15 @@ export function LeagueSwitcher() {
     week,
     setWeek,
     rostersLoading,
+    season,
+    activeSeason,
   } = useAppState();
 
-  const hasHistoricalLeagues =
-    configuredLeagueIds.length > 0 &&
-    leagues.some((league) => !configuredLeagueIds.includes(league.id));
+  const hasHistoricalLeagues = leagues.some(
+    (league) =>
+      league.season !== activeSeason ||
+      (configuredLeagueIds.length > 0 && !configuredLeagueIds.includes(league.id)),
+  );
 
   return (
     <div className="shell-controls">
@@ -39,11 +49,14 @@ export function LeagueSwitcher() {
         >
           {leaguesLoading ? <option value="">Loading leagues…</option> : null}
           {!leaguesLoading && visibleLeagues.length === 0 ? (
-            <option value="">No leagues synced</option>
+            <option value="">No {activeSeason} leagues synced</option>
           ) : null}
           {visibleLeagues.map((league) => (
             <option key={league.id} value={league.id}>
-              {league.name} · {league.season}
+              {league.name}
+              {showAllLeagues || league.season !== activeSeason
+                ? ` · ${league.season}`
+                : ""}
             </option>
           ))}
         </select>
@@ -62,25 +75,34 @@ export function LeagueSwitcher() {
         </div>
       ) : null}
 
-      <div className="shell-control">
-        <label htmlFor="shell-week-select">Week</label>
-        <select
-          id="shell-week-select"
-          value={week ?? ""}
-          onChange={(event) => setWeek(Number(event.target.value))}
-          disabled={rostersLoading || availableWeeks.length === 0}
-        >
-          {rostersLoading ? <option value="">Loading…</option> : null}
-          {!rostersLoading && availableWeeks.length === 0 ? (
-            <option value="">No weeks synced</option>
-          ) : null}
-          {availableWeeks.map((value) => (
-            <option key={value} value={value}>
-              Week {value}
-            </option>
-          ))}
-        </select>
-      </div>
+      {onDraftScreen ? (
+        <div className="shell-control">
+          <label htmlFor="shell-season-readout">Season</label>
+          <select id="shell-season-readout" value={season ?? activeSeason} disabled>
+            <option value={season ?? activeSeason}>{season ?? activeSeason}</option>
+          </select>
+        </div>
+      ) : (
+        <div className="shell-control">
+          <label htmlFor="shell-week-select">Week</label>
+          <select
+            id="shell-week-select"
+            value={week ?? ""}
+            onChange={(event) => setWeek(Number(event.target.value))}
+            disabled={rostersLoading || availableWeeks.length === 0}
+          >
+            {rostersLoading ? <option value="">Loading…</option> : null}
+            {!rostersLoading && availableWeeks.length === 0 ? (
+              <option value="">No weeks synced</option>
+            ) : null}
+            {availableWeeks.map((value) => (
+              <option key={value} value={value}>
+                Week {value}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {leaguesError ? (
         <p className="error-text" role="alert">

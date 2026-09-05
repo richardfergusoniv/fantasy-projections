@@ -334,12 +334,18 @@ def draft_checklist(
     from src.app.decisions.draft_checklist import DraftChecklistService
 
     league = db.query(League).filter(League.league_id == league_id).one_or_none()
-    season = league.season if league else 2026
-    payload = DraftChecklistService(db).load(season, league_id=league_id)
-    # Checklist freshness comes from the sealed artifact's own generated_at, so the
-    # payload wins over _meta's rule-snapshot/projection-run values for the two keys
-    # they share (data_as_of, projection_run_id).
-    return {**_meta(db, league_id), **payload}
+    # Checklist artifact is season-scoped to the current fantasy year. Historical
+    # Sleeper league rows (prior season IDs) should still serve the 2026 board.
+    season = int(league.season) if league and league.season else 2026
+    checklist_season = season if season >= 2026 else 2026
+    payload = DraftChecklistService(db).load(checklist_season, league_id=league_id)
+    # Prefer checklist artifact freshness over rule-snapshot/_meta values for the
+    # shared keys (data_as_of, projection_run_id). Never let _meta wipe availability.
+    try:
+        meta = _meta(db, league_id)
+    except Exception:
+        meta = {}
+    return {**meta, **payload}
 
 
 @router.post("/sleeper/connect")
