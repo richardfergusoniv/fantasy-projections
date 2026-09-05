@@ -218,6 +218,17 @@ describe("DraftScreen", () => {
     expect(screen.queryByRole("checkbox", { name: /QB Player 1 drafted/i })).not.toBeInTheDocument();
   });
 
+  it("filters the checklist to FLEX-eligible positions (RB/WR/TE)", async () => {
+    renderDraft("/draft?pane=checklist");
+    await screen.findByRole("checkbox", { name: "Mark QB Player 1 drafted" });
+
+    fireEvent.click(screen.getByRole("button", { name: "FLEX" }));
+
+    expect(screen.getByRole("button", { name: "FLEX", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" })).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /QB Player 1 drafted/i })).not.toBeInTheDocument();
+  });
+
   it("hides checklist rows when drafted via checkbox", async () => {
     renderDraft();
     fireEvent.click(await screen.findByRole("tab", { name: /Draft Checklist/i }));

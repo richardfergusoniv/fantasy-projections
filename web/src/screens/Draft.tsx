@@ -54,7 +54,20 @@ function formatVorp(value: number | undefined): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}`;
 }
 
-const CHECKLIST_POSITIONS = ["ALL", "QB", "RB", "WR", "TE"] as const;
+const CHECKLIST_POSITIONS = ["ALL", "QB", "RB", "WR", "TE", "FLEX"] as const;
+/** Standard FLEX pool: skill positions that can fill a FLEX seat (not QB). */
+const FLEX_ELIGIBLE = new Set(["RB", "WR", "TE"]);
+
+function matchesPositionFilter(position: string, filter: string): boolean {
+  if (filter === "ALL") return true;
+  if (filter === "FLEX") return FLEX_ELIGIBLE.has(position);
+  return position === filter;
+}
+
+/** Cross-position boards (All / FLEX) re-sort by ADP; single-pos tabs keep board order. */
+function isCrossPositionFilter(filter: string): boolean {
+  return filter === "ALL" || filter === "FLEX";
+}
 
 const CHECK_SHORT_LABELS: Record<string, string> = {
   fp_rank: "FP",
@@ -81,7 +94,7 @@ const RANK_TIER_ORDER: Record<string, number> = {
   none: 5,
 };
 
-/** Overall ADP order for the All tab (cross-position). Position tabs keep board order. */
+/** Overall ADP order for All / FLEX tabs (cross-position). Single-pos tabs keep board order. */
 function checklistAdpSort(a: DraftChecklistEntry, b: DraftChecklistEntry): number {
   const tierA = RANK_TIER_ORDER[a.rank_tier] ?? 9;
   const tierB = RANK_TIER_ORDER[b.rank_tier] ?? 9;
@@ -230,7 +243,7 @@ export function DraftScreen() {
   const checklistFiltered = useMemo(() => {
     const rows = checklist?.entries ?? [];
     const filtered = rows.filter((entry) => {
-      if (positionFilter !== "ALL" && entry.position !== positionFilter) return false;
+      if (!matchesPositionFilter(entry.position, positionFilter)) return false;
       if (
         normalizedSearch &&
         !entry.name.toLowerCase().includes(normalizedSearch) &&
@@ -246,10 +259,10 @@ export function DraftScreen() {
       }
       return true;
     });
-    // Single-position views keep the prepared positional order; All re-sorts
-    // into overall market ADP → ECR → prior points so the board reads like a
-    // real draft queue.
-    if (positionFilter === "ALL") {
+    // Single-position views keep the prepared positional order; All / FLEX
+    // re-sort into overall market ADP → ECR → prior points so the board reads
+    // like a real draft queue across eligible seats.
+    if (isCrossPositionFilter(positionFilter)) {
       return [...filtered].sort(checklistAdpSort);
     }
     return filtered;
@@ -264,8 +277,8 @@ export function DraftScreen() {
     (entry) => entry.rank_tier === "prior_pts" || entry.rank_tier === "none",
   );
 
-  const positionEntries = entries.filter(
-    (entry) => positionFilter === "ALL" || entry.position === positionFilter,
+  const positionEntries = entries.filter((entry) =>
+    matchesPositionFilter(entry.position, positionFilter),
   );
   const searchedEntries = positionEntries.filter(
     (entry) =>
@@ -310,7 +323,7 @@ export function DraftScreen() {
   const rankSource = checklist?.checklist_meta.rank_source;
   const marketBadge =
     rankSource === "market_avg"
-      ? `All tab by ADP (ESPN/FFC/MFL + FP ECR avg) · position tabs by board · Vegas + Sharp SOS ranks · ${
+      ? `All/FLEX by ADP (ESPN/FFC/MFL + FP ECR avg) · position tabs by board · Vegas + Sharp SOS ranks · ${
           market?.scoring ?? "ppr"
         }`
       : rankSource === "screenshot"
@@ -328,8 +341,9 @@ export function DraftScreen() {
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Draft Checklist All tab is ordered by ADP; context pills are Vegas volume/offense and Sharp
-          SOS ranks. Our Rankings is the league VORP board. Mark drafted to hide a player across both.
+          Draft Checklist All and FLEX tabs are ordered by ADP (FLEX = RB/WR/TE); context pills are
+          Vegas volume/offense and Sharp SOS ranks. Our Rankings is the league VORP board. Mark
+          drafted to hide a player across both.
         </p>
 
         <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">
@@ -419,9 +433,9 @@ export function DraftScreen() {
                 }}
               >
                 <option value="ALL">All positions</option>
-                {(["QB", "RB", "WR", "TE"] as const).map((position) => (
+                {(["QB", "RB", "WR", "TE", "FLEX"] as const).map((position) => (
                   <option key={position} value={position}>
-                    {position}
+                    {position === "FLEX" ? "FLEX (RB/WR/TE)" : position}
                   </option>
                 ))}
               </select>
@@ -491,8 +505,9 @@ export function DraftScreen() {
               {checklistVisible.map((entry: DraftChecklistEntry, index: number) => {
                 const drafted = draftedPlayerSet.has(entry.player_id);
                 const keys = criteriaForEntry(checklist, entry);
-                const overallRank =
-                  positionFilter === "ALL" ? index + 1 : entry.pos_market_rank;
+                const overallRank = isCrossPositionFilter(positionFilter)
+                  ? index + 1
+                  : entry.pos_market_rank;
                 return (
                   <Fragment key={entry.player_id}>
                     {index === unrankedBreakIndex ? (
