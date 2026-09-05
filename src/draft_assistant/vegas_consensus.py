@@ -127,12 +127,29 @@ def _line_value(raw: Any) -> float | None:
         value = float(raw)
         return value if math.isfinite(value) else None
     if isinstance(raw, dict):
-        for key in ("line", "value", "ou", "total", "projection"):
+        # Prefer the posted O/U line, but drop it when the same record's own
+        # projection violently disagrees (e.g. Caesars 1499.5 vs RotoWire 364
+        # for Cooper Kupp). Those bad book lines otherwise dominate a 2-source
+        # median and inflate checklist/VORP ranks.
+        line = None
+        for key in ("line", "value", "ou", "total"):
             if key in raw:
-                parsed = _line_value(raw[key])
-                if parsed is not None:
-                    return parsed
-        return None
+                line = _line_value(raw[key])
+                if line is not None:
+                    break
+        projection = None
+        for key in ("rotowire_proj", "projection", "proj", "projected"):
+            if key in raw:
+                projection = _line_value(raw[key])
+                if projection is not None:
+                    break
+        if line is not None and projection is not None:
+            scale = max(abs(projection), 1.0)
+            if abs(line - projection) / scale > 0.5 and abs(line - projection) > 100:
+                return None
+        if line is not None:
+            return line
+        return projection
     if isinstance(raw, str):
         text = raw.strip().replace(",", "")
         try:
@@ -140,6 +157,20 @@ def _line_value(raw: Any) -> float | None:
         except ValueError:
             return None
     return None
+
+
+def _robust_median(values: list[float]) -> float:
+    """Median after dropping far outliers when 3+ quotes exist."""
+    if len(values) == 1:
+        return float(values[0])
+    if len(values) == 2:
+        return float(median(values))
+    center = float(median(values))
+    tolerance = max(abs(center) * 0.35, 100.0)
+    kept = [value for value in values if abs(value - center) <= tolerance]
+    if not kept:
+        kept = list(values)
+    return float(median(kept))
 
 
 def _team_abbr(team: Any = None, name: Any = None) -> str | None:
@@ -295,7 +326,7 @@ def _collect_team_lines(
 
 
 def _median_map(values: dict[str, list[float]]) -> dict[str, float]:
-    return {key: float(median(vals)) for key, vals in values.items() if vals}
+    return {key: _robust_median(vals) for key, vals in values.items() if vals}
 
 
 def build_consensus(*, season: int = 2026) -> dict[str, Any]:
@@ -339,7 +370,9 @@ def build_consensus(*, season: int = 2026) -> dict[str, Any]:
         "method": {
             "yards_tds_receptions": (
                 "median of DraftKings/FanDuel/RotoWire/Oddschecker/FTA/"
-                "ESPN-Fox/Action/Sharp-RG-SBR lines"
+                "ESPN-Fox/Action/Sharp-RG-SBR lines; book lines that conflict "
+                "with the same source's projection (>50% and >100 absolute) "
+                "are dropped before the median"
             ),
             "volume_attempts_targets": (
                 "not used for checklist ranks; public boards lack attempt/target "

@@ -1,6 +1,6 @@
 {
   "season": 2026,
-  "generated_at": "2026-09-05T04:13:54.900221+00:00",
+  "generated_at": "2026-09-05T19:26:56.434815+00:00",
   "source_files": [
     "action_numberfire",
     "bettingpros",
@@ -17,7 +17,7 @@
     "volume_and_team_offense"
   ],
   "method": {
-    "yards_tds_receptions": "median of DraftKings/FanDuel/RotoWire/Oddschecker/FTA/ESPN-Fox/Action/Sharp-RG-SBR lines",
+    "yards_tds_receptions": "median of DraftKings/FanDuel/RotoWire/Oddschecker/FTA/ESPN-Fox/Action/Sharp-RG-SBR lines; book lines that conflict with the same source's projection (>50% and >100 absolute) are dropped before the median",
     "volume_attempts_targets": "not used for checklist ranks; public boards lack attempt/target season O/Us (VI/BettingPros/Unabated/Kalshi/Polymarket checked). Checklist uses Vegas yards + receptions instead.",
     "extra_sources": "vegasinsider, bettingpros, unabated, prediction_markets (kalshi/polymarket) merged when present",
     "team_points": "median Vegas-implied season points (Sharp/AN/volume scrape)",
@@ -137,7 +137,7 @@
         "receptions": 21.32,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 749.5,
+        "rec_yards": 511.52,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 1.31,
@@ -145,8 +145,7 @@
       },
       "sources": [
         "action_numberfire:numberfire",
-        "bettingpros",
-        "rotowire"
+        "bettingpros"
       ]
     },
     {
@@ -1539,7 +1538,7 @@
         "targets": 0.0,
         "receptions": 0.0,
         "pass_yards": 3650.5,
-        "rush_yards": 544.225,
+        "rush_yards": 338.95,
         "rec_yards": 0.0,
         "pass_tds": 24.5,
         "rush_tds": 3.34,
@@ -1592,7 +1591,7 @@
         "receptions": 47.39,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 999.5,
+        "rec_yards": 827.225,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 3.95,
@@ -1638,7 +1637,7 @@
         "targets": 60.16,
         "receptions": 45.14,
         "pass_yards": 0.0,
-        "rush_yards": 791.5,
+        "rush_yards": 783.5,
         "rec_yards": 263.0,
         "pass_tds": 0.0,
         "rush_tds": 6.5,
@@ -2492,15 +2491,14 @@
         "receptions": 64.11,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 1148.59,
+        "rec_yards": 797.68,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 6.09,
         "fantasy_points": 147.68
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -2664,7 +2662,7 @@
         "receptions": 81.62,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 575.0,
+        "rec_yards": 574.75,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 4.5,
@@ -3408,7 +3406,7 @@
         "receptions": 57.5,
         "pass_yards": 0.0,
         "rush_yards": 975.5,
-        "rec_yards": 400.5,
+        "rec_yards": 375.5,
         "pass_tds": 0.0,
         "rush_tds": 5.5,
         "rec_tds": 3.25,
@@ -3620,7 +3618,6 @@
         "action_numberfire:numberfire",
         "bettingpros",
         "draftkings",
-        "rotowire",
         "sharp_rotogrinders_sbr"
       ]
     },
@@ -4183,15 +4180,14 @@
         "receptions": 37.91,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 535.595,
+        "rec_yards": 321.69,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 2.0,
         "fantasy_points": 62.44
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -4487,7 +4483,7 @@
         "receptions": 60.96,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 445.5,
+        "rec_yards": 440.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 3.03,
@@ -4609,7 +4605,7 @@
         "receptions": 64.8,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 519.25,
+        "rec_yards": 500.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 4.5,
@@ -4858,7 +4854,7 @@
         "targets": 18.47,
         "receptions": 14.64,
         "pass_yards": 0.0,
-        "rush_yards": 582.9449999999999,
+        "rush_yards": 690.39,
         "rec_yards": 93.46,
         "pass_tds": 0.0,
         "rush_tds": 4.5,
@@ -5479,15 +5475,14 @@
         "receptions": 48.37,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 795.64,
+        "rec_yards": 591.78,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 4.22,
         "fantasy_points": 108.68
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -6406,7 +6401,7 @@
         "targets": 24.16,
         "receptions": 17.52,
         "pass_yards": 0.0,
-        "rush_yards": 675.5,
+        "rush_yards": 675.0,
         "rec_yards": 101.15,
         "pass_tds": 0.0,
         "rush_tds": 5.5,
@@ -6871,7 +6866,7 @@
         "receptions": 68.01,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 800.5,
+        "rec_yards": 838.27,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 4.625,
@@ -6972,7 +6967,7 @@
         "targets": 32.05,
         "receptions": 24.76,
         "pass_yards": 0.0,
-        "rush_yards": 849.325,
+        "rush_yards": 711.15,
         "rec_yards": 175.04,
         "pass_tds": 0.0,
         "rush_tds": 8.91,
@@ -7171,7 +7166,7 @@
         "targets": 0.0,
         "receptions": 0.0,
         "pass_yards": 3650.5,
-        "rush_yards": 306.75,
+        "rush_yards": 300.5,
         "rec_yards": 0.0,
         "pass_tds": 25.5,
         "rush_tds": 4.13,
@@ -7529,7 +7524,6 @@
       "team": "IND",
       "position": "WR",
       "markets": {
-        "rec_yards": 749.5,
         "rec_tds": 4.5
       },
       "sources": [
@@ -7860,7 +7854,7 @@
         "receptions": 75.36,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 638.0,
+        "rec_yards": 631.75,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 4.77,
@@ -7906,7 +7900,7 @@
         "rush_attempts": 4.44,
         "targets": 0.0,
         "receptions": 0.0,
-        "pass_yards": 2679.535,
+        "pass_yards": 1859.57,
         "rush_yards": 16.83,
         "rec_yards": 0.0,
         "pass_tds": 17.22,
@@ -7996,7 +7990,7 @@
         "targets": 41.27,
         "receptions": 28.6,
         "pass_yards": 0.0,
-        "rush_yards": 635.59,
+        "rush_yards": 617.5450000000001,
         "rec_yards": 209.8,
         "pass_tds": 0.0,
         "rush_tds": 5.0,
@@ -8095,7 +8089,7 @@
         "targets": 0.0,
         "receptions": 0.0,
         "pass_yards": 3049.5,
-        "rush_yards": 388.0,
+        "rush_yards": 375.5,
         "rec_yards": 0.0,
         "pass_tds": 18.5,
         "rush_tds": 5.795,
@@ -8324,15 +8318,14 @@
         "receptions": 15.78,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 353.135,
+        "rec_yards": 180.77,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 1.1,
         "fantasy_points": 32.23
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -8651,15 +8644,14 @@
         "receptions": 52.18,
         "pass_yards": 0.0,
         "rush_yards": 20.69,
-        "rec_yards": 772.8399999999999,
+        "rec_yards": 546.18,
         "pass_tds": 0.0,
         "rush_tds": 0.18,
         "rec_tds": 2.59,
         "fantasy_points": 98.74
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -9632,7 +9624,7 @@
         "receptions": 63.98,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 859.54,
+        "rec_yards": 719.58,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 4.555,
@@ -9900,7 +9892,7 @@
         "targets": 26.82,
         "receptions": 20.01,
         "pass_yards": 0.0,
-        "rush_yards": 874.5,
+        "rush_yards": 862.5,
         "rec_yards": 138.06,
         "pass_tds": 0.0,
         "rush_tds": 6.5,
@@ -10167,7 +10159,7 @@
         "receptions": 0.0,
         "pass_yards": 0.0,
         "rush_yards": 1.65,
-        "rec_yards": 675.0,
+        "rec_yards": 774.75,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 0.0,
@@ -10430,15 +10422,14 @@
         "receptions": 20.27,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 864.075,
+        "rec_yards": 228.65,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 1.7,
         "fantasy_points": 42.54
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -10982,7 +10973,7 @@
         "receptions": 0.0,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 499.75,
+        "rec_yards": 0.0,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 2.25,
@@ -11562,15 +11553,14 @@
         "receptions": 42.19,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 748.325,
+        "rec_yards": 497.15,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 2.87,
         "fantasy_points": 88.03
       },
       "sources": [
-        "action_numberfire:numberfire",
-        "rotowire"
+        "action_numberfire:numberfire"
       ]
     },
     {
@@ -11659,7 +11649,7 @@
         "targets": 0.0,
         "receptions": 0.0,
         "pass_yards": 3774.5,
-        "rush_yards": 613.71,
+        "rush_yards": 477.92,
         "rec_yards": 0.0,
         "pass_tds": 25.5,
         "rush_tds": 4.9350000000000005,
