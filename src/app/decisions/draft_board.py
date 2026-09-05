@@ -44,6 +44,38 @@ BASELINE_HALF_PPR_SCORING: dict[str, float] = {
 }
 
 
+
+def _load_vegas_fp_by_player(season: int) -> dict[str, float]:
+    """Season fantasy points from sealed Vegas volume lines (half-PPR / 4-pt pass TD).
+
+    Sourced from draft_checklist_{season}.json so the draft board and checklist
+    share one Vegas FP basis. Missing players are omitted; callers fall back to
+    model season points.
+    """
+    path = Path(REPO_ROOT) / "draft_assistant" / "data" / f"draft_checklist_{int(season)}.json"
+    if not path.is_file():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    out: dict[str, float] = {}
+    for row in payload.get("players") or []:
+        if not isinstance(row, dict):
+            continue
+        player_id = str(row.get("player_id") or "").strip()
+        raw = row.get("vegas_fp")
+        if not player_id or raw is None:
+            continue
+        try:
+            value = float(raw)
+        except (TypeError, ValueError):
+            continue
+        if value == value:  # finite
+            out[player_id] = value
+    return out
+
+
 def _number(value: Any, default: float = 0.0) -> float:
     try:
         parsed = float(value)
@@ -210,7 +242,7 @@ class DraftBoardService:
             )
             if board is not None:
                 return board
-        return self._load_sealed_default(payload, pointer=pointer, limit=limit)
+        return self._load_sealed_default(payload, pointer=pointer, season=season, limit=limit)
 
     def _load_league_board(
         self,
@@ -269,8 +301,10 @@ class DraftBoardService:
             )
         )
 
+        vegas_fp_by_player = _load_vegas_fp_by_player(season)
         rows: list[dict[str, Any]] = []
         covered = 0
+        vegas_covered = 0
         for player in payload.get("players", []):
             player_id = str(player.get("player_id") or "")
             position = str(player.get("position") or "")
@@ -282,13 +316,19 @@ class DraftBoardService:
                     components.get(player_id, {}).get("_projected_games"),
                     _number(player.get("projected_games"), 17.0),
                 )
-                league_points = (
+                model_league_points = (
                     selected_points
                     + (league_pg[player_id] - baseline_pg[player_id]) * games
                 )
                 covered += 1
             else:
-                league_points = selected_points
+                model_league_points = selected_points
+            # Prefer sealed Vegas volume FP for VORP so market lines drive the board.
+            if player_id in vegas_fp_by_player:
+                league_points = vegas_fp_by_player[player_id]
+                vegas_covered += 1
+            else:
+                league_points = model_league_points
             rows.append(
                 {
                     "player_id": player_id,
@@ -299,6 +339,9 @@ class DraftBoardService:
                     "team": player.get("team"),
                     "league_points": league_points,
                     "fantasy_pts_season": selected_points,
+                    "points_source": "vegas_fp"
+                    if player_id in vegas_fp_by_player
+                    else "model",
                 }
             )
 
@@ -359,10 +402,15 @@ class DraftBoardService:
             )
         if covered < len(rows):
             caveats.append(f"component_coverage:{covered}/{len(rows)}")
+        if vegas_fp_by_player:
+            caveats.append(f"vegas_fp_coverage:{vegas_covered}/{len(rows)}")
+        else:
+            caveats.append("vegas_fp_unavailable")
         return {
             "entries": entries,
             "source": "sealed_release_league_rescore",
             "ranking_basis": "league_vorp",
+            "points_source": "vegas_fp" if vegas_fp_by_player else "model",
             "points_unit": "season_total",
             "namespace": bundle.namespace,
             "data_as_of": meta.get(
@@ -415,35 +463,106 @@ class DraftBoardService:
         return int(roster_count) if roster_count >= 4 else 12
 
     def _load_sealed_default(
-        self, payload: dict[str, Any], *, pointer: dict | None, limit: int
+        self,
+        payload: dict[str, Any],
+        *,
+        pointer: dict | None,
+        season: int,
+        limit: int,
     ) -> dict:
         meta = payload.get("meta", {})
-        ranked = sorted(payload.get("players", []), key=_draft_sort_value, reverse=True)
-        entries = []
-        for index, row in enumerate(ranked[: max(1, int(limit))], start=1):
-            entries.append(
+        team_count = int(_number(meta.get("team_count"), 12)) or 12
+        vegas_fp_by_player = _load_vegas_fp_by_player(season)
+        roster_positions = ["QB", "RB", "RB", "WR", "WR", "WR", "TE", "FLEX"] + ["BN"] * 6
+        contract = compile_sleeper_scoring(BASELINE_HALF_PPR_SCORING, roster_positions)
+
+        rows: list[dict[str, Any]] = []
+        vegas_covered = 0
+        for player in payload.get("players", []):
+            player_id = str(player.get("player_id") or "")
+            position = str(player.get("position") or "")
+            if not player_id or position not in OFFENSE_POSITIONS:
+                continue
+            model_points = _number(player.get("fantasy_pts_season"))
+            if player_id in vegas_fp_by_player:
+                points = vegas_fp_by_player[player_id]
+                vegas_covered += 1
+            else:
+                points = model_points
+            rows.append(
                 {
-                    "player_id": row.get("player_id"),
-                    "name": row.get("display_name") or row.get("name"),
-                    "position": row.get("position"),
-                    "team": row.get("team"),
-                    "rank": index,
-                    "tier": row.get("overall_tier") or row.get("pos_tier"),
-                    "vorp": row.get("vorp"),
-                    "points_mean": row.get("fantasy_pts_season"),
+                    "player_id": player_id,
+                    "name": player.get("display_name") or player.get("name") or player_id,
+                    "position": position,
+                    "team": player.get("team"),
+                    "league_points": points,
+                    "fantasy_pts_season": model_points,
                 }
             )
+
+        if vegas_fp_by_player and rows:
+            ranked, replacement_ranks, replacement_points = _apply_league_vorp(
+                rows, contract, team_count
+            )
+            ranking_basis = "vegas_vorp"
+            caveats = [
+                "league_contract_unavailable",
+                f"vegas_fp_coverage:{vegas_covered}/{len(rows)}",
+            ]
+            entries = [
+                {
+                    "player_id": row["player_id"],
+                    "name": row["name"],
+                    "position": row["position"],
+                    "team": row.get("team"),
+                    "rank": row["rank"],
+                    "tier": row["tier"],
+                    "vorp": round(_number(row.get("vorp")), 4),
+                    "points_mean": round(_number(row.get("league_points")), 4),
+                    "replacement_points": round(_number(row.get("replacement_points")), 4),
+                    "replacement_rank": int(row.get("replacement_rank") or 1),
+                }
+                for row in ranked[: max(1, int(limit))]
+            ]
+        else:
+            ranked_players = sorted(
+                payload.get("players", []), key=_draft_sort_value, reverse=True
+            )
+            ranking_basis = "sealed_vorp"
+            caveats = ["league_contract_unavailable", "vegas_fp_unavailable"]
+            replacement_ranks = {}
+            replacement_points = {}
+            entries = []
+            for index, row in enumerate(ranked_players[: max(1, int(limit))], start=1):
+                entries.append(
+                    {
+                        "player_id": row.get("player_id"),
+                        "name": row.get("display_name") or row.get("name"),
+                        "position": row.get("position"),
+                        "team": row.get("team"),
+                        "rank": index,
+                        "tier": row.get("overall_tier") or row.get("pos_tier"),
+                        "vorp": row.get("vorp"),
+                        "points_mean": row.get("fantasy_pts_season"),
+                    }
+                )
+
         namespace = pointer.get("namespace") if pointer else "unavailable"
         return {
             "entries": entries,
             "source": "draft_assistant_release",
-            "ranking_basis": "sealed_vorp",
+            "ranking_basis": ranking_basis,
+            "points_source": "vegas_fp" if vegas_fp_by_player else "model",
             "points_unit": "season_total",
             "namespace": namespace,
             "data_as_of": meta.get("generated_at", datetime.now(UTC).isoformat()),
             "projection_run_id": f"preseason-{namespace}",
             "league_specific": False,
-            "caveats": ["league_contract_unavailable"],
+            "replacement_ranks": replacement_ranks,
+            "replacement_points": {
+                key: round(value, 4) for key, value in replacement_points.items()
+            },
+            "caveats": caveats,
         }
 
     def _players_path(self, season: int, pointer: dict | None) -> Path | None:

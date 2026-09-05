@@ -225,7 +225,8 @@ export interface DraftBoardEntry {
 
 export interface DraftBoardProfile {
   league_specific: boolean;
-  ranking_basis?: "league_vorp" | "sealed_vorp";
+  ranking_basis?: "league_vorp" | "sealed_vorp" | "vegas_vorp";
+  points_source?: "vegas_fp" | "model";
   points_unit?: "season_total";
   team_count?: number;
   roster_positions: string[];
