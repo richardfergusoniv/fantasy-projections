@@ -240,6 +240,17 @@ export function DraftScreen() {
 
   const criteriaLabels = checklist?.criteria_labels ?? {};
 
+  /** League VORP board rank (Our Rankings), keyed for checklist pills. ADP order stays untouched. */
+  const vorpRankByPlayerId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const entry of entries) {
+      if (entry.player_id && entry.rank != null) {
+        map.set(entry.player_id, entry.rank);
+      }
+    }
+    return map;
+  }, [entries]);
+
   const checklistFiltered = useMemo(() => {
     const rows = checklist?.entries ?? [];
     const filtered = rows.filter((entry) => {
@@ -508,6 +519,7 @@ export function DraftScreen() {
                 const overallRank = isCrossPositionFilter(positionFilter)
                   ? index + 1
                   : entry.pos_market_rank;
+                const vorpRank = vorpRankByPlayerId.get(entry.player_id);
                 return (
                   <Fragment key={entry.player_id}>
                     {index === unrankedBreakIndex ? (
@@ -564,6 +576,15 @@ export function DraftScreen() {
                               </span>
                             );
                           })}
+                          <span
+                            className={`draft-rank-pill ${rankTierClass(vorpRank)}`}
+                            title={`League VORP rank: ${
+                              vorpRank == null || Number.isNaN(vorpRank) ? "—" : String(vorpRank)
+                            }`}
+                          >
+                            VORP{" "}
+                            {vorpRank == null || Number.isNaN(vorpRank) ? "—" : String(vorpRank)}
+                          </span>
                         </div>
                       </div>
                     </article>

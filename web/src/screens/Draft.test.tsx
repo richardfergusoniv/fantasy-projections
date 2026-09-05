@@ -33,7 +33,8 @@ function board(): DraftBoard {
   return {
     league_id: "league-three-wr",
     entries: Array.from({ length: 40 }, (_, index) => ({
-      player_id: `player-${index + 1}`,
+      // Overlap checklist ids so VORP rank pills can join without changing board size.
+      player_id: index === 3 ? "wr-1" : index === 8 ? "qb-1" : `player-${index + 1}`,
       name: `Draft Player ${index + 1}`,
       position: (["QB", "RB", "WR", "TE"] as const)[index % 4],
       rank: index + 1,
@@ -228,6 +229,28 @@ describe("DraftScreen", () => {
     expect(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" })).toBeInTheDocument();
     expect(screen.queryByRole("checkbox", { name: /QB Player 1 drafted/i })).not.toBeInTheDocument();
   });
+
+  it("shows league VORP rank pills on the ADP checklist without reordering", async () => {
+    renderDraft("/draft?pane=checklist");
+    await screen.findByRole("checkbox", { name: "Mark QB Player 1 drafted" });
+
+    // ADP order unchanged: QB (0.5) still before WR (1).
+    const checkboxes = screen.getAllByRole("checkbox", { name: /Mark .+ drafted/i });
+    expect(checkboxes[0]).toHaveAccessibleName("Mark QB Player 1 drafted");
+    expect(checkboxes[1]).toHaveAccessibleName("Mark WR Player 1 drafted");
+
+    const qbRow = screen.getByRole("checkbox", { name: "Mark QB Player 1 drafted" }).closest(
+      "[role='listitem']",
+    );
+    const wrRow = screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" }).closest(
+      "[role='listitem']",
+    );
+    expect(qbRow).not.toBeNull();
+    expect(wrRow).not.toBeNull();
+    expect(within(qbRow as HTMLElement).getByText("VORP 9")).toBeInTheDocument();
+    expect(within(wrRow as HTMLElement).getByText("VORP 4")).toBeInTheDocument();
+  });
+
 
   it("hides checklist rows when drafted via checkbox", async () => {
     renderDraft();
