@@ -1,0 +1,585 @@
+{
+  "source": "volume_and_team_offense",
+  "fetched_at": "2026-09-05T03:42:23Z",
+  "urls": [
+    "https://www.sharpfootballanalysis.com/fantasy/nfl-implied-team-totals-tool/",
+    "https://api.actionnetwork.com/web/v1/scoreboard/nfl",
+    "https://www.oddschecker.com/american-football/nfl-specials/amon-ra-st.-brown/total-receptions-regular-season",
+    "https://www.oddschecker.com/american-football/nfl-specials/bijan-robinson/total-receptions-regular-season",
+    "https://www.oddschecker.com/american-football/nfl-specials/jahmyr-gibbs/total-receptions-regular-season",
+    "https://www.oddschecker.com/american-football/nfl-specials/luther-burden-iii/total-receptions-regular-season",
+    "https://www.thebiglead.com/nfl-player-props-over-under-bets-2026-season/",
+    "https://www.sportingnews.com/us/betting/news/best-nfl-receiving-props-2026-27-picks-receiving-yards-tds/7e2a23f363d660b85b3cc2e3",
+    "https://www.sharpfootballanalysis.com/betting/nfl-receiving-player-prop-overs/",
+    "https://www.espn.com/espn/betting/story/_/id/49537843/2026-nfl-betting-odds-picks-player-props-team-predictions",
+    "https://www.espn.com/espn/betting/story/_/id/49671577/2026-nfl-player-props-best-bets-futures-picks-predictions",
+    "https://www.foxsports.com/stories/nfl/2026-nfl-odds-which-team-will-lead-nfl-scoring",
+    "https://www.rotowire.com/betting/nfl/receptions-odds.php",
+    "https://www.rotowire.com/betting/nfl/tables/player-futures.php?future=Receptions",
+    "https://www.rotowire.com/betting/nfl/tables/player-futures.php?future=Pass%20Yards",
+    "https://fantasyteamadvice.com/nfl/team-futures?prop_type=NFL_SEASON_WINS",
+    "https://fantasyteamadvice.com/nfl/season-long-props",
+    "https://sbapi.nj.sportsbook.fanduel.com/api/content-managed-page?page=CUSTOM&customPageId=nfl",
+    "https://sportsbook.draftkings.com/page/nfl-futures",
+    "https://www.actionnetwork.com/nfl/futures",
+    "https://api.elections.kalshi.com/trade-api/v2/events?series_ticker=KXNFLSEASONREC"
+  ],
+  "players": [
+    {
+      "name": "Amon-Ra St. Brown",
+      "team": "DET",
+      "position": "WR",
+      "markets": {
+        "receptions": 104.5
+      }
+    },
+    {
+      "name": "Bijan Robinson",
+      "team": "ATL",
+      "position": "RB",
+      "markets": {
+        "receptions": 65.5
+      }
+    },
+    {
+      "name": "Carnell Tate",
+      "team": "TEN",
+      "position": "WR",
+      "markets": {
+        "receptions": 61.5
+      }
+    },
+    {
+      "name": "CeeDee Lamb",
+      "team": "DAL",
+      "position": "WR",
+      "markets": {
+        "receptions": 94.5
+      }
+    },
+    {
+      "name": "Colston Loveland",
+      "team": "CHI",
+      "position": "TE",
+      "markets": {
+        "receptions": 69.5
+      }
+    },
+    {
+      "name": "D.J. Moore",
+      "team": "BUF",
+      "position": "WR",
+      "markets": {
+        "receptions": 59.5
+      }
+    },
+    {
+      "name": "De'Von Achane",
+      "team": "MIA",
+      "position": "RB",
+      "markets": {
+        "receptions": 57.5
+      }
+    },
+    {
+      "name": "Ja'Marr Chase",
+      "team": "CIN",
+      "position": "WR",
+      "markets": {
+        "receptions": 108.5
+      }
+    },
+    {
+      "name": "Jahmyr Gibbs",
+      "team": "DET",
+      "position": "RB",
+      "markets": {
+        "receptions": 60.5
+      }
+    },
+    {
+      "name": "Justin Jefferson",
+      "team": "MIN",
+      "position": "WR",
+      "markets": {
+        "receptions": 92.5
+      }
+    },
+    {
+      "name": "Luther Burden III",
+      "team": "CHI",
+      "position": "WR",
+      "markets": {
+        "receptions": 64.5
+      }
+    },
+    {
+      "name": "Travis Kelce",
+      "team": "KC",
+      "position": "TE",
+      "markets": {
+        "receptions": 66.5
+      }
+    },
+    {
+      "name": "Trey McBride",
+      "team": "ARI",
+      "position": "TE",
+      "markets": {
+        "receptions": 100.5
+      }
+    }
+  ],
+  "teams": [
+    {
+      "name": "Los Angeles Rams",
+      "abbr": "LAR",
+      "markets": {
+        "points_scored_pg": 26.7,
+        "points_scored": 453.9,
+        "points_scored_pg_an_median": 25.56,
+        "points_scored_an_median": 434.5,
+        "win_total": 11.5,
+        "pass_yards": 3825.5,
+        "pass_yards_from_qb": "Matthew Stafford",
+        "highest_scoring_team_odds": 550
+      }
+    },
+    {
+      "name": "Buffalo Bills",
+      "abbr": "BUF",
+      "markets": {
+        "points_scored_pg": 26.1,
+        "points_scored": 443.7,
+        "points_scored_pg_an_median": 25.18,
+        "points_scored_an_median": 428.0,
+        "win_total": 10.5,
+        "pass_yards": 3624.5,
+        "pass_yards_from_qb": "Josh Allen",
+        "highest_scoring_team_odds": 600
+      }
+    },
+    {
+      "name": "Detroit Lions",
+      "abbr": "DET",
+      "markets": {
+        "points_scored_pg": 25.9,
+        "points_scored": 440.3,
+        "points_scored_pg_an_median": 25.03,
+        "points_scored_an_median": 425.5,
+        "win_total": 10.5,
+        "pass_yards": 4075.5,
+        "pass_yards_from_qb": "Jared Goff",
+        "highest_scoring_team_odds": 650
+      }
+    },
+    {
+      "name": "Cincinnati Bengals",
+      "abbr": "CIN",
+      "markets": {
+        "points_scored_pg": 25.6,
+        "points_scored": 435.2,
+        "points_scored_pg_an_median": 24.88,
+        "points_scored_an_median": 423.0,
+        "win_total": 10.5,
+        "pass_yards": 3925.0,
+        "pass_yards_from_qb": "Joe Burrow",
+        "highest_scoring_team_odds": 900
+      }
+    },
+    {
+      "name": "Dallas Cowboys",
+      "abbr": "DAL",
+      "markets": {
+        "points_scored_pg": 25.4,
+        "points_scored": 431.8,
+        "points_scored_pg_an_median": 24.62,
+        "points_scored_an_median": 418.5,
+        "win_total": 9.5,
+        "pass_yards": 3950.5,
+        "pass_yards_from_qb": "Dak Prescott",
+        "highest_scoring_team_odds": 750
+      }
+    },
+    {
+      "name": "Baltimore Ravens",
+      "abbr": "BAL",
+      "markets": {
+        "points_scored_pg": 25.3,
+        "points_scored": 430.1,
+        "points_scored_pg_an_median": 24.75,
+        "points_scored_an_median": 420.8,
+        "win_total": 10.5,
+        "pass_yards": 3200.5,
+        "pass_yards_from_qb": "Lamar Jackson",
+        "highest_scoring_team_odds": 900
+      }
+    },
+    {
+      "name": "San Francisco 49ers",
+      "abbr": "SF",
+      "markets": {
+        "points_scored_pg": 25.1,
+        "points_scored": 426.7,
+        "points_scored_pg_an_median": 24.06,
+        "points_scored_an_median": 409.0,
+        "win_total": 10.5,
+        "pass_yards": 3700.5,
+        "pass_yards_from_qb": "Brock Purdy",
+        "highest_scoring_team_odds": 1600
+      }
+    },
+    {
+      "name": "Chicago Bears",
+      "abbr": "CHI",
+      "markets": {
+        "points_scored_pg": 24.4,
+        "points_scored": 414.8,
+        "points_scored_pg_an_median": 23.66,
+        "points_scored_an_median": 402.2,
+        "win_total": 9.5,
+        "pass_yards": 3650.5,
+        "pass_yards_from_qb": "Caleb Williams",
+        "highest_scoring_team_odds": 900
+      }
+    },
+    {
+      "name": "Green Bay Packers",
+      "abbr": "GB",
+      "markets": {
+        "points_scored_pg": 24.4,
+        "points_scored": 414.8,
+        "points_scored_pg_an_median": 23.78,
+        "points_scored_an_median": 404.2,
+        "win_total": 9.5,
+        "pass_yards": 3549.5,
+        "pass_yards_from_qb": "Jordan Love",
+        "highest_scoring_team_odds": 1600
+      }
+    },
+    {
+      "name": "Seattle Seahawks",
+      "abbr": "SEA",
+      "markets": {
+        "points_scored_pg": 24.4,
+        "points_scored": 414.8,
+        "points_scored_pg_an_median": 23.79,
+        "points_scored_an_median": 404.5,
+        "win_total": 10.5,
+        "pass_yards": 3650.5,
+        "pass_yards_from_qb": "Sam Darnold",
+        "highest_scoring_team_odds": 1600
+      }
+    },
+    {
+      "name": "Kansas City Chiefs",
+      "abbr": "KC",
+      "markets": {
+        "points_scored_pg": 23.9,
+        "points_scored": 406.3,
+        "points_scored_pg_an_median": 23.21,
+        "points_scored_an_median": 394.5,
+        "win_total": 10.5,
+        "pass_yards": 3649.5,
+        "pass_yards_from_qb": "Patrick Mahomes",
+        "highest_scoring_team_odds": 2500
+      }
+    },
+    {
+      "name": "Los Angeles Chargers",
+      "abbr": "LAC",
+      "markets": {
+        "points_scored_pg": 23.7,
+        "points_scored": 402.9,
+        "points_scored_pg_an_median": 22.59,
+        "points_scored_an_median": 384.0,
+        "win_total": 9.5,
+        "pass_yards": 3600.5,
+        "pass_yards_from_qb": "Justin Herbert",
+        "highest_scoring_team_odds": 2000
+      }
+    },
+    {
+      "name": "New England Patriots",
+      "abbr": "NE",
+      "markets": {
+        "points_scored_pg": 23.6,
+        "points_scored": 401.2,
+        "points_scored_pg_an_median": 22.91,
+        "points_scored_an_median": 389.5,
+        "win_total": 9.5,
+        "pass_yards": 3750.5,
+        "pass_yards_from_qb": "Drake Maye",
+        "highest_scoring_team_odds": 3000
+      }
+    },
+    {
+      "name": "Philadelphia Eagles",
+      "abbr": "PHI",
+      "markets": {
+        "points_scored_pg": 23.5,
+        "points_scored": 399.5,
+        "points_scored_pg_an_median": 22.74,
+        "points_scored_an_median": 386.5,
+        "win_total": 10.5,
+        "pass_yards": 3150.5,
+        "pass_yards_from_qb": "Jalen Hurts",
+        "highest_scoring_team_odds": 2500
+      }
+    },
+    {
+      "name": "Washington Commanders",
+      "abbr": "WAS",
+      "markets": {
+        "points_scored_pg": 23.3,
+        "points_scored": 396.1,
+        "points_scored_pg_an_median": 22.53,
+        "points_scored_an_median": 383.0,
+        "win_total": 7.5,
+        "pass_yards": 3199.5,
+        "pass_yards_from_qb": "Jayden Daniels"
+      }
+    },
+    {
+      "name": "Jacksonville Jaguars",
+      "abbr": "JAX",
+      "markets": {
+        "points_scored_pg": 23.2,
+        "points_scored": 394.4,
+        "points_scored_pg_an_median": 22.4,
+        "points_scored_an_median": 380.8,
+        "win_total": 8.5,
+        "pass_yards": 3774.5,
+        "pass_yards_from_qb": "Trevor Lawrence",
+        "highest_scoring_team_odds": 4000
+      }
+    },
+    {
+      "name": "Indianapolis Colts",
+      "abbr": "IND",
+      "markets": {
+        "points_scored_pg": 22.9,
+        "points_scored": 389.3,
+        "points_scored_pg_an_median": 22.41,
+        "points_scored_an_median": 381.0,
+        "win_total": 8.5,
+        "pass_yards": 3275.0,
+        "pass_yards_from_qb": "Daniel Jones",
+        "highest_scoring_team_odds": 4000
+      }
+    },
+    {
+      "name": "Tampa Bay Buccaneers",
+      "abbr": "TB",
+      "markets": {
+        "points_scored_pg": 22.8,
+        "points_scored": 387.6,
+        "points_scored_pg_an_median": 22.32,
+        "points_scored_an_median": 379.5,
+        "win_total": 8.5,
+        "pass_yards": 3500.5,
+        "pass_yards_from_qb": "Baker Mayfield"
+      }
+    },
+    {
+      "name": "Houston Texans",
+      "abbr": "HOU",
+      "markets": {
+        "points_scored_pg": 22.1,
+        "points_scored": 375.7,
+        "points_scored_pg_an_median": 21.65,
+        "points_scored_an_median": 368.0,
+        "win_total": 10.5,
+        "pass_yards": 3549.5,
+        "pass_yards_from_qb": "C.J. Stroud"
+      }
+    },
+    {
+      "name": "Denver Broncos",
+      "abbr": "DEN",
+      "markets": {
+        "points_scored_pg": 22.0,
+        "points_scored": 374.0,
+        "points_scored_pg_an_median": 21.49,
+        "points_scored_an_median": 365.2,
+        "win_total": 9.5,
+        "pass_yards": 3475.0,
+        "pass_yards_from_qb": "Bo Nix"
+      }
+    },
+    {
+      "name": "Minnesota Vikings",
+      "abbr": "MIN",
+      "markets": {
+        "points_scored_pg": 22.0,
+        "points_scored": 374.0,
+        "points_scored_pg_an_median": 21.59,
+        "points_scored_an_median": 367.0,
+        "win_total": 8.5,
+        "pass_yards": 3062.5,
+        "pass_yards_from_qb": "Kyler Murray"
+      }
+    },
+    {
+      "name": "New York Giants",
+      "abbr": "NYG",
+      "markets": {
+        "points_scored_pg": 21.8,
+        "points_scored": 370.6,
+        "points_scored_pg_an_median": 21.18,
+        "points_scored_an_median": 360.0,
+        "win_total": 7.5,
+        "pass_yards": 3125.5,
+        "pass_yards_from_qb": "Jaxson Dart"
+      }
+    },
+    {
+      "name": "New Orleans Saints",
+      "abbr": "NO",
+      "markets": {
+        "points_scored_pg": 21.3,
+        "points_scored": 362.1,
+        "points_scored_pg_an_median": 20.62,
+        "points_scored_an_median": 350.5,
+        "win_total": 7.5,
+        "pass_yards": 3449.5,
+        "pass_yards_from_qb": "Tyler Shough"
+      }
+    },
+    {
+      "name": "Atlanta Falcons",
+      "abbr": "ATL",
+      "markets": {
+        "points_scored_pg": 21.0,
+        "points_scored": 357.0,
+        "points_scored_pg_an_median": 20.43,
+        "points_scored_an_median": 347.2,
+        "win_total": 6.5
+      }
+    },
+    {
+      "name": "Pittsburgh Steelers",
+      "abbr": "PIT",
+      "markets": {
+        "points_scored_pg": 20.7,
+        "points_scored": 351.9,
+        "points_scored_pg_an_median": 20.44,
+        "points_scored_an_median": 347.5,
+        "win_total": 8.5,
+        "pass_yards": 3075.5,
+        "pass_yards_from_qb": "Aaron Rodgers"
+      }
+    },
+    {
+      "name": "Carolina Panthers",
+      "abbr": "CAR",
+      "markets": {
+        "points_scored_pg": 20.1,
+        "points_scored": 341.7,
+        "points_scored_pg_an_median": 19.84,
+        "points_scored_an_median": 337.2,
+        "win_total": 7.5,
+        "pass_yards": 2875.5,
+        "pass_yards_from_qb": "Bryce Young"
+      }
+    },
+    {
+      "name": "Tennessee Titans",
+      "abbr": "TEN",
+      "markets": {
+        "points_scored_pg": 20.0,
+        "points_scored": 340.0,
+        "points_scored_pg_an_median": 19.76,
+        "points_scored_an_median": 336.0,
+        "win_total": 6.5,
+        "pass_yards": 3200.5,
+        "pass_yards_from_qb": "Cam Ward"
+      }
+    },
+    {
+      "name": "Las Vegas Raiders",
+      "abbr": "LV",
+      "markets": {
+        "points_scored_pg": 18.8,
+        "points_scored": 319.6,
+        "points_scored_pg_an_median": 18.26,
+        "points_scored_an_median": 310.5,
+        "win_total": 5.5,
+        "pass_yards": 3499.5,
+        "pass_yards_from_qb": "Kirk Cousins"
+      }
+    },
+    {
+      "name": "Miami Dolphins",
+      "abbr": "MIA",
+      "markets": {
+        "points_scored_pg": 18.6,
+        "points_scored": 316.2,
+        "points_scored_pg_an_median": 18.28,
+        "points_scored_an_median": 310.8,
+        "win_total": 3.5,
+        "pass_yards": 2925.0,
+        "pass_yards_from_qb": "Malik Willis"
+      }
+    },
+    {
+      "name": "Arizona Cardinals",
+      "abbr": "ARI",
+      "markets": {
+        "points_scored_pg": 18.4,
+        "points_scored": 312.8,
+        "points_scored_pg_an_median": 17.69,
+        "points_scored_an_median": 300.8,
+        "win_total": 3.5
+      }
+    },
+    {
+      "name": "New York Jets",
+      "abbr": "NYJ",
+      "markets": {
+        "points_scored_pg": 18.3,
+        "points_scored": 311.1,
+        "points_scored_pg_an_median": 17.76,
+        "points_scored_an_median": 302.0,
+        "win_total": 5.5,
+        "pass_yards": 3499.5,
+        "pass_yards_from_qb": "Geno Smith"
+      }
+    },
+    {
+      "name": "Cleveland Browns",
+      "abbr": "CLE",
+      "markets": {
+        "points_scored_pg": 17.9,
+        "points_scored": 304.3,
+        "points_scored_pg_an_median": 17.99,
+        "points_scored_an_median": 305.8,
+        "win_total": 5.5,
+        "pass_yards": 1749.5,
+        "pass_yards_from_qb": "Deshaun Watson"
+      }
+    }
+  ],
+  "notes": "Critical gap fill for season volume + team offense. TEAM POINTS: Full 32-team coverage via Sharp Football Analysis implied PPG from consensus lookahead spreads/totals (DraftKings/FanDuel/BetMGM/Fanatics/Caesars; updated 2026-08-31). Stored points_scored_pg and points_scored (=PPG*17). Cross-checked with Action Network week-by-week median implied totals (points_scored_pg_an_median / points_scored_an_median); AN runs ~0.3\u20131.1 PPG below Sharp. Win totals from Fantasy Team Advice BetMGM board. Highest-scoring-team American odds from FOX/DraftKings (Aug 18) where listed. TEAM PASS YARDS: No season team total-yards O/U board found anywhere (FTA/RotoWire/Oddschecker/FanDuel/Kalshi). pass_yards stored as median multi-book starter QB Regular Season Pass Yards O/U from RotoWire player-futures (proxy for team pass yards; field pass_yards_from_qb names the QB). Team rush_yards / total_yards season O/Us absent. PLAYER VOLUME: Season receptions O/U lines are sparse. Oddschecker hosts only 4 total-receptions-regular-season markets (Amon-Ra 104.5, Bijan 65.5, Gibbs 60.5, Burden 64.5). Additional receptions lines from sportsbook mirrors in Big Lead, Sporting News (BetMGM Chase 108.5), Sharp Football (DJ Moore 59.5), and ESPN DraftKings articles (Kelce/Achane/Jefferson/Tate/Loveland). RotoWire player-futures.php?future=Receptions is a VALID endpoint but returns [] (empty board as of fetch) \u2014 Pass/Rush/Rec Yards and TD futures remain fully populated there. Pass attempts / rush attempts / carries / targets: NOT offered as season-long O/U on RotoWire acceptable futures, Oddschecker market suffixes, FanDuel NFL futures page, FTA season-long prop pages, or Kalshi (only weekly pass/rush attempt milestones and binary 75+/100+/120+ reception season milestones). Coverage summary: receptions=13 players; pass/rush attempts=0; targets=0; team points PPG+season=32/32; team pass_yards proxy=30/32; team total_yards=0; team rush_yards=0.",
+  "errors": [
+    "RotoWire Receptions futures endpoint returns empty array (boards cleared or not posted at BetRivers feed).",
+    "No season-long pass_attempts / rush_attempts / carries / targets O/U boards found on free public sportsbook mirrors or aggregators.",
+    "No season-long team total_yards or team rush_yards O/U markets found (only highest/lowest scoring team futures).",
+    "DraftKings sportscontent APIs 403; DK futures deep links redirect to Week 1 game lines from this environment.",
+    "BetMGM CDS and Caesars APIs 403 from this environment.",
+    "Fantasy Points receptions props article is paywalled (fantasypoints.com / legacy).",
+    "FTA season-long player prop tables remain FTA+-paywalled (~5 teaser rows).",
+    "Kalshi KXNFLTEAMYDS series has no open events; KXNFLPASSATT/KXNFLRSHATT are weekly-only."
+  ],
+  "coverage": {
+    "players_with_receptions": 13,
+    "players_with_pass_attempts": 0,
+    "players_with_rush_attempts": 0,
+    "players_with_targets": 0,
+    "teams_with_points_scored": 32,
+    "teams_with_pass_yards_proxy": 30,
+    "teams_with_total_yards": 0,
+    "teams_with_rush_yards": 0,
+    "teams_with_win_total": 32
+  }
+}
