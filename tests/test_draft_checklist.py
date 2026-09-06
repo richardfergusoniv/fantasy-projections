@@ -186,6 +186,23 @@ def test_committed_checklist_has_vegas_ranks_for_stars():
     assert barkley["ranks"]["ol_rank"] is not None
 
 
+def test_committed_checklist_excludes_projection_only_vegas_fp():
+    """numberFire-only rows must not rank on the Vegas Props board (Cooper Kupp)."""
+    path = Path("draft_assistant/data/draft_checklist_2026.json")
+    if not path.is_file():
+        pytest.skip("checklist artifact not present")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["meta"].get("vegas_fp_requires_book_props") is True
+    kupp = next(p for p in payload["players"] if p["name"] == "Cooper Kupp")
+    assert kupp.get("vegas_prop_coverage") == "projection"
+    assert kupp.get("vegas_fp") is None
+    assert kupp["ranks"].get("fp_rank") is None
+
+    chase = next(p for p in payload["players"] if p["name"] == "Ja'Marr Chase")
+    assert chase.get("vegas_prop_coverage") in ("books", "mixed")
+    assert chase.get("vegas_fp") is not None
+
+
 def test_market_average_skips_missing_sources():
     from src.draft_assistant.market_adp import average_market_value
 

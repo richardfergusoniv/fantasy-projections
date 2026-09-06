@@ -492,12 +492,34 @@ def _collect_team_lines(
     return lines
 
 
+SCORING_MARKETS = frozenset(
+    {
+        "pass_yards",
+        "rush_yards",
+        "rec_yards",
+        "pass_tds",
+        "rush_tds",
+        "rec_tds",
+        "receptions",
+    }
+)
+
+
 def _median_map(values: dict[str, list]) -> dict[str, float]:
-    """Prefer sportsbook O/U quotes; fall back to model projections when needed.
+    """Prefer sportsbook O/U quotes; fall back to model projections when needed."""
+    consensus, _kinds = _median_map_with_kinds(values)
+    return consensus
+
+
+def _median_map_with_kinds(
+    values: dict[str, list],
+) -> tuple[dict[str, float], dict[str, str]]:
+    """Return consensus values plus per-market kind (``book`` or ``projection``).
 
     Player quotes are ``(value, kind)`` tuples. Team quotes may still be bare floats.
     """
     out: dict[str, float] = {}
+    kinds: dict[str, str] = {}
     for key, quotes in values.items():
         if not quotes:
             continue
@@ -506,11 +528,31 @@ def _median_map(values: dict[str, list]) -> dict[str, float]:
             projections = [value for value, kind in quotes if kind == "projection"]
             if books:
                 out[key] = _robust_median(books)
+                kinds[key] = "book"
             elif projections:
                 out[key] = _robust_median(projections)
+                kinds[key] = "projection"
         else:
             out[key] = _robust_median([float(value) for value in quotes])
-    return out
+            kinds[key] = "book"
+    return out, kinds
+
+
+def _prop_coverage(kinds: dict[str, str]) -> str:
+    """Classify whether scoring markets are sportsbook-backed.
+
+    ``projection`` means Vegas FP would be model-only (e.g. Cooper Kupp with the
+    Caesars juice dropped and only numberFire left) and must not rank as Vegas.
+    """
+    scoring = {key: kind for key, kind in kinds.items() if key in SCORING_MARKETS}
+    if not scoring:
+        return "none"
+    distinct = set(scoring.values())
+    if distinct == {"book"}:
+        return "books"
+    if distinct == {"projection"}:
+        return "projection"
+    return "mixed"
 
 
 def build_consensus(*, season: int = 2026) -> dict[str, Any]:
@@ -521,7 +563,7 @@ def build_consensus(*, season: int = 2026) -> dict[str, Any]:
     players_out: list[dict[str, Any]] = []
     for key, markets in sorted(player_lines.items()):
         identity = player_meta.get(key) or {}
-        consensus = _median_map(markets)
+        consensus, kinds = _median_map_with_kinds(markets)
         if not consensus:
             continue
         players_out.append(
@@ -531,6 +573,8 @@ def build_consensus(*, season: int = 2026) -> dict[str, Any]:
                 "team": identity.get("team"),
                 "position": identity.get("position"),
                 "markets": consensus,
+                "market_kinds": kinds,
+                "prop_coverage": _prop_coverage(kinds),
                 "sources": sorted(identity.get("sources") or []),
             }
         )
@@ -560,7 +604,8 @@ def build_consensus(*, season: int = 2026) -> dict[str, Any]:
                 "prices (Kalshi/Polymarket thresholds) are dropped; numberFire "
                 "projections fill only when no sportsbook quote remains; "
                 "nickname aliases (Kenny/Kenneth, Chig/Chigoziem, Cam/Cameron) "
-                "are merged before the median"
+                "are merged before the median; checklist Vegas FP requires "
+                "book-backed scoring coverage (projection-only rows are not ranked)"
             ),
             "volume_attempts_targets": (
                 "not used for checklist ranks; public boards lack attempt/target "
