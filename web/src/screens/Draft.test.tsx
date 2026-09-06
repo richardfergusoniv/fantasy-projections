@@ -72,19 +72,17 @@ function checklist(): DraftChecklist {
     prior_pts: 200 - index,
     vegas_fp: index === 0 ? 163.5 : null,
     vegas_prop_coverage: index === 0 ? "mixed" : "none",
-    markets:
-      index === 0
-        ? { rec_yards: 900.5, receptions: 49.5, rec_tds: 5.0, targets: 114.9 }
-        : {},
-    market_kinds:
-      index === 0
-        ? {
-            rec_yards: "book",
-            receptions: "book",
-            rec_tds: "projection",
-            targets: "projection",
-          }
-        : {},
+    markets: (index === 0
+      ? { rec_yards: 900.5, receptions: 49.5, rec_tds: 5.0, targets: 114.9 }
+      : {}) as Record<string, number | null>,
+    market_kinds: (index === 0
+      ? {
+          rec_yards: "book",
+          receptions: "book",
+          rec_tds: "projection",
+          targets: "projection",
+        }
+      : {}) as Record<string, string>,
     rank_tier: (index < 10 ? "adp" : index < 20 ? "ecr" : "prior_pts") as
       | "adp"
       | "ecr"
