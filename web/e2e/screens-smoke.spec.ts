@@ -5,8 +5,13 @@ test.describe("screen smoke (production bundle)", () => {
   test("every primary and More screen renders without error", async ({ page }) => {
     await signIn(page);
 
-    const primary: Array<{ link: string; heading: string | RegExp; exact?: boolean }> = [
-      { link: "Home", heading: "Decisions" },
+    const primary: Array<{
+      link: string;
+      heading: string | RegExp;
+      exact?: boolean;
+      exactHeading?: boolean;
+    }> = [
+      { link: "Home", heading: "Decisions", exactHeading: true },
       { link: "Lineup", heading: /Lineup/i },
       { link: "Waivers", heading: /Waivers/i },
       { link: "Trade", heading: /Trade Lab/i, exact: false },
@@ -15,7 +20,9 @@ test.describe("screen smoke (production bundle)", () => {
 
     for (const screen of primary) {
       await page.getByRole("link", { name: screen.link, exact: screen.exact ?? true }).click();
-      await expect(page.getByRole("heading", { name: screen.heading })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: screen.heading, exact: screen.exactHeading }),
+      ).toBeVisible();
     }
 
     const more: Array<{ label: string; heading: string | RegExp }> = [
