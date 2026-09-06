@@ -75,7 +75,11 @@ export function LoginScreen() {
     <div className="screen login-screen">
       <section className="panel login-panel">
         <header className="panel-header">
-          <h2>Sign in</h2>
+          <div className="login-brand">
+            <p className="brand-label">Fantasy Decisions</p>
+            <h2>Sign in</h2>
+            <p>Email a one-time link. No password to remember mid-waiver wire.</p>
+          </div>
         </header>
         <div className="panel-body stack">
           {sessionExpired ? (
@@ -90,8 +94,7 @@ export function LoginScreen() {
             </p>
           ) : null}
           <p className="muted">
-            Email magic-link authentication. Use{" "}
-            {CANONICAL_PRODUCTION_ORIGIN.replace(/^https:\/\//, "")} — the bare
+            Use {CANONICAL_PRODUCTION_ORIGIN.replace(/^https:\/\//, "")}. The bare
             fantasy-projections.vercel.app host is a different legacy app.
           </p>
           <AppBuildStamp />
