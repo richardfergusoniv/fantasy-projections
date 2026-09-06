@@ -3,9 +3,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LeagueSwitcher } from "./LeagueSwitcher";
 
-const setShowAllLeagues = vi.fn();
 const selectLeague = vi.fn();
-const setWeek = vi.fn();
 
 const leagues = [
   {
@@ -36,42 +34,49 @@ describe("LeagueSwitcher", () => {
   beforeEach(() => {
     mockState = {
       visibleLeagues: [leagues[0]],
-      configuredLeagueIds: ["2026-a"],
-      leagues,
-      showAllLeagues: false,
-      setShowAllLeagues,
       selectedLeagueId: "2026-a",
       selectLeague,
       leaguesLoading: false,
       leaguesError: null,
-      availableWeeks: [1, 2],
-      week: 2,
-      setWeek,
-      rostersLoading: false,
-      season: 2026,
       activeSeason: 2026,
     };
   });
 
-  it("shows Season instead of Week on the draft screen", () => {
+  it("puts Regression Model left of Leagues and omits week/history controls", () => {
+    render(
+      <MemoryRouter initialEntries={["/draft"]}>
+        <LeagueSwitcher />
+      </MemoryRouter>,
+    );
+
+    const regression = screen.getByRole("link", { name: "Regression Model" });
+    const leaguesLabel = screen.getByLabelText("Leagues");
+    expect(regression.compareDocumentPosition(leaguesLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(regression).toHaveAttribute("aria-current", "page");
+    expect(screen.queryByLabelText("Week")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Season")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/historical/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Show historical leagues/i)).not.toBeInTheDocument();
+  });
+
+  it("does not mark Regression Model current on the Vegas Props pane", () => {
     render(
       <MemoryRouter initialEntries={["/draft?pane=checklist"]}>
         <LeagueSwitcher />
       </MemoryRouter>,
     );
-    expect(screen.getByLabelText("Season")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Week")).not.toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Three Wide" })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: /2025/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Regression Model" })).not.toHaveAttribute(
+      "aria-current",
+    );
   });
 
-  it("keeps the Week control on non-draft screens", () => {
+  it("keeps Regression Model available off the draft screen", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <LeagueSwitcher />
       </MemoryRouter>,
     );
-    expect(screen.getByLabelText("Week")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Season")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Regression Model" })).toHaveAttribute("href", "/draft");
+    expect(screen.getByLabelText("Leagues")).toBeInTheDocument();
   });
 });

@@ -19,8 +19,7 @@ type DraftPane = "checklist" | "ours";
 type ChecklistSort = "adp" | "vorp";
 
 const DRAFT_PANES: Array<[DraftPane, string]> = [
-  ["ours", "Our Rankings"],
-  ["checklist", "Draft Checklist"],
+  ["checklist", "Vegas Props"],
 ];
 
 function paneFromSearch(value: string | null): DraftPane {
@@ -272,7 +271,7 @@ export function DraftScreen() {
 
   const criteriaLabels = checklist?.criteria_labels ?? {};
 
-  /** League VORP board rank + tier (Our Rankings), keyed for checklist VORP sort. */
+  /** League VORP board rank + tier (Regression Model), keyed for checklist VORP sort. */
   const vorpRankByPlayerId = useMemo(() => {
     const map = new Map<string, number>();
     for (const entry of entries) {
@@ -304,7 +303,7 @@ export function DraftScreen() {
       return true;
     });
     // ADP: All/FLEX re-sort by market ADP; single-pos tabs keep board order.
-    // VORP: always order by league VORP board rank (Our Rankings).
+    // VORP: always order by league VORP board rank (Regression Model).
     if (checklistSort === "vorp") {
       return [...filtered].sort((a, b) => checklistVorpSort(a, b, vorpRankByPlayerId));
     }
@@ -396,9 +395,9 @@ export function DraftScreen() {
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Draft Checklist sorts by ADP or VORP (toggle above the list). FLEX = RB/WR/TE. Context pills
-          are Vegas volume/offense and Sharp SOS ranks. Our Rankings is VORP from Vegas season lines.
-          Mark drafted to hide a player across both.
+          Vegas Props sorts by ADP or VORP (toggle above the list). FLEX = RB/WR/TE. Context pills
+          are Vegas volume/offense and Sharp SOS ranks. Regression Model (header) is VORP from Vegas
+          season lines. Mark drafted to hide a player across both.
         </p>
 
         <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">

@@ -17,7 +17,7 @@ export function AppShell() {
         <div className="topbar-row">
           <div className="brand-block">
             <p className="brand-label">Fantasy Decisions</p>
-            <h1 className="app-title">Decision App</h1>
+            <h1 className="app-title">Decisions</h1>
           </div>
           <div className="account-block">
             {user ? (
