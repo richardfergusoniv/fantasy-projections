@@ -151,8 +151,12 @@ def _odds_skewed(over: Any, under: Any, *, gap: float = SKEWED_ODDS_GAP) -> bool
     return abs(over_p - under_p) > gap
 
 
-def _one_sided_longshot(over: Any, under: Any, *, threshold: float = 200.0) -> bool:
-    """Reject threshold props posted as huge plus-money on only one side."""
+def _one_sided_longshot(over: Any, under: Any, *, threshold: float = 100.0) -> bool:
+    """Reject threshold props posted as plus-money on only one side.
+
+    Plus-100 overlays (Alec Pierce DK 999.5 receiving yards at +125) are juice
+    ladders, not main season totals.
+    """
 
     def _is_longshot(odds: Any) -> bool:
         try:
@@ -172,6 +176,24 @@ def _is_prediction_market_book(name: str) -> bool:
     if key in PREDICTION_MARKET_BOOKS:
         return True
     return "kalshi" in key or "polymarket" in key
+
+
+def _conflicts_with_projection(line: float, projection: float) -> bool:
+    """True when a book line is juiced upward vs the same-source projection.
+
+    TD / count markets use a tighter absolute gap (Caesars-only Alec Pierce 7.5
+    TDs vs RotoWire 6.0). Yard markets catch milder overlays like 999.5 vs 872
+    that the prior 25%/150-yard gate missed.
+    """
+    scale = max(abs(projection), 1.0)
+    delta = abs(line - projection)
+    rel = delta / scale
+    if scale <= 25:
+        # Receptions / passing·rushing·receiving TDs.
+        return line > projection and delta >= 1.0 and rel >= 0.15
+    return (rel > 0.5 and delta > max(1.5, 0.05 * scale)) or (
+        line > projection and rel > 0.12 and delta > 80
+    )
 
 
 def _book_entry_line(raw: Any) -> float | None:
@@ -241,6 +263,12 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
             book_line = _book_entry_line(book_raw)
             if book_line is None:
                 continue
+            # Drop per-book juice vs the same-source projection before median
+            # (Pierce: keep FanDuel 925.5, drop Caesars/DK 999.5 vs RW 872).
+            if projection is not None and _conflicts_with_projection(
+                book_line, projection
+            ):
+                continue
             # Prefer two-sided prices. Odds-less alt totals (DK/Caesars 3499.5
             # next to a fair FanDuel 1950.5 for Fernando Mendoza) are often
             # juice thresholds and can dominate a plain median.
@@ -296,17 +324,13 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
         scale = max(abs(projection), 1.0)
         delta = abs(line - projection)
         rel = delta / scale
-        # TD-aware floor: 9.5 vs 4.0 must drop. Yardage juicing (999.5 vs 770)
-        # drops on a milder relative miss with a large absolute gap.
-        # Only treat large upward juice as conflict (999.5 vs 770, 9.5 vs 4).
-        # Books below a model proj (Mendoza 1950 vs 2894) are market disagreement.
-        conflict = (rel > 0.5 and delta > max(1.5, 0.05 * scale)) or (
-            line > projection and rel > 0.25 and delta > 150
-        )
-        if conflict:
-            # Drop the source quote entirely (Kupp: a 364 RotoWire proj must not
-            # blend with NumberFire after the Caesars line is rejected).
-            return None
+        if _conflicts_with_projection(line, projection):
+            # Severe juice (Kupp 1499.5 vs 364): drop the whole source so a
+            # low RotoWire proj cannot blend with NumberFire. Milder juice
+            # (Pierce Caesars 7.5 TDs vs RW 6.0): trust the source projection.
+            if rel > 0.5:
+                return None
+            return (projection, "projection")
     if line is not None:
         return (line, "book")
     if projection is not None:

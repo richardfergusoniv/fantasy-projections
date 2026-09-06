@@ -1818,3 +1818,128 @@ a {
     width: auto;
   }
 }
+
+.draft-player-name {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  text-underline-offset: 0.15em;
+}
+
+.draft-player-name:hover,
+.draft-player-name:focus-visible {
+  color: var(--accent-text, var(--accent));
+  text-decoration-color: var(--accent);
+  outline: none;
+}
+
+.player-card-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: end center;
+  padding: 0.75rem;
+  background: var(--overlay, rgba(4, 10, 18, 0.72));
+}
+
+.player-card-panel {
+  width: min(28rem, 100%);
+  max-height: min(85vh, 40rem);
+  overflow: auto;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: var(--radius, 0.75rem);
+  background: var(--bg-panel, var(--bg-elevated, var(--bg)));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  padding: 1rem 1rem 1.15rem;
+}
+
+.player-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.player-card-header h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+}
+
+.player-card-coverage {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+}
+
+.player-card-markets {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.player-card-market-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 0.5rem);
+  background: color-mix(in srgb, var(--bg-elevated, var(--bg)) 88%, transparent);
+}
+
+.player-card-market-row dt {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.player-card-market-row dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-card-kind {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.player-card-kind.is-book {
+  color: var(--accent-text, var(--accent));
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.player-card-kind.is-projection {
+  color: var(--text-muted);
+}
+
+@media (min-width: 640px) {
+  .player-card-backdrop {
+    place-items: center;
+  }
+}

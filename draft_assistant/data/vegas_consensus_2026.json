@@ -1,6 +1,6 @@
 {
   "season": 2026,
-  "generated_at": "2026-09-06T05:28:18.183427+00:00",
+  "generated_at": "2026-09-06T14:13:39.924869+00:00",
   "source_files": [
     "action_numberfire",
     "bettingpros",
@@ -74,7 +74,7 @@
         "rush_attempts": 18.01,
         "targets": 0.0,
         "receptions": 0.0,
-        "pass_yards": 3087.5,
+        "pass_yards": 3099.5,
         "rush_yards": 84.46,
         "rec_yards": 0.0,
         "pass_tds": 21.5,
@@ -193,7 +193,7 @@
         "receptions": 21.32,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 273.54,
+        "rec_yards": 358.27,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 1.31,
@@ -214,7 +214,8 @@
       },
       "prop_coverage": "projection",
       "sources": [
-        "action_numberfire:numberfire"
+        "action_numberfire:numberfire",
+        "rotowire"
       ]
     },
     {
@@ -346,10 +347,10 @@
         "receptions": 49.5,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 937.5,
+        "rec_yards": 900.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
-        "rec_tds": 7.5,
+        "rec_tds": 5.025,
         "fantasy_points": 173.17
       },
       "market_kinds": {
@@ -362,7 +363,7 @@
         "rec_yards": "book",
         "pass_tds": "projection",
         "rush_tds": "projection",
-        "rec_tds": "book",
+        "rec_tds": "projection",
         "fantasy_points": "projection"
       },
       "prop_coverage": "mixed",
@@ -2488,7 +2489,7 @@
         "receptions": 47.39,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 629.95,
+        "rec_yards": 503.475,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 3.5,
@@ -2511,7 +2512,8 @@
       "sources": [
         "action_numberfire",
         "action_numberfire:numberfire",
-        "bettingpros"
+        "bettingpros",
+        "rotowire"
       ]
     },
     {
@@ -3336,7 +3338,7 @@
         "rush_yards": 477.28,
         "rec_yards": 0.0,
         "pass_tds": 0.0,
-        "rush_tds": 4.5,
+        "rush_tds": 4.65,
         "rec_tds": 0.0,
         "fantasy_points": 66.85
       },
@@ -3349,11 +3351,11 @@
         "rush_yards": "projection",
         "rec_yards": "projection",
         "pass_tds": "projection",
-        "rush_tds": "book",
+        "rush_tds": "projection",
         "rec_tds": "projection",
         "fantasy_points": "projection"
       },
-      "prop_coverage": "mixed",
+      "prop_coverage": "projection",
       "sources": [
         "action_numberfire:numberfire",
         "rotowire"
@@ -4872,14 +4874,14 @@
       "markets": {
         "rec_yards": 624.5,
         "receptions": 59.5,
-        "rec_tds": 4.5
+        "rec_tds": 4.0
       },
       "market_kinds": {
         "rec_yards": "book",
         "receptions": "book",
-        "rec_tds": "book"
+        "rec_tds": "projection"
       },
-      "prop_coverage": "books",
+      "prop_coverage": "mixed",
       "sources": [
         "action_numberfire",
         "bettingpros",
@@ -5120,7 +5122,7 @@
         "draftkings",
         "espn_fox_articles",
         "fantasy_team_advice",
-        "vegasinsider"
+        "rotowire"
       ]
     },
     {
@@ -6322,7 +6324,7 @@
         "receptions": 64.13,
         "pass_yards": 0.0,
         "rush_yards": 22.35,
-        "rec_yards": 999.5,
+        "rec_yards": 950.0,
         "pass_tds": 0.0,
         "rush_tds": 0.18,
         "rec_tds": 6.5,
@@ -8129,7 +8131,7 @@
         "rec_yards": 475.5,
         "pass_tds": 0.0,
         "rush_tds": 12.5,
-        "rec_tds": 4.5,
+        "rec_tds": 4.0,
         "fantasy_points": 310.01
       },
       "market_kinds": {
@@ -8357,10 +8359,10 @@
         "receptions": 76.33,
         "pass_yards": 0.0,
         "rush_yards": 21.49,
-        "rec_yards": 650.5,
+        "rec_yards": 638.0,
         "pass_tds": 0.0,
         "rush_tds": 0.18,
-        "rec_tds": 7.5,
+        "rec_tds": 4.675,
         "fantasy_points": 157.92
       },
       "market_kinds": {
@@ -8373,7 +8375,7 @@
         "rec_yards": "book",
         "pass_tds": "projection",
         "rush_tds": "projection",
-        "rec_tds": "book",
+        "rec_tds": "projection",
         "fantasy_points": "projection"
       },
       "prop_coverage": "mixed",
@@ -9430,7 +9432,7 @@
         "rec_yards": 662.5,
         "pass_tds": 0.0,
         "rush_tds": 0.36,
-        "rec_tds": 7.5,
+        "rec_tds": 5.465,
         "fantasy_points": 140.72
       },
       "market_kinds": {
@@ -9443,7 +9445,7 @@
         "rec_yards": "book",
         "pass_tds": "projection",
         "rush_tds": "projection",
-        "rec_tds": "book",
+        "rec_tds": "projection",
         "fantasy_points": "projection"
       },
       "prop_coverage": "mixed",
@@ -10405,7 +10407,8 @@
       "prop_coverage": "mixed",
       "sources": [
         "action_numberfire",
-        "action_numberfire:numberfire"
+        "action_numberfire:numberfire",
+        "rotowire"
       ]
     },
     {
@@ -10728,10 +10731,10 @@
         "receptions": 68.01,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 749.5,
+        "rec_yards": 927.04,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
-        "rec_tds": 4.5,
+        "rec_tds": 3.875,
         "fantasy_points": 153.53
       },
       "market_kinds": {
@@ -10741,16 +10744,15 @@
         "receptions": "projection",
         "pass_yards": "projection",
         "rush_yards": "projection",
-        "rec_yards": "book",
+        "rec_yards": "projection",
         "pass_tds": "projection",
         "rush_tds": "projection",
-        "rec_tds": "book",
+        "rec_tds": "projection",
         "fantasy_points": "projection"
       },
-      "prop_coverage": "mixed",
+      "prop_coverage": "projection",
       "sources": [
         "action_numberfire:numberfire",
-        "bettingpros",
         "rotowire"
       ]
     },
@@ -10869,7 +10871,8 @@
       "sources": [
         "action_numberfire:numberfire",
         "fantasy_team_advice",
-        "oddschecker"
+        "oddschecker",
+        "rotowire"
       ]
     },
     {
@@ -11591,7 +11594,7 @@
         "receptions": 50.3,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 625.0,
+        "rec_yards": 500.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 3.27,
@@ -11774,12 +11777,14 @@
       "team": "IND",
       "position": "WR",
       "markets": {
-        "rec_tds": 4.5
+        "rec_yards": 448.0,
+        "rec_tds": 3.0
       },
       "market_kinds": {
-        "rec_tds": "book"
+        "rec_yards": "projection",
+        "rec_tds": "projection"
       },
-      "prop_coverage": "books",
+      "prop_coverage": "projection",
       "sources": [
         "rotowire"
       ]
@@ -12497,7 +12502,7 @@
         "targets": 41.27,
         "receptions": 28.6,
         "pass_yards": 0.0,
-        "rush_yards": 874.5,
+        "rush_yards": 749.5,
         "rec_yards": 209.8,
         "pass_tds": 0.0,
         "rush_tds": 4.5,
@@ -13233,7 +13238,7 @@
         "rec_yards": 575.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
-        "rec_tds": 4.5,
+        "rec_tds": 3.5,
         "fantasy_points": 132.86
       },
       "market_kinds": {
@@ -13985,7 +13990,7 @@
         "rec_yards": 649.5,
         "pass_tds": 0.0,
         "rush_tds": 0.35,
-        "rec_tds": 7.5,
+        "rec_tds": 4.38,
         "fantasy_points": 112.51
       },
       "market_kinds": {
@@ -13998,7 +14003,7 @@
         "rec_yards": "book",
         "pass_tds": "projection",
         "rush_tds": "projection",
-        "rec_tds": "book",
+        "rec_tds": "projection",
         "fantasy_points": "projection"
       },
       "prop_coverage": "mixed",
@@ -15053,7 +15058,7 @@
         "receptions": 63.98,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 719.58,
+        "rec_yards": 668.79,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 4.5,
@@ -15629,7 +15634,7 @@
         "rec_yards": 950.0,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
-        "rec_tds": 7.75,
+        "rec_tds": 7.5,
         "fantasy_points": 237.88
       },
       "market_kinds": {
@@ -15970,7 +15975,7 @@
         "rush_yards": 699.5,
         "rec_yards": 115.81,
         "pass_tds": 0.0,
-        "rush_tds": 5.0,
+        "rush_tds": 4.5,
         "rec_tds": 0.84,
         "fantasy_points": 140.66
       },
@@ -17380,7 +17385,7 @@
         "rec_yards": 874.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
-        "rec_tds": 8.5,
+        "rec_tds": 7.5,
         "fantasy_points": 181.08
       },
       "market_kinds": {
@@ -20044,7 +20049,7 @@
       "markets": {
         "points_scored_pg": 22.9,
         "points_scored": 389.3,
-        "win_total": 8.0,
+        "win_total": 7.5,
         "pass_yards": 3809.535,
         "rush_yards": 1986.45,
         "total_yards": 6330.52
