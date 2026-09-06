@@ -483,7 +483,9 @@ def build_checklist(
         display_name = str(player.get("display_name") or player.get("name") or "")
         player_id = str(player.get("player_id") or "")
         norm = canonicalize_player_name(display_name)
-        markets = dict((vegas_by_norm.get(norm) or {}).get("markets") or {})
+        vegas_row = vegas_by_norm.get(norm) or {}
+        markets = dict(vegas_row.get("markets") or {})
+        prop_coverage = str(vegas_row.get("prop_coverage") or "none")
 
         season_stats = player.get("season") or {}
         if _num(markets.get("pass_yards")) is None and pos == "QB":
@@ -541,6 +543,7 @@ def build_checklist(
                 "rank_tier": "market_avg" if market_avg is not None else "none",
                 "market_avg": round(market_avg, 2) if market_avg is not None else None,
                 "markets": markets,
+                "prop_coverage": prop_coverage,
             }
         )
 
@@ -642,8 +645,14 @@ def build_checklist(
 
     fp_by_id: dict[str, float] = {}
     for row in candidates:
+        # Vegas Props board must not rank numberFire-/stat-only rows as if they
+        # were sportsbook O/Us (Cooper Kupp after Caesars juice is dropped).
+        if row.get("prop_coverage") not in ("books", "mixed"):
+            row["vegas_fp"] = None
+            continue
         fp = vegas_fantasy_points(row["markets"])
         if fp is None:
+            row["vegas_fp"] = None
             continue
         fp_by_id[row["player_id"]] = float(fp)
         row["vegas_fp"] = round(float(fp), 2)
@@ -734,6 +743,7 @@ def build_checklist(
                     "pos_market_rank": index,
                     "market_avg": row["market_avg"],
                     "vegas_fp": row.get("vegas_fp"),
+                    "vegas_prop_coverage": row.get("prop_coverage") or "none",
                     "unranked_break": False,
                     "ranks": ranks,
                     "checks": checks,
@@ -752,6 +762,7 @@ def build_checklist(
             "rank_source": "market_avg",
             "scoring_flavor": "half_ppr",
             "vegas_fp_scoring": "half_ppr_4pt_pass_td",
+            "vegas_fp_requires_book_props": True,
             "team_count": 12,
             "market_as_of": {
                 "source": "espn+ffc+mfl+fantasypros_ecr",

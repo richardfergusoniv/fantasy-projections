@@ -6,9 +6,20 @@ from src.draft_assistant.market_adp import canonicalize_player_name
 from src.draft_assistant.vegas_consensus import (
     _extract_quote,
     _line_value,
+    _prop_coverage,
     _robust_median,
     build_consensus,
 )
+
+
+def test_prop_coverage_classifies_book_vs_projection_scoring_markets():
+    assert _prop_coverage({"rec_yards": "book", "rec_tds": "book"}) == "books"
+    assert _prop_coverage({"rec_yards": "projection", "receptions": "projection"}) == (
+        "projection"
+    )
+    assert _prop_coverage({"rec_yards": "book", "rec_tds": "projection"}) == "mixed"
+    assert _prop_coverage({"targets": "projection"}) == "none"
+    assert _prop_coverage({}) == "none"
 
 
 def test_line_value_drops_book_line_that_conflicts_with_source_projection():
@@ -127,6 +138,16 @@ def test_build_consensus_kupp_receiving_yards_not_inflated_by_caesars():
     yards = kupp["markets"]["rec_yards"]
     # NumberFire ~798; the 1499.5 Caesars line must not pull this toward 1100+.
     assert 700 <= yards <= 900
+    # After juice drop, remaining scoring markets are numberFire-only — not Vegas.
+    assert kupp["prop_coverage"] == "projection"
+    assert set(kupp["market_kinds"].values()) == {"projection"}
+
+
+def test_build_consensus_star_has_book_backed_scoring_markets():
+    payload = build_consensus(season=2026)
+    chase = next(player for player in payload["players"] if player["name"] == "Ja'Marr Chase")
+    assert chase["prop_coverage"] in ("books", "mixed")
+    assert any(kind == "book" for kind in chase["market_kinds"].values())
 
 
 def test_build_consensus_gainwell_not_above_bucky_from_kalshi_junk():

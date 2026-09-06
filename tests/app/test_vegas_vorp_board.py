@@ -7,7 +7,8 @@ from src.app.decisions.draft_board import DraftBoardService, _load_vegas_fp_by_p
 
 def test_load_vegas_fp_map_covers_checklist_players():
     mapping = _load_vegas_fp_by_player(2026)
-    assert len(mapping) >= 700
+    # Only sportsbook-backed (books/mixed) props contribute — not numberFire-only.
+    assert 100 <= len(mapping) <= 300
     assert all(isinstance(value, float) for value in mapping.values())
 
 
