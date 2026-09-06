@@ -19,7 +19,7 @@ test.describe("owner journey", () => {
     await signIn(page);
 
     // ---------------------------------------------------------------- home
-    await expect(page.getByRole("heading", { name: "Decision App" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Decisions" })).toBeVisible();
     const leagueSelect = page.locator("#shell-league-select");
     await expect(leagueSelect).toBeEnabled();
     // All six leagues were imported, not just the default one.

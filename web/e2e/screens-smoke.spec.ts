@@ -6,7 +6,7 @@ test.describe("screen smoke (production bundle)", () => {
     await signIn(page);
 
     const primary: Array<{ link: string; heading: string | RegExp; exact?: boolean }> = [
-      { link: "Home", heading: "Decision App" },
+      { link: "Home", heading: "Decisions" },
       { link: "Lineup", heading: /Lineup/i },
       { link: "Waivers", heading: /Waivers/i },
       { link: "Trade", heading: /Trade Lab/i, exact: false },
