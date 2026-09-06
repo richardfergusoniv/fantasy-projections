@@ -1,46 +1,41 @@
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAppState } from "../hooks/useAppState";
 
 /**
- * League and week/season controls for the app shell.
+ * League control for the app shell, with a shortcut to the Regression Model
+ * draft board on its left.
  *
- * Both live here rather than on Home so every screen can switch without
- * navigating away, and both read the one shared `GET /leagues` fetch.
- *
- * Draft / checklist is season-scoped (no weekly board), so the Week control is
- * replaced with a Season readout on `/draft`.
+ * Week / season pickers and the historical-leagues toggle lived here previously;
+ * the app now defaults to the active season and the latest synced week.
  */
 export function LeagueSwitcher() {
   const location = useLocation();
   const onDraftScreen = location.pathname.startsWith("/draft");
+  const pane = new URLSearchParams(location.search).get("pane");
+  const regressionActive =
+    onDraftScreen && pane !== "checklist" && pane !== "assistant" && pane !== "draft-assistant";
+
   const {
     visibleLeagues,
-    configuredLeagueIds,
-    leagues,
-    showAllLeagues,
-    setShowAllLeagues,
     selectedLeagueId,
     selectLeague,
     leaguesLoading,
     leaguesError,
-    availableWeeks,
-    week,
-    setWeek,
-    rostersLoading,
-    season,
     activeSeason,
   } = useAppState();
 
-  const hasHistoricalLeagues = leagues.some(
-    (league) =>
-      league.season !== activeSeason ||
-      (configuredLeagueIds.length > 0 && !configuredLeagueIds.includes(league.id)),
-  );
-
   return (
     <div className="shell-controls">
+      <Link
+        to="/draft"
+        className={`shell-pane-link${regressionActive ? " is-active" : ""}`}
+        aria-current={regressionActive ? "page" : undefined}
+      >
+        Regression Model
+      </Link>
+
       <div className="shell-control">
-        <label htmlFor="shell-league-select">League</label>
+        <label htmlFor="shell-league-select">Leagues</label>
         <select
           id="shell-league-select"
           value={selectedLeagueId ?? ""}
@@ -54,55 +49,10 @@ export function LeagueSwitcher() {
           {visibleLeagues.map((league) => (
             <option key={league.id} value={league.id}>
               {league.name}
-              {showAllLeagues || league.season !== activeSeason
-                ? ` · ${league.season}`
-                : ""}
             </option>
           ))}
         </select>
       </div>
-
-      {hasHistoricalLeagues ? (
-        <div className="shell-control shell-control-inline">
-          <label className="checkbox-inline">
-            <input
-              type="checkbox"
-              checked={showAllLeagues}
-              onChange={(event) => setShowAllLeagues(event.target.checked)}
-            />
-            Show historical leagues
-          </label>
-        </div>
-      ) : null}
-
-      {onDraftScreen ? (
-        <div className="shell-control">
-          <label htmlFor="shell-season-readout">Season</label>
-          <select id="shell-season-readout" value={season ?? activeSeason} disabled>
-            <option value={season ?? activeSeason}>{season ?? activeSeason}</option>
-          </select>
-        </div>
-      ) : (
-        <div className="shell-control">
-          <label htmlFor="shell-week-select">Week</label>
-          <select
-            id="shell-week-select"
-            value={week ?? ""}
-            onChange={(event) => setWeek(Number(event.target.value))}
-            disabled={rostersLoading || availableWeeks.length === 0}
-          >
-            {rostersLoading ? <option value="">Loading…</option> : null}
-            {!rostersLoading && availableWeeks.length === 0 ? (
-              <option value="">No weeks synced</option>
-            ) : null}
-            {availableWeeks.map((value) => (
-              <option key={value} value={value}>
-                Week {value}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
 
       {leaguesError ? (
         <p className="error-text" role="alert">

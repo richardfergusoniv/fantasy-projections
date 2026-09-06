@@ -164,8 +164,7 @@ function checklist(): DraftChecklist {
 }
 
 async function openOursPane() {
-  const ours = await screen.findByRole("tab", { name: /Our Rankings/i });
-  if (ours.getAttribute("aria-selected") !== "true") fireEvent.click(ours);
+  // Regression Model lives in the shell; Draft defaults to that board at /draft.
   const position = await screen.findByLabelText("Position");
   fireEvent.change(position, { target: { value: "ALL" } });
   expect(await screen.findByText(/League-adjusted · 12 teams/i)).toBeInTheDocument();
@@ -179,20 +178,20 @@ describe("DraftScreen", () => {
     getDraftChecklist.mockResolvedValue(checklist());
   });
 
-  it("opens the checklist from the pane query", async () => {
+  it("opens Vegas Props from the pane query", async () => {
     renderDraft("/draft?pane=checklist");
     expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Draft Checklist/i })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: /Vegas Props/i })).toHaveAttribute("aria-selected", "true");
   });
 
   it("defaults to league-specific VORP rankings rather than the market checklist", async () => {
     renderDraft();
     expect(await screen.findByRole("listitem", { name: "Draft Player 1 draft card" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Our Rankings/i })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: /Vegas Props/i })).toHaveAttribute("aria-selected", "false");
     expect(screen.getByText(/Ranked by league VORP, not raw quarterback points/i)).toBeInTheDocument();
     expect(screen.queryByText(/Market as of ADP 2026-09-03/i)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("tab", { name: /Draft Checklist/i }));
+    fireEvent.click(screen.getByRole("tab", { name: /Vegas Props/i }));
     expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "All", pressed: true })).toBeInTheDocument();
     // All tab sorts by overall ADP — QB at 0.5 beats WR Player 1 at ADP 1.
@@ -288,7 +287,7 @@ describe("DraftScreen", () => {
   });
 
 
-  it("shows Vegas VORP tier break headers on Our Rankings", async () => {
+  it("shows Vegas VORP tier break headers on Regression Model", async () => {
     renderDraft("/draft?pane=ours");
     await screen.findByText("Draft Player 1");
     const breaks = screen.getAllByRole("separator").filter((node) =>
@@ -303,7 +302,7 @@ describe("DraftScreen", () => {
 
   it("hides checklist rows when drafted via checkbox", async () => {
     renderDraft();
-    fireEvent.click(await screen.findByRole("tab", { name: /Draft Checklist/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: /Vegas Props/i }));
     fireEvent.click(await screen.findByRole("button", { name: "WR" }));
     await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
     fireEvent.click(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" }));
@@ -320,7 +319,6 @@ describe("DraftScreen", () => {
     renderDraft();
 
     expect(await screen.findByText(/checklist unavailable/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: /Our Rankings/i }));
     fireEvent.change(await screen.findByLabelText("Position"), {
       target: { value: "ALL" },
     });
@@ -333,7 +331,7 @@ describe("DraftScreen", () => {
     getDraftBoard.mockRejectedValue(new Error("board unavailable"));
     renderDraft();
 
-    fireEvent.click(await screen.findByRole("tab", { name: /Draft Checklist/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: /Vegas Props/i }));
     expect(
       await screen.findByRole("checkbox", { name: "Mark QB Player 1 drafted" }),
     ).toBeInTheDocument();
@@ -342,7 +340,7 @@ describe("DraftScreen", () => {
 
   it("keeps the unranked divider when the flagged player is filtered out", async () => {
     renderDraft();
-    fireEvent.click(await screen.findByRole("tab", { name: /Draft Checklist/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: /Vegas Props/i }));
     fireEvent.click(await screen.findByRole("button", { name: "WR" }));
     await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
     // WR Player 21 carries unranked_break; hiding it must not hide the divider.

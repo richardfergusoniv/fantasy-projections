@@ -29,16 +29,16 @@ test.describe("screen smoke (production bundle)", () => {
       await expect(page.getByRole("heading", { name: screen.heading })).toBeVisible();
     }
 
-    // Draft is primary nav; checklist is the market assistant pane.
+    // Draft is primary nav; Vegas Props is the market assistant pane.
     await page.getByRole("link", { name: "Draft", exact: true }).click();
-    await expect(page.getByRole("tab", { name: "Our Rankings" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "Draft Checklist" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Regression Model" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Vegas Props" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "O-line" })).toHaveCount(0);
 
     await page.getByRole("link", { name: "Home", exact: true }).click();
-    await page.getByRole("link", { name: "Open Draft Checklist" }).click();
+    await page.getByRole("link", { name: "Open Vegas Props" }).click();
     await expect(page).toHaveURL(/\/draft\?pane=checklist/);
-    await expect(page.getByRole("tab", { name: "Draft Checklist" })).toHaveAttribute(
+    await expect(page.getByRole("tab", { name: "Vegas Props" })).toHaveAttribute(
       "aria-selected",
       "true",
     );

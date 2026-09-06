@@ -109,7 +109,7 @@ describe("HomeScreen urgent decisions", () => {
     // Uncertainty is never hidden on a recommendation surface.
     expect(await screen.findByText(/Projected lineup points/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Draft assistant" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open Draft Checklist" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Open Vegas Props" })).toHaveAttribute(
       "href",
       "/draft?pane=checklist",
     );
