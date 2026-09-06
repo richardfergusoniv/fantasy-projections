@@ -225,7 +225,7 @@ a {
 
 .shell-pane-link.is-active {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 18%, var(--bg-panel));
+  background: var(--accent-soft);
   color: var(--text);
 }
 
