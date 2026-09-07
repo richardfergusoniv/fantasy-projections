@@ -128,15 +128,12 @@ export function HomeScreen() {
 
       <Panel title="Draft assistant">
         <p className="muted">
-          Market ADP Vegas Props board with Sharp SOS ranks, plus the Regression Model VORP board.
-          Open Draft in the bottom nav, or jump straight to Vegas Props.
+          Market ADP Vegas Props board with Sharp SOS ranks. Open Draft in the bottom nav, or jump
+          straight in below.
         </p>
         <div className="stack">
-          <Link className="btn btn-primary" to="/draft?pane=checklist">
+          <Link className="btn btn-primary" to="/draft">
             Open Vegas Props
-          </Link>
-          <Link className="btn btn-ghost" to="/draft">
-            Open Regression Model
           </Link>
         </div>
       </Panel>

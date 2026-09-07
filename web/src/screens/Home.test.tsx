@@ -111,7 +111,7 @@ describe("HomeScreen urgent decisions", () => {
     expect(screen.getByRole("heading", { name: "Draft assistant" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open Vegas Props" })).toHaveAttribute(
       "href",
-      "/draft?pane=checklist",
+      "/draft",
     );
     expect(screen.getByTestId("app-build-stamp")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeInTheDocument();

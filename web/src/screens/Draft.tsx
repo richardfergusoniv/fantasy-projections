@@ -1,13 +1,10 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { AsyncStateBanner } from "../components/AsyncState";
 import { FreshnessBadge } from "../components/FreshnessBadge";
 import { Panel } from "../components/Panel";
-import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
 import { api } from "../api/client";
 import type {
-  DraftBoard,
   DraftBoardEntry,
   DraftChecklist,
   DraftChecklistEntry,
@@ -15,20 +12,7 @@ import type {
 
 const DRAFTED_STORAGE_PREFIX = "fantasy-decisions:drafted";
 
-type DraftPane = "checklist" | "ours";
 type ChecklistSort = "adp" | "vorp";
-
-const DRAFT_PANES: Array<[DraftPane, string]> = [
-  ["checklist", "Vegas Props"],
-];
-
-function paneFromSearch(value: string | null): DraftPane {
-  if (value === "checklist" || value === "assistant" || value === "draft-assistant") {
-    return "checklist";
-  }
-  if (value === "ours" || value === "rankings") return "ours";
-  return "ours";
-}
 
 function draftedStorageKey(leagueId: string, season?: number): string {
   return `${DRAFTED_STORAGE_PREFIX}:${leagueId}:${season ?? "current"}`;
@@ -48,11 +32,6 @@ function saveDraftedPlayers(key: string, playerIds: string[]): void {
   localStorage.setItem(key, JSON.stringify(playerIds));
 }
 
-function formatVorp(value: number | undefined): string {
-  if (value == null) return "—";
-  if (Math.abs(value) < 0.05) return "Replacement";
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}`;
-}
 
 const CHECKLIST_POSITIONS = ["ALL", "QB", "RB", "WR", "TE", "FLEX"] as const;
 /** Standard FLEX pool: skill positions that can fill a FLEX seat (not QB). */
@@ -170,12 +149,8 @@ function averageAvailableRank(entry: DraftChecklistEntry, keys: string[]): numbe
 
 export function DraftScreen() {
   const { selectedLeagueId, selectedLeague } = useAppState();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [pane, setPane] = useState<DraftPane>(() => paneFromSearch(searchParams.get("pane")));
   const [entries, setEntries] = useState<DraftBoardEntry[]>([]);
   const [checklist, setChecklist] = useState<DraftChecklist | null>(null);
-  const [context, setContext] = useState<DraftBoard["context"]>();
-  const [profile, setProfile] = useState<DraftBoard["profile"]>();
   const [positionFilter, setPositionFilter] = useState("ALL");
   const [checklistSort, setChecklistSort] = useState<ChecklistSort>("adp");
   const [search, setSearch] = useState("");
@@ -193,22 +168,6 @@ export function DraftScreen() {
     : null;
 
   useEffect(() => {
-    setPane(paneFromSearch(searchParams.get("pane")));
-  }, [searchParams]);
-
-  function selectPane(next: DraftPane) {
-    setPane(next);
-    setVisibleCount(25);
-    const params = new URLSearchParams(searchParams);
-    if (next === "ours") {
-      params.delete("pane");
-    } else {
-      params.set("pane", next);
-    }
-    setSearchParams(params, { replace: true });
-  }
-
-  useEffect(() => {
     setDraftedPlayerIds(storageKey ? loadDraftedPlayers(storageKey) : []);
     setVisibleCount(25);
   }, [storageKey]);
@@ -222,8 +181,7 @@ export function DraftScreen() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    // allSettled, not all: the two panes fail independently, so a checklist
-    // outage must not blank the board that "Ours" renders (and vice versa).
+    // Board fetch still powers checklist VORP sort while Regression Model UI is hidden.
     void Promise.allSettled([
       api.getDraftBoard(selectedLeagueId),
       api.getDraftChecklist(selectedLeagueId),
@@ -236,8 +194,6 @@ export function DraftScreen() {
 
         setEntries(board?.entries ?? []);
         setChecklist(checklistPayload);
-        setContext(board?.context);
-        setProfile(board?.profile);
         setSearch("");
         setVisibleCount(25);
         setDataAsOf(checklistPayload?.meta.data_as_of ?? board?.meta.data_as_of);
@@ -260,18 +216,15 @@ export function DraftScreen() {
 
   const draftedPlayerSet = useMemo(() => new Set(draftedPlayerIds), [draftedPlayerIds]);
   const draftedCount = useMemo(() => {
-    const pool =
-      pane === "checklist"
-        ? (checklist?.entries ?? []).map((entry) => entry.player_id)
-        : entries.map((entry) => entry.player_id);
+    const pool = (checklist?.entries ?? []).map((entry) => entry.player_id);
     return pool.filter((id) => draftedPlayerSet.has(id)).length;
-  }, [pane, checklist, entries, draftedPlayerSet]);
+  }, [checklist, draftedPlayerSet]);
 
   const normalizedSearch = search.trim().toLowerCase();
 
   const criteriaLabels = checklist?.criteria_labels ?? {};
 
-  /** League VORP board rank + tier (Regression Model), keyed for checklist VORP sort. */
+  /** League VORP board rank, keyed for checklist VORP sort. */
   const vorpRankByPlayerId = useMemo(() => {
     const map = new Map<string, number>();
     for (const entry of entries) {
@@ -303,7 +256,7 @@ export function DraftScreen() {
       return true;
     });
     // ADP: All/FLEX re-sort by market ADP; single-pos tabs keep board order.
-    // VORP: always order by league VORP board rank (Regression Model).
+    // VORP: order by league VORP board rank from the draft board API.
     if (checklistSort === "vorp") {
       return [...filtered].sort((a, b) => checklistVorpSort(a, b, vorpRankByPlayerId));
     }
@@ -331,20 +284,6 @@ export function DraftScreen() {
     (entry) => entry.rank_tier === "prior_pts" || entry.rank_tier === "none",
   );
 
-  const positionEntries = entries.filter((entry) =>
-    matchesPositionFilter(entry.position, positionFilter),
-  );
-  const searchedEntries = positionEntries.filter(
-    (entry) =>
-      !normalizedSearch ||
-      entry.name.toLowerCase().includes(normalizedSearch) ||
-      (entry.team ?? "").toLowerCase().includes(normalizedSearch),
-  );
-  const filteredEntries = hideDrafted
-    ? searchedEntries.filter((entry) => !draftedPlayerSet.has(entry.player_id))
-    : searchedEntries;
-  const visibleEntries = filteredEntries.slice(0, visibleCount);
-  const top = searchedEntries.find((entry) => !draftedPlayerSet.has(entry.player_id));
   const checklistTop = checklistFiltered[0];
 
   function setDrafted(playerId: string, drafted: boolean): void {
@@ -366,12 +305,6 @@ export function DraftScreen() {
   }
 
   const missing: string[] = [];
-  if (pane === "ours" && entries.length && entries.every((entry) => entry.vorp == null)) {
-    missing.push("VORP");
-  }
-  if (pane === "ours" && entries.length && entries.every((entry) => entry.tier == null)) {
-    missing.push("tiers");
-  }
 
   const market = checklist?.checklist_meta.market_as_of;
   const rankSource = checklist?.checklist_meta.rank_source;
@@ -395,56 +328,28 @@ export function DraftScreen() {
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Vegas Props sorts by ADP or VORP (toggle above the list). FLEX = RB/WR/TE. Context pills
-          are Vegas volume/offense and Sharp SOS ranks. Regression Model (header) is VORP from Vegas
-          season lines. Mark drafted to hide a player across both.
+          Vegas Props sorts by ADP or VORP. FLEX = RB/WR/TE. Context pills are Vegas volume/offense
+          and Sharp SOS ranks. Mark drafted to hide a player from the board.
         </p>
 
-        <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">
-          {DRAFT_PANES.map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={pane === id}
-              className={`draft-pane-tab${pane === id ? " is-active" : ""}`}
-              onClick={() => selectPane(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
         <AsyncStateBanner
-          label="Draft board"
+          label="Vegas Props"
           loading={loading}
           offline={false}
           error={error}
           fromCache={false}
           dataAsOf={dataAsOf}
-          hasData={
-            pane === "checklist"
-              ? Boolean(checklist?.available && checklist.entries.length)
-              : entries.length > 0
-          }
-          isEmpty={
-            pane === "checklist"
-              ? !checklist?.available || checklist.entries.length === 0
-              : entries.length === 0
-          }
+          hasData={Boolean(checklist?.available && checklist.entries.length)}
+          isEmpty={!checklist?.available || checklist.entries.length === 0}
           missing={missing}
           emptyMessage={
-            pane === "checklist"
-              ? checklist == null
-                ? "Draft checklist request failed. Check the API error above, then confirm draft_checklist_2026.json is published."
-                : "No draft checklist published for this season. Run checklist_prepare and ensure draft_checklist_2026.json is in draft_assistant/data/ (and the active release)."
-              : `No draft board published for ${
-                  selectedLeague?.name ?? "this league"
-                }. Promote a release to populate it.`
+            checklist == null
+              ? "Draft checklist request failed. Check the API error above, then confirm draft_checklist_2026.json is published."
+              : "No draft checklist published for this season. Run checklist_prepare and ensure draft_checklist_2026.json is in draft_assistant/data/ (and the active release)."
           }
         />
 
-        <div className={`draft-board-controls${pane === "checklist" ? " is-checklist" : ""}`}>
+        <div className="draft-board-controls is-checklist">
           <div className="field draft-search-field">
             <label htmlFor="draft-player-search">Search players</label>
             <input
@@ -458,8 +363,6 @@ export function DraftScreen() {
               }}
             />
           </div>
-          {pane === "checklist" ? (
-            <>
             <div className="draft-pos-chips" role="group" aria-label="Position">
               {CHECKLIST_POSITIONS.map((position) => (
                 <button
@@ -497,46 +400,23 @@ export function DraftScreen() {
                 </button>
               ))}
             </div>
-            </>
-          ) : (
-            <div className="field">
-              <label htmlFor="draft-position-filter">Position</label>
-              <select
-                id="draft-position-filter"
-                value={positionFilter === "ALL" ? "ALL" : positionFilter}
-                onChange={(event) => {
-                  setPositionFilter(event.target.value);
-                  setVisibleCount(25);
-                }}
-              >
-                <option value="ALL">All positions</option>
-                {(["QB", "RB", "WR", "TE", "FLEX"] as const).map((position) => (
-                  <option key={position} value={position}>
-                    {position === "FLEX" ? "FLEX (RB/WR/TE)" : position}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          {pane === "checklist" ? (
-            <div className="field draft-max-avg-rank-field">
-              <label htmlFor="draft-mold-filter">Max avg rank</label>
-              <select
-                id="draft-mold-filter"
-                value={maxAvgRank}
-                onChange={(event) => {
-                  setMaxAvgRank(Number(event.target.value));
-                  setVisibleCount(25);
-                }}
-              >
-                <option value={0}>Any</option>
-                <option value={8}>≤8</option>
-                <option value={12}>≤12</option>
-                <option value={16}>≤16</option>
-                <option value={24}>≤24</option>
-              </select>
-            </div>
-          ) : null}
+          <div className="field draft-max-avg-rank-field">
+            <label htmlFor="draft-mold-filter">Max avg rank</label>
+            <select
+              id="draft-mold-filter"
+              value={maxAvgRank}
+              onChange={(event) => {
+                setMaxAvgRank(Number(event.target.value));
+                setVisibleCount(25);
+              }}
+            >
+              <option value={0}>Any</option>
+              <option value={8}>≤8</option>
+              <option value={12}>≤12</option>
+              <option value={16}>≤16</option>
+              <option value={24}>≤24</option>
+            </select>
+          </div>
           <label className="draft-toggle">
             <input
               type="checkbox"
@@ -558,7 +438,7 @@ export function DraftScreen() {
           </button>
         </div>
 
-        {pane === "checklist" && checklist?.available ? (
+        {checklist?.available ? (
           <>
             {marketBadge ? <p className="draft-market-badge">{marketBadge}</p> : null}
             <p className="muted draft-checklist-caveat">{checklist.checklist_meta.volume_caveat}</p>
@@ -700,147 +580,6 @@ export function DraftScreen() {
           </>
         ) : null}
 
-        {pane === "ours" && entries.length ? (
-          <>
-            <p className="muted">
-              Rankings use Vegas season fantasy points (half-PPR / 4-pt pass TD from yards,
-              receptions, and TDs). Scoring seats, FLEX, and SUPER_FLEX still set replacement.
-              Raw quarterback points never set the overall order by themselves.
-            </p>
-            <div className="draft-status">
-              <span className="on-clock">Best available: {top?.name ?? "not available"}</span>
-              <span className="pick-info">
-                VORP <MaybeNumber value={top?.vorp ?? null} digits={1} /> · Tier{" "}
-                {top?.tier ?? "not available"}
-              </span>
-            </div>
-            {context ? (
-              <p className="muted">
-                Draft status: {context.draft_status}
-                {context.draft_status === "live" && context.current_pick != null
-                  ? ` · Pick ${context.current_pick}`
-                  : ""}
-                {context.nfl_week != null ? ` · NFL week ${context.nfl_week}` : ""}
-                {context.season != null ? ` · season ${context.season}` : ""}
-              </p>
-            ) : null}
-            {profile ? (
-              <div className="stack">
-                <p className="muted">
-                  {profile.league_specific ? "League-adjusted" : "Default format"}
-                  {profile.team_count != null ? ` · ${profile.team_count} teams` : ""}
-                  {profile.scoring_fidelity ? ` · ${profile.scoring_fidelity}` : ""}
-                </p>
-                <p className="muted">
-                  Ranked by{" "}
-                  {profile.ranking_basis === "league_vorp"
-                    ? "league VORP"
-                    : profile.ranking_basis === "vegas_vorp"
-                      ? "Vegas VORP"
-                      : "sealed VORP"}
-                  {profile.points_source === "vegas_fp" ? " (Vegas FP)" : ""},
-                  not raw quarterback points · projected points are season totals
-                </p>
-                {profile.roster_positions.length ? (
-                  <p className="muted">
-                    Starting structure:{" "}
-                    {profile.roster_positions
-                      .filter((slot) => !["BN", "IR", "TAXI"].includes(slot))
-                      .join(" · ")}
-                  </p>
-                ) : null}
-                {Object.keys(profile.replacement_ranks).length ? (
-                  <p className="muted">
-                    Replacement ranks:{" "}
-                    {Object.entries(profile.replacement_ranks)
-                      .map(([position, rank]) => `${position}${rank}`)
-                      .join(" · ")}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-            <div className="draft-player-grid" role="list">
-              {visibleEntries.map((entry, index) => {
-                const drafted = draftedPlayerSet.has(entry.player_id);
-                const prevTier = index > 0 ? visibleEntries[index - 1]?.tier : undefined;
-                const showTierBreak =
-                  entry.tier != null && (index === 0 || entry.tier !== prevTier);
-                return (
-                  <Fragment key={entry.player_id}>
-                    {showTierBreak ? (
-                      <div className="draft-tier-break-row" role="separator">
-                        Tier {entry.tier}
-                      </div>
-                    ) : null}
-                  <article
-                    className={`draft-player-card${drafted ? " is-drafted" : ""}`}
-                    role="listitem"
-                    aria-label={`${entry.name} draft card`}
-                  >
-                    <div className="draft-player-card-header">
-                      <span className="draft-rank">#{entry.rank}</span>
-                      <div className="draft-player-identity">
-                        <h3>{entry.name}</h3>
-                        <p>
-                          <span className={`pos-badge ${entry.position}`}>{entry.position}</span>
-                          {entry.team ? ` · ${entry.team}` : ""}
-                          {entry.tier != null ? ` · Tier ${entry.tier}` : ""}
-                        </p>
-                      </div>
-                      <button
-                        className={`btn draft-player-action${drafted ? " is-drafted" : ""}`}
-                        type="button"
-                        aria-pressed={drafted}
-                        aria-label={`${drafted ? "Undo" : "Mark"} ${entry.name} drafted`}
-                        onClick={() => setDrafted(entry.player_id, !drafted)}
-                      >
-                        {drafted ? "Undo" : "Mark drafted"}
-                      </button>
-                    </div>
-                    <div className="draft-card-stats">
-                      <div className="draft-card-stat">
-                        <span className="label">VORP</span>
-                        <strong className={entry.vorp != null && entry.vorp < 0 ? "negative" : ""}>
-                          {formatVorp(entry.vorp)}
-                        </strong>
-                        <span className="hint">vs league replacement</span>
-                      </div>
-                      <div className="draft-card-stat">
-                        <span className="label">Projected points</span>
-                        <strong>
-                          {entry.points_mean != null ? entry.points_mean.toFixed(1) : "—"}
-                        </strong>
-                        <span className="hint">league-adjusted season</span>
-                      </div>
-                    </div>
-                    <p className="draft-replacement-note">
-                      {entry.replacement_rank != null
-                        ? `${entry.position}${entry.replacement_rank} replacement`
-                        : "Replacement rank unavailable"}
-                      {entry.replacement_points != null
-                        ? ` · ${entry.replacement_points.toFixed(1)} pts`
-                        : ""}
-                    </p>
-                  </article>
-                  </Fragment>
-                );
-              })}
-            </div>
-            <p className="muted">
-              Showing {visibleEntries.length} of {filteredEntries.length} matching players ·{" "}
-              {draftedCount} drafted.
-            </p>
-            {visibleEntries.length < filteredEntries.length ? (
-              <button
-                className="btn btn-secondary"
-                type="button"
-                onClick={() => setVisibleCount((current) => current + 25)}
-              >
-                Show 25 more
-              </button>
-            ) : null}
-          </>
-        ) : null}
       </Panel>
     </div>
   );

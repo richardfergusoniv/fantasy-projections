@@ -163,13 +163,6 @@ function checklist(): DraftChecklist {
   };
 }
 
-async function openOursPane() {
-  // Regression Model lives in the shell; Draft defaults to that board at /draft.
-  const position = await screen.findByLabelText("Position");
-  fireEvent.change(position, { target: { value: "ALL" } });
-  expect(await screen.findByText(/League-adjusted · 12 teams/i)).toBeInTheDocument();
-}
-
 describe("DraftScreen", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -178,20 +171,8 @@ describe("DraftScreen", () => {
     getDraftChecklist.mockResolvedValue(checklist());
   });
 
-  it("opens Vegas Props from the pane query", async () => {
-    renderDraft("/draft?pane=checklist");
-    expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Vegas Props/i })).toHaveAttribute("aria-selected", "true");
-  });
-
-  it("defaults to league-specific VORP rankings rather than the market checklist", async () => {
+  it("defaults Draft to Vegas Props", async () => {
     renderDraft();
-    expect(await screen.findByRole("listitem", { name: "Draft Player 1 draft card" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Vegas Props/i })).toHaveAttribute("aria-selected", "false");
-    expect(screen.getByText(/Ranked by league VORP, not raw quarterback points/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Market as of ADP 2026-09-03/i)).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("tab", { name: /Vegas Props/i }));
     expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "All", pressed: true })).toBeInTheDocument();
     // All tab sorts by overall ADP — QB at 0.5 beats WR Player 1 at ADP 1.
@@ -202,7 +183,14 @@ describe("DraftScreen", () => {
     expect(screen.getByText("RUSH 6")).toBeInTheDocument();
     expect(screen.getByLabelText("Max avg rank")).toBeInTheDocument();
     expect(screen.getByText(/Unranked \/ off market/i)).toBeInTheDocument();
-    expect(screen.queryByRole("tab", { name: /O-line/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: /Vegas Props/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Regression Model/i })).not.toBeInTheDocument();
+  });
+
+  it("keeps legacy checklist pane query on Vegas Props", async () => {
+    renderDraft("/draft?pane=checklist");
+    expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Mark QB Player 1 drafted" })).toBeInTheDocument();
   });
 
   it("filters checklist rows by max average rank", async () => {
@@ -287,22 +275,8 @@ describe("DraftScreen", () => {
   });
 
 
-  it("shows Vegas VORP tier break headers on Regression Model", async () => {
-    renderDraft("/draft?pane=ours");
-    await screen.findByText("Draft Player 1");
-    const breaks = screen.getAllByRole("separator").filter((node) =>
-      /^Tier \d+$/.test(node.textContent ?? ""),
-    );
-    expect(breaks.length).toBeGreaterThanOrEqual(2);
-    expect(breaks[0]).toHaveTextContent("Tier 1");
-    expect(breaks[1]).toHaveTextContent("Tier 2");
-  });
-
-
-
   it("hides checklist rows when drafted via checkbox", async () => {
     renderDraft();
-    fireEvent.click(await screen.findByRole("tab", { name: /Vegas Props/i }));
     fireEvent.click(await screen.findByRole("button", { name: "WR" }));
     await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
     fireEvent.click(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" }));
@@ -314,24 +288,18 @@ describe("DraftScreen", () => {
     ).toEqual(["wr-1"]);
   });
 
-  it("keeps the Ours board usable when the checklist request fails", async () => {
+  it("shows an error when the checklist request fails", async () => {
     getDraftChecklist.mockRejectedValue(new Error("checklist unavailable"));
     renderDraft();
 
     expect(await screen.findByText(/checklist unavailable/i)).toBeInTheDocument();
-    fireEvent.change(await screen.findByLabelText("Position"), {
-      target: { value: "ALL" },
-    });
-    expect(
-      await screen.findByRole("listitem", { name: "Draft Player 1 draft card" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /Mark .+ drafted/i })).not.toBeInTheDocument();
   });
 
-  it("keeps the checklist usable when the draft board request fails", async () => {
+  it("keeps Vegas Props usable when the draft board request fails", async () => {
     getDraftBoard.mockRejectedValue(new Error("board unavailable"));
     renderDraft();
 
-    fireEvent.click(await screen.findByRole("tab", { name: /Vegas Props/i }));
     expect(
       await screen.findByRole("checkbox", { name: "Mark QB Player 1 drafted" }),
     ).toBeInTheDocument();
@@ -340,7 +308,6 @@ describe("DraftScreen", () => {
 
   it("keeps the unranked divider when the flagged player is filtered out", async () => {
     renderDraft();
-    fireEvent.click(await screen.findByRole("tab", { name: /Vegas Props/i }));
     fireEvent.click(await screen.findByRole("button", { name: "WR" }));
     await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
     // WR Player 21 carries unranked_break; hiding it must not hide the divider.
@@ -352,92 +319,50 @@ describe("DraftScreen", () => {
     expect(screen.getByText(/Unranked \/ off market/i)).toBeInTheDocument();
   });
 
-  it("shows the league format and paginates beyond the first 15 players", async () => {
+  it("paginates the Vegas Props board beyond the first page", async () => {
     renderDraft();
-    await openOursPane();
+    await screen.findByRole("checkbox", { name: "Mark QB Player 1 drafted" });
 
-    expect(
-      await screen.findByRole("listitem", { name: "Draft Player 25 draft card" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("listitem", { name: "Draft Player 26 draft card" }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText(/League-adjusted · 12 teams/i)).toBeInTheDocument();
-    expect(screen.getByText(/WR · WR · WR · TE · FLEX/i)).toBeInTheDocument();
-    expect(screen.getByText(/WR43/i)).toBeInTheDocument();
-
+    expect(screen.getByText(/Showing 25 of/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Show 25 more" }));
-
-    expect(
-      screen.getByRole("listitem", { name: "Draft Player 40 draft card" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Showing 40 of 40 matching players/i)).toBeInTheDocument();
-    const replacementCard = screen.getByRole("listitem", {
-      name: "Draft Player 21 draft card",
-    });
-    expect(within(replacementCard).getByText("Replacement")).toBeInTheDocument();
+    expect(screen.getByText(/Showing \d+ of \d+ matching players/i)).toBeInTheDocument();
   });
 
-  it("filters the complete board by position", async () => {
-    renderDraft();
-    await openOursPane();
-    await screen.findByRole("listitem", { name: "Draft Player 25 draft card" });
-
-    fireEvent.change(screen.getByLabelText("Position"), { target: { value: "WR" } });
-
-    expect(screen.getByText(/Showing 10 of 10 matching players/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("listitem", { name: "Draft Player 3 draft card" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("listitem", { name: "Draft Player 2 draft card" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("marks drafted players, updates best available, and persists per league", async () => {
+  it("marks drafted checklist players and persists per league", async () => {
     const firstRender = renderDraft();
-    await openOursPane();
-    await screen.findByRole("listitem", { name: "Draft Player 1 draft card" });
+    fireEvent.click(await screen.findByRole("button", { name: "WR" }));
+    await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
 
-    fireEvent.click(screen.getByRole("button", { name: "Mark Draft Player 1 drafted" }));
-
-    expect(
-      screen.queryByRole("listitem", { name: "Draft Player 1 draft card" }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText(/Best available: Draft Player 2/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" }));
+    expect(screen.queryByRole("checkbox", { name: /WR Player 1 drafted/i })).not.toBeInTheDocument();
     expect(screen.getByText(/1 drafted/i)).toBeInTheDocument();
     expect(
       JSON.parse(
         localStorage.getItem("fantasy-decisions:drafted:league-three-wr:2026") ?? "[]",
       ),
-    ).toEqual(["player-1"]);
+    ).toEqual(["wr-1"]);
 
     firstRender.unmount();
     renderDraft();
-    await openOursPane();
-    await screen.findByText(/Best available: Draft Player 2/i);
-    expect(
-      screen.queryByRole("listitem", { name: "Draft Player 1 draft card" }),
-    ).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("button", { name: "WR" }));
+    expect(screen.queryByRole("checkbox", { name: /WR Player 1 drafted/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Undo" }));
     expect(
-      await screen.findByRole("listitem", { name: "Draft Player 1 draft card" }),
+      await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" }),
     ).toBeInTheDocument();
   });
 
-  it("can show drafted cards and undo an individual player", async () => {
+  it("can show drafted checklist rows and keep undo available", async () => {
     renderDraft();
-    await openOursPane();
-    await screen.findByRole("listitem", { name: "Draft Player 1 draft card" });
-    fireEvent.click(screen.getByRole("button", { name: "Mark Draft Player 1 drafted" }));
+    fireEvent.click(await screen.findByRole("button", { name: "WR" }));
+    await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" }));
 
     fireEvent.click(screen.getByLabelText(/Hide drafted/i));
 
-    expect(
-      screen.getByRole("listitem", { name: "Draft Player 1 draft card" }),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Undo Draft Player 1 drafted" }));
-    expect(screen.getByRole("button", { name: "Mark Draft Player 1 drafted" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Undo WR Player 1 drafted" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("checkbox", { name: "Undo WR Player 1 drafted" }));
+    expect(screen.getByRole("checkbox", { name: "Mark WR Player 1 drafted" })).toBeInTheDocument();
   });
 });

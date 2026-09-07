@@ -36,18 +36,15 @@ test.describe("screen smoke (production bundle)", () => {
       await expect(page.getByRole("heading", { name: screen.heading })).toBeVisible();
     }
 
-    // Draft is primary nav; Vegas Props is the market assistant pane.
+    // Draft is primary nav; Vegas Props is the only draft board for now.
     await page.getByRole("link", { name: "Draft", exact: true }).click();
-    await expect(page.getByRole("link", { name: "Regression Model" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "Vegas Props" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "O-line" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Regression Model" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: /Draft assistant/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: "All" })).toBeVisible();
 
     await page.getByRole("link", { name: "Home", exact: true }).click();
     await page.getByRole("link", { name: "Open Vegas Props" }).click();
-    await expect(page).toHaveURL(/\/draft\?pane=checklist/);
-    await expect(page.getByRole("tab", { name: "Vegas Props" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    await expect(page).toHaveURL(/\/draft/);
+    await expect(page.getByRole("button", { name: "All" })).toBeVisible();
   });
 });

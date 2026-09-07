@@ -1,20 +1,13 @@
-import { Link, useLocation } from "react-router-dom";
 import { useAppState } from "../hooks/useAppState";
 
 /**
- * League control for the app shell, with a shortcut to the Regression Model
- * draft board on its left.
+ * League control for the app shell.
  *
  * Week / season pickers and the historical-leagues toggle lived here previously;
  * the app now defaults to the active season and the latest synced week.
+ * Regression Model is hidden while that board is developed locally.
  */
 export function LeagueSwitcher() {
-  const location = useLocation();
-  const onDraftScreen = location.pathname.startsWith("/draft");
-  const pane = new URLSearchParams(location.search).get("pane");
-  const regressionActive =
-    onDraftScreen && pane !== "checklist" && pane !== "assistant" && pane !== "draft-assistant";
-
   const {
     visibleLeagues,
     selectedLeagueId,
@@ -26,14 +19,6 @@ export function LeagueSwitcher() {
 
   return (
     <div className="shell-controls">
-      <Link
-        to="/draft"
-        className={`shell-pane-link${regressionActive ? " is-active" : ""}`}
-        aria-current={regressionActive ? "page" : undefined}
-      >
-        Regression Model
-      </Link>
-
       <div className="shell-control">
         <label htmlFor="shell-league-select">Leagues</label>
         <select
