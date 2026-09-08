@@ -13,7 +13,7 @@ Generated: 2026-09-02 (repair session)
 | GitHub CI (clean-clone tests) | **GO** | Run `33583086436`: 864 passed, 2 skipped (Windows). |
 | Deploy verify (pre-promote gate) | **GO** | Verify job green on runs `33584188968`, `33593508581`. |
 | Deploy production (migrate + Vercel) | **GO** | Run `33595811810` (`fa5d9f2`): verify + deploy + smoke checks green. Switched from prebuilt to remote Vercel build to avoid `.vercelignore` ENOENT failures. |
-| Supabase DB reachability | **GO** | Project `dbvwgfefdorugdtpxgcj`; Alembic `a1b2c3d4e5f7`. |
+| Supabase DB reachability | **GO** | Project `<project-ref>`; Alembic `a1b2c3d4e5f7`. |
 | Supabase Storage (sealed bundle) | **GO** | `fantasy-app` bucket; `release_pointer` 2026 → `v2_baseline_20260830`. |
 | Security roles | **GO** | `fantasy_app_migrator` + `fantasy_app_runtime`; both `BYPASSRLS`. |
 | Release pointer | **GO** | `release_pointer` row for 2026 with `manifest_storage_uri`. |

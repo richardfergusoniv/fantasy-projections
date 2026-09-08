@@ -41,11 +41,29 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 
 REVOKE CREATE ON SCHEMA public FROM fantasy_app_runtime;
 
--- Alembic must read alembic_version under RLS; migrator also needs BYPASSRLS for migrations.
-ALTER TABLE alembic_version DISABLE ROW LEVEL SECURITY;
+-- Keep alembic_version under RLS so the public Data API (PostgREST URL) cannot
+-- read migration state. App roles bypass RLS; revoke API roles just in case.
+ALTER TABLE alembic_version ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE alembic_version FROM anon, authenticated;
 ALTER ROLE fantasy_app_migrator BYPASSRLS;
 ALTER ROLE fantasy_app_runtime BYPASSRLS;
 GRANT SELECT ON alembic_version TO fantasy_app_migrator;
+
+-- rls_auto_enable is an internal SECURITY DEFINER event-trigger helper; do not
+-- leave it executable by PostgREST roles via /rest/v1/rpc/rls_auto_enable.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'rls_auto_enable' AND p.pronargs = 0
+  ) THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.rls_auto_enable() FROM PUBLIC';
+    EXECUTE 'REVOKE ALL ON FUNCTION public.rls_auto_enable() FROM anon, authenticated';
+  END IF;
+END
+$$;
 
 -- Canonical domain promotion updates Vault production_app_url from deploy CI.
 GRANT USAGE ON SCHEMA vault TO fantasy_app_migrator;
