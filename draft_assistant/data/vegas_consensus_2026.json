@@ -1,6 +1,6 @@
 {
   "season": 2026,
-  "generated_at": "2026-09-06T14:13:39.924869+00:00",
+  "generated_at": "2026-09-09T04:49:42.639350+00:00",
   "source_files": [
     "action_numberfire",
     "bettingpros",
@@ -17,7 +17,7 @@
     "volume_and_team_offense"
   ],
   "method": {
-    "yards_tds_receptions": "median of DraftKings/FanDuel/RotoWire/Oddschecker/FTA/ESPN-Fox/Action/Sharp-RG-SBR lines; book lines that conflict with the same source's projection (>50% and >100 absolute) are dropped; prediction-market-only / heavily skewed O/U prices (Kalshi/Polymarket thresholds) are dropped; numberFire projections fill only when no sportsbook quote remains; nickname aliases (Kenny/Kenneth, Chig/Chigoziem, Cam/Cameron) are merged before the median; checklist Vegas FP requires book-backed scoring coverage (projection-only rows are not ranked)",
+    "yards_tds_receptions": "median of DraftKings/FanDuel/RotoWire/Oddschecker/FTA/ESPN-Fox/Action/Sharp-RG-SBR lines; two-sided prices are preferred and are never overridden by the same source's projection; odds-less alt totals juiced above that projection are dropped; prediction-market-only / heavily skewed O/U prices (Kalshi/Polymarket thresholds) are dropped; numberFire projections fill only when no sportsbook quote remains; nickname aliases (Kenny/Kenneth, Chig/Chigoziem, Cam/Cameron) are merged before the median; checklist Vegas FP requires book-backed scoring coverage (projection-only rows are not ranked)",
     "volume_attempts_targets": "not used for checklist ranks; public boards lack attempt/target season O/Us (VI/BettingPros/Unabated/Kalshi/Polymarket checked). Checklist uses Vegas yards + receptions instead.",
     "extra_sources": "vegasinsider, bettingpros, unabated, prediction_markets (kalshi/polymarket) merged when present",
     "team_points": "median Vegas-implied season points (Sharp/AN/volume scrape)",
@@ -74,7 +74,7 @@
         "rush_attempts": 18.01,
         "targets": 0.0,
         "receptions": 0.0,
-        "pass_yards": 3099.5,
+        "pass_yards": 3087.5,
         "rush_yards": 84.46,
         "rec_yards": 0.0,
         "pass_tds": 21.5,
@@ -3338,7 +3338,7 @@
         "rush_yards": 477.28,
         "rec_yards": 0.0,
         "pass_tds": 0.0,
-        "rush_tds": 4.65,
+        "rush_tds": 4.5,
         "rec_tds": 0.0,
         "fantasy_points": 66.85
       },
@@ -3351,11 +3351,11 @@
         "rush_yards": "projection",
         "rec_yards": "projection",
         "pass_tds": "projection",
-        "rush_tds": "projection",
+        "rush_tds": "book",
         "rec_tds": "projection",
         "fantasy_points": "projection"
       },
-      "prop_coverage": "projection",
+      "prop_coverage": "mixed",
       "sources": [
         "action_numberfire:numberfire",
         "rotowire"
@@ -5609,6 +5609,7 @@
         "action_numberfire:numberfire",
         "bettingpros",
         "draftkings",
+        "rotowire",
         "sharp_rotogrinders_sbr"
       ]
     },
@@ -8131,7 +8132,7 @@
         "rec_yards": 475.5,
         "pass_tds": 0.0,
         "rush_tds": 12.5,
-        "rec_tds": 4.0,
+        "rec_tds": 4.5,
         "fantasy_points": 310.01
       },
       "market_kinds": {
@@ -10731,7 +10732,7 @@
         "receptions": 68.01,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 927.04,
+        "rec_yards": 749.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 3.875,
@@ -10744,15 +10745,16 @@
         "receptions": "projection",
         "pass_yards": "projection",
         "rush_yards": "projection",
-        "rec_yards": "projection",
+        "rec_yards": "book",
         "pass_tds": "projection",
         "rush_tds": "projection",
         "rec_tds": "projection",
         "fantasy_points": "projection"
       },
-      "prop_coverage": "projection",
+      "prop_coverage": "mixed",
       "sources": [
         "action_numberfire:numberfire",
+        "bettingpros",
         "rotowire"
       ]
     },
@@ -13011,7 +13013,7 @@
         "receptions": 15.78,
         "pass_yards": 0.0,
         "rush_yards": 0.0,
-        "rec_yards": 180.77,
+        "rec_yards": 525.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
         "rec_tds": 1.1,
@@ -13024,15 +13026,16 @@
         "receptions": "projection",
         "pass_yards": "projection",
         "rush_yards": "projection",
-        "rec_yards": "projection",
+        "rec_yards": "book",
         "pass_tds": "projection",
         "rush_tds": "projection",
         "rec_tds": "projection",
         "fantasy_points": "projection"
       },
-      "prop_coverage": "projection",
+      "prop_coverage": "mixed",
       "sources": [
-        "action_numberfire:numberfire"
+        "action_numberfire:numberfire",
+        "rotowire"
       ]
     },
     {
@@ -15975,7 +15978,7 @@
         "rush_yards": 699.5,
         "rec_yards": 115.81,
         "pass_tds": 0.0,
-        "rush_tds": 4.5,
+        "rush_tds": 5.0,
         "rec_tds": 0.84,
         "fantasy_points": 140.66
       },
@@ -17385,7 +17388,7 @@
         "rec_yards": 874.5,
         "pass_tds": 0.0,
         "rush_tds": 0.0,
-        "rec_tds": 7.5,
+        "rec_tds": 8.5,
         "fantasy_points": 181.08
       },
       "market_kinds": {

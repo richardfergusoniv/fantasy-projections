@@ -42,41 +42,39 @@ describe("LeagueSwitcher", () => {
     };
   });
 
-  it("puts Regression Model left of Leagues and omits week/history controls", () => {
+  it("keeps the league picker and omits week / history controls", () => {
     render(
       <MemoryRouter initialEntries={["/draft"]}>
         <LeagueSwitcher />
       </MemoryRouter>,
     );
 
-    const regression = screen.getByRole("link", { name: "Regression Model" });
-    const leaguesLabel = screen.getByLabelText("Leagues");
-    expect(regression.compareDocumentPosition(leaguesLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(regression).toHaveAttribute("aria-current", "page");
+    expect(screen.getByLabelText("Leagues")).toBeInTheDocument();
     expect(screen.queryByLabelText("Week")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Season")).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/historical/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Show historical leagues/i)).not.toBeInTheDocument();
   });
 
-  it("does not mark Regression Model current on the Vegas Props pane", () => {
-    render(
-      <MemoryRouter initialEntries={["/draft?pane=checklist"]}>
-        <LeagueSwitcher />
-      </MemoryRouter>,
-    );
-    expect(screen.getByRole("link", { name: "Regression Model" })).not.toHaveAttribute(
-      "aria-current",
-    );
-  });
-
-  it("keeps Regression Model available off the draft screen", () => {
+  // The shell used to carry a "Regression Model" link to one of the two draft
+  // boards, on every screen. Both boards are tabs on the Draft screen now.
+  it("carries no draft-board shortcut", () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <LeagueSwitcher />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("link", { name: "Regression Model" })).toHaveAttribute("href", "/draft");
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Leagues")).toBeInTheDocument();
+  });
+
+  it("reports a league load failure in the shell", () => {
+    mockState = { ...mockState, leaguesError: "sync failed", visibleLeagues: [] };
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <LeagueSwitcher />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Leagues unavailable: sync failed");
   });
 });

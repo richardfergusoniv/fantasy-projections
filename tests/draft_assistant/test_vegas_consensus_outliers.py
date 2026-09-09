@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from src.draft_assistant.market_adp import canonicalize_player_name
 from src.draft_assistant.vegas_consensus import (
+    _conflicts_with_projection,
     _extract_quote,
     _line_value,
+    _one_sided_longshot,
     _prop_coverage,
     _robust_median,
     build_consensus,
@@ -250,3 +252,77 @@ def test_extract_quote_rejects_longshot_alt_and_keeps_real_line():
     )
     assert kind == "book"
     assert value == 700.5
+
+
+def test_one_sided_even_money_is_not_a_longshot():
+    # theScore Bet posts main season numbers with an over price only. +100 is
+    # even money, so rejecting it as a juice ladder threw away a player's only
+    # sportsbook quote and left a model projection ranking as "Vegas".
+    assert _one_sided_longshot(100, None) is False
+    assert _one_sided_longshot(None, 100) is False
+    assert _one_sided_longshot(125, None) is True
+    assert _one_sided_longshot(None, 400) is True
+
+
+def test_two_sided_books_outrank_a_conflicting_source_projection():
+    # Aaron Rodgers passing yards: three books priced on both sides, all above
+    # one 2700 projection. Three books agreeing is the market.
+    value, kind = _extract_quote(
+        {
+            "line": 3099.5,
+            "rotowire_proj": 2700.0,
+            "books": {
+                "draftkings": {"line": 3099.5, "over_odds": -110, "under_odds": -110},
+                "fanduel": {"line": 3050.5, "over_odds": -114, "under_odds": -114},
+                "circasports": {"line": 3075.5, "over_odds": -115, "under_odds": -115},
+            },
+        },
+        market="passing_yards",
+    )
+    assert kind == "book"
+    assert value == 3075.5
+
+
+def test_two_sided_count_consensus_is_not_replaced_by_the_projection():
+    # Javonte Williams rushing TDs: DK/FanDuel/Caesars all priced at 9.5 vs a
+    # 7.0 projection. The median-stage override must not demote this to model.
+    value, kind = _extract_quote(
+        {
+            "line": 9.5,
+            "rotowire_proj": 7.0,
+            "books": {
+                "draftkings": {"line": 9.5, "over_odds": -105, "under_odds": -120},
+                "fanduel": {"line": 9.5, "over_odds": -128, "under_odds": -104},
+                "caesars": {"line": 9.5, "over_odds": -110, "under_odds": -110},
+            },
+        },
+        market="rushing_tds",
+    )
+    assert kind == "book"
+    assert value == 9.5
+
+
+def test_conflict_gate_never_fires_on_a_book_below_the_projection():
+    # A book quoting under a model is market disagreement, not a juice ladder;
+    # dropping it would bias the consensus upward.
+    assert _conflicts_with_projection(400.0, 900.0) is False
+    assert _conflicts_with_projection(2.0, 9.0) is False
+    assert _conflicts_with_projection(1499.5, 364.0) is True
+
+
+def test_count_gate_is_chosen_by_market_not_magnitude():
+    # An elite quarterback projected for 27 passing TDs is still a count
+    # market. Sizing the branch by magnitude sent exactly those players to the
+    # loose yardage gate, where a 34.5 alt rung sails through ``delta > 80``.
+    assert _conflicts_with_projection(34.5, 27.0, market="passing_tds") is True
+    # Without a market name the magnitude fallback still applies.
+    assert _conflicts_with_projection(34.5, 27.0) is False
+
+
+def test_build_consensus_recovers_book_quotes_priced_at_even_money():
+    payload = build_consensus(season=2026)
+    tyson = next(p for p in payload["players"] if p["name"] == "Jordyn Tyson")
+    # theScore Bet 749.5 at +100 is a real book line, not a longshot rung.
+    assert tyson["market_kinds"]["rec_yards"] == "book"
+    assert tyson["markets"]["rec_yards"] == 749.5
+    assert tyson["prop_coverage"] in ("books", "mixed")

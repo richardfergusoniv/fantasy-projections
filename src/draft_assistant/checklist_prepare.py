@@ -156,6 +156,57 @@ def _history_prior_pts(player: dict[str, Any]) -> float | None:
     return _num(player.get("fantasy_pts_season"))
 
 
+#: Markets the player card renders. Everything else in the consensus (attempts,
+#: targets, the source's own fantasy_points) is carried for reference only and
+#: is dropped from the published entry.
+CARD_MARKETS: tuple[str, ...] = (
+    "pass_yards",
+    "pass_tds",
+    "rush_yards",
+    "rush_tds",
+    "rec_yards",
+    "rec_tds",
+    "receptions",
+)
+
+
+def _card_markets(row: dict[str, Any]) -> dict[str, float]:
+    """The markets that actually produced ``vegas_fp``, minus absent ones.
+
+    The consensus stores ``0.0`` for a market a player has no line in; shipping
+    those made every entry carry the full market grid and left the client
+    filtering zeros to avoid rendering "Rec Yds 0".
+    """
+    markets = row.get("markets") or {}
+    out: dict[str, float] = {}
+    for key in CARD_MARKETS:
+        value = _num(markets.get(key))
+        if value is None or value == 0:
+            continue
+        out[key] = value
+    return out
+
+
+def _card_market_kinds(row: dict[str, Any]) -> dict[str, str]:
+    """Provenance for each rendered market, so the card explains its own total."""
+    kinds = row.get("market_kinds") or {}
+    rendered = _card_markets(row)
+    return {key: str(kinds[key]) for key in rendered if kinds.get(key)}
+
+
+#: ``(consensus market, projection stat, eligible positions)`` used to fill a
+#: missing Vegas market from this repo's own season projection.
+MODEL_FALLBACK_MARKETS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    ("pass_yards", "passing_yards", ("QB",)),
+    ("pass_tds", "passing_tds", ("QB",)),
+    ("rush_yards", "rushing_yards", ("QB", "RB")),
+    ("rush_tds", "rushing_tds", ("QB", "RB")),
+    ("rec_yards", "receiving_yards", ("RB", "WR", "TE")),
+    ("receptions", "receptions", ("RB", "WR", "TE")),
+    ("rec_tds", "receiving_tds", ("RB", "WR", "TE")),
+)
+
+
 def vegas_fantasy_points(markets: dict[str, Any]) -> float | None:
     """Half-PPR season points from Vegas volume O/Us (no INTs / fumbles)."""
     components = (
@@ -484,42 +535,26 @@ def build_checklist(
         player_id = str(player.get("player_id") or "")
         norm = canonicalize_player_name(display_name)
         vegas_row = vegas_by_norm.get(norm) or {}
-        # Keep raw Vegas markets for the player card; season fallbacks below are
-        # only for ranking inputs when a book market is missing.
-        vegas_markets = dict(vegas_row.get("markets") or {})
         market_kinds = dict(vegas_row.get("market_kinds") or {})
-        markets = dict(vegas_markets)
+        markets = dict(vegas_row.get("markets") or {})
         prop_coverage = str(vegas_row.get("prop_coverage") or "none")
 
+        # Fill missing Vegas markets from this repo's own season projection so
+        # volume ranks are not blank. These are model numbers, not book lines:
+        # tag them ``model`` so Vegas FP can be read back component by
+        # component. Untagged, a card showed one 787.5 rec-yard book line under
+        # a "Vegas FP 114.2" header whose other 35 points came from here.
         season_stats = player.get("season") or {}
-        if _num(markets.get("pass_yards")) is None and pos == "QB":
-            fallback = _num(season_stats.get("passing_yards"))
-            if fallback is not None:
-                markets["pass_yards"] = fallback
-        if _num(markets.get("pass_tds")) is None and pos == "QB":
-            fallback = _num(season_stats.get("passing_tds"))
-            if fallback is not None:
-                markets["pass_tds"] = fallback
-        if _num(markets.get("rush_yards")) is None and pos in ("QB", "RB"):
-            fallback = _num(season_stats.get("rushing_yards"))
-            if fallback is not None:
-                markets["rush_yards"] = fallback
-        if _num(markets.get("rush_tds")) is None and pos in ("QB", "RB"):
-            fallback = _num(season_stats.get("rushing_tds"))
-            if fallback is not None:
-                markets["rush_tds"] = fallback
-        if _num(markets.get("rec_yards")) is None and pos in ("RB", "WR", "TE"):
-            fallback = _num(season_stats.get("receiving_yards"))
-            if fallback is not None:
-                markets["rec_yards"] = fallback
-        if _num(markets.get("receptions")) is None and pos in ("RB", "WR", "TE"):
-            fallback = _num(season_stats.get("receptions"))
-            if fallback is not None:
-                markets["receptions"] = fallback
-        if _num(markets.get("rec_tds")) is None and pos in ("RB", "WR", "TE"):
-            fallback = _num(season_stats.get("receiving_tds"))
-            if fallback is not None:
-                markets["rec_tds"] = fallback
+        for market, stat_key, positions in MODEL_FALLBACK_MARKETS:
+            if pos not in positions:
+                continue
+            if _num(markets.get(market)) is not None:
+                continue
+            fallback = _num(season_stats.get(stat_key))
+            if fallback is None:
+                continue
+            markets[market] = fallback
+            market_kinds[market] = "model"
 
         components = market_components_for_player(
             position=pos,
@@ -547,7 +582,6 @@ def build_checklist(
                 "rank_tier": "market_avg" if market_avg is not None else "none",
                 "market_avg": round(market_avg, 2) if market_avg is not None else None,
                 "markets": markets,
-                "vegas_markets": vegas_markets,
                 "market_kinds": market_kinds,
                 "prop_coverage": prop_coverage,
             }
@@ -750,8 +784,8 @@ def build_checklist(
                     "market_avg": row["market_avg"],
                     "vegas_fp": row.get("vegas_fp"),
                     "vegas_prop_coverage": row.get("prop_coverage") or "none",
-                    "markets": dict(row.get("vegas_markets") or {}),
-                    "market_kinds": dict(row.get("market_kinds") or {}),
+                    "markets": _card_markets(row),
+                    "market_kinds": _card_market_kinds(row),
                     "unranked_break": False,
                     "ranks": ranks,
                     "checks": checks,
