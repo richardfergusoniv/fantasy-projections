@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
-from src.ingest.props.contracts import PlayerConsensus, SCORING_MARKETS
-from src.projection.weekly_props.consensus import player_scoring_class
+from src.ingest.props.contracts import PlayerConsensus
 from src.projection.weekly_props.config import DEFAULT_WEEKLY_POLICY, WeeklyPropsPolicy
+from src.projection.weekly_props.consensus import player_scoring_class
 
 # Canonical mean_json keys used by decisions / league rescoring.
 COMPONENT_KEYS: tuple[str, ...] = (
@@ -121,6 +122,49 @@ def merge_player_components(
     return components, sources, scoring_class
 
 
+def _market_replaced_components(component_sources: Mapping[str, str]) -> bool:
+    return any(src == "weekly_props_consensus" for src in component_sources.values())
+
+
+def resolve_points(
+    *,
+    components: Mapping[str, float],
+    component_sources: Mapping[str, str],
+    baseline: Mapping[str, Any] | None,
+    on_slate: bool,
+) -> tuple[float, str]:
+    """Score points on the same basis as the week-level baseline when possible.
+
+    Untouched (baseline-only) players keep sealed weekly points so publication
+    and the movement gate do not silently re-base onto half-PPR parity.
+    Market-touched players apply a half-PPR component delta on top of that
+    sealed baseline so both sides of the gate stay comparable.
+    """
+    if not on_slate:
+        return 0.0, "bye_or_inactive"
+
+    baseline = baseline or {}
+    baseline_points = baseline.get("points")
+    try:
+        sealed_points = float(baseline_points) if baseline_points is not None else None
+    except (TypeError, ValueError):
+        sealed_points = None
+
+    if not _market_replaced_components(component_sources):
+        if sealed_points is not None:
+            return sealed_points, str(
+                baseline.get("points_source") or "sealed_per_game_baseline"
+            )
+        return half_ppr_parity_points(components), "half_ppr_parity_reference"
+
+    base_comps = baseline_components(baseline)
+    base_half = half_ppr_parity_points(base_comps)
+    new_half = half_ppr_parity_points(components)
+    if sealed_points is not None:
+        return sealed_points + (new_half - base_half), "baseline_plus_market_delta"
+    return new_half, "half_ppr_parity_reference"
+
+
 def build_mean_json(
     *,
     consensus: PlayerConsensus,
@@ -144,11 +188,12 @@ def build_mean_json(
     }
     for key, value in components.items():
         mean[key] = value
-    # Canonical default points for display/gates; league decisions rescore stats.
-    if consensus.on_slate:
-        mean["points"] = half_ppr_parity_points(components)
-        mean["points_source"] = "half_ppr_parity_reference"
-    else:
-        mean["points"] = 0.0
-        mean["points_source"] = "bye_or_inactive"
+    points, points_source = resolve_points(
+        components=components,
+        component_sources=component_sources,
+        baseline=baseline,
+        on_slate=consensus.on_slate,
+    )
+    mean["points"] = points
+    mean["points_source"] = points_source
     return mean

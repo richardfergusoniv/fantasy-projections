@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC
 
+import pytest
+
 from src.app.projections.loader import PlayerSummary
 from src.ingest.props.contracts import PlayerConsensus
 from src.projection.weekly_props.baseline import (
@@ -40,6 +42,151 @@ def _slate(*teams: str, opponents: dict[str, str] | None = None) -> WeekSlate:
         teams=frozenset(t.upper() for t in teams),
         opponents=opponents or {},
     )
+
+
+def test_uncovered_player_preserves_baseline_points_and_quantiles():
+    from src.ingest.props.contracts import PlayerConsensus
+    from src.projection.weekly_props.bridge import BaselinePlayer, build_candidate_row
+
+    baseline = BaselinePlayer(
+        player_id="josh",
+        team="BUF",
+        opponent="NE",
+        position="QB",
+        name="Josh Allen",
+        availability_probability=1.0,
+        mean_json={
+            "points": 21.02,
+            "points_source": "sealed_per_game_baseline",
+            "pass_yards": 260.0,
+            "pass_tds": 1.8,
+            "pass_ints": 0.6,
+            "rush_yards": 35.0,
+            "rush_tds": 0.4,
+            "position": "QB",
+            "name": "Josh Allen",
+            "team": "BUF",
+        },
+        quantiles_json={"0.1": 12.0, "0.5": 21.02, "0.9": 28.0},
+        on_slate=True,
+    )
+    stub = PlayerConsensus(
+        player_id="josh",
+        player_name="Josh Allen",
+        team="BUF",
+        opponent="NE",
+        position="QB",
+        markets={},
+        scoring_class="baseline_only",
+        on_slate=True,
+    )
+    row = build_candidate_row(stub, baseline)
+    assert row.mean_json["points"] == 21.02
+    assert row.mean_json["points_source"] == "sealed_per_game_baseline"
+    assert row.quantiles_json == {"0.1": 12.0, "0.5": 21.02, "0.9": 28.0}
+
+
+def test_market_touched_points_use_baseline_plus_delta():
+    from datetime import UTC, datetime, timedelta
+
+    from src.ingest.props.normalize import build_normalized_quote
+    from src.projection.weekly_props.bridge import BaselinePlayer, build_candidate_row
+    from src.projection.weekly_props.consensus import build_player_consensus
+    from src.projection.weekly_props.scoring import half_ppr_parity_points
+
+    baseline_mean = {
+        "points": 10.0,
+        "points_source": "sealed_per_game_baseline",
+        "rec_yards": 40.0,
+        "rec_tds": 0.5,
+        "receptions": 3.0,
+    }
+    baseline = BaselinePlayer(
+        player_id="pid",
+        team="NE",
+        opponent="NYJ",
+        position="WR",
+        name="Test",
+        availability_probability=1.0,
+        mean_json=baseline_mean,
+        quantiles_json={"0.1": 7.0, "0.5": 10.0, "0.9": 13.0},
+    )
+    quotes = [
+        build_normalized_quote(
+            source="draftkings",
+            sportsbook="DraftKings",
+            player_name_raw="Test",
+            market="rec_yards",
+            line=55.5,
+            fetched_at=datetime.now(UTC),
+            over_odds=-110,
+            under_odds=-110,
+            event_start=datetime.now(UTC) + timedelta(days=1),
+            player_id="pid",
+            team="NE",
+        )
+    ]
+    player = build_player_consensus(
+        player_key="pid",
+        quotes=quotes,
+        player_id="pid",
+        player_name="Test",
+        position="WR",
+        team="NE",
+    )
+    row = build_candidate_row(player, baseline)
+    base_half = half_ppr_parity_points(
+        {"rec_yards": 40.0, "rec_tds": 0.5, "receptions": 3.0}
+    )
+    new_half = half_ppr_parity_points(
+        {"rec_yards": 55.5, "rec_tds": 0.5, "receptions": 3.0}
+    )
+    assert row.mean_json["points"] == pytest.approx(10.0 + (new_half - base_half))
+    assert row.mean_json["points_source"] == "baseline_plus_market_delta"
+    assert row.quantiles_json["0.5"] == pytest.approx(
+        10.0 * (row.mean_json["points"] / 10.0)
+    )
+
+
+def test_movement_gate_aligned_when_uncovered_preserves_baseline():
+    from src.ingest.props.contracts import PlayerConsensus
+    from src.projection.weekly_props.bridge import BaselinePlayer, build_candidate_row
+    from src.projection.weekly_props.gates import validate_baseline_movement
+
+    baselines = {
+        "p1": BaselinePlayer(
+            player_id="p1",
+            team="KC",
+            opponent="NE",
+            position="WR",
+            name="One",
+            availability_probability=1.0,
+            mean_json={
+                "points": 14.5,
+                "rec_yards": 55.0,
+                "receptions": 4.0,
+                "rec_tds": 0.4,
+            },
+            quantiles_json={"0.5": 14.5},
+        )
+    }
+    stub = PlayerConsensus(
+        player_id="p1",
+        player_name="One",
+        team="KC",
+        opponent="NE",
+        position="WR",
+        markets={},
+        scoring_class="baseline_only",
+        on_slate=True,
+    )
+    row = build_candidate_row(stub, baselines["p1"])
+    baseline_points = {
+        pid: float(base.mean_json.get("points") or 0.0) for pid, base in baselines.items()
+    }
+    gate = validate_baseline_movement((row,), baseline_points)
+    assert gate.passed
+    assert row.mean_json["points"] == baseline_points["p1"]
 
 
 def test_uncovered_player_retains_weekly_baseline_components():

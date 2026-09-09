@@ -28,6 +28,50 @@ def _quote(**kwargs):
     return build_normalized_quote(**base)
 
 
+def test_provider_specific_id_resolves_via_name_before_raw_id():
+    identity_map = {
+        "00-0035676": {
+            "player_id": "00-0035676",
+            "name": "A.J. Brown",
+            "team": "PHI",
+            "position": "WR",
+        },
+        "aj brown": {
+            "player_id": "00-0035676",
+            "name": "A.J. Brown",
+            "team": "PHI",
+            "position": "WR",
+        },
+        "aj brown|PHI": {
+            "player_id": "00-0035676",
+            "name": "A.J. Brown",
+            "team": "PHI",
+            "position": "WR",
+        },
+    }
+    provider_id_quote = _quote(
+        player_id="provider-8472",
+        player_name_raw="AJ Brown",
+        team="PHI",
+        market="rec_yards",
+        line=70.5,
+    )
+    name_only_quote = _quote(
+        source="fanduel",
+        sportsbook="FanDuel",
+        player_id=None,
+        player_name_raw="AJ Brown",
+        team="PHI",
+        market="receptions",
+        line=5.5,
+    )
+    key_provider, ident_provider = resolve_quote_group_key(provider_id_quote, identity_map)
+    key_name, ident_name = resolve_quote_group_key(name_only_quote, identity_map)
+    assert key_provider == key_name == "00-0035676"
+    assert ident_provider["player_id"] == "00-0035676"
+    assert ident_name["player_id"] == "00-0035676"
+
+
 def test_id_and_name_only_quotes_merge_without_losing_markets(tmp_path):
     identity_map = {
         "00-0035676": {
