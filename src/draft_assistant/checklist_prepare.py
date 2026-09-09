@@ -484,7 +484,11 @@ def build_checklist(
         player_id = str(player.get("player_id") or "")
         norm = canonicalize_player_name(display_name)
         vegas_row = vegas_by_norm.get(norm) or {}
-        markets = dict(vegas_row.get("markets") or {})
+        # Keep raw Vegas markets for the player card; season fallbacks below are
+        # only for ranking inputs when a book market is missing.
+        vegas_markets = dict(vegas_row.get("markets") or {})
+        market_kinds = dict(vegas_row.get("market_kinds") or {})
+        markets = dict(vegas_markets)
         prop_coverage = str(vegas_row.get("prop_coverage") or "none")
 
         season_stats = player.get("season") or {}
@@ -543,6 +547,8 @@ def build_checklist(
                 "rank_tier": "market_avg" if market_avg is not None else "none",
                 "market_avg": round(market_avg, 2) if market_avg is not None else None,
                 "markets": markets,
+                "vegas_markets": vegas_markets,
+                "market_kinds": market_kinds,
                 "prop_coverage": prop_coverage,
             }
         )
@@ -744,6 +750,8 @@ def build_checklist(
                     "market_avg": row["market_avg"],
                     "vegas_fp": row.get("vegas_fp"),
                     "vegas_prop_coverage": row.get("prop_coverage") or "none",
+                    "markets": dict(row.get("vegas_markets") or {}),
+                    "market_kinds": dict(row.get("market_kinds") or {}),
                     "unranked_break": False,
                     "ranks": ranks,
                     "checks": checks,

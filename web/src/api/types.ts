@@ -266,6 +266,12 @@ export interface DraftChecklistEntry {
   prior_pts?: number | null;
   /** Half-PPR season points aggregated from Vegas volume O/Us. */
   vegas_fp?: number | null;
+  /** books | mixed | projection | none */
+  vegas_prop_coverage?: string;
+  /** Consensus season prop lines used for Vegas FP. */
+  markets?: Record<string, number | null>;
+  /** Per-market source kind: book | projection. */
+  market_kinds?: Record<string, string>;
   rank_tier: DraftRankTier;
   pos_market_rank?: number;
   unranked_break?: boolean;

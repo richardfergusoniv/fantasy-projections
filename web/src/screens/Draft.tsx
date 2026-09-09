@@ -168,6 +168,61 @@ function averageAvailableRank(entry: DraftChecklistEntry, keys: string[]): numbe
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+const MARKET_CARD_ORDER = [
+  "pass_yards",
+  "pass_tds",
+  "rush_yards",
+  "rush_tds",
+  "rec_yards",
+  "receptions",
+  "rec_tds",
+  "targets",
+  "pass_attempts",
+  "rush_attempts",
+] as const;
+
+const MARKET_CARD_LABELS: Record<string, string> = {
+  pass_yards: "Pass Yds",
+  pass_tds: "Pass TDs",
+  rush_yards: "Rush Yds",
+  rush_tds: "Rush TDs",
+  rec_yards: "Rec Yds",
+  receptions: "Receptions",
+  rec_tds: "Rec TDs",
+  targets: "Targets",
+  pass_attempts: "Pass Att",
+  rush_attempts: "Rush Att",
+};
+
+function formatMarketValue(key: string, value: number): string {
+  if (key.endsWith("_tds") || key === "receptions" || key.endsWith("_attempts") || key === "targets") {
+    return Number.isInteger(value) ? String(value) : value.toFixed(1);
+  }
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function marketRowsForCard(entry: DraftChecklistEntry): Array<{
+  key: string;
+  label: string;
+  value: string;
+  kind: string;
+}> {
+  const markets = entry.markets ?? {};
+  const kinds = entry.market_kinds ?? {};
+  const rows: Array<{ key: string; label: string; value: string; kind: string }> = [];
+  for (const key of MARKET_CARD_ORDER) {
+    const raw = markets[key];
+    if (raw == null || Number.isNaN(raw) || raw === 0) continue;
+    rows.push({
+      key,
+      label: MARKET_CARD_LABELS[key] ?? key,
+      value: formatMarketValue(key, raw),
+      kind: kinds[key] === "book" ? "book" : kinds[key] === "projection" ? "projection" : "unknown",
+    });
+  }
+  return rows;
+}
+
 export function DraftScreen() {
   const { selectedLeagueId, selectedLeague } = useAppState();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -187,6 +242,7 @@ export function DraftScreen() {
   const [runId, setRunId] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<DraftChecklistEntry | null>(null);
 
   const storageKey = selectedLeagueId
     ? draftedStorageKey(selectedLeagueId, selectedLeague?.season)
@@ -195,6 +251,15 @@ export function DraftScreen() {
   useEffect(() => {
     setPane(paneFromSearch(searchParams.get("pane")));
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!selectedPlayer) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setSelectedPlayer(null);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedPlayer]);
 
   function selectPane(next: DraftPane) {
     setPane(next);
@@ -618,7 +683,13 @@ export function DraftScreen() {
                       <div className="draft-checklist-main">
                         <div className="draft-checklist-identity">
                           <span className="draft-rank">#{overallRank ?? "—"}</span>
-                          <strong>{entry.name}</strong>
+                          <button
+                            type="button"
+                            className="draft-player-name"
+                            onClick={() => setSelectedPlayer(entry)}
+                          >
+                            {entry.name}
+                          </button>
                           <span className={`pos-badge ${entry.position}`}>{entry.position}</span>
                           <span className="muted">
                             {entry.team ?? ""}
@@ -842,6 +913,70 @@ export function DraftScreen() {
           </>
         ) : null}
       </Panel>
+
+      {selectedPlayer ? (
+        <div
+          className="player-card-backdrop"
+          role="presentation"
+          onClick={() => setSelectedPlayer(null)}
+        >
+          <div
+            className="player-card-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="player-card-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="player-card-header">
+              <div>
+                <h2 id="player-card-title">{selectedPlayer.name}</h2>
+                <p className="muted">
+                  <span className={`pos-badge ${selectedPlayer.position}`}>
+                    {selectedPlayer.position}
+                  </span>
+                  {selectedPlayer.team ? ` · ${selectedPlayer.team}` : ""}
+                  {selectedPlayer.adp != null ? ` · ADP ${selectedPlayer.adp}` : ""}
+                  {selectedPlayer.vegas_fp != null
+                    ? ` · Vegas FP ${selectedPlayer.vegas_fp.toFixed(1)}`
+                    : " · Vegas FP —"}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                aria-label="Close player card"
+                onClick={() => setSelectedPlayer(null)}
+              >
+                Close
+              </button>
+            </div>
+            <p className="muted player-card-coverage">
+              Prop coverage: {selectedPlayer.vegas_prop_coverage ?? "none"}
+            </p>
+            {marketRowsForCard(selectedPlayer).length ? (
+              <dl className="player-card-markets">
+                {marketRowsForCard(selectedPlayer).map((row) => (
+                  <div key={row.key} className="player-card-market-row">
+                    <dt>
+                      {row.label}
+                      <span className={`player-card-kind is-${row.kind}`}>
+                        {row.kind === "book"
+                          ? "book"
+                          : row.kind === "projection"
+                            ? "proj"
+                            : "—"}
+                      </span>
+                    </dt>
+                    <dd>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="muted">No season prop lines available for this player.</p>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

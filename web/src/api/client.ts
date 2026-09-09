@@ -396,6 +396,20 @@ export class ApiClient {
           ecr: row.ecr != null ? Number(row.ecr) : null,
           prior_pts: row.prior_pts != null ? Number(row.prior_pts) : null,
           vegas_fp: row.vegas_fp != null ? Number(row.vegas_fp) : null,
+          vegas_prop_coverage:
+            row.vegas_prop_coverage != null ? String(row.vegas_prop_coverage) : undefined,
+          markets: Object.fromEntries(
+            Object.entries((row.markets as RawRecord | undefined) ?? {}).map(([key, value]) => {
+              if (value == null || value === "") return [key, null];
+              const numeric = Number(value);
+              return [key, Number.isFinite(numeric) ? numeric : null];
+            }),
+          ),
+          market_kinds: Object.fromEntries(
+            Object.entries((row.market_kinds as RawRecord | undefined) ?? {}).map(
+              ([key, value]) => [key, String(value)],
+            ),
+          ),
           rank_tier: String(row.rank_tier ?? "none") as DraftChecklist["entries"][number]["rank_tier"],
           pos_market_rank:
             row.pos_market_rank != null ? Number(row.pos_market_rank) : undefined,

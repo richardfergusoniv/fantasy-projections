@@ -70,6 +70,19 @@ function checklist(): DraftChecklist {
     adp: index < 10 ? index + 1 : null,
     ecr: index < 20 ? index + 5 : null,
     prior_pts: 200 - index,
+    vegas_fp: index === 0 ? 163.5 : null,
+    vegas_prop_coverage: index === 0 ? "mixed" : "none",
+    markets: (index === 0
+      ? { rec_yards: 900.5, receptions: 49.5, rec_tds: 5.0, targets: 114.9 }
+      : {}) as Record<string, number | null>,
+    market_kinds: (index === 0
+      ? {
+          rec_yards: "book",
+          receptions: "book",
+          rec_tds: "projection",
+          targets: "projection",
+        }
+      : {}) as Record<string, string>,
     rank_tier: (index < 10 ? "adp" : index < 20 ? "ecr" : "prior_pts") as
       | "adp"
       | "ecr"
@@ -299,6 +312,23 @@ describe("DraftScreen", () => {
   });
 
 
+
+  it("opens a player card with Vegas prop lines when a name is clicked", async () => {
+    renderDraft("/draft?pane=checklist");
+    fireEvent.click(screen.getByRole("tab", { name: /Vegas Props/i }));
+    await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
+
+    fireEvent.click(screen.getByRole("button", { name: "WR Player 1" }));
+    const dialog = screen.getByRole("dialog", { name: "WR Player 1" });
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByText("Rec Yds")).toBeInTheDocument();
+    expect(within(dialog).getByText("900.5")).toBeInTheDocument();
+    expect(within(dialog).getAllByText("book").length).toBeGreaterThan(0);
+    expect(within(dialog).getByText(/Prop coverage: mixed/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Close player card" }));
+    expect(screen.queryByRole("dialog", { name: "WR Player 1" })).not.toBeInTheDocument();
+  });
 
   it("hides checklist rows when drafted via checkbox", async () => {
     renderDraft();

@@ -108,21 +108,21 @@ def test_extract_quote_drops_juiced_td_line_vs_projection():
 
 
 def test_extract_quote_drops_juiced_yard_line_vs_projection():
-    # Josh Downs 999.5 (+220) vs RotoWire proj 770.
-    assert (
-        _extract_quote(
-            {
-                "line": 999.5,
-                "over_odds": 220,
-                "rotowire_proj": 770.0,
-                "books": {
-                    "draftkings": {"line": 999.5, "over_odds": 220},
-                    "caesars": {"line": 999.5},
-                },
-            }
-        )
-        is None
+    # Josh Downs 999.5 (+220) vs RotoWire proj 770 — reject the juice and keep
+    # the same-source projection (milder than Kupp's full-source drop).
+    value, kind = _extract_quote(
+        {
+            "line": 999.5,
+            "over_odds": 220,
+            "rotowire_proj": 770.0,
+            "books": {
+                "draftkings": {"line": 999.5, "over_odds": 220},
+                "caesars": {"line": 999.5},
+            },
+        }
     )
+    assert kind == "projection"
+    assert value == 770.0
 
 
 def test_canonicalize_merges_common_nicknames():
@@ -172,6 +172,45 @@ def test_build_consensus_downs_not_inflated_by_caesars_tds():
     downs = next(player for player in payload["players"] if player["name"] == "Josh Downs")
     assert downs["markets"]["rec_tds"] < 5.0
     assert downs["markets"]["rec_yards"] < 900
+
+
+def test_extract_quote_drops_pierce_style_juiced_yards_and_tds():
+    # Alec Pierce RotoWire: DK/Caesars 999.5 (+125) + odds-less Caesars overlay
+    # vs FanDuel 925.5 and RotoWire proj 872.
+    value, kind = _extract_quote(
+        {
+            "line": 999.5,
+            "over_odds": 125,
+            "rotowire_proj": 872.0,
+            "books": {
+                "draftkings": {"line": 999.5, "over_odds": 125},
+                "fanduel": {"line": 925.5},
+                "caesars": {"line": 999.5},
+            },
+        }
+    )
+    assert kind == "book"
+    assert value == 925.5
+
+    # Caesars-only 7.5 rec TDs vs RotoWire proj 6.0 — trust the projection.
+    value, kind = _extract_quote(
+        {
+            "line": 7.5,
+            "rotowire_proj": 6.0,
+            "books": {"caesars": {"line": 7.5}},
+        }
+    )
+    assert kind == "projection"
+    assert value == 6.0
+
+
+def test_build_consensus_pierce_not_inflated_by_caesars_juice():
+    payload = build_consensus(season=2026)
+    pierce = next(player for player in payload["players"] if player["name"] == "Alec Pierce")
+    assert pierce["markets"]["rec_yards"] < 950
+    assert pierce["markets"]["rec_tds"] <= 6.0
+    assert pierce["market_kinds"]["rec_yards"] == "book"
+    assert pierce["market_kinds"]["rec_tds"] == "projection"
 
 
 def test_extract_quote_prefers_two_sided_books_over_odds_less_alts():
