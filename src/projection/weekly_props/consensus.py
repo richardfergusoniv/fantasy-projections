@@ -82,7 +82,7 @@ def evaluate_quote(
     ):
         return _with_reject(quote, "skewed_odds")
     if projection_line is not None and conflicts_with_projection(
-        quote.line, projection_line, policy=policy.quote
+        quote.line, projection_line, policy=policy.quote, market=quote.market
     ):
         return _with_reject(quote, "projection_conflict")
     return quote

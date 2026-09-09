@@ -1258,7 +1258,10 @@ a {
   line-height: 1.25;
 }
 
-.draft-checklist-identity strong {
+/* The player name is a button (it opens the card) and inherits the row font,
+   so size it here rather than on a <strong> that no longer exists. */
+.draft-checklist-identity strong,
+.draft-checklist-identity .draft-player-name {
   font-size: 0.95rem;
 }
 
@@ -1934,8 +1937,19 @@ a {
   background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
-.player-card-kind.is-projection {
+.player-card-kind.is-projection,
+.player-card-kind.is-model,
+.player-card-kind.is-unknown {
   color: var(--text-muted);
+}
+
+.player-card-kind.is-model {
+  border-style: dashed;
+}
+
+.player-card-footnote {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
 }
 
 @media (min-width: 640px) {

@@ -4,6 +4,7 @@ import type {
   ReadonlyRecommendationKey,
   WaiverRecommendation,
 } from "../api/types";
+import { readLocal, removeLocal, writeLocal } from "../storage/safeStorage";
 
 const STORAGE_KEY = "fantasy-decisions:recommendations";
 
@@ -45,7 +46,7 @@ export function recommendationCacheKey(slot: RecommendationCacheSlot): string {
 
 function readStore(): CachedRecommendation<RecommendationPayload>[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = readLocal(STORAGE_KEY);
     if (!raw) {
       return [];
     }
@@ -56,7 +57,7 @@ function readStore(): CachedRecommendation<RecommendationPayload>[] {
       (parsed as CacheEnvelope).version !== CACHE_SCHEMA_VERSION
     ) {
       // Pre-versioned or superseded payload: drop it rather than misread it.
-      localStorage.removeItem(STORAGE_KEY);
+      removeLocal(STORAGE_KEY);
       return [];
     }
     const entries = (parsed as CacheEnvelope).entries;
@@ -68,7 +69,7 @@ function readStore(): CachedRecommendation<RecommendationPayload>[] {
 
 function writeStore(entries: CachedRecommendation<RecommendationPayload>[]): void {
   const envelope: CacheEnvelope = { version: CACHE_SCHEMA_VERSION, entries };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
+  writeLocal(STORAGE_KEY, JSON.stringify(envelope));
 }
 
 /** Persist the last successful read-only recommendation for offline display. */
@@ -101,7 +102,7 @@ export function getCachedRecommendation<T extends RecommendationPayload>(
 }
 
 export function clearRecommendationCache(): void {
-  localStorage.removeItem(STORAGE_KEY);
+  removeLocal(STORAGE_KEY);
 }
 
 /** Guardrail: never persist auth/session material in the recommendations cache. */

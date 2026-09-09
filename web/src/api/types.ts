@@ -268,9 +268,14 @@ export interface DraftChecklistEntry {
   vegas_fp?: number | null;
   /** books | mixed | projection | none */
   vegas_prop_coverage?: string;
-  /** Consensus season prop lines used for Vegas FP. */
+  /** The scoring markets that add up to `vegas_fp`. Absent markets are omitted. */
   markets?: Record<string, number | null>;
-  /** Per-market source kind: book | projection. */
+  /**
+   * Where each market's number came from:
+   * `book` (a sportsbook season over/under), `projection` (a projection the
+   * scrape publishes next to the book lines), or `model` (this repo's own
+   * season projection, used when no book posted a line).
+   */
   market_kinds?: Record<string, string>;
   rank_tier: DraftRankTier;
   pos_market_rank?: number;

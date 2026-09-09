@@ -135,9 +135,21 @@ from src.projection.market_quotes import (
 SKEWED_ODDS_GAP = SEASON_QUOTE_POLICY.skewed_odds_gap
 
 
-def _conflicts_with_projection(line: float, projection: float) -> bool:
+def _canonical_market(market: str | None) -> str | None:
+    """Map a scrape's market name onto the canonical name the policy knows."""
+    if not market:
+        return None
+    return PLAYER_MARKET_ALIASES.get(str(market), str(market))
+
+
+def _conflicts_with_projection(
+    line: float, projection: float, *, market: str | None = None
+) -> bool:
     return _conflicts_with_projection_shared(
-        line, projection, policy=SEASON_QUOTE_POLICY
+        line,
+        projection,
+        policy=SEASON_QUOTE_POLICY,
+        market=_canonical_market(market),
     )
 
 
@@ -165,12 +177,18 @@ def _book_entry_line(raw: Any) -> float | None:
     return None
 
 
-def _extract_quote(raw: Any) -> tuple[float, str] | None:
+def _extract_quote(raw: Any, *, market: str | None = None) -> tuple[float, str] | None:
     """Return ``(value, kind)`` where kind is ``book`` or ``projection``.
 
     Prediction-market-only boards and heavily skewed O/U prices (Kalshi /
     Polymarket thresholds such as Kenny Gainwell 749.5 rush yards at +355/-567)
     are rejected so they cannot inflate consensus.
+
+    A price quoted on *both* sides is the market's own opinion, backed by vig.
+    It therefore outranks the model projection the same scrape ships alongside
+    it: the juice gate applies only to odds-less alt totals, and a two-sided
+    consensus is never overridden by that projection. Books below a projection
+    are market disagreement, not juice, and are kept either way.
     """
     if raw is None or isinstance(raw, bool):
         return None
@@ -197,12 +215,6 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
             book_line = _book_entry_line(book_raw)
             if book_line is None:
                 continue
-            # Drop per-book juice vs the same-source projection before median
-            # (Pierce: keep FanDuel 925.5, drop Caesars/DK 999.5 vs RW 872).
-            if projection is not None and _conflicts_with_projection(
-                book_line, projection
-            ):
-                continue
             # Prefer two-sided prices. Odds-less alt totals (DK/Caesars 3499.5
             # next to a fair FanDuel 1950.5 for Fernando Mendoza) are often
             # juice thresholds and can dominate a plain median.
@@ -220,7 +232,21 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
             else:
                 unsided_lines.append(book_line)
 
-    traditional_lines = sided_lines if sided_lines else unsided_lines
+    # Two-sided prices win outright; the juice gate is for odds-less alt rungs.
+    # Applying it to priced quotes threw away corroborated markets -- Aaron
+    # Rodgers pass yards at DK 3099.5 (-110/-110), FanDuel 3050.5 (-114/-114)
+    # and Circa 3075.5 (-115/-115) were all discarded against one 2700
+    # projection, biasing the board down wherever books disagreed with a model.
+    priced = bool(sided_lines)
+    if priced:
+        traditional_lines = sided_lines
+    else:
+        traditional_lines = [
+            value
+            for value in unsided_lines
+            if projection is None
+            or not _conflicts_with_projection(value, projection, market=market)
+        ]
 
     line = None
     if traditional_lines:
@@ -254,11 +280,15 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
         elif top_line is not None and skewed:
             line = None
 
-    if line is not None and projection is not None:
+    if line is not None and projection is not None and not priced:
+        # ``not priced``: a consensus built from two-sided quotes already beat
+        # the projection above, and must not be overridden here either (three
+        # books at 9.5 Javonte Williams rushing TDs are the market, whatever
+        # one model says).
         scale = max(abs(projection), 1.0)
         delta = abs(line - projection)
         rel = delta / scale
-        if _conflicts_with_projection(line, projection):
+        if _conflicts_with_projection(line, projection, market=market):
             # Severe juice (Kupp 1499.5 vs 364): drop the whole source so a
             # low RotoWire proj cannot blend with NumberFire. Milder juice
             # (Pierce Caesars 7.5 TDs vs RW 6.0): trust the source projection.
@@ -272,8 +302,8 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
     return None
 
 
-def _line_value(raw: Any) -> float | None:
-    quote = _extract_quote(raw)
+def _line_value(raw: Any, *, market: str | None = None) -> float | None:
+    quote = _extract_quote(raw, market=market)
     return None if quote is None else quote[0]
 
 
@@ -376,7 +406,7 @@ def _collect_player_lines(
                             kind="projection",
                         )
             for market, raw in markets.items():
-                quote = _extract_quote(raw)
+                quote = _extract_quote(raw, market=str(market))
                 if quote is None:
                     continue
                 value, kind = quote
@@ -542,8 +572,9 @@ def build_consensus(*, season: int = 2026) -> dict[str, Any]:
         "method": {
             "yards_tds_receptions": (
                 "median of DraftKings/FanDuel/RotoWire/Oddschecker/FTA/"
-                "ESPN-Fox/Action/Sharp-RG-SBR lines; book lines that conflict "
-                "with the same source's projection (>50% and >100 absolute) "
+                "ESPN-Fox/Action/Sharp-RG-SBR lines; two-sided prices are "
+                "preferred and are never overridden by the same source's "
+                "projection; odds-less alt totals juiced above that projection "
                 "are dropped; prediction-market-only / heavily skewed O/U "
                 "prices (Kalshi/Polymarket thresholds) are dropped; numberFire "
                 "projections fill only when no sportsbook quote remains; "

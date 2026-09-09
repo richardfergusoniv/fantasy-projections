@@ -12,6 +12,7 @@ import { api, ApiClientError } from "../api/client";
 import { clearRecommendationCache } from "../cache/recommendationsCache";
 import type { User } from "../api/types";
 import { readMagicLinkToken, stripMagicLinkTokenFromUrl } from "../pwa/magicLink";
+import { readLocal, removeLocal, writeLocal } from "../storage/safeStorage";
 
 interface AuthContextValue {
   user: User | null;
@@ -43,19 +44,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   userRef.current = user;
 
   const persistCsrf = useCallback((token: string) => {
-    localStorage.setItem(CSRF_KEY, token);
+    writeLocal(CSRF_KEY, token);
     api.setCsrfToken(token);
   }, []);
 
   const restoreCsrf = useCallback(() => {
-    const stored = localStorage.getItem(CSRF_KEY);
+    const stored = readLocal(CSRF_KEY);
     if (stored) {
       api.setCsrfToken(stored);
     }
   }, []);
 
   const clearLocalSession = useCallback(() => {
-    localStorage.removeItem(CSRF_KEY);
+    removeLocal(CSRF_KEY);
     api.setCsrfToken(undefined);
     setUser(null);
   }, []);

@@ -36,11 +36,13 @@ test.describe("screen smoke (production bundle)", () => {
       await expect(page.getByRole("heading", { name: screen.heading })).toBeVisible();
     }
 
-    // Draft is primary nav; Vegas Props is the market assistant pane.
+    // Draft is primary nav; both boards are tabs on the Draft screen itself.
     await page.getByRole("link", { name: "Draft", exact: true }).click();
-    await expect(page.getByRole("link", { name: "Regression Model" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "League Value" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "Vegas Props" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "O-line" })).toHaveCount(0);
+    // The shell no longer carries a draft-board shortcut on every screen.
+    await expect(page.getByRole("link", { name: "Regression Model" })).toHaveCount(0);
 
     await page.getByRole("link", { name: "Home", exact: true }).click();
     await page.getByRole("link", { name: "Open Vegas Props" }).click();
