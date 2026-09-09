@@ -154,13 +154,17 @@ def _odds_skewed(over: Any, under: Any, *, gap: float = SKEWED_ODDS_GAP) -> bool
 def _one_sided_longshot(over: Any, under: Any, *, threshold: float = 100.0) -> bool:
     """Reject threshold props posted as plus-money on only one side.
 
-    Plus-100 overlays (Alec Pierce DK 999.5 receiving yards at +125) are juice
-    ladders, not main season totals.
+    Plus-money overlays (Alec Pierce DK 999.5 receiving yards at +125) are juice
+    ladders, not main season totals. The comparison is strict: +100 is even
+    money, which is where books hang *main* numbers, not longshot rungs. Books
+    that only publish an over price (theScore Bet) would otherwise lose their
+    main line -- and with it the player's only sportsbook quote -- to a filter
+    aimed at alt ladders.
     """
 
     def _is_longshot(odds: Any) -> bool:
         try:
-            return float(odds) >= threshold
+            return float(odds) > threshold
         except (TypeError, ValueError):
             return False
 
@@ -178,21 +182,47 @@ def _is_prediction_market_book(name: str) -> bool:
     return "kalshi" in key or "polymarket" in key
 
 
-def _conflicts_with_projection(line: float, projection: float) -> bool:
+#: Markets counted in whole (or half) units, where a single rung of an alt
+#: ladder is a large relative move. Keyed by market, not by magnitude: an elite
+#: quarterback projected for 27 passing TDs is still a count market, and sizing
+#: the branch by magnitude quietly handed exactly those players the loose
+#: yardage gate (a 34.5 pass-TD rung clears ``delta > 80`` trivially).
+COUNT_MARKETS = frozenset({"pass_tds", "rush_tds", "rec_tds", "receptions"})
+
+
+def _is_count_market(market: str | None) -> bool | None:
+    """True/False for a known market, ``None`` when the market is unknown."""
+    if not market:
+        return None
+    return PLAYER_MARKET_ALIASES.get(str(market), str(market)) in COUNT_MARKETS
+
+
+def _conflicts_with_projection(
+    line: float, projection: float, *, market: str | None = None
+) -> bool:
     """True when a book line is juiced upward vs the same-source projection.
 
-    TD / count markets use a tighter absolute gap (Caesars-only Alec Pierce 7.5
-    TDs vs RotoWire 6.0). Yard markets catch milder overlays like 999.5 vs 872
-    that the prior 25%/150-yard gate missed.
+    Count markets use a tighter absolute gap (Caesars-only Alec Pierce 7.5 TDs
+    vs RotoWire 6.0). Yard markets catch milder overlays like 999.5 vs 872 that
+    the prior 25%/150-yard gate missed.
+
+    Both gates only fire *upward*. A juice ladder is by construction a rung
+    posted above the real number; a book quoting well below a model projection
+    is market disagreement, and dropping it would bias the consensus up.
     """
     scale = max(abs(projection), 1.0)
     delta = abs(line - projection)
     rel = delta / scale
-    if scale <= 25:
-        # Receptions / passing·rushing·receiving TDs.
-        return line > projection and delta >= 1.0 and rel >= 0.15
+    if line <= projection:
+        return False
+    count = _is_count_market(market)
+    if count is None:
+        # Direct callers that do not name the market fall back to magnitude.
+        count = scale <= 25
+    if count:
+        return delta >= 1.0 and rel >= 0.15
     return (rel > 0.5 and delta > max(1.5, 0.05 * scale)) or (
-        line > projection and rel > 0.12 and delta > 80
+        rel > 0.12 and delta > 80
     )
 
 
@@ -231,12 +261,18 @@ def _scalar_line(raw: Any) -> float | None:
     return None
 
 
-def _extract_quote(raw: Any) -> tuple[float, str] | None:
+def _extract_quote(raw: Any, *, market: str | None = None) -> tuple[float, str] | None:
     """Return ``(value, kind)`` where kind is ``book`` or ``projection``.
 
     Prediction-market-only boards and heavily skewed O/U prices (Kalshi /
     Polymarket thresholds such as Kenny Gainwell 749.5 rush yards at +355/-567)
     are rejected so they cannot inflate consensus.
+
+    A price quoted on *both* sides is the market's own opinion, backed by vig.
+    It therefore outranks the model projection the same scrape ships alongside
+    it: the juice gate applies only to odds-less alt totals, and a two-sided
+    consensus is never overridden by that projection. Books below a projection
+    are market disagreement, not juice, and are kept either way.
     """
     if raw is None or isinstance(raw, bool):
         return None
@@ -263,12 +299,6 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
             book_line = _book_entry_line(book_raw)
             if book_line is None:
                 continue
-            # Drop per-book juice vs the same-source projection before median
-            # (Pierce: keep FanDuel 925.5, drop Caesars/DK 999.5 vs RW 872).
-            if projection is not None and _conflicts_with_projection(
-                book_line, projection
-            ):
-                continue
             # Prefer two-sided prices. Odds-less alt totals (DK/Caesars 3499.5
             # next to a fair FanDuel 1950.5 for Fernando Mendoza) are often
             # juice thresholds and can dominate a plain median.
@@ -286,7 +316,21 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
             else:
                 unsided_lines.append(book_line)
 
-    traditional_lines = sided_lines if sided_lines else unsided_lines
+    # Two-sided prices win outright; the juice gate is for odds-less alt rungs.
+    # Applying it to priced quotes threw away corroborated markets -- Aaron
+    # Rodgers pass yards at DK 3099.5 (-110/-110), FanDuel 3050.5 (-114/-114)
+    # and Circa 3075.5 (-115/-115) were all discarded against one 2700
+    # projection, biasing the board down wherever books disagreed with a model.
+    priced = bool(sided_lines)
+    if priced:
+        traditional_lines = sided_lines
+    else:
+        traditional_lines = [
+            value
+            for value in unsided_lines
+            if projection is None
+            or not _conflicts_with_projection(value, projection, market=market)
+        ]
 
     line = None
     if traditional_lines:
@@ -320,11 +364,15 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
         elif top_line is not None and skewed:
             line = None
 
-    if line is not None and projection is not None:
+    if line is not None and projection is not None and not priced:
+        # ``not priced``: a consensus built from two-sided quotes already beat
+        # the projection above, and must not be overridden here either (three
+        # books at 9.5 Javonte Williams rushing TDs are the market, whatever
+        # one model says).
         scale = max(abs(projection), 1.0)
         delta = abs(line - projection)
         rel = delta / scale
-        if _conflicts_with_projection(line, projection):
+        if _conflicts_with_projection(line, projection, market=market):
             # Severe juice (Kupp 1499.5 vs 364): drop the whole source so a
             # low RotoWire proj cannot blend with NumberFire. Milder juice
             # (Pierce Caesars 7.5 TDs vs RW 6.0): trust the source projection.
@@ -338,8 +386,8 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
     return None
 
 
-def _line_value(raw: Any) -> float | None:
-    quote = _extract_quote(raw)
+def _line_value(raw: Any, *, market: str | None = None) -> float | None:
+    quote = _extract_quote(raw, market=market)
     return None if quote is None else quote[0]
 
 
@@ -456,7 +504,7 @@ def _collect_player_lines(
                             kind="projection",
                         )
             for market, raw in markets.items():
-                quote = _extract_quote(raw)
+                quote = _extract_quote(raw, market=str(market))
                 if quote is None:
                     continue
                 value, kind = quote
@@ -622,8 +670,9 @@ def build_consensus(*, season: int = 2026) -> dict[str, Any]:
         "method": {
             "yards_tds_receptions": (
                 "median of DraftKings/FanDuel/RotoWire/Oddschecker/FTA/"
-                "ESPN-Fox/Action/Sharp-RG-SBR lines; book lines that conflict "
-                "with the same source's projection (>50% and >100 absolute) "
+                "ESPN-Fox/Action/Sharp-RG-SBR lines; two-sided prices are "
+                "preferred and are never overridden by the same source's "
+                "projection; odds-less alt totals juiced above that projection "
                 "are dropped; prediction-market-only / heavily skewed O/U "
                 "prices (Kalshi/Polymarket thresholds) are dropped; numberFire "
                 "projections fill only when no sportsbook quote remains; "

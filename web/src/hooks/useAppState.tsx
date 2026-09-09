@@ -9,6 +9,7 @@ import {
 } from "react";
 import { api } from "../api/client";
 import type { LeagueSummary, Roster } from "../api/types";
+import { readLocal, writeLocal } from "../storage/safeStorage";
 
 const LEAGUE_KEY = "fantasy-decisions:selected-league";
 const WEEK_KEY = "fantasy-decisions:selected-week";
@@ -57,7 +58,7 @@ const AppStateContext = createContext<AppStateValue | null>(null);
 
 function readStoredWeek(leagueId: string | null): number | null {
   if (!leagueId) return null;
-  const raw = localStorage.getItem(`${WEEK_KEY}:${leagueId}`);
+  const raw = readLocal(`${WEEK_KEY}:${leagueId}`);
   if (!raw) return null;
   const parsed = Number(raw);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
@@ -102,10 +103,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [leagues, setLeagues] = useState<LeagueSummary[]>([]);
   const [configuredLeagueIds, setConfiguredLeagueIds] = useState<string[]>([]);
   const [showAllLeagues, setShowAllLeaguesState] = useState<boolean>(
-    () => localStorage.getItem(SHOW_ALL_LEAGUES_KEY) === "true",
+    () => readLocal(SHOW_ALL_LEAGUES_KEY) === "true",
   );
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(() =>
-    localStorage.getItem(LEAGUE_KEY),
+    readLocal(LEAGUE_KEY),
   );
   const [leaguesLoading, setLeaguesLoading] = useState(true);
   const [leaguesError, setLeaguesError] = useState<string | null>(null);
@@ -115,18 +116,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [rostersError, setRostersError] = useState<string | null>(null);
 
   const [weekOverride, setWeekOverride] = useState<number | null>(() =>
-    readStoredWeek(localStorage.getItem(LEAGUE_KEY)),
+    readStoredWeek(readLocal(LEAGUE_KEY)),
   );
 
   const selectLeague = useCallback((leagueId: string) => {
     setSelectedLeagueId(leagueId);
-    localStorage.setItem(LEAGUE_KEY, leagueId);
+    writeLocal(LEAGUE_KEY, leagueId);
     setWeekOverride(readStoredWeek(leagueId));
   }, []);
 
   const setShowAllLeagues = useCallback((show: boolean) => {
     setShowAllLeaguesState(show);
-    localStorage.setItem(SHOW_ALL_LEAGUES_KEY, show ? "true" : "false");
+    writeLocal(SHOW_ALL_LEAGUES_KEY, show ? "true" : "false");
   }, []);
 
   const refreshLeagues = useCallback(async () => {
@@ -137,12 +138,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setLeagues(items);
       setConfiguredLeagueIds(configured);
       setSelectedLeagueId((current) => {
-        const showAll = localStorage.getItem(SHOW_ALL_LEAGUES_KEY) === "true";
+        const showAll = readLocal(SHOW_ALL_LEAGUES_KEY) === "true";
         const next = pickPreferredLeagueId(items, configured, current, {
           showAll,
         });
         if (next) {
-          localStorage.setItem(LEAGUE_KEY, next);
+          writeLocal(LEAGUE_KEY, next);
         }
         return next;
       });
@@ -201,7 +202,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     (next: number) => {
       setWeekOverride(next);
       if (selectedLeagueId) {
-        localStorage.setItem(`${WEEK_KEY}:${selectedLeagueId}`, String(next));
+        writeLocal(`${WEEK_KEY}:${selectedLeagueId}`, String(next));
       }
     },
     [selectedLeagueId],
@@ -234,7 +235,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     });
     if (next && next !== selectedLeagueId) {
       setSelectedLeagueId(next);
-      localStorage.setItem(LEAGUE_KEY, next);
+      writeLocal(LEAGUE_KEY, next);
       setWeekOverride(readStoredWeek(next));
     }
   }, [

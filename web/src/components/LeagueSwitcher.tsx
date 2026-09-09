@@ -1,20 +1,16 @@
-import { Link, useLocation } from "react-router-dom";
 import { useAppState } from "../hooks/useAppState";
 
 /**
- * League control for the app shell, with a shortcut to the Regression Model
- * draft board on its left.
+ * League control for the app shell.
  *
- * Week / season pickers and the historical-leagues toggle lived here previously;
- * the app now defaults to the active season and the latest synced week.
+ * Week / season pickers and the historical-leagues toggle lived here
+ * previously; the app now defaults to the active season and the latest synced
+ * week. A "Regression Model" shortcut lived here too, on every screen — it
+ * named an implementation rather than a result, and pointed at one of the two
+ * Draft boards from places (Lineup, Waivers, Trade) that have nothing to do
+ * with drafting. Both draft boards are now tabs on the Draft screen itself.
  */
 export function LeagueSwitcher() {
-  const location = useLocation();
-  const onDraftScreen = location.pathname.startsWith("/draft");
-  const pane = new URLSearchParams(location.search).get("pane");
-  const regressionActive =
-    onDraftScreen && pane !== "checklist" && pane !== "assistant" && pane !== "draft-assistant";
-
   const {
     visibleLeagues,
     selectedLeagueId,
@@ -26,14 +22,6 @@ export function LeagueSwitcher() {
 
   return (
     <div className="shell-controls">
-      <Link
-        to="/draft"
-        className={`shell-pane-link${regressionActive ? " is-active" : ""}`}
-        aria-current={regressionActive ? "page" : undefined}
-      >
-        Regression Model
-      </Link>
-
       <div className="shell-control">
         <label htmlFor="shell-league-select">Leagues</label>
         <select

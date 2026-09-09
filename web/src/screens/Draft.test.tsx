@@ -14,19 +14,26 @@ vi.mock("../api/client", () => ({
   },
 }));
 
+const DEFAULT_APP_STATE = {
+  selectedLeagueId: "league-three-wr",
+  selectedLeague: { name: "Three Wide League", season: 2026 },
+};
+let mockState: Record<string, unknown> = { ...DEFAULT_APP_STATE };
+
 vi.mock("../hooks/useAppState", () => ({
-  useAppState: () => ({
-    selectedLeagueId: "league-three-wr",
-    selectedLeague: { name: "Three Wide League", season: 2026 },
-  }),
+  useAppState: () => mockState,
 }));
 
-function renderDraft(initialEntry = "/draft") {
-  return render(
+function renderTree(initialEntry = "/draft") {
+  return (
     <MemoryRouter initialEntries={[initialEntry]}>
       <DraftScreen />
-    </MemoryRouter>,
+    </MemoryRouter>
   );
+}
+
+function renderDraft(initialEntry = "/draft") {
+  return render(renderTree(initialEntry));
 }
 
 function board(): DraftBoard {
@@ -70,17 +77,17 @@ function checklist(): DraftChecklist {
     adp: index < 10 ? index + 1 : null,
     ecr: index < 20 ? index + 5 : null,
     prior_pts: 200 - index,
-    vegas_fp: index === 0 ? 163.5 : null,
+    // 900.5/10 + 49.5*0.5 + 5*6 = 144.8, i.e. the card rows sum to vegas_fp.
+    vegas_fp: index === 0 ? 144.8 : null,
     vegas_prop_coverage: index === 0 ? "mixed" : "none",
     markets: (index === 0
-      ? { rec_yards: 900.5, receptions: 49.5, rec_tds: 5.0, targets: 114.9 }
+      ? { rec_yards: 900.5, receptions: 49.5, rec_tds: 5.0 }
       : {}) as Record<string, number | null>,
     market_kinds: (index === 0
       ? {
           rec_yards: "book",
           receptions: "book",
-          rec_tds: "projection",
-          targets: "projection",
+          rec_tds: "model",
         }
       : {}) as Record<string, string>,
     rank_tier: (index < 10 ? "adp" : index < 20 ? "ecr" : "prior_pts") as
@@ -177,7 +184,7 @@ function checklist(): DraftChecklist {
 }
 
 async function openOursPane() {
-  // Regression Model lives in the shell; Draft defaults to that board at /draft.
+  // League Value is the default board at /draft.
   const position = await screen.findByLabelText("Position");
   fireEvent.change(position, { target: { value: "ALL" } });
   expect(await screen.findByText(/League-adjusted · 12 teams/i)).toBeInTheDocument();
@@ -187,8 +194,34 @@ describe("DraftScreen", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+    mockState = { ...DEFAULT_APP_STATE };
     getDraftBoard.mockResolvedValue(board());
     getDraftChecklist.mockResolvedValue(checklist());
+  });
+
+  it("offers both boards as tabs and switches between them", async () => {
+    renderDraft();
+    const leagueValue = await screen.findByRole("tab", { name: "League Value" });
+    const vegasProps = screen.getByRole("tab", { name: "Vegas Props" });
+    expect(leagueValue).toHaveAttribute("aria-selected", "true");
+    expect(vegasProps).toHaveAttribute("aria-selected", "false");
+
+    fireEvent.click(vegasProps);
+    expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Vegas Props" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+
+    // ...and back, without leaving the screen.
+    fireEvent.click(screen.getByRole("tab", { name: "League Value" }));
+    expect(
+      await screen.findByRole("listitem", { name: "Draft Player 1 draft card" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "League Value" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 
   it("opens Vegas Props from the pane query", async () => {
@@ -300,7 +333,7 @@ describe("DraftScreen", () => {
   });
 
 
-  it("shows Vegas VORP tier break headers on Regression Model", async () => {
+  it("shows Vegas VORP tier break headers on the League Value board", async () => {
     renderDraft("/draft?pane=ours");
     await screen.findByText("Draft Player 1");
     const breaks = screen.getAllByRole("separator").filter((node) =>
@@ -324,9 +357,83 @@ describe("DraftScreen", () => {
     expect(within(dialog).getByText("Rec Yds")).toBeInTheDocument();
     expect(within(dialog).getByText("900.5")).toBeInTheDocument();
     expect(within(dialog).getAllByText("book").length).toBeGreaterThan(0);
-    expect(within(dialog).getByText(/Prop coverage: mixed/i)).toBeInTheDocument();
+    // Coverage reads as a sentence about the rows shown, not the raw enum.
+    // The fixture stores coverage "mixed" but renders 2 book rows of 3, and
+    // the copy must describe what is on screen rather than the stored value.
+    expect(
+      within(dialog).getByText(/2 of 3 lines below are sportsbook numbers/i),
+    ).toBeInTheDocument();
+    expect(within(dialog).queryByText(/^mixed$/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Close player card" }));
+    expect(screen.queryByRole("dialog", { name: "WR Player 1" })).not.toBeInTheDocument();
+  });
+
+  it("shows only rows that add up to the Vegas FP in the header", async () => {
+    renderDraft("/draft?pane=checklist");
+    fireEvent.click(screen.getByRole("tab", { name: /Vegas Props/i }));
+    await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
+    fireEvent.click(screen.getByRole("button", { name: "WR Player 1" }));
+
+    const dialog = screen.getByRole("dialog", { name: "WR Player 1" });
+    expect(within(dialog).getByText(/Vegas FP 144.8/)).toBeInTheDocument();
+    // Half-PPR: 900.5/10 + 49.5*0.5 + 5*6 = 144.8. Targets and attempts score
+    // nothing and no longer appear as rows the total cannot account for.
+    expect(within(dialog).getByText("Receptions")).toBeInTheDocument();
+    expect(within(dialog).getByText("Rec TDs")).toBeInTheDocument();
+    expect(within(dialog).queryByText("Targets")).not.toBeInTheDocument();
+    // A market with no book line is labelled as this app's own projection.
+    expect(within(dialog).getByText("model")).toBeInTheDocument();
+  });
+
+  it("does not claim projections on a card whose rows are all book lines", async () => {
+    // Regression: coverage came from the stored enum, which is computed over
+    // every scoring market including ones the player has no line in. Jahmyr
+    // Gibbs reads "mixed" off two empty passing markets while all five
+    // rendered rows are book numbers, so the card said "the rest are
+    // projections" above five sportsbook lines.
+    const payload = checklist();
+    const target = payload.entries.find((entry) => entry.name === "WR Player 1")!;
+    target.market_kinds = { rec_yards: "book", receptions: "book", rec_tds: "book" };
+    target.vegas_prop_coverage = "mixed";
+    getDraftChecklist.mockResolvedValue(payload);
+
+    renderDraft("/draft?pane=checklist");
+    fireEvent.click(screen.getByRole("tab", { name: /Vegas Props/i }));
+    await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
+    fireEvent.click(screen.getByRole("button", { name: "WR Player 1" }));
+
+    const dialog = screen.getByRole("dialog", { name: "WR Player 1" });
+    expect(
+      within(dialog).getByText(/Every line below is a sportsbook season over\/under/i),
+    ).toBeInTheDocument();
+    expect(within(dialog).queryByText(/the rest are projections/i)).not.toBeInTheDocument();
+  });
+
+  it("moves focus into the player card and back out on close", async () => {
+    renderDraft("/draft?pane=checklist");
+    fireEvent.click(screen.getByRole("tab", { name: /Vegas Props/i }));
+    await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
+
+    const name = screen.getByRole("button", { name: "WR Player 1" });
+    fireEvent.click(name);
+    const dialog = screen.getByRole("dialog", { name: "WR Player 1" });
+    expect(dialog.contains(document.activeElement)).toBe(true);
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "WR Player 1" })).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(name);
+  });
+
+  it("closes the player card when the league changes underneath it", async () => {
+    const { rerender } = renderDraft("/draft?pane=checklist");
+    fireEvent.click(screen.getByRole("tab", { name: /Vegas Props/i }));
+    await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
+    fireEvent.click(screen.getByRole("button", { name: "WR Player 1" }));
+    expect(screen.getByRole("dialog", { name: "WR Player 1" })).toBeInTheDocument();
+
+    mockState = { ...mockState, selectedLeagueId: "league-other" };
+    rerender(renderTree("/draft?pane=checklist"));
     expect(screen.queryByRole("dialog", { name: "WR Player 1" })).not.toBeInTheDocument();
   });
 

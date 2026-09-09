@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AsyncStateBanner } from "../components/AsyncState";
 import { FreshnessBadge } from "../components/FreshnessBadge";
@@ -12,13 +12,24 @@ import type {
   DraftChecklist,
   DraftChecklistEntry,
 } from "../api/types";
+import { readLocal, writeLocal } from "../storage/safeStorage";
 
 const DRAFTED_STORAGE_PREFIX = "fantasy-decisions:drafted";
 
 type DraftPane = "checklist" | "ours";
 type ChecklistSort = "adp" | "vorp";
 
+/**
+ * Both draft boards, as siblings.
+ *
+ * "League Value" was previously labelled "Regression Model" and lived as a
+ * link in the app shell, so the tab strip here had a single tab and the other
+ * board had no visible home. The name also described the wrong thing: the
+ * board ranks by value over replacement in *your* league's scoring, not by a
+ * regression.
+ */
 const DRAFT_PANES: Array<[DraftPane, string]> = [
+  ["ours", "League Value"],
   ["checklist", "Vegas Props"],
 ];
 
@@ -36,7 +47,7 @@ function draftedStorageKey(leagueId: string, season?: number): string {
 
 function loadDraftedPlayers(key: string): string[] {
   try {
-    const value = JSON.parse(localStorage.getItem(key) ?? "[]") as unknown;
+    const value = JSON.parse(readLocal(key) ?? "[]") as unknown;
     if (!Array.isArray(value)) return [];
     return [...new Set(value.map(String).filter(Boolean))];
   } catch {
@@ -45,7 +56,7 @@ function loadDraftedPlayers(key: string): string[] {
 }
 
 function saveDraftedPlayers(key: string, playerIds: string[]): void {
-  localStorage.setItem(key, JSON.stringify(playerIds));
+  writeLocal(key, JSON.stringify(playerIds));
 }
 
 function formatVorp(value: number | undefined): string {
@@ -168,6 +179,11 @@ function averageAvailableRank(entry: DraftChecklistEntry, keys: string[]): numbe
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+/**
+ * Card rows, in scoring order. Only markets that feed Vegas FP appear: the
+ * card exists to explain the number in its own header, and target / attempt
+ * rows (which score nothing) made that impossible to read off.
+ */
 const MARKET_CARD_ORDER = [
   "pass_yards",
   "pass_tds",
@@ -176,9 +192,6 @@ const MARKET_CARD_ORDER = [
   "rec_yards",
   "receptions",
   "rec_tds",
-  "targets",
-  "pass_attempts",
-  "rush_attempts",
 ] as const;
 
 const MARKET_CARD_LABELS: Record<string, string> = {
@@ -189,15 +202,45 @@ const MARKET_CARD_LABELS: Record<string, string> = {
   rec_yards: "Rec Yds",
   receptions: "Receptions",
   rec_tds: "Rec TDs",
-  targets: "Targets",
-  pass_attempts: "Pass Att",
-  rush_attempts: "Rush Att",
 };
 
-function formatMarketValue(key: string, value: number): string {
-  if (key.endsWith("_tds") || key === "receptions" || key.endsWith("_attempts") || key === "targets") {
-    return Number.isInteger(value) ? String(value) : value.toFixed(1);
+/** Where a card row's number came from. */
+const MARKET_KIND_LABELS: Record<string, string> = {
+  book: "book",
+  projection: "proj",
+  model: "model",
+};
+
+const MARKET_KIND_TITLES: Record<string, string> = {
+  book: "Sportsbook season over/under",
+  projection: "Projection published alongside the book lines",
+  model: "This app's own season projection — no book line was posted",
+};
+
+/**
+ * Describe the rows the card actually shows, not the stored coverage enum.
+ *
+ * `vegas_prop_coverage` is computed across every scoring market in the
+ * consensus, including ones a player has no line in — so Jahmyr Gibbs reads
+ * `mixed` off two empty passing markets while all five rendered rows are book
+ * numbers. Saying "the rest are projections" over a card of pure book lines is
+ * simply false.
+ */
+function coverageCopy(rows: Array<{ kind: string }>): string {
+  if (!rows.length) return "No season prop markets found for this player.";
+  const books = rows.filter((row) => row.kind === "book").length;
+  if (books === rows.length) {
+    return rows.length === 1
+      ? "The line below is a sportsbook season over/under."
+      : "Every line below is a sportsbook season over/under.";
   }
+  if (books === 0) {
+    return "No sportsbook lines below — projections only, so this player is not ranked as Vegas.";
+  }
+  return `${books} of ${rows.length} lines below are sportsbook numbers; the rest are projections.`;
+}
+
+function formatMarketValue(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
@@ -216,8 +259,8 @@ function marketRowsForCard(entry: DraftChecklistEntry): Array<{
     rows.push({
       key,
       label: MARKET_CARD_LABELS[key] ?? key,
-      value: formatMarketValue(key, raw),
-      kind: kinds[key] === "book" ? "book" : kinds[key] === "projection" ? "projection" : "unknown",
+      value: formatMarketValue(raw),
+      kind: kinds[key] && MARKET_KIND_LABELS[kinds[key]] ? kinds[key] : "unknown",
     });
   }
   return rows;
@@ -242,7 +285,12 @@ export function DraftScreen() {
   const [runId, setRunId] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPlayer, setSelectedPlayer] = useState<DraftChecklistEntry | null>(null);
+  // Store the id, not a snapshot: a league switch or refetch while the card is
+  // open must move the card to the new data (or close it), never leave a
+  // previous league's numbers on screen under a live header.
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
 
   const storageKey = selectedLeagueId
     ? draftedStorageKey(selectedLeagueId, selectedLeague?.season)
@@ -252,14 +300,70 @@ export function DraftScreen() {
     setPane(paneFromSearch(searchParams.get("pane")));
   }, [searchParams]);
 
+  const selectedPlayer = useMemo(
+    () =>
+      selectedPlayerId == null
+        ? null
+        : (checklist?.entries ?? []).find((entry) => entry.player_id === selectedPlayerId) ?? null,
+    [selectedPlayerId, checklist],
+  );
+
+  // The card left the page behind it fully interactive: aria-modal alone moves
+  // no focus and traps none. Move focus in, keep Tab inside, restore it on close.
   useEffect(() => {
     if (!selectedPlayer) return;
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setSelectedPlayer(null);
+    const dialog = dialogRef.current;
+    dialog?.querySelector<HTMLElement>("button, [href], input, select, textarea")?.focus();
+
+    function focusable(): HTMLElement[] {
+      return Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+        ) ?? [],
+      ).filter((node) => !node.hasAttribute("disabled"));
     }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedPlayerId(null);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const nodes = focusable();
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (event.shiftKey && (active === first || !dialogRef.current?.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [selectedPlayer]);
+
+  // Restore focus to the name that opened the card.
+  useEffect(() => {
+    if (selectedPlayerId != null) return;
+    const previous = lastFocusedRef.current;
+    lastFocusedRef.current = null;
+    if (previous?.isConnected) previous.focus();
+  }, [selectedPlayerId]);
+
+  const cardRows = useMemo(
+    () => (selectedPlayer ? marketRowsForCard(selectedPlayer) : []),
+    [selectedPlayer],
+  );
+
+  function openPlayerCard(playerId: string, trigger: HTMLElement | null): void {
+    lastFocusedRef.current = trigger;
+    setSelectedPlayerId(playerId);
+  }
 
   function selectPane(next: DraftPane) {
     setPane(next);
@@ -276,6 +380,7 @@ export function DraftScreen() {
   useEffect(() => {
     setDraftedPlayerIds(storageKey ? loadDraftedPlayers(storageKey) : []);
     setVisibleCount(25);
+    setSelectedPlayerId(null);
   }, [storageKey]);
 
   useEffect(() => {
@@ -336,7 +441,7 @@ export function DraftScreen() {
 
   const criteriaLabels = checklist?.criteria_labels ?? {};
 
-  /** League VORP board rank + tier (Regression Model), keyed for checklist VORP sort. */
+  /** League Value board rank + tier, keyed for the checklist's VORP sort. */
   const vorpRankByPlayerId = useMemo(() => {
     const map = new Map<string, number>();
     for (const entry of entries) {
@@ -368,7 +473,7 @@ export function DraftScreen() {
       return true;
     });
     // ADP: All/FLEX re-sort by market ADP; single-pos tabs keep board order.
-    // VORP: always order by league VORP board rank (Regression Model).
+    // VORP: always order by League Value board rank.
     if (checklistSort === "vorp") {
       return [...filtered].sort((a, b) => checklistVorpSort(a, b, vorpRankByPlayerId));
     }
@@ -460,12 +565,15 @@ export function DraftScreen() {
         actions={<FreshnessBadge dataAsOf={dataAsOf} runId={runId} />}
       >
         <p className="muted">
-          Vegas Props sorts by ADP or VORP (toggle above the list). FLEX = RB/WR/TE. Context pills
-          are Vegas volume/offense and Sharp SOS ranks. Regression Model (header) is VORP from Vegas
-          season lines. Mark drafted to hide a player across both.
+          Two boards over the same players.{" "}
+          <strong>League Value</strong> ranks by points above the last startable player at
+          each position, using your league's scoring and roster slots.{" "}
+          <strong>Vegas Props</strong> is the market's view: sort it by ADP (where players go
+          in drafts) or VORP (that value rank), and tap a name to see the season prop lines
+          behind it. Marking a player drafted hides them on both.
         </p>
 
-        <div className="draft-pane-tabs" role="tablist" aria-label="Draft views">
+        <div className="draft-pane-tabs" role="tablist" aria-label="Draft board">
           {DRAFT_PANES.map(([id, label]) => (
             <button
               key={id}
@@ -686,7 +794,10 @@ export function DraftScreen() {
                           <button
                             type="button"
                             className="draft-player-name"
-                            onClick={() => setSelectedPlayer(entry)}
+                            aria-haspopup="dialog"
+                            onClick={(event) =>
+                              openPlayerCard(entry.player_id, event.currentTarget)
+                            }
                           >
                             {entry.name}
                           </button>
@@ -774,9 +885,9 @@ export function DraftScreen() {
         {pane === "ours" && entries.length ? (
           <>
             <p className="muted">
-              Rankings use Vegas season fantasy points (half-PPR / 4-pt pass TD from yards,
-              receptions, and TDs). Scoring seats, FLEX, and SUPER_FLEX still set replacement.
-              Raw quarterback points never set the overall order by themselves.
+              Season points come from Vegas lines (half-PPR, 4-point passing TDs, from yards,
+              receptions and TDs). Replacement level is your league's: starting slots, FLEX and
+              SUPER_FLEX all count. Quarterbacks never top the board on raw points alone.
             </p>
             <div className="draft-status">
               <span className="on-clock">Best available: {top?.name ?? "not available"}</span>
@@ -918,9 +1029,10 @@ export function DraftScreen() {
         <div
           className="player-card-backdrop"
           role="presentation"
-          onClick={() => setSelectedPlayer(null)}
+          onClick={() => setSelectedPlayerId(null)}
         >
           <div
+            ref={dialogRef}
             className="player-card-panel"
             role="dialog"
             aria-modal="true"
@@ -945,32 +1057,35 @@ export function DraftScreen() {
                 type="button"
                 className="btn btn-ghost"
                 aria-label="Close player card"
-                onClick={() => setSelectedPlayer(null)}
+                onClick={() => setSelectedPlayerId(null)}
               >
                 Close
               </button>
             </div>
-            <p className="muted player-card-coverage">
-              Prop coverage: {selectedPlayer.vegas_prop_coverage ?? "none"}
-            </p>
-            {marketRowsForCard(selectedPlayer).length ? (
-              <dl className="player-card-markets">
-                {marketRowsForCard(selectedPlayer).map((row) => (
-                  <div key={row.key} className="player-card-market-row">
-                    <dt>
-                      {row.label}
-                      <span className={`player-card-kind is-${row.kind}`}>
-                        {row.kind === "book"
-                          ? "book"
-                          : row.kind === "projection"
-                            ? "proj"
-                            : "—"}
-                      </span>
-                    </dt>
-                    <dd>{row.value}</dd>
-                  </div>
-                ))}
-              </dl>
+            <p className="muted player-card-coverage">{coverageCopy(cardRows)}</p>
+            {cardRows.length ? (
+              <>
+                <dl className="player-card-markets">
+                  {cardRows.map((row) => (
+                    <div key={row.key} className="player-card-market-row">
+                      <dt>
+                        {row.label}
+                        <span
+                          className={`player-card-kind is-${row.kind}`}
+                          title={MARKET_KIND_TITLES[row.kind] ?? "Source unknown"}
+                        >
+                          {MARKET_KIND_LABELS[row.kind] ?? "—"}
+                        </span>
+                      </dt>
+                      <dd>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="muted player-card-footnote">
+                  These rows are exactly what Vegas FP adds up: half-PPR scoring, 4-point
+                  passing TDs, no interceptions or fumbles.
+                </p>
+              </>
             ) : (
               <p className="muted">No season prop lines available for this player.</p>
             )}
