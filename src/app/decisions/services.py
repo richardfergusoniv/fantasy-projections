@@ -14,6 +14,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
+from src.app.availability.identity import PlayerIdentityResolver
 from src.app.decisions.draws import (
     DEFAULT_DRAW_COUNT,
     DrawSet,
@@ -33,7 +34,7 @@ from src.app.decisions.trades import (
     evaluate_trade,
 )
 from src.app.decisions.waivers import WaiverPlayer, recommend_waivers
-from src.app.availability.identity import PlayerIdentityResolver
+from src.app.persistence.models import LeagueMember, MatchupSnapshot
 from src.app.persistence.repositories import LeagueRepository, ProjectionRepository
 from src.app.projections.loader import PlayerSummary, get_bundle_loader
 from src.app.projections.service import ProjectionService
@@ -41,10 +42,6 @@ from src.app.projections.source import (
     ProjectionSource,
     configured_projection_source,
     weekly_rnd_enabled,
-)
-from src.projection.weekly_props.provenance import (
-    decision_provenance,
-    is_weekly_props_run,
 )
 from src.app.releases.gates import validate_matchup_probabilities
 from src.app.scoring.compiler import compile_sleeper_scoring, require_publishable
@@ -54,6 +51,10 @@ from src.projection.special_teams.models import (
     TeamContext,
     simulate_dst_draw,
     simulate_kicker_draw,
+)
+from src.projection.weekly_props.provenance import (
+    decision_provenance,
+    is_weekly_props_run,
 )
 
 #: Regular-season length used for horizon scaling when a league does not say.
@@ -383,6 +384,38 @@ class _LeagueContext:
         return base
 
 
+def _resolve_owner_roster_id(
+    session: Session, league_id: str, *, explicit_roster_id: int | None
+) -> int:
+    """Resolve the configured Sleeper owner to their league roster.
+
+    Roster ids are league-specific and are not guaranteed to be ``1``. Explicit
+    callers (such as shadow validation) remain authoritative; normal API and
+    assistant requests use the stable Sleeper user id imported into
+    ``league_member``. The legacy default is retained only when the deployment
+    has no owner identity configured.
+    """
+    if explicit_roster_id is not None:
+        return explicit_roster_id
+
+    from src.app.config import get_settings
+
+    sleeper_user_id = get_settings().sleeper_user_id
+    if sleeper_user_id:
+        member = (
+            session.query(LeagueMember)
+            .filter(
+                LeagueMember.league_id == league_id,
+                LeagueMember.user_id == str(sleeper_user_id),
+            )
+            .one_or_none()
+        )
+        if member is None:
+            raise LeagueContextError(f"owner_roster_not_found:league={league_id}")
+        return member.roster_id
+    return 1
+
+
 class LineupService:
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -395,12 +428,15 @@ class LineupService:
         week: int,
         *,
         opponent_mode: str = "current",
-        user_roster_id: int = 1,
+        user_roster_id: int | None = None,
         opponent_roster_id: int | None = None,
     ) -> dict:
         if opponent_mode not in {"current", "optimized"}:
             raise LeagueContextError(f"invalid_opponent_mode:{opponent_mode}")
         ctx = _LeagueContext(self.session, league_id, week)
+        user_roster_id = _resolve_owner_roster_id(
+            self.session, league_id, explicit_roster_id=user_roster_id
+        )
 
         rosters = self.leagues.latest_rosters(league_id, week)
         user_roster = next((r for r in rosters if r.roster_id == user_roster_id), None)
@@ -409,7 +445,18 @@ class LineupService:
                 f"no_roster_snapshot:league={league_id},roster={user_roster_id},week={week}"
             )
         if opponent_roster_id is None:
-            opponent = next((r for r in rosters if r.roster_id != user_roster_id), None)
+            opponent_roster_id = self._matchup_opponent_roster_id(
+                league_id, week, user_roster_id
+            )
+            opponent = next(
+                (r for r in rosters if r.roster_id == opponent_roster_id), None
+            )
+            # Historical and preseason imports can have roster snapshots but no
+            # matchup snapshot. Keep the old fallback only for those data sets.
+            if opponent_roster_id is None:
+                opponent = next(
+                    (r for r in rosters if r.roster_id != user_roster_id), None
+                )
         else:
             opponent = next(
                 (r for r in rosters if r.roster_id == opponent_roster_id), None
@@ -519,6 +566,35 @@ class LineupService:
             "meta": provenance,
         }
 
+    def _matchup_opponent_roster_id(
+        self, league_id: str, week: int, user_roster_id: int
+    ) -> int | None:
+        """Resolve the opponent from the newest weekly matchup pairing."""
+        owner = (
+            self.session.query(MatchupSnapshot)
+            .filter(
+                MatchupSnapshot.league_id == league_id,
+                MatchupSnapshot.week == week,
+                MatchupSnapshot.roster_id == user_roster_id,
+            )
+            .order_by(MatchupSnapshot.fetched_at.desc())
+            .first()
+        )
+        if owner is None or owner.matchup_id <= 0:
+            return None
+        opponent = (
+            self.session.query(MatchupSnapshot)
+            .filter(
+                MatchupSnapshot.league_id == league_id,
+                MatchupSnapshot.week == week,
+                MatchupSnapshot.matchup_id == owner.matchup_id,
+                MatchupSnapshot.roster_id != user_roster_id,
+            )
+            .order_by(MatchupSnapshot.fetched_at.desc())
+            .first()
+        )
+        return opponent.roster_id if opponent is not None else None
+
 
 class WaiverService:
     def __init__(self, session: Session) -> None:
@@ -531,9 +607,12 @@ class WaiverService:
         week: int,
         *,
         remaining_faab: float = 100.0,
-        user_roster_id: int = 1,
+        user_roster_id: int | None = None,
     ) -> dict:
         ctx = _LeagueContext(self.session, league_id, week)
+        user_roster_id = _resolve_owner_roster_id(
+            self.session, league_id, explicit_roster_id=user_roster_id
+        )
         rosters = self.leagues.latest_rosters(league_id, week)
         raw_rostered = [
             pid for roster in rosters for pid in (roster.players or []) if pid
