@@ -42,6 +42,10 @@ from src.app.projections.source import (
     configured_projection_source,
     weekly_rnd_enabled,
 )
+from src.projection.weekly_props.provenance import (
+    decision_provenance,
+    is_weekly_props_run,
+)
 from src.app.releases.gates import validate_matchup_probabilities
 from src.app.scoring.compiler import compile_sleeper_scoring, require_publishable
 from src.app.scoring.contract import ScoringContract
@@ -94,7 +98,9 @@ class _LeagueContext:
         self.week = week
         self.season = self.league.season
         self.league_type = (self.league.league_type or "redraft").lower()
-        self.projection_source = configured_projection_source()
+        self.requested_source = configured_projection_source()
+        self.projection_source = self.requested_source
+        self.source_fallback_reason: str | None = None
         self.run = self._resolve_run(week)
         self.projection_service = ProjectionService(session, season=self.season)
         self.bundle = get_bundle_loader(self.season)
@@ -104,18 +110,67 @@ class _LeagueContext:
         self._identity = PlayerIdentityResolver(session)
 
     def _uses_weekly_db_run(self) -> bool:
+        if self.requested_source == ProjectionSource.WEEKLY_PROPS:
+            return True
         return (
-            self.projection_source == ProjectionSource.WEEKLY_V2_RND
+            self.requested_source == ProjectionSource.WEEKLY_V2_RND
             and weekly_rnd_enabled()
         )
 
+    def _resolve_preseason_run(self):
+        status_run = self.projections.active_run(
+            mode="preseason", season=self.season, week=None
+        )
+        # Prefer status-adjusted when available and configured/fallback.
+        if status_run is not None and (
+            self.requested_source
+            in {
+                ProjectionSource.STATUS_ADJUSTED_RELEASE,
+                ProjectionSource.WEEKLY_PROPS,
+            }
+            or str(getattr(status_run, "model_version", "")).startswith("status")
+        ):
+            return status_run
+        return status_run
+
     def _resolve_run(self, week: int | None):
-        if self._uses_weekly_db_run() and week is not None:
+        if self.requested_source == ProjectionSource.WEEKLY_PROPS and week is not None:
+            run = self.projections.active_run(
+                mode="weekly", season=self.season, week=week
+            )
+            if run is not None and is_weekly_props_run(run):
+                self.projection_source = ProjectionSource.WEEKLY_PROPS
+                self.source_fallback_reason = None
+                return run
+            # Missing week pointer: fall back with explicit provenance.
+            fallback = self._resolve_preseason_run()
+            if fallback is not None and str(
+                getattr(fallback, "model_version", "")
+            ).startswith("status"):
+                self.projection_source = ProjectionSource.STATUS_ADJUSTED_RELEASE
+            else:
+                self.projection_source = ProjectionSource.SEALED_RELEASE
+            self.source_fallback_reason = "missing_weekly_props_pointer"
+            return fallback
+
+        if (
+            self.requested_source == ProjectionSource.WEEKLY_V2_RND
+            and weekly_rnd_enabled()
+            and week is not None
+        ):
             run = self.projections.active_run(
                 mode="weekly", season=self.season, week=week
             )
             if run is not None:
+                self.projection_source = ProjectionSource.WEEKLY_V2_RND
                 return run
+
+        self.projection_source = (
+            self.requested_source
+            if self.requested_source
+            != ProjectionSource.WEEKLY_V2_RND
+            else ProjectionSource.SEALED_RELEASE
+        )
         return self.projections.active_run(
             mode="preseason", season=self.season, week=None
         )
@@ -126,7 +181,7 @@ class _LeagueContext:
             ProjectionSource.STATUS_ADJUSTED_RELEASE,
         }:
             bundle = self.bundle.load_bundle()
-            if bundle is not None:
+            if bundle is not None and self.run is None:
                 return f"preseason-{bundle.namespace}"
         if self.run is not None:
             return self.run.id
@@ -306,6 +361,16 @@ class _LeagueContext:
             "recentred_uncertainty_players": draw_set.recentred_players,
         }
         base.update(self.projection_context.to_dict())
+        base.update(
+            decision_provenance(
+                requested_source=self.requested_source.value,
+                effective_source=self.projection_source.value,
+                run_id=self.projection_run_id,
+                season=self.season,
+                week=self.week,
+                fallback_reason=self.source_fallback_reason,
+            )
+        )
         return base
 
 

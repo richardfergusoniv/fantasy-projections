@@ -116,12 +116,17 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_json: bool = True
 
-    #: Default projection source: sealed_release | status_adjusted_release | weekly_v2_rnd
+    #: Default projection source:
+    #: sealed_release | status_adjusted_release | weekly_v2_rnd | weekly_props
     app_projection_source: str = "sealed_release"
     #: Explicit opt-in for weekly-v2 R&D source (never selected by default).
     weekly_rnd_enabled: bool = False
+    #: When true, weekly_props jobs build/gate candidates but never swap pointers.
+    weekly_props_shadow_only: bool = True
     #: Enable automatic status-overlay publication after gate passes.
     status_overlay_auto_publish: bool = True
+    #: Comma-separated weekly prop providers enabled for live fetch (empty = fixtures/manual).
+    weekly_props_providers: str = "draftkings,fanduel,bettingpros,oddschecker"
 
     @classmethod
     def settings_customise_sources(

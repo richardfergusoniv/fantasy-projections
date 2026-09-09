@@ -11,7 +11,12 @@ from typing import Literal
 
 from src.app.config import get_settings
 
-ProjectionSourceName = Literal["sealed_release", "status_adjusted_release", "weekly_v2_rnd"]
+ProjectionSourceName = Literal[
+    "sealed_release",
+    "status_adjusted_release",
+    "weekly_v2_rnd",
+    "weekly_props",
+]
 
 
 class ProjectionSource(str, Enum):
@@ -20,6 +25,7 @@ class ProjectionSource(str, Enum):
     SEALED_RELEASE = "sealed_release"
     STATUS_ADJUSTED_RELEASE = "status_adjusted_release"
     WEEKLY_V2_RND = "weekly_v2_rnd"
+    WEEKLY_PROPS = "weekly_props"
 
     @classmethod
     def parse(cls, raw: str | None) -> "ProjectionSource":
@@ -36,7 +42,11 @@ class ProjectionSource(str, Enum):
 
     @property
     def is_production(self) -> bool:
-        return self in {self.SEALED_RELEASE, self.STATUS_ADJUSTED_RELEASE}
+        return self in {
+            self.SEALED_RELEASE,
+            self.STATUS_ADJUSTED_RELEASE,
+            self.WEEKLY_PROPS,
+        }
 
     @property
     def is_experimental(self) -> bool:
@@ -55,11 +65,18 @@ def weekly_rnd_enabled() -> bool:
     return bool(settings.weekly_rnd_enabled)
 
 
+def weekly_props_shadow_only() -> bool:
+    """When true, weekly_props jobs evaluate candidates but never swap pointers."""
+    settings = get_settings()
+    return bool(getattr(settings, "weekly_props_shadow_only", True))
+
+
 def resolve_effective_source(requested: ProjectionSource | None = None) -> ProjectionSource:
     """Return the source that will actually be used for a request.
 
-  ``weekly_v2_rnd`` is returned only when both configured/enabled and explicitly
-  requested; it is never selected implicitly.
+    ``weekly_v2_rnd`` is returned only when both configured/enabled and explicitly
+    requested; it is never selected implicitly. ``weekly_props`` is a production
+    source and may be configured as the default.
     """
     configured = configured_projection_source()
     if requested is None:
@@ -67,6 +84,8 @@ def resolve_effective_source(requested: ProjectionSource | None = None) -> Proje
     if requested == ProjectionSource.WEEKLY_V2_RND:
         if not weekly_rnd_enabled():
             raise ValueError("weekly_v2_rnd requires WEEKLY_RND_ENABLED=true")
+        return requested
+    if requested == ProjectionSource.WEEKLY_PROPS:
         return requested
     if requested == ProjectionSource.STATUS_ADJUSTED_RELEASE:
         return requested
