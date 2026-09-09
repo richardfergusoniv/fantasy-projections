@@ -35,6 +35,10 @@ LONG_RUNNING_JOBS = frozenset(
         "weekly-close-preliminary",
         "weekly-correction",
         "full-release",
+        "weekly-props-open",
+        "weekly-props-refresh-thu",
+        "weekly-props-refresh-sat",
+        "weekly-props-refresh-sun",
     }
 )
 
@@ -62,6 +66,12 @@ class ScheduleSlot:
     hour: int
     minute: int
     on_demand: bool = False
+    #: Optional unique id when multiple slots share a job_name handler.
+    slot_id: str | None = None
+
+    @property
+    def key(self) -> str:
+        return self.slot_id or self.job_name
 
     @property
     def description(self) -> str:
@@ -77,7 +87,7 @@ class ScheduleSlot:
 
 
 SCHEDULE_SLOTS: dict[str, ScheduleSlot] = {
-    slot.job_name: slot
+    slot.key: slot
     for slot in (
         ScheduleSlot("daily-refresh", EVERY_DAY_EXCEPT_SUNDAY, 17, 0),
         ScheduleSlot("sunday-early", frozenset({SUNDAY}), 8, 45),
@@ -86,6 +96,30 @@ SCHEDULE_SLOTS: dict[str, ScheduleSlot] = {
         ScheduleSlot("monday-night", frozenset({MONDAY}), 16, 0),
         ScheduleSlot("weekly-close-preliminary", frozenset({TUESDAY}), 5, 0),
         ScheduleSlot("weekly-correction", frozenset({WEDNESDAY}), 17, 0),
+        ScheduleSlot(
+            "weekly-props-open",
+            frozenset({WEDNESDAY}),
+            10,
+            0,
+        ),
+        ScheduleSlot(
+            "weekly-props-refresh-thu",
+            frozenset({THURSDAY}),
+            17,
+            0,
+        ),
+        ScheduleSlot(
+            "weekly-props-refresh-sat",
+            frozenset({SATURDAY}),
+            10,
+            0,
+        ),
+        ScheduleSlot(
+            "weekly-props-refresh-sun",
+            frozenset({SUNDAY}),
+            8,
+            0,
+        ),
         ScheduleSlot("full-release", frozenset(), 0, 0, on_demand=True),
     )
 }

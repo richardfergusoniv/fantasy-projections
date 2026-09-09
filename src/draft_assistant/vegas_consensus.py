@@ -120,80 +120,29 @@ ABBR_ALIASES = {
 }
 
 
-PREDICTION_MARKET_BOOKS = frozenset(
-    {
-        "kalshi",
-        "polymarket",
-        "polymarket us",
-        "polymarket.com",
-    }
+from src.projection.market_quotes import (
+    PREDICTION_MARKET_BOOKS,
+    SEASON_QUOTE_POLICY,
+    american_implied_prob as _american_implied_prob,
+    conflicts_with_projection as _conflicts_with_projection_shared,
+    is_prediction_market_book as _is_prediction_market_book,
+    odds_skewed as _odds_skewed,
+    one_sided_longshot as _one_sided_longshot,
+    robust_median as _robust_median_shared,
+    scalar_line as _scalar_line,
 )
-SKEWED_ODDS_GAP = 0.35  # implied-probability gap between over and under
 
-
-def _american_implied_prob(odds: Any) -> float | None:
-    try:
-        value = float(odds)
-    except (TypeError, ValueError):
-        return None
-    if value == 0:
-        return None
-    if value > 0:
-        return 100.0 / (value + 100.0)
-    return abs(value) / (abs(value) + 100.0)
-
-
-def _odds_skewed(over: Any, under: Any, *, gap: float = SKEWED_ODDS_GAP) -> bool:
-    over_p = _american_implied_prob(over)
-    under_p = _american_implied_prob(under)
-    if over_p is None or under_p is None:
-        return False
-    return abs(over_p - under_p) > gap
-
-
-def _one_sided_longshot(over: Any, under: Any, *, threshold: float = 100.0) -> bool:
-    """Reject threshold props posted as plus-money on only one side.
-
-    Plus-100 overlays (Alec Pierce DK 999.5 receiving yards at +125) are juice
-    ladders, not main season totals.
-    """
-
-    def _is_longshot(odds: Any) -> bool:
-        try:
-            return float(odds) >= threshold
-        except (TypeError, ValueError):
-            return False
-
-    if over is not None and under is None and _is_longshot(over):
-        return True
-    if under is not None and over is None and _is_longshot(under):
-        return True
-    return False
-
-
-def _is_prediction_market_book(name: str) -> bool:
-    key = str(name or "").strip().lower()
-    if key in PREDICTION_MARKET_BOOKS:
-        return True
-    return "kalshi" in key or "polymarket" in key
+SKEWED_ODDS_GAP = SEASON_QUOTE_POLICY.skewed_odds_gap
 
 
 def _conflicts_with_projection(line: float, projection: float) -> bool:
-    """True when a book line is juiced upward vs the same-source projection.
-
-    TD / count markets use a tighter absolute gap (Caesars-only Alec Pierce 7.5
-    TDs vs RotoWire 6.0). Yard markets catch milder overlays like 999.5 vs 872
-    that the prior 25%/150-yard gate missed.
-    """
-    scale = max(abs(projection), 1.0)
-    delta = abs(line - projection)
-    rel = delta / scale
-    if scale <= 25:
-        # Receptions / passing·rushing·receiving TDs.
-        return line > projection and delta >= 1.0 and rel >= 0.15
-    return (rel > 0.5 and delta > max(1.5, 0.05 * scale)) or (
-        line > projection and rel > 0.12 and delta > 80
+    return _conflicts_with_projection_shared(
+        line, projection, policy=SEASON_QUOTE_POLICY
     )
+
+
+def _robust_median(values: list[float]) -> float:
+    return _robust_median_shared(values, policy=SEASON_QUOTE_POLICY)
 
 
 def _book_entry_line(raw: Any) -> float | None:
@@ -213,21 +162,6 @@ def _book_entry_line(raw: Any) -> float | None:
             value = _scalar_line(raw[key])
             if value is not None:
                 return value
-    return None
-
-
-def _scalar_line(raw: Any) -> float | None:
-    if raw is None or isinstance(raw, bool):
-        return None
-    if isinstance(raw, (int, float)):
-        value = float(raw)
-        return value if math.isfinite(value) else None
-    if isinstance(raw, str):
-        text = raw.strip().replace(",", "")
-        try:
-            return float(text)
-        except ValueError:
-            return None
     return None
 
 
@@ -341,20 +275,6 @@ def _extract_quote(raw: Any) -> tuple[float, str] | None:
 def _line_value(raw: Any) -> float | None:
     quote = _extract_quote(raw)
     return None if quote is None else quote[0]
-
-
-def _robust_median(values: list[float]) -> float:
-    """Median after dropping far outliers when 3+ quotes exist."""
-    if len(values) == 1:
-        return float(values[0])
-    if len(values) == 2:
-        return float(median(values))
-    center = float(median(values))
-    tolerance = max(abs(center) * 0.35, 100.0)
-    kept = [value for value in values if abs(value - center) <= tolerance]
-    if not kept:
-        kept = list(values)
-    return float(median(kept))
 
 
 def _team_abbr(team: Any = None, name: Any = None) -> str | None:

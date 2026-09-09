@@ -1,0 +1,1516 @@
+{
+  "source": "fanduel",
+  "season": 2026,
+  "week": 1,
+  "fetched_at": "2026-09-09T04:58:59.920847+00:00",
+  "urls": [
+    "https://example.test/fanduel/week1"
+  ],
+  "players": [
+    {
+      "name": "Josh Allen",
+      "team": "BUF",
+      "position": "QB",
+      "player_id": "00-0034857",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "pass_yards": {
+          "line": 265.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "pass_tds": {
+          "line": 1.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rush_yards": {
+          "line": 28.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Christian McCaffrey",
+      "team": "SF",
+      "position": "RB",
+      "player_id": "00-0033280",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "rush_yards": {
+          "line": 72.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rush_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 24.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Alec Pierce",
+      "team": "IND",
+      "position": "WR",
+      "player_id": "00-0038120",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 48.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Ja'Marr Chase",
+      "team": "CIN",
+      "position": "WR",
+      "player_id": "00-0036900",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Travis Kelce",
+      "team": "KC",
+      "position": "TE",
+      "player_id": "00-0030506",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 5.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 55.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 00",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0000",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 01",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0001",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 02",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0002",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 03",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0003",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 04",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0004",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 05",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0005",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 06",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0006",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 07",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0007",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 08",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0008",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 09",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0009",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 10",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0010",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 11",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0011",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 12",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0012",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 13",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0013",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 14",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0014",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 15",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0015",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 16",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0016",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 17",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0017",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 18",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0018",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 19",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0019",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 20",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0020",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 21",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0021",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 22",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0022",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 23",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0023",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 24",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0024",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 25",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0025",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 26",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0026",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 27",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0027",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 28",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0028",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 29",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0029",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 30",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0030",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 31",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0031",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 32",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0032",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 33",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0033",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 34",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0034",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 35",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0035",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 36",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0036",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 37",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0037",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 38",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0038",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 39",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0039",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 40",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0040",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 41",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0041",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 42",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0042",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 43",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0043",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 44",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0044",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 45",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0045",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 46",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0046",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 47",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0047",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 48",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0048",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 49",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0049",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 50",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0050",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 51",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0051",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 52",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0052",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 53",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0053",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    },
+    {
+      "name": "Test Receiver 54",
+      "team": "NE",
+      "position": "WR",
+      "player_id": "00-test-0054",
+      "opponent": "MIA",
+      "event_start": "2099-09-14T17:00:00+00:00",
+      "markets": {
+        "receptions": {
+          "line": 3.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_yards": {
+          "line": 52.5,
+          "over_odds": -108,
+          "under_odds": -112
+        },
+        "rec_tds": {
+          "line": 0.5,
+          "over_odds": -108,
+          "under_odds": -112
+        }
+      }
+    }
+  ]
+}

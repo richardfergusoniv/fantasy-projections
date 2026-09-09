@@ -14,6 +14,12 @@ __pycache__/
 /data/*
 !/data/consensus/
 !/data/sentiment/
+!/data/props/
+/data/props/*
+!/data/props/fixtures/
+/data/props/fixtures/**
+!/data/props/fixtures/providers/
+!/data/props/fixtures/providers/**
 *.db
 ingest_log*.txt
 phase0_results.json
