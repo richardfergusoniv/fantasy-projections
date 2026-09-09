@@ -357,11 +357,13 @@ describe("DraftScreen", () => {
     expect(within(dialog).getByText("Rec Yds")).toBeInTheDocument();
     expect(within(dialog).getByText("900.5")).toBeInTheDocument();
     expect(within(dialog).getAllByText("book").length).toBeGreaterThan(0);
-    // Coverage reads as a sentence, not as the raw enum value.
+    // Coverage reads as a sentence about the rows shown, not the raw enum.
+    // The fixture stores coverage "mixed" but renders 2 book rows of 3, and
+    // the copy must describe what is on screen rather than the stored value.
     expect(
-      within(dialog).getByText(/Some scoring markets are sportsbook lines/i),
+      within(dialog).getByText(/2 of 3 lines below are sportsbook numbers/i),
     ).toBeInTheDocument();
-    expect(within(dialog).queryByText(/mixed/i)).not.toBeInTheDocument();
+    expect(within(dialog).queryByText(/^mixed$/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Close player card" }));
     expect(screen.queryByRole("dialog", { name: "WR Player 1" })).not.toBeInTheDocument();
@@ -382,6 +384,30 @@ describe("DraftScreen", () => {
     expect(within(dialog).queryByText("Targets")).not.toBeInTheDocument();
     // A market with no book line is labelled as this app's own projection.
     expect(within(dialog).getByText("model")).toBeInTheDocument();
+  });
+
+  it("does not claim projections on a card whose rows are all book lines", async () => {
+    // Regression: coverage came from the stored enum, which is computed over
+    // every scoring market including ones the player has no line in. Jahmyr
+    // Gibbs reads "mixed" off two empty passing markets while all five
+    // rendered rows are book numbers, so the card said "the rest are
+    // projections" above five sportsbook lines.
+    const payload = checklist();
+    const target = payload.entries.find((entry) => entry.name === "WR Player 1")!;
+    target.market_kinds = { rec_yards: "book", receptions: "book", rec_tds: "book" };
+    target.vegas_prop_coverage = "mixed";
+    getDraftChecklist.mockResolvedValue(payload);
+
+    renderDraft("/draft?pane=checklist");
+    fireEvent.click(screen.getByRole("tab", { name: /Vegas Props/i }));
+    await screen.findByRole("checkbox", { name: "Mark WR Player 1 drafted" });
+    fireEvent.click(screen.getByRole("button", { name: "WR Player 1" }));
+
+    const dialog = screen.getByRole("dialog", { name: "WR Player 1" });
+    expect(
+      within(dialog).getByText(/Every line below is a sportsbook season over\/under/i),
+    ).toBeInTheDocument();
+    expect(within(dialog).queryByText(/the rest are projections/i)).not.toBeInTheDocument();
   });
 
   it("moves focus into the player card and back out on close", async () => {

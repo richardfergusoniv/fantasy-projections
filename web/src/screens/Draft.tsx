@@ -217,12 +217,28 @@ const MARKET_KIND_TITLES: Record<string, string> = {
   model: "This app's own season projection — no book line was posted",
 };
 
-const PROP_COVERAGE_COPY: Record<string, string> = {
-  books: "Every scoring market has a sportsbook line.",
-  mixed: "Some scoring markets are sportsbook lines, the rest are projections.",
-  projection: "No sportsbook lines — projections only, so this is not ranked as Vegas.",
-  none: "No season prop markets found for this player.",
-};
+/**
+ * Describe the rows the card actually shows, not the stored coverage enum.
+ *
+ * `vegas_prop_coverage` is computed across every scoring market in the
+ * consensus, including ones a player has no line in — so Jahmyr Gibbs reads
+ * `mixed` off two empty passing markets while all five rendered rows are book
+ * numbers. Saying "the rest are projections" over a card of pure book lines is
+ * simply false.
+ */
+function coverageCopy(rows: Array<{ kind: string }>): string {
+  if (!rows.length) return "No season prop markets found for this player.";
+  const books = rows.filter((row) => row.kind === "book").length;
+  if (books === rows.length) {
+    return rows.length === 1
+      ? "The line below is a sportsbook season over/under."
+      : "Every line below is a sportsbook season over/under.";
+  }
+  if (books === 0) {
+    return "No sportsbook lines below — projections only, so this player is not ranked as Vegas.";
+  }
+  return `${books} of ${rows.length} lines below are sportsbook numbers; the rest are projections.`;
+}
 
 function formatMarketValue(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
@@ -338,6 +354,11 @@ export function DraftScreen() {
     lastFocusedRef.current = null;
     if (previous?.isConnected) previous.focus();
   }, [selectedPlayerId]);
+
+  const cardRows = useMemo(
+    () => (selectedPlayer ? marketRowsForCard(selectedPlayer) : []),
+    [selectedPlayer],
+  );
 
   function openPlayerCard(playerId: string, trigger: HTMLElement | null): void {
     lastFocusedRef.current = trigger;
@@ -1041,14 +1062,11 @@ export function DraftScreen() {
                 Close
               </button>
             </div>
-            <p className="muted player-card-coverage">
-              {PROP_COVERAGE_COPY[selectedPlayer.vegas_prop_coverage ?? "none"] ??
-                PROP_COVERAGE_COPY.none}
-            </p>
-            {marketRowsForCard(selectedPlayer).length ? (
+            <p className="muted player-card-coverage">{coverageCopy(cardRows)}</p>
+            {cardRows.length ? (
               <>
                 <dl className="player-card-markets">
-                  {marketRowsForCard(selectedPlayer).map((row) => (
+                  {cardRows.map((row) => (
                     <div key={row.key} className="player-card-market-row">
                       <dt>
                         {row.label}
