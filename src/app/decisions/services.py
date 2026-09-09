@@ -34,7 +34,7 @@ from src.app.decisions.trades import (
     evaluate_trade,
 )
 from src.app.decisions.waivers import WaiverPlayer, recommend_waivers
-from src.app.persistence.models import LeagueMember, MatchupSnapshot
+from src.app.persistence.models import MatchupSnapshot
 from src.app.persistence.repositories import LeagueRepository, ProjectionRepository
 from src.app.projections.loader import PlayerSummary, get_bundle_loader
 from src.app.projections.service import ProjectionService
@@ -402,17 +402,12 @@ def _resolve_owner_roster_id(
 
     sleeper_user_id = get_settings().sleeper_user_id
     if sleeper_user_id:
-        member = (
-            session.query(LeagueMember)
-            .filter(
-                LeagueMember.league_id == league_id,
-                LeagueMember.user_id == str(sleeper_user_id),
-            )
-            .one_or_none()
+        roster_id = LeagueRepository(session).owner_roster_id(
+            league_id=league_id, user_id=sleeper_user_id
         )
-        if member is None:
+        if roster_id is None:
             raise LeagueContextError(f"owner_roster_not_found:league={league_id}")
-        return member.roster_id
+        return roster_id
     return 1
 
 
@@ -452,8 +447,11 @@ class LineupService:
                 (r for r in rosters if r.roster_id == opponent_roster_id), None
             )
             # Historical and preseason imports can have roster snapshots but no
-            # matchup snapshot. Keep the old fallback only for those data sets.
-            if opponent_roster_id is None:
+            # matchup snapshot, and a live pairing can name a roster whose own
+            # snapshot has not landed yet. Both leave us without an opponent
+            # lineup, and scoring against an empty one reports a ~certain win,
+            # so fall back on any other roster in either case.
+            if opponent is None:
                 opponent = next(
                     (r for r in rosters if r.roster_id != user_roster_id), None
                 )

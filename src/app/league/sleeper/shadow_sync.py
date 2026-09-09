@@ -34,13 +34,13 @@ from src.app.league.sleeper.sync import SleeperSyncService
 from src.app.persistence.models import (
     ActiveProjectionPointer,
     LeagueDraftRule,
-    LeagueMember,
     LeagueRuleSnapshot,
     LeagueTransaction,
     RosterSnapshot,
     SourceSnapshot,
     TradedPick,
 )
+from src.app.persistence.repositories import LeagueRepository
 from src.app.projections.weekly_v2_bridge import weekly_v2_readiness
 from src.app.releases.bridge import ReleaseBridge
 from src.app.releases.gates import GateResult
@@ -260,12 +260,7 @@ def _league_scoring_summary(session: Session, league_id: str, display_name: str)
 
 
 def _find_owner_roster(session: Session, league_id: str, sleeper_user_id: str) -> int | None:
-    member = (
-        session.query(LeagueMember)
-        .filter(LeagueMember.league_id == league_id, LeagueMember.user_id == str(sleeper_user_id))
-        .one_or_none()
-    )
-    return member.roster_id if member is not None else None
+    return LeagueRepository(session).owner_roster_id(league_id=league_id, user_id=sleeper_user_id)
 
 
 def _run_recommendation_smoke(

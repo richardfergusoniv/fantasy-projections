@@ -82,6 +82,22 @@ class LeagueRepository:
         self.session.flush()
         return snapshot
 
+    def owner_roster_id(self, *, league_id: str, user_id: str) -> int | None:
+        """Resolve a Sleeper user to their roster id in ``league_id``.
+
+        ``league_member`` is unique on ``(league_id, roster_id)``, not on
+        ``user_id``: a manager running two teams in one league has two rows.
+        Order by roster id and take the first so callers get a stable answer
+        instead of a ``MultipleResultsFound``.
+        """
+        row = (
+            self.session.query(LeagueMember)
+            .filter(LeagueMember.league_id == league_id, LeagueMember.user_id == str(user_id))
+            .order_by(LeagueMember.roster_id)
+            .first()
+        )
+        return row.roster_id if row is not None else None
+
     def upsert_member(self, *, league_id: str, user_id: str, roster_id: int, display_name: str) -> LeagueMember:
         row = (
             self.session.query(LeagueMember)
