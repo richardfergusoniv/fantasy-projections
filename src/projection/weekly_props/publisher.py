@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -25,7 +26,10 @@ from src.projection.weekly_props.bridge import (
     build_candidate_rows,
 )
 from src.projection.weekly_props.config import DEFAULT_WEEKLY_POLICY, WeeklyPropsPolicy
-from src.projection.weekly_props.consensus import build_consensus_manifest, build_player_consensus
+from src.projection.weekly_props.consensus import (
+    build_consensus_manifest,
+    build_player_consensus,
+)
 from src.projection.weekly_props.gates import (
     validate_baseline_movement,
     validate_candidate_sanity,
@@ -98,6 +102,8 @@ class WeeklyPropsProjectionService:
         status_overlay_id: str | None = None,
         slate_version: str | None = None,
     ) -> ConsensusManifest:
+        from src.projection.weekly_props.identity import resolve_quote_group_key
+
         identity_map = identity_map or {}
         by_player: dict[str, list] = {}
         meta_by_key: dict[str, dict[str, Any]] = {}
@@ -105,36 +111,52 @@ class WeeklyPropsProjectionService:
             if not snap.success:
                 continue
             for quote in snap.quotes:
-                key = quote.player_id or quote.player_name_raw.strip().lower()
+                key, ident = resolve_quote_group_key(quote, identity_map)
                 by_player.setdefault(key, []).append(quote)
-                meta_by_key.setdefault(
+                meta = meta_by_key.setdefault(
                     key,
                     {
-                        "player_id": quote.player_id,
-                        "player_name": quote.player_name_raw,
-                        "team": quote.team,
-                        "opponent": quote.opponent,
+                        "player_id": ident.get("player_id") or quote.player_id,
+                        "player_name": ident.get("name") or quote.player_name_raw,
+                        "team": ident.get("team") or quote.team,
+                        "opponent": ident.get("opponent") or quote.opponent,
+                        "position": ident.get("position"),
                     },
                 )
+                # Prefer canonical identity fields once resolved; otherwise fill gaps.
+                if ident.get("player_id"):
+                    meta["player_id"] = ident["player_id"]
+                if ident.get("name"):
+                    meta["player_name"] = ident["name"]
+                if ident.get("team"):
+                    meta["team"] = ident["team"]
+                if ident.get("opponent"):
+                    meta["opponent"] = ident["opponent"]
+                if ident.get("position"):
+                    meta["position"] = ident["position"]
+                if not meta.get("team") and quote.team:
+                    meta["team"] = quote.team
+                if not meta.get("opponent") and quote.opponent:
+                    meta["opponent"] = quote.opponent
         players = []
         for key, quotes in by_player.items():
-            ident = identity_map.get(key) or identity_map.get(
-                (meta_by_key[key].get("player_name") or "").lower()
-            ) or {}
-            team = ident.get("team") or meta_by_key[key].get("team")
+            meta = meta_by_key[key]
+            team = meta.get("team")
             on_slate = True
             if slate_teams is not None and team:
                 on_slate = str(team).upper() in slate_teams
+            elif slate_teams is not None and not team:
+                on_slate = False
             players.append(
                 build_player_consensus(
                     player_key=key,
                     quotes=quotes,
                     policy=self.policy,
-                    player_id=ident.get("player_id") or meta_by_key[key].get("player_id"),
-                    player_name=ident.get("name") or meta_by_key[key].get("player_name"),
+                    player_id=meta.get("player_id"),
+                    player_name=meta.get("player_name"),
                     team=team,
-                    opponent=ident.get("opponent") or meta_by_key[key].get("opponent"),
-                    position=ident.get("position"),
+                    opponent=meta.get("opponent"),
+                    position=meta.get("position"),
                     on_slate=on_slate,
                 )
             )

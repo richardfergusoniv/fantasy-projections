@@ -22,7 +22,10 @@ from src.app.persistence.models import (
 )
 from src.app.projections.loader import ReleaseBundleLoader
 from src.app.releases.bridge import ReleaseBridge
-from src.app.releases.gates import scoring_contract_fingerprint, validate_scoring_contracts
+from src.app.releases.gates import (
+    scoring_contract_fingerprint,
+    validate_scoring_contracts,
+)
 from src.app.releases.incremental import IncrementalSimulationService, build_impact_set
 
 #: Used only when neither the NFL state feed nor the database can say what the
@@ -426,15 +429,19 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
 
     from src.app.config import get_settings
     from src.app.ops.alerts import send_ops_alert
-    from src.app.projections.loader import ReleaseBundleLoader
     from src.app.projections.source import weekly_props_shadow_only
     from src.ingest.props.service import default_fixture_providers, run_ingest
     from src.ingest.props.snapshot import SnapshotStore
-    from src.projection.weekly_props.bridge import BaselinePlayer
+    from src.projection.weekly_props.baseline import (
+        WeeklyBaselineError,
+        build_identity_map,
+        build_weekly_baselines,
+    )
     from src.projection.weekly_props.publisher import WeeklyPropsProjectionService
 
     settings = get_settings()
-    season_week = resolve_season_week(session)
+    sync = SleeperSyncService(session, use_fixtures=settings.use_sleeper_fixtures)
+    season_week = resolve_season_week(session, nfl_state=_nfl_state(sync))
     season, week = season_week.season, season_week.week
     fixtures_dir = (
         Path(__file__).resolve().parents[3]
@@ -462,51 +469,37 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
             "status": "ingest_failed",
             "season": season,
             "week": week,
+            "season_week_source": season_week.source,
             "ingest": ingest.to_dict(),
         }
 
-    players = ReleaseBundleLoader(season=season).load()
-    baselines = {
-        pid: BaselinePlayer(
-            player_id=pid,
-            team=summary.team,
-            opponent=None,
-            position=summary.position,
-            name=summary.name,
-            availability_probability=float(summary.availability_probability or 1.0),
-            mean_json={
-                "points": float(summary.mean_points),
-                "position": summary.position,
-                "name": summary.name,
-                "team": summary.team,
-            },
-            quantiles_json={str(k): float(v) for k, v in (summary.quantiles or {}).items()},
-            on_slate=True,
-        )
-        for pid, summary in players.items()
-    }
-    identity_map = {
-        pid: {
-            "player_id": pid,
-            "name": summary.name,
-            "team": summary.team,
-            "position": summary.position,
+    try:
+        baseline_bundle = build_weekly_baselines(season=season, week=week)
+    except WeeklyBaselineError as exc:
+        payload = {
+            "status": "baseline_unavailable",
+            "season": season,
+            "week": week,
+            "season_week_source": season_week.source,
+            "reason": str(exc),
+            "ingest": ingest.to_dict(),
         }
-        for pid, summary in players.items()
-    }
-    # Also index by lowercase name for fixture name joins.
-    for pid, summary in players.items():
-        identity_map[str(summary.name or "").strip().lower()] = identity_map[pid]
+        send_ops_alert("weekly_props_baseline_failed", json.dumps(payload, indent=2, default=str))
+        return payload
 
+    identity_map = build_identity_map(baseline_bundle.baselines)
     shadow = weekly_props_shadow_only()
     service = WeeklyPropsProjectionService(session)
     result = service.promote(
         season=season,
         week=week,
         snapshots=list(ingest.snapshots),
-        baselines=baselines,
+        baselines=baseline_bundle.baselines,
         identity_map=identity_map,
-        baseline_run_id=None,
+        slate_teams=baseline_bundle.slate_teams,
+        baseline_run_id=baseline_bundle.baseline_run_id,
+        status_overlay_id=baseline_bundle.status_overlay_id,
+        slate_version=f"{season}-w{week:02d}-{len(baseline_bundle.slate_teams)}",
         automatic=automatic,
         shadow=shadow,
     )
@@ -516,6 +509,13 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
         "week": week,
         "season_week_source": season_week.source,
         "ingest": ingest.to_dict(),
+        "baseline": {
+            "source": baseline_bundle.baseline_source,
+            "baseline_run_id": baseline_bundle.baseline_run_id,
+            "status_overlay_id": baseline_bundle.status_overlay_id,
+            "player_count": len(baseline_bundle.baselines),
+            "slate_team_count": len(baseline_bundle.slate_teams),
+        },
         "promote": result.to_dict(),
         "shadow": shadow,
         "app_projection_source": settings.app_projection_source,

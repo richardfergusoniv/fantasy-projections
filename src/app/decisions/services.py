@@ -105,7 +105,16 @@ class _LeagueContext:
         self.projection_service = ProjectionService(session, season=self.season)
         self.bundle = get_bundle_loader(self.season)
         self.projection_run_id = self._projection_run_id()
-        self.projection_context = self.projection_service.context(league_id=league_id)
+        # Provenance must reflect the run decisions actually consume (including
+        # weekly_props → sealed/status fallback), not a sealed-rescore default.
+        self.projection_context = self.projection_service.context(
+            requested_source=self.requested_source,
+            league_id=league_id,
+            week=week,
+            effective_source=self.projection_source,
+            projection_run=self.run,
+            fallback_reason=self.source_fallback_reason,
+        )
         self.draw_count = draw_count
         self._identity = PlayerIdentityResolver(session)
 

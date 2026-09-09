@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 from src.app.releases.publication import Candidate, CandidateRow
 from src.ingest.props.contracts import ConsensusManifest, PlayerConsensus
@@ -38,6 +39,32 @@ def _quantiles_from_points(points: float) -> dict[str, float]:
     }
 
 
+def _resolve_quantiles(
+    *,
+    mean_json: dict[str, Any],
+    baseline: BaselinePlayer | None,
+    on_slate: bool,
+) -> dict[str, float]:
+    """Preserve baseline quantiles for untouched players; scale when markets move points."""
+    points = float(mean_json.get("points") or 0.0)
+    if not on_slate:
+        if baseline is not None and baseline.quantiles_json:
+            return {str(k): 0.0 for k in baseline.quantiles_json}
+        return _quantiles_from_points(0.0)
+
+    sources = mean_json.get("component_sources") or {}
+    market_touched = any(src == "weekly_props_consensus" for src in sources.values())
+    if baseline is not None and baseline.quantiles_json and not market_touched:
+        return {str(k): float(v) for k, v in baseline.quantiles_json.items()}
+
+    if baseline is not None and baseline.quantiles_json:
+        base_points = float((baseline.mean_json or {}).get("points") or 0.0)
+        if base_points > 0:
+            ratio = points / base_points
+            return {str(k): float(v) * ratio for k, v in baseline.quantiles_json.items()}
+    return _quantiles_from_points(points)
+
+
 def build_candidate_row(
     consensus: PlayerConsensus,
     baseline: BaselinePlayer | None,
@@ -54,7 +81,6 @@ def build_candidate_row(
     mean_json = build_mean_json(
         consensus=effective, baseline=baseline_mean, policy=policy
     )
-    points = float(mean_json.get("points") or 0.0)
     availability = 0.0 if not effective.on_slate else (
         1.0 if baseline is None else float(baseline.availability_probability)
     )
@@ -69,7 +95,11 @@ def build_candidate_row(
         opponent=consensus.opponent or (None if baseline is None else baseline.opponent),
         availability_probability=availability,
         mean_json=mean_json,
-        quantiles_json=_quantiles_from_points(points),
+        quantiles_json=_resolve_quantiles(
+            mean_json=mean_json,
+            baseline=baseline,
+            on_slate=effective.on_slate,
+        ),
     )
 
 

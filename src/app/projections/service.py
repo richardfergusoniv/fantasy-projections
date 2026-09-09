@@ -11,7 +11,11 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from src.app.projections.loader import PlayerSummary, ReleaseBundleLoader, ReleaseBundleLoadError
+from src.app.projections.loader import (
+    PlayerSummary,
+    ReleaseBundleLoader,
+    ReleaseBundleLoadError,
+)
 from src.app.projections.source import (
     ProjectionSource,
     configured_projection_source,
@@ -64,8 +68,13 @@ class ProjectionService:
         *,
         requested_source: ProjectionSource | None = None,
         league_id: str | None = None,
+        week: int | None = None,
+        effective_source: ProjectionSource | None = None,
+        projection_run: Any | None = None,
+        fallback_reason: str | None = None,
     ) -> ProjectionContext:
-        source = self.effective_source(requested_source)
+        requested = requested_source or configured_projection_source()
+        source = effective_source or self.effective_source(requested_source)
         bundle = self._loader.load_bundle()
         overlay_pointer = read_active_overlay(self.season)
 
@@ -75,8 +84,32 @@ class ProjectionService:
         caveats = list(bundle.caveats) if bundle else []
         scoring_fidelity = "baseline_points_only"
         capability_mode = "season_baseline"
+        provenance = bundle.provenance() if bundle else {"validation_passed": False}
 
-        if source == ProjectionSource.STATUS_ADJUSTED_RELEASE and overlay_pointer:
+        if source == ProjectionSource.WEEKLY_PROPS:
+            from src.projection.weekly_props.provenance import (
+                weekly_props_context_fields,
+            )
+
+            fields = weekly_props_context_fields(
+                run=projection_run,
+                week=week,
+                fallback_reason=fallback_reason,
+            )
+            scoring_fidelity = fields["scoring_fidelity"]
+            capability_mode = fields["capability_mode"]
+            caveats.extend(fields["caveats"])
+            provenance = {
+                **provenance,
+                "projection_source": ProjectionSource.WEEKLY_PROPS.value,
+                "effective_source": source.value,
+                "week": week,
+                "projection_run_id": fields.get("projection_run_id"),
+                "model_version": fields.get("model_version"),
+                "artifact_mode": fields.get("artifact_mode"),
+                "fallback_reason": fallback_reason,
+            }
+        elif source == ProjectionSource.STATUS_ADJUSTED_RELEASE and overlay_pointer:
             overlay_hash = str(overlay_pointer.get("overlay_hash") or "")
             caveats.append("status_adjusted_season_baseline")
             scoring_fidelity = "status_adjusted_baseline"
@@ -86,9 +119,24 @@ class ProjectionService:
             scoring_fidelity = "weekly_v2_rnd"
             capability_mode = "weekly_rnd"
 
-        if league_id and self.session is not None and bundle and bundle.component_projections_path:
+        # Sealed / status-adjusted paths may advertise component-rescore fidelity.
+        # Weekly props decisions consume points-only draws — never claim that here.
+        if (
+            source
+            in {
+                ProjectionSource.SEALED_RELEASE,
+                ProjectionSource.STATUS_ADJUSTED_RELEASE,
+            }
+            and league_id
+            and self.session is not None
+            and bundle
+            and bundle.component_projections_path
+        ):
             from src.app.persistence.models import League, LeagueRuleSnapshot
-            from src.app.projections.league_rescore import load_component_projections, rescore_league
+            from src.app.projections.league_rescore import (
+                load_component_projections,
+                rescore_league,
+            )
             from src.app.scoring.compiler import scoring_settings_from_snapshot
 
             snapshot = (
@@ -113,8 +161,8 @@ class ProjectionService:
                     if result.approximate_rules:
                         caveats.extend(result.approximate_rules)
 
-        provenance = bundle.provenance() if bundle else {"validation_passed": False}
-        provenance["requested_source"] = (requested_source or configured_projection_source()).value
+        provenance["requested_source"] = requested.value
+        provenance["effective_source"] = source.value
 
         return ProjectionContext(
             source=source,
