@@ -232,6 +232,16 @@ def get_matchups(league_id: str, week: int, user: AppUser = Depends(get_current_
         .order_by(MatchupSnapshot.matchup_id, MatchupSnapshot.roster_id)
         .all()
     )
+    # A new row is stored whenever live points change. Return the newest
+    # observation per roster instead of leaking stale score history to clients.
+    latest_by_roster: dict[int, MatchupSnapshot] = {}
+    for row in rows:
+        current = latest_by_roster.get(row.roster_id)
+        if current is None or row.fetched_at > current.fetched_at:
+            latest_by_roster[row.roster_id] = row
+    current_rows = sorted(
+        latest_by_roster.values(), key=lambda row: (row.matchup_id, row.roster_id)
+    )
     return {
         "week": week,
         "matchups": [
@@ -240,7 +250,7 @@ def get_matchups(league_id: str, week: int, user: AppUser = Depends(get_current_
                 "matchup_id": row.matchup_id,
                 "points": row.points,
             }
-            for row in rows
+            for row in current_rows
         ],
         **_meta(db, league_id, week=week),
     }
