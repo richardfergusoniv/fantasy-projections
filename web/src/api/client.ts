@@ -51,6 +51,14 @@ export class ApiClientError extends Error {
     super(message);
     this.name = "ApiClientError";
   }
+
+  get code(): string | undefined {
+    const detail = this.body?.detail;
+    if (detail && typeof detail === "object" && !Array.isArray(detail) && typeof detail.code === "string") {
+      return detail.code;
+    }
+    return undefined;
+  }
 }
 
 export interface ApiClientOptions {
@@ -71,14 +79,49 @@ function formatApiErrorDetail(detail: ApiError["detail"] | undefined): string | 
     return detail.map((entry) => entry.msg).join(", ");
   }
   if (typeof detail === "object") {
-    if (typeof detail.message === "string" && detail.message) {
-      return detail.message;
+    const code = typeof detail.code === "string" ? detail.code : undefined;
+    const message = typeof detail.message === "string" ? detail.message : undefined;
+    if (message && code) {
+      return `${message} (${code})`;
     }
-    if (typeof detail.code === "string" && detail.code) {
-      return detail.code;
+    if (message) {
+      return message;
+    }
+    if (code) {
+      return code;
     }
   }
   return undefined;
+}
+
+/** Safe recovery guidance for known decision failure codes. */
+export function recoveryActionForError(error: unknown): string | null {
+  if (!(error instanceof ApiClientError)) {
+    return null;
+  }
+  if (error.status === 401) {
+    return "Sign in again to continue.";
+  }
+  switch (error.code) {
+    case "owner_roster_unavailable":
+      return "Fix SLEEPER_USER_ID / owner membership, then run sync from Operations.";
+    case "roster_snapshot_unavailable":
+      return "Select another week or run sync from Operations.";
+    case "matchup_snapshot_incomplete":
+      return "Lineup may still load without win probability after retry; otherwise run sync.";
+    case "projection_release_unavailable":
+      return "Publish or restore the active projection release, then retry.";
+    case "identity_resolution_incomplete":
+      return "Run sync from Operations so roster players can link to the projection release.";
+    case "authentication_required":
+      return "Sign in again to continue.";
+    case "service_temporarily_unavailable":
+    case "lineup_unavailable":
+    case "waivers_unavailable":
+      return "Retry shortly. If it persists, run sync from Operations.";
+    default:
+      return null;
+  }
 }
 
 /** Called whenever the API rejects a request because the session is gone. */

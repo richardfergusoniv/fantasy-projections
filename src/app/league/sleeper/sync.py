@@ -678,8 +678,31 @@ class SleeperSyncService:
         # Register identities before availability so roster resolution during the
         # same refresh has a populated registry to resolve against.
         identities = self.upsert_player_identities(payload.data)
+        # Sleeper omits gsis_id for many active players. Link those rows to the
+        # sealed release GSIS space before rostes are rewritten this refresh.
+        from src.app.availability.gsis_link import link_identities_to_release_players
+        from src.app.projections.loader import (
+            ReleaseBundleLoadError,
+            get_bundle_loader,
+        )
+
+        season = 2026
+        league_row = self.session.query(League).order_by(League.season.desc()).first()
+        if league_row is not None:
+            season = int(league_row.season)
+        try:
+            release_players = get_bundle_loader(season).load() or {}
+        except (ReleaseBundleLoadError, OSError, ValueError) as exc:
+            logger.warning(
+                "sleeper_gsis_link_bundle_unavailable",
+                extra={"season": season, "reason": str(exc)},
+            )
+            release_players = {}
+        link_stats = link_identities_to_release_players(self.session, release_players)
+        self._identity_cache.clear()
         result = AvailabilitySyncService(self.session).sync_from_players_payload(payload.data, snapshot)
         result.update(identities)
+        result.update({f"gsis_link_{key}": value for key, value in link_stats.to_dict().items()})
         result["payload_stale"] = payload.stale
         result["payload_fetched_at"] = payload.fetched_at.isoformat()
         return result

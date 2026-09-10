@@ -29,7 +29,6 @@ from src.app.persistence.models import (
     LeagueMember,
     LeagueRuleSnapshot,
     MatchupSnapshot,
-    RosterSnapshot,
 )
 from src.app.persistence.repositories import ProjectionRepository
 from src.app.projections.loader import get_bundle_loader
@@ -69,7 +68,19 @@ def _unprocessable(code: str, message: str, *, league_id: str, exc: Exception) -
         exception_type=type(exc).__name__,
         reason=str(exc),
     )
-    return HTTPException(status_code=400, detail={"code": code, "message": message})
+    return HTTPException(
+        status_code=400,
+        detail={"code": code, "message": message, "correlation_hint": "see x-correlation-id"},
+    )
+
+
+def _decision_http_error(league_id: str, exc: Exception, *, fallback_code: str, fallback_message: str) -> HTTPException:
+    from src.app.decisions.services import _public_decision_error
+
+    code, message = _public_decision_error(exc)
+    if code == "service_temporarily_unavailable":
+        code, message = fallback_code, fallback_message
+    return _unprocessable(code, message, league_id=league_id, exc=exc)
 
 
 def _meta(session: Session, league_id: str, *, week: int = 1) -> dict:
@@ -183,8 +194,9 @@ def update_draft_order_rule(
 @router.get("/leagues/{league_id}/rosters")
 def get_rosters(league_id: str, user: AppUser = Depends(get_current_user), db: Session = Depends(get_db)):
     from src.app.persistence.models import PlayerIdentity
+    from src.app.persistence.repositories import LeagueRepository
 
-    rosters = db.query(RosterSnapshot).filter(RosterSnapshot.league_id == league_id).all()
+    rosters = LeagueRepository(db).latest_rosters_for_league(league_id)
     members = {
         row.roster_id: row.display_name
         for row in db.query(LeagueMember).filter(LeagueMember.league_id == league_id).all()
@@ -194,13 +206,15 @@ def get_rosters(league_id: str, user: AppUser = Depends(get_current_user), db: S
         identities[row.player_id] = row
         if row.sleeper_id:
             identities.setdefault(row.sleeper_id, row)
+        if row.gsis_id:
+            identities.setdefault(row.gsis_id, row)
 
     def player_label(player_id: str) -> dict:
         row = identities.get(str(player_id))
         if row is None:
             return {"player_id": str(player_id), "name": str(player_id)}
         return {
-            "player_id": row.player_id,
+            "player_id": row.gsis_id or row.player_id,
             "name": row.name,
             "position": row.position,
             "team": row.team,
@@ -234,10 +248,16 @@ def get_matchups(league_id: str, week: int, user: AppUser = Depends(get_current_
     )
     # A new row is stored whenever live points change. Return the newest
     # observation per roster instead of leaking stale score history to clients.
+    # Equal fetched_at values break ties on primary key for determinism.
     latest_by_roster: dict[int, MatchupSnapshot] = {}
     for row in rows:
         current = latest_by_roster.get(row.roster_id)
-        if current is None or row.fetched_at > current.fetched_at:
+        if current is None:
+            latest_by_roster[row.roster_id] = row
+            continue
+        if row.fetched_at > current.fetched_at or (
+            row.fetched_at == current.fetched_at and row.id > current.id
+        ):
             latest_by_roster[row.roster_id] = row
     current_rows = sorted(
         latest_by_roster.values(), key=lambda row: (row.matchup_id, row.roster_id)
@@ -267,11 +287,11 @@ def recommend_lineup(
     try:
         result = LineupService(db).recommend(league_id, week, opponent_mode=opponent_mode)
     except ValueError as exc:
-        raise _unprocessable(
-            "lineup_unavailable",
-            "Lineup recommendation is unavailable for this league and week.",
-            league_id=league_id,
-            exc=exc,
+        raise _decision_http_error(
+            league_id,
+            exc,
+            fallback_code="lineup_unavailable",
+            fallback_message="Lineup recommendation is unavailable for this league and week.",
         ) from exc
     snapshot = (
         db.query(LeagueRuleSnapshot)
@@ -295,11 +315,11 @@ def waiver_recommendations(
     try:
         result = WaiverService(db).recommend(league_id, week)
     except ValueError as exc:
-        raise _unprocessable(
-            "waivers_unavailable",
-            "Waiver recommendations are unavailable for this league and week.",
-            league_id=league_id,
-            exc=exc,
+        raise _decision_http_error(
+            league_id,
+            exc,
+            fallback_code="waivers_unavailable",
+            fallback_message="Waiver recommendations are unavailable for this league and week.",
         ) from exc
     return {**result, **_meta(db, league_id)}
 
@@ -347,7 +367,7 @@ def draft_checklist(
     # Checklist artifact is season-scoped to the current fantasy year. Historical
     # Sleeper league rows (prior season IDs) should still serve the 2026 board.
     season = int(league.season) if league and league.season else 2026
-    checklist_season = season if season >= 2026 else 2026
+    checklist_season = max(season, 2026)
     payload = DraftChecklistService(db).load(checklist_season, league_id=league_id)
     # Prefer checklist artifact freshness over rule-snapshot/_meta values for the
     # shared keys (data_as_of, projection_run_id). Never let _meta wipe availability.

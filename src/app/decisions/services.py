@@ -23,7 +23,6 @@ from src.app.decisions.draws import (
 )
 from src.app.decisions.lineup import (
     matchup_probabilities,
-    optimize_lineup,
     swap_recommendations,
 )
 from src.app.decisions.tendencies import ManagerTendencyService
@@ -201,13 +200,51 @@ class _LeagueContext:
         """Map a roster id (Sleeper or canonical) onto the projection id space."""
         if not raw_id:
             return None
-        resolution = self._identity.resolve(
-            player_id=str(raw_id), sleeper_id=str(raw_id)
+        key = str(raw_id)
+        from src.app.availability.gsis_link import (
+            build_release_gsis_index,
+            match_gsis_for_identity,
+            projection_id_for_identity,
         )
+        from src.app.persistence.models import PlayerIdentity
+
+        resolution = self._identity.resolve(player_id=key, sleeper_id=key)
+        row: PlayerIdentity | None = None
         if resolution.status == "resolved" and resolution.player_id:
-            return resolution.player_id
-        if self.bundle.get(str(raw_id)) is not None:
-            return str(raw_id)
+            row = self.leagues.session.get(PlayerIdentity, resolution.player_id)
+        if row is None:
+            row = (
+                self.leagues.session.query(PlayerIdentity)
+                .filter(
+                    (PlayerIdentity.player_id == key) | (PlayerIdentity.sleeper_id == key)
+                )
+                .order_by(PlayerIdentity.player_id.asc())
+                .first()
+            )
+        if row is not None:
+            projected = projection_id_for_identity(row)
+            if self.bundle.get(projected) is not None or projected != row.player_id:
+                # Prefer an explicit GSIS link even before the bundle is warm.
+                if row.gsis_id or projected.startswith("00-"):
+                    return projected
+            if self.bundle.get(projected) is not None:
+                return projected
+            players = self.bundle.load() or {}
+            by_name_pos, by_name_pos_team = build_release_gsis_index(players)
+            matched = match_gsis_for_identity(
+                row, by_name_pos=by_name_pos, by_name_pos_team=by_name_pos_team
+            )
+            if matched:
+                if not row.gsis_id:
+                    row.gsis_id = matched
+                    self.leagues.session.flush()
+                return matched
+            # Special-teams identities often share the roster id space.
+            if row.position in {"K", "DEF", "DST"}:
+                return row.player_id
+            return None
+        if self.bundle.get(key) is not None:
+            return key
         return None
 
     def resolve_roster_ids(
@@ -392,28 +429,106 @@ def _resolve_owner_roster_id(
     Roster ids are league-specific and are not guaranteed to be ``1``. Explicit
     callers (such as shadow validation) remain authoritative; normal API and
     assistant requests use the stable Sleeper user id imported into
-    ``league_member``. The legacy default is retained only when the deployment
-    has no owner identity configured.
+    ``league_member``.
+
+    Production fails closed when the owner identity is missing or ambiguous so
+    recommendations cannot silently target another manager. Fixture and local
+    development retain the legacy roster-``1`` fallback only when
+    ``SLEEPER_USER_ID`` is unset.
     """
     if explicit_roster_id is not None:
         return explicit_roster_id
 
     from src.app.config import get_settings
 
-    sleeper_user_id = get_settings().sleeper_user_id
+    settings = get_settings()
+    sleeper_user_id = settings.sleeper_user_id
     if sleeper_user_id:
-        member = (
+        members = (
             session.query(LeagueMember)
             .filter(
                 LeagueMember.league_id == league_id,
                 LeagueMember.user_id == str(sleeper_user_id),
             )
-            .one_or_none()
+            .order_by(LeagueMember.roster_id.asc())
+            .all()
         )
-        if member is None:
+        if not members:
             raise LeagueContextError(f"owner_roster_not_found:league={league_id}")
-        return member.roster_id
+        roster_ids = sorted({member.roster_id for member in members})
+        if len(roster_ids) > 1:
+            raise LeagueContextError(
+                f"owner_roster_ambiguous:league={league_id},count={len(roster_ids)}"
+            )
+        return roster_ids[0]
+
+    if settings.app_env == "production":
+        raise LeagueContextError(f"owner_identity_unconfigured:league={league_id}")
     return 1
+
+
+def _public_decision_error(exc: Exception) -> tuple[str, str]:
+    """Map internal LeagueContextError reasons to safe public codes."""
+    reason = str(exc)
+    mapping = (
+        (
+            "owner_identity_unconfigured",
+            "owner_roster_unavailable",
+            "Owner roster is not configured for this deployment. Set SLEEPER_USER_ID and re-sync.",
+        ),
+        (
+            "owner_roster_not_found",
+            "owner_roster_unavailable",
+            "The configured owner is not a member of this league. Fix owner configuration and re-sync.",
+        ),
+        (
+            "owner_roster_ambiguous",
+            "owner_roster_unavailable",
+            "The configured owner matches multiple rosters in this league. Resolve membership and re-sync.",
+        ),
+        (
+            "no_roster_snapshot",
+            "roster_snapshot_unavailable",
+            "No roster snapshot is available for the selected week. Run sync or choose another week.",
+        ),
+        (
+            "no_projected_players_on_roster",
+            "identity_resolution_incomplete",
+            "Roster players could not be linked to the active projection release. Run sync after identity repair.",
+        ),
+        (
+            "waiver_ownership_incomplete",
+            "identity_resolution_incomplete",
+            "Some rostered players could not be linked to the projection release. Run sync after identity repair.",
+        ),
+        (
+            "matchup_incomplete",
+            "matchup_snapshot_incomplete",
+            "Matchup pairing is incomplete for this week. Lineup optimization may still be available without win probability.",
+        ),
+        (
+            "matchup_probability_gate_failed",
+            "matchup_snapshot_incomplete",
+            "Matchup win probability failed validation for this week.",
+        ),
+        (
+            "league_or_rules_not_found",
+            "projection_release_unavailable",
+            "League rules are missing. Run sync for this league.",
+        ),
+        (
+            "unsupported_scoring",
+            "projection_release_unavailable",
+            "League scoring rules are not fully supported for recommendations.",
+        ),
+    )
+    for prefix, code, message in mapping:
+        if reason.startswith(prefix) or f":{prefix}" in reason or prefix in reason:
+            return code, message
+    return (
+        "service_temporarily_unavailable",
+        "Recommendation is unavailable for this league and week.",
+    )
 
 
 class LineupService:
@@ -444,47 +559,65 @@ class LineupService:
             raise LeagueContextError(
                 f"no_roster_snapshot:league={league_id},roster={user_roster_id},week={week}"
             )
+
+        matchup_incomplete = False
+        matchup_degraded_reason: str | None = None
         if opponent_roster_id is None:
-            opponent_roster_id = self._matchup_opponent_roster_id(
+            paired_opponent_id = self._matchup_opponent_roster_id(
                 league_id, week, user_roster_id
             )
-            opponent = next(
-                (r for r in rosters if r.roster_id == opponent_roster_id), None
-            )
-            # Historical and preseason imports can have roster snapshots but no
-            # matchup snapshot. Keep the old fallback only for those data sets.
-            if opponent_roster_id is None:
+            if paired_opponent_id is None:
+                matchup_incomplete = True
+                matchup_degraded_reason = "matchup_pairing_unavailable"
+                opponent = None
+            else:
                 opponent = next(
-                    (r for r in rosters if r.roster_id != user_roster_id), None
+                    (r for r in rosters if r.roster_id == paired_opponent_id), None
                 )
+                if opponent is None:
+                    matchup_incomplete = True
+                    matchup_degraded_reason = "matchup_opponent_roster_missing"
         else:
             opponent = next(
                 (r for r in rosters if r.roster_id == opponent_roster_id), None
             )
 
-        user_ids = [pid for pid in (user_roster.players or []) if pid]
-        opp_ids = [pid for pid in ((opponent.players if opponent else []) or []) if pid]
+        user_raw = [pid for pid in (user_roster.players or []) if pid]
+        opp_raw = [pid for pid in ((opponent.players if opponent else []) or []) if pid]
+        user_map, unresolved_user = ctx.resolve_roster_ids(user_raw)
+        opp_map, _unresolved_opp = ctx.resolve_roster_ids(opp_raw)
+        user_ids = list(user_map.values())
+        opp_ids = list(opp_map.values())
         draw_set, missing = ctx.build_draws(user_ids + opp_ids)
 
         user_candidates = [pid for pid in user_ids if pid in draw_set.players]
         opp_candidates = [pid for pid in opp_ids if pid in draw_set.players]
         submitted_user = [
-            pid for pid in (user_roster.starters or []) if pid in draw_set.players
+            user_map[str(pid)]
+            for pid in (user_roster.starters or [])
+            if pid and str(pid) in user_map and user_map[str(pid)] in draw_set.players
         ]
         submitted_opp = [
-            pid
+            opp_map[str(pid)]
             for pid in ((opponent.starters if opponent else []) or [])
-            if pid in draw_set.players
+            if pid and str(pid) in opp_map and opp_map[str(pid)] in draw_set.players
         ]
 
         if not user_candidates:
-            raise LeagueContextError(
-                f"no_projected_players_on_roster:league={league_id},week={week}"
-            )
+            detail = "no_projected_players_on_roster"
+            if unresolved_user:
+                detail = f"no_projected_players_on_roster:unresolved={len(unresolved_user)}"
+            raise LeagueContextError(f"{detail}:league={league_id},week={week}")
 
         matchup_allowed = ctx.projection_service.matchup_win_probability_allowed(
             season=ctx.season, week=week
         )
+        if matchup_incomplete or not opp_candidates:
+            # Optimize the owner's lineup without publishing a win probability
+            # against an arbitrary or missing opponent.
+            matchup_allowed = False
+            if matchup_degraded_reason is None:
+                matchup_degraded_reason = "matchup_opponent_unprojected"
 
         evaluation = matchup_probabilities(
             draw_set,
@@ -538,6 +671,12 @@ class LineupService:
             )
 
         provenance = ctx.provenance(draw_set, missing)
+        if matchup_degraded_reason:
+            provenance = {
+                **provenance,
+                "matchup_degraded": True,
+                "matchup_degraded_reason": matchup_degraded_reason,
+            }
         return {
             "week": week,
             "opponent_mode": opponent_mode,
@@ -569,7 +708,7 @@ class LineupService:
     def _matchup_opponent_roster_id(
         self, league_id: str, week: int, user_roster_id: int
     ) -> int | None:
-        """Resolve the opponent from the newest weekly matchup pairing."""
+        """Resolve the opponent from the newest coherent weekly matchup pairing."""
         owner = (
             self.session.query(MatchupSnapshot)
             .filter(
@@ -577,11 +716,35 @@ class LineupService:
                 MatchupSnapshot.week == week,
                 MatchupSnapshot.roster_id == user_roster_id,
             )
-            .order_by(MatchupSnapshot.fetched_at.desc())
+            .order_by(
+                MatchupSnapshot.fetched_at.desc(),
+                MatchupSnapshot.id.desc(),
+            )
             .first()
         )
         if owner is None or owner.matchup_id <= 0:
             return None
+        # Restrict opponent candidates to the same observation generation so an
+        # owner row from one sync cannot pair with a stale opponent from another.
+        opponent = (
+            self.session.query(MatchupSnapshot)
+            .filter(
+                MatchupSnapshot.league_id == league_id,
+                MatchupSnapshot.week == week,
+                MatchupSnapshot.matchup_id == owner.matchup_id,
+                MatchupSnapshot.roster_id != user_roster_id,
+                MatchupSnapshot.fetched_at == owner.fetched_at,
+            )
+            .order_by(
+                MatchupSnapshot.fetched_at.desc(),
+                MatchupSnapshot.id.desc(),
+            )
+            .first()
+        )
+        if opponent is not None:
+            return opponent.roster_id
+        # If equal-timestamp pairing is absent (partial import), fall back to the
+        # newest opponent row for the same matchup_id without inventing a rival.
         opponent = (
             self.session.query(MatchupSnapshot)
             .filter(
@@ -590,7 +753,10 @@ class LineupService:
                 MatchupSnapshot.matchup_id == owner.matchup_id,
                 MatchupSnapshot.roster_id != user_roster_id,
             )
-            .order_by(MatchupSnapshot.fetched_at.desc())
+            .order_by(
+                MatchupSnapshot.fetched_at.desc(),
+                MatchupSnapshot.id.desc(),
+            )
             .first()
         )
         return opponent.roster_id if opponent is not None else None
