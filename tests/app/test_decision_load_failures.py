@@ -263,8 +263,65 @@ def test_configured_owner_not_roster_one(monkeypatch, db_session: Session):
 def test_configured_owner_missing_membership_fails_closed(monkeypatch, db_session: Session):
     monkeypatch.setenv("SLEEPER_USER_ID", "missing-owner")
     get_settings.cache_clear()
+    db_session.add(
+        LeagueMember(league_id="league-1", user_id="someone-else", roster_id=3, display_name="Other")
+    )
+    db_session.flush()
     with pytest.raises(LeagueContextError, match="owner_roster_not_found"):
         _resolve_owner_roster_id(db_session, "league-1", explicit_roster_id=None)
+    get_settings.cache_clear()
+
+
+def test_empty_league_memberships_are_sync_gap(monkeypatch, db_session: Session):
+    monkeypatch.setenv("SLEEPER_USER_ID", "owner-7")
+    get_settings.cache_clear()
+    with pytest.raises(LeagueContextError, match="league_membership_not_synced"):
+        _resolve_owner_roster_id(db_session, "league-empty", explicit_roster_id=None)
+    code, message = _public_decision_error(
+        LeagueContextError("league_membership_not_synced:league=league-empty")
+    )
+    assert code == "league_membership_unavailable"
+    assert "SLEEPER_USER_ID" not in message
+    get_settings.cache_clear()
+
+
+def test_quoted_sleeper_user_id_still_resolves_owner(monkeypatch, db_session: Session):
+    monkeypatch.setenv("SLEEPER_USER_ID", ' "739931264659927040" \n')
+    get_settings.cache_clear()
+    db_session.add(
+        LeagueMember(
+            league_id="league-1",
+            user_id="739931264659927040",
+            roster_id=6,
+            display_name="Owner",
+        )
+    )
+    db_session.flush()
+    assert get_settings().sleeper_user_id == "739931264659927040"
+    assert _resolve_owner_roster_id(db_session, "league-1", explicit_roster_id=None) == 6
+    get_settings.cache_clear()
+
+
+def test_list_leagues_exposes_owner_roster_id(monkeypatch, db_session: Session):
+    from src.app.api.v1.leagues import list_leagues
+
+    monkeypatch.setenv("SLEEPER_USER_ID", "owner-6")
+    get_settings.cache_clear()
+    _league(db_session, "league-owned")
+    _league(db_session, "league-orphan")
+    db_session.add(
+        LeagueMember(
+            league_id="league-owned",
+            user_id="owner-6",
+            roster_id=6,
+            display_name="Owner",
+        )
+    )
+    db_session.flush()
+    payload = list_leagues(user=AppUser(email="owner@example.com"), db=db_session)
+    by_id = {row["league_id"]: row["owner_roster_id"] for row in payload["leagues"]}
+    assert by_id["league-owned"] == 6
+    assert by_id["league-orphan"] is None
     get_settings.cache_clear()
 
 
@@ -299,6 +356,11 @@ def test_public_decision_error_codes_are_safe():
     assert code == "identity_resolution_incomplete"
     assert "exception" not in message.lower()
     assert "league=x" not in message
+    owner_code, owner_message = _public_decision_error(
+        LeagueContextError("owner_roster_not_found:league=x")
+    )
+    assert owner_code == "owner_roster_unavailable"
+    assert "league=x" not in owner_message
 
 
 def test_gsis_link_from_release_players(db_session: Session):

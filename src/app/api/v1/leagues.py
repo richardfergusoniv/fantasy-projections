@@ -118,8 +118,23 @@ def _meta(session: Session, league_id: str, *, week: int = 1) -> dict:
 
 @router.get("/leagues")
 def list_leagues(user: AppUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    from src.app.config import get_settings
+
     leagues = db.query(League).all()
     configured_ids = _configured_league_ids()
+    owner_user_id = get_settings().sleeper_user_id
+    owner_roster_by_league: dict[str, int] = {}
+    if owner_user_id:
+        for member in (
+            db.query(LeagueMember)
+            .filter(LeagueMember.user_id == str(owner_user_id).strip())
+            .all()
+        ):
+            # One owner roster per league is expected; keep the lowest id if
+            # duplicates ever appear so the payload stays deterministic.
+            current = owner_roster_by_league.get(member.league_id)
+            if current is None or member.roster_id < current:
+                owner_roster_by_league[member.league_id] = member.roster_id
     payload = []
     for league in leagues:
         snapshot = (
@@ -143,6 +158,7 @@ def list_leagues(user: AppUser = Depends(get_current_user), db: Session = Depend
                 "is_configured": (
                     league.league_id in configured_ids if configured_ids else True
                 ),
+                "owner_roster_id": owner_roster_by_league.get(league.league_id),
                 "roster_positions": league.raw_json.get("roster_positions", []) if league.raw_json else [],
             }
         )

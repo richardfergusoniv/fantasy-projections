@@ -64,7 +64,8 @@ function readStoredWeek(leagueId: string | null): number | null {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
-function pickPreferredLeagueId(
+/** Prefer active/configured leagues where the owner has a synced membership. */
+export function pickPreferredLeagueId(
   items: LeagueSummary[],
   configured: string[],
   current: string | null,
@@ -86,9 +87,20 @@ function pickPreferredLeagueId(
     if (configuredPool.length) pool = configuredPool;
   }
 
+  // Prefer leagues where the configured owner has a synced membership. Historical
+  // seasons often exist in `league` without `league_member` rows and cannot load
+  // lineup/waiver decisions.
+  const withOwner = pool.filter(
+    (league) => league.owner_roster_id != null && Number.isFinite(league.owner_roster_id),
+  );
+  if (withOwner.length) {
+    pool = withOwner;
+  }
+
   if (current && pool.some((league) => league.id === current)) {
     return current;
   }
+  // If the saved league has no owner membership, fall through to a usable one.
   return pool[0]?.id ?? null;
 }
 

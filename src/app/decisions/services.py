@@ -444,16 +444,28 @@ def _resolve_owner_roster_id(
     settings = get_settings()
     sleeper_user_id = settings.sleeper_user_id
     if sleeper_user_id:
+        owner_key = str(sleeper_user_id).strip()
         members = (
             session.query(LeagueMember)
             .filter(
                 LeagueMember.league_id == league_id,
-                LeagueMember.user_id == str(sleeper_user_id),
+                LeagueMember.user_id == owner_key,
             )
             .order_by(LeagueMember.roster_id.asc())
             .all()
         )
         if not members:
+            league_member_count = (
+                session.query(LeagueMember)
+                .filter(LeagueMember.league_id == league_id)
+                .count()
+            )
+            if league_member_count == 0:
+                # Historical seasons are often imported without users/rosters.
+                # That is a sync/coverage gap, not a wrong SLEEPER_USER_ID.
+                raise LeagueContextError(
+                    f"league_membership_not_synced:league={league_id}"
+                )
             raise LeagueContextError(f"owner_roster_not_found:league={league_id}")
         roster_ids = sorted({member.roster_id for member in members})
         if len(roster_ids) > 1:
@@ -475,6 +487,11 @@ def _public_decision_error(exc: Exception) -> tuple[str, str]:
             "owner_identity_unconfigured",
             "owner_roster_unavailable",
             "Owner roster is not configured for this deployment. Set SLEEPER_USER_ID and re-sync.",
+        ),
+        (
+            "league_membership_not_synced",
+            "league_membership_unavailable",
+            "This league has no synced memberships. Select an active configured league or run sync.",
         ),
         (
             "owner_roster_not_found",
