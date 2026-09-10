@@ -13,14 +13,10 @@ from src.app.persistence.models import (
     League,
     LeagueMember,
     LeagueRuleSnapshot,
-    LeagueTransaction,
-    MatchupSnapshot,
-    PlayerIdentity,
     PlayerProjection,
     ProjectionRun,
     RosterSnapshot,
     SourceSnapshot,
-    TradedPick,
 )
 
 
@@ -70,12 +66,45 @@ class LeagueRepository:
         return snapshot
 
     def latest_rosters(self, league_id: str, week: int) -> list[RosterSnapshot]:
-        return (
+        """Return the newest roster snapshot per ``roster_id`` for the week.
+
+        Sync appends a row whenever players/starters/reserve change, so a naive
+        ``.all()`` returns historical duplicates. Decision ownership and lineup
+        selection must see one coherent generation per roster. Equal
+        ``fetched_at`` values break ties on the row primary key for stability.
+        """
+        rows = (
             self.session.query(RosterSnapshot)
             .filter(RosterSnapshot.league_id == league_id, RosterSnapshot.week == week)
-            .order_by(RosterSnapshot.fetched_at.desc())
+            .order_by(
+                RosterSnapshot.fetched_at.desc(),
+                RosterSnapshot.id.desc(),
+            )
             .all()
         )
+        latest_by_roster: dict[int, RosterSnapshot] = {}
+        for row in rows:
+            if row.roster_id not in latest_by_roster:
+                latest_by_roster[row.roster_id] = row
+        return sorted(latest_by_roster.values(), key=lambda row: row.roster_id)
+
+    def latest_rosters_for_league(self, league_id: str) -> list[RosterSnapshot]:
+        """Newest snapshot per ``(week, roster_id)`` across all weeks."""
+        rows = (
+            self.session.query(RosterSnapshot)
+            .filter(RosterSnapshot.league_id == league_id)
+            .order_by(
+                RosterSnapshot.fetched_at.desc(),
+                RosterSnapshot.id.desc(),
+            )
+            .all()
+        )
+        latest: dict[tuple[int, int], RosterSnapshot] = {}
+        for row in rows:
+            key = (row.week, row.roster_id)
+            if key not in latest:
+                latest[key] = row
+        return sorted(latest.values(), key=lambda row: (row.week, row.roster_id))
 
     def add_roster_snapshot(self, snapshot: RosterSnapshot) -> RosterSnapshot:
         self.session.add(snapshot)

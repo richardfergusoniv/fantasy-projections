@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api } from "../api/client";
+import { api, recoveryActionForError } from "../api/client";
 import {
   assertNoAuthTokens,
   cacheRecommendation,
@@ -85,7 +85,9 @@ export function useReadonlyRecommendation<T extends LineupRecommendation | Waive
       if (!recovered) {
         setData(null);
       }
-      setError(err instanceof Error ? err.message : "Failed to load recommendations");
+      const base = err instanceof Error ? err.message : "Failed to load recommendations";
+      const recovery = recoveryActionForError(err);
+      setError(recovery ? `${base} ${recovery}` : base);
     } finally {
       setLoading(false);
     }

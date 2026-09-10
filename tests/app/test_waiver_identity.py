@@ -12,6 +12,8 @@ os.environ.setdefault("APP_PROJECTION_SOURCE", "sealed_release")
 
 
 def test_waiver_blocks_when_roster_ids_do_not_resolve(db_session: Session):
+    from datetime import UTC, datetime, timedelta
+
     from src.app.decisions.services import LeagueContextError, WaiverService
     from src.app.persistence.models import League, LeagueRuleSnapshot, RosterSnapshot
     from src.app.seed import seed_development_data
@@ -30,7 +32,9 @@ def test_waiver_blocks_when_roster_ids_do_not_resolve(db_session: Session):
             league_id=league.league_id,
             week=1,
             roster_id=1,
-            fetched_at=snapshot.fetched_at,
+            # Must be newer than any seeded historical snapshot so latest_rosters
+            # selects this incomplete ownership set.
+            fetched_at=(snapshot.fetched_at or datetime.now(UTC)) + timedelta(minutes=1),
             players=["unresolved-sleeper-id"],
             starters=[],
             reserve=[],
