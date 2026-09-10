@@ -33,12 +33,18 @@ from src.projection.data_prep import (
     player_rz_usage, player_season_snap_pct, build_player_season_injury_durability,
     team_season_rz_position_totals, player_active_rz_position_opportunity,
     player_season_air_yards,
-    player_season_designed_rushes, team_season_opponent_strength,
+    player_season_designed_rushes, player_season_qb_rush_splits,
+    team_season_opponent_strength,
     player_active_team_opportunity, team_season_yardage_totals,
     player_season_receiving_yards_share, _team_season_game_count,
     player_season_age, player_eligible_weeks, SEASON_GAMES_CAP,
 )
 from src.projection.ol_quality import team_season_ol_quality
+from src.projection.qb_rush_features import (
+    QB_RUSH_EXPANSION_FEATURES,
+    apply_qb_rush_multi_season_pooling,
+    attach_qb_rush_expansion_features,
+)
 
 TARGET_STATS = {
     # rushing added post-launch: found via a Sleeper-projection comparison
@@ -336,6 +342,16 @@ def build_player_season_features(conn, seasons=SEASONS, ol_trailing_for_seasons=
         base["designed_rush_attempts"] / team_plays_active.replace(0, np.nan)
     ).replace([np.inf, -np.inf], np.nan).fillna(0)
 
+    # Additive QB rush expansion (scramble/YPC/RZ/GL). Not part of sealed
+    # FEATURE_COLS / model contracts until an experimental retrain selects them.
+    try:
+        rush_splits = player_season_qb_rush_splits(conn, seasons)
+        base = attach_qb_rush_expansion_features(base, rush_splits)
+    except Exception:
+        for col in QB_RUSH_EXPANSION_FEATURES:
+            if col not in base.columns:
+                base[col] = np.nan
+
     # --- Opponent/schedule-strength: a team-season proxy (not player-
     # specific) for how tough the team's actual schedule was, built from
     # each opponent's PRIOR-season pass/rush defensive EPA/play allowed. See
@@ -505,5 +521,11 @@ def build_player_season_features(conn, seasons=SEASONS, ol_trailing_for_seasons=
     # columns without any special saved-model or predict-time code path.
     for stat in sorted({stat for stats in TARGET_STATS.values() for stat in stats}):
         base[f"prior_{stat}_pg"] = base[f"{stat}_pg"]
+
+    # Multi-season pooled QB rush columns (additive). Uses seasons <= current
+    # row only. Legacy qb_designed_run_rate / prior_* columns stay untouched
+    # so sealed model feature contracts remain bit-stable.
+    if "carries_pg" in base.columns:
+        base = apply_qb_rush_multi_season_pooling(base)
 
     return base

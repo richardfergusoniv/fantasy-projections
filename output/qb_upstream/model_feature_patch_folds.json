@@ -1,0 +1,56 @@
+{
+  "model": "QB_carries.joblib",
+  "folds": [
+    {
+      "season": 2023,
+      "n": 32,
+      "baseline_mae": 0.948872447390444,
+      "patched_mae": 0.9507949584185479,
+      "delta_mae": 0.0019225110281039237,
+      "bootstrap_delta_mean": 0.0004800797622142358,
+      "bootstrap_delta_ci95": [
+        -0.0960364758551776,
+        0.09293517491575541
+      ],
+      "baseline_bias": -0.254208431255319,
+      "patched_bias": -0.21665750195105196,
+      "baseline_spearman": 0.759417105196639,
+      "patched_spearman": 0.7810466534498861,
+      "mean_abs_pred_delta": 0.1687271595495377
+    },
+    {
+      "season": 2024,
+      "n": 36,
+      "baseline_mae": 0.9235170833560381,
+      "patched_mae": 0.9937924785828736,
+      "delta_mae": 0.07027539522683546,
+      "bootstrap_delta_mean": 0.07039093274406857,
+      "bootstrap_delta_ci95": [
+        -0.0461009026471315,
+        0.18734470367212522
+      ],
+      "baseline_bias": -0.18895488156086332,
+      "patched_bias": -0.1502281024512243,
+      "baseline_spearman": 0.6889761260164269,
+      "patched_spearman": 0.6898770848959551,
+      "mean_abs_pred_delta": 0.31567674780972205
+    },
+    {
+      "season": 2025,
+      "n": 32,
+      "baseline_mae": 0.7705628326331739,
+      "patched_mae": 0.8115739276678545,
+      "delta_mae": 0.04101109503468059,
+      "bootstrap_delta_mean": 0.040393641167511346,
+      "bootstrap_delta_ci95": [
+        -0.11470839278051626,
+        0.2199962905313816
+      ],
+      "baseline_bias": -0.27362414831737036,
+      "patched_bias": -0.08345979621558802,
+      "baseline_spearman": 0.8353038253393879,
+      "patched_spearman": 0.8107414569840053,
+      "mean_abs_pred_delta": 0.24125410925631707
+    }
+  ]
+}

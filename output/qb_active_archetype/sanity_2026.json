@@ -1,0 +1,897 @@
+{
+  "note": "Diagnostic only; excluded from selection by predeclared gate",
+  "non_qb_invariance": {
+    "pass": true,
+    "n_compared": 3271,
+    "n_changed": 0,
+    "max_abs_delta": 0.0
+  },
+  "players": {
+    "Josh Allen": {
+      "raw": {
+        "attempts": 27.30162077030404,
+        "carries": 6.089131560753759,
+        "completions": 16.443915400561004,
+        "interceptions": 0.5713656713687033,
+        "passing_tds": 1.3594063925709845,
+        "passing_yards": 195.94882150769035,
+        "rushing_tds": 0.5665595214949763,
+        "rushing_yards": 34.23574737486391
+      },
+      "baseline_composed": {
+        "attempts": {
+          "pred_pg": 18.877516526975327,
+          "team_volume_scale": 0.6914430716695176
+        },
+        "carries": {
+          "pred_pg": 6.089131560753759,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 11.370031374837586,
+          "team_volume_scale": 0.6914430716695176
+        },
+        "interceptions": {
+          "pred_pg": 0.39506683485769234,
+          "team_volume_scale": 0.6914430716695176
+        },
+        "passing_tds": {
+          "pred_pg": 1.1326509916185197,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 144.92197648303957,
+          "team_volume_scale": 0.7395909573120442
+        },
+        "rushing_tds": {
+          "pred_pg": 0.5665595214949763,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 34.23574737486391,
+          "team_volume_scale": 1.0
+        }
+      },
+      "candidate_composed": {
+        "attempts": {
+          "pred_pg": 31.10304957363781,
+          "team_volume_scale": 0.9610492845786963
+        },
+        "carries": {
+          "pred_pg": 6.997379232185862,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 19.949053331406272,
+          "team_volume_scale": 0.9610492845786963
+        },
+        "interceptions": {
+          "pred_pg": 0.6989449342390519,
+          "team_volume_scale": 0.9610492845786963
+        },
+        "passing_tds": {
+          "pred_pg": 1.0915246627822055,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 218.54221208553113,
+          "team_volume_scale": 0.902163247288282
+        },
+        "rushing_tds": {
+          "pred_pg": 0.6997379232185863,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 36.94149312933843,
+          "team_volume_scale": 1.0
+        }
+      },
+      "baseline_fantasy": {
+        "rank": 3,
+        "ppg": 16.360281222536525,
+        "season": 278.1247807831209
+      },
+      "candidate_fantasy": {
+        "rank": 1,
+        "ppg": 19.60247411831733,
+        "season": 333.2420600113946
+      }
+    },
+    "Lamar Jackson": {
+      "raw": {
+        "attempts": 22.333715513139094,
+        "carries": 4.422580581350364,
+        "completions": 13.06264483166653,
+        "interceptions": 0.4966612462340904,
+        "passing_tds": 1.1693004410553465,
+        "passing_yards": 161.598796603169,
+        "rushing_tds": 0.1130676329087628,
+        "rushing_yards": 26.67435986443961
+      },
+      "baseline_composed": {
+        "attempts": {
+          "pred_pg": 15.727597062314073,
+          "team_volume_scale": 0.704208713192456
+        },
+        "carries": {
+          "pred_pg": 4.422580581350364,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 9.198828307797974,
+          "team_volume_scale": 0.704208713192456
+        },
+        "interceptions": {
+          "pred_pg": 0.34975317710307036,
+          "team_volume_scale": 0.704208713192456
+        },
+        "passing_tds": {
+          "pred_pg": 0.9436558237388444,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 116.68273529490627,
+          "team_volume_scale": 0.7220520062500149
+        },
+        "rushing_tds": {
+          "pred_pg": 0.1130676329087628,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 26.67435986443961,
+          "team_volume_scale": 1.0
+        }
+      },
+      "candidate_composed": {
+        "attempts": {
+          "pred_pg": 26.381325641404466,
+          "team_volume_scale": 0.9439645709730412
+        },
+        "carries": {
+          "pred_pg": 8.141964929137641,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 16.809193676098893,
+          "team_volume_scale": 0.9439645709730412
+        },
+        "interceptions": {
+          "pred_pg": 0.41401954867238655,
+          "team_volume_scale": 0.9439645709730412
+        },
+        "passing_tds": {
+          "pred_pg": 0.9727311859286611,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 186.93843772326744,
+          "team_volume_scale": 0.8436651583710407
+        },
+        "rushing_tds": {
+          "pred_pg": 0.2989831051325166,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 48.19473136359997,
+          "team_volume_scale": 1.0
+        }
+      },
+      "baseline_fantasy": {
+        "rank": 20,
+        "ppg": 11.088268136442027,
+        "season": 188.50055831951445
+      },
+      "candidate_fantasy": {
+        "rank": 5,
+        "ppg": 17.153794922455667,
+        "season": 291.61451368174636
+      }
+    },
+    "Jayden Daniels": {
+      "raw": {
+        "attempts": 23.94131873836464,
+        "carries": 6.440275807116136,
+        "completions": 14.280241991330028,
+        "interceptions": 0.4985296149545673,
+        "passing_tds": 0.8649427744424528,
+        "passing_yards": 156.75549958461116,
+        "rushing_tds": 0.2120926979534429,
+        "rushing_yards": 29.03972067565226
+      },
+      "baseline_composed": {
+        "attempts": {
+          "pred_pg": 17.738117331388697,
+          "team_volume_scale": 0.7408997610045742
+        },
+        "carries": {
+          "pred_pg": 6.440275807116136,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 10.580227878463903,
+          "team_volume_scale": 0.7408997610045742
+        },
+        "interceptions": {
+          "pred_pg": 0.3693604725735413,
+          "team_volume_scale": 0.7408997610045742
+        },
+        "passing_tds": {
+          "pred_pg": 0.8649427744424528,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 116.28570905808267,
+          "team_volume_scale": 0.741828576134362
+        },
+        "rushing_tds": {
+          "pred_pg": 0.2120926979534429,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 29.03972067565226,
+          "team_volume_scale": 1.0
+        }
+      },
+      "candidate_composed": {
+        "attempts": {
+          "pred_pg": 27.473277550278453,
+          "team_volume_scale": 0.9224604140969406
+        },
+        "carries": {
+          "pred_pg": 8.594159431728492,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 17.767389714997595,
+          "team_volume_scale": 0.9224604140969406
+        },
+        "interceptions": {
+          "pred_pg": 0.48128369431144724,
+          "team_volume_scale": 0.9224604140969406
+        },
+        "passing_tds": {
+          "pred_pg": 1.1058383251663866,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 182.5193157548992,
+          "team_volume_scale": 0.8702206182343868
+        },
+        "rushing_tds": {
+          "pred_pg": 0.41799526440410417,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 45.84104183109708,
+          "team_volume_scale": 1.0
+        }
+      },
+      "baseline_fantasy": {
+        "rank": 16,
+        "ppg": 11.54900677023192,
+        "season": 196.33311509394264
+      },
+      "candidate_fantasy": {
+        "rank": 3,
+        "ppg": 17.853634311772954,
+        "season": 303.5117833001402
+      }
+    },
+    "Jalen Hurts": {
+      "raw": {
+        "attempts": 29.88252427747363,
+        "carries": 4.309725888921528,
+        "completions": 18.47190321181252,
+        "interceptions": 0.6363967636641609,
+        "passing_tds": 1.3269388372794115,
+        "passing_yards": 210.5776156329901,
+        "rushing_tds": 0.3757540566584442,
+        "rushing_yards": 19.43939246099003
+      },
+      "baseline_composed": {
+        "attempts": {
+          "pred_pg": 17.473710673470322,
+          "team_volume_scale": 0.5847468075728309
+        },
+        "carries": {
+          "pred_pg": 4.309725888921528,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 10.801386432901694,
+          "team_volume_scale": 0.5847468075728309
+        },
+        "interceptions": {
+          "pred_pg": 0.37213097590229943,
+          "team_volume_scale": 0.5847468075728309
+        },
+        "passing_tds": {
+          "pred_pg": 1.0484226404082193,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 126.98875091724335,
+          "team_volume_scale": 0.603049619189195
+        },
+        "rushing_tds": {
+          "pred_pg": 0.3757540566584442,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 19.43939246099003,
+          "team_volume_scale": 1.0
+        }
+      },
+      "candidate_composed": {
+        "attempts": {
+          "pred_pg": 27.586122336045435,
+          "team_volume_scale": 0.9280193081035361
+        },
+        "carries": {
+          "pred_pg": 9.06480513662834,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 17.946695974453867,
+          "team_volume_scale": 0.9280193081035361
+        },
+        "interceptions": {
+          "pred_pg": 0.47897770740827667,
+          "team_volume_scale": 0.9280193081035361
+        },
+        "passing_tds": {
+          "pred_pg": 0.8838865180610045,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 200.36154784494443,
+          "team_volume_scale": 0.9084033613445378
+        },
+        "rushing_tds": {
+          "pred_pg": 0.7652680304614006,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 38.65454681200537,
+          "team_volume_scale": 1.0
+        }
+      },
+      "baseline_fantasy": {
+        "rank": 12,
+        "ppg": 12.72744223256768,
+        "season": 216.36651795365057
+      },
+      "candidate_fantasy": {
+        "rank": 2,
+        "ppg": 19.04911543519418,
+        "season": 323.83496239830106
+      }
+    },
+    "Joe Burrow": {
+      "raw": {
+        "attempts": 30.808919655067086,
+        "carries": 1.8944483377122696,
+        "completions": 19.992618775584607,
+        "interceptions": 0.7935978306428095,
+        "passing_tds": 1.46179235509063,
+        "passing_yards": 220.9734921200879,
+        "rushing_tds": 0.0704522996543137,
+        "rushing_yards": 4.899491474405198
+      },
+      "baseline_composed": {
+        "attempts": {
+          "pred_pg": 17.97066823591866,
+          "team_volume_scale": 0.5832943328463339
+        },
+        "carries": {
+          "pred_pg": 1.8944483377122696,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 11.661581230555713,
+          "team_volume_scale": 0.5832943328463339
+        },
+        "interceptions": {
+          "pred_pg": 0.46290111717309546,
+          "team_volume_scale": 0.5832943328463339
+        },
+        "passing_tds": {
+          "pred_pg": 1.0782400941551196,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 126.72102877393483,
+          "team_volume_scale": 0.5734671048465323
+        },
+        "rushing_tds": {
+          "pred_pg": 0.0704522996543137,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 4.899491474405198,
+          "team_volume_scale": 1.0
+        }
+      },
+      "candidate_composed": {
+        "attempts": {
+          "pred_pg": 30.072555680292677,
+          "team_volume_scale": 0.8067860808495142
+        },
+        "carries": {
+          "pred_pg": 3.210752836659071,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 20.42276137993574,
+          "team_volume_scale": 0.8067860808495142
+        },
+        "interceptions": {
+          "pred_pg": 0.5062187173957736,
+          "team_volume_scale": 0.8067860808495142
+        },
+        "passing_tds": {
+          "pred_pg": 1.1105615369789976,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 203.44550173010384,
+          "team_volume_scale": 0.7679461615154537
+        },
+        "rushing_tds": {
+          "pred_pg": 0.14020268974353073,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 12.107029697653187,
+          "team_volume_scale": 1.0
+        }
+      },
+      "baseline_fantasy": {
+        "rank": 29,
+        "ppg": 9.36866223859808,
+        "season": 159.26725805616738
+      },
+      "candidate_fantasy": {
+        "rank": 21,
+        "ppg": 13.6195478905551,
+        "season": 231.53231413943672
+      }
+    },
+    "Patrick Mahomes": {
+      "raw": {
+        "attempts": 30.862758099353805,
+        "carries": 4.563030519281061,
+        "completions": 19.850298627072608,
+        "interceptions": 0.6390966439840551,
+        "passing_tds": 1.470748449873431,
+        "passing_yards": 230.21819374255037,
+        "rushing_tds": 0.1903404248771213,
+        "rushing_yards": 25.55235837289885
+      },
+      "baseline_composed": {
+        "attempts": {
+          "pred_pg": 17.86395650646035,
+          "team_volume_scale": 0.5788191855359285
+        },
+        "carries": {
+          "pred_pg": 4.563030519281061,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 11.489733683967126,
+          "team_volume_scale": 0.5788191855359285
+        },
+        "interceptions": {
+          "pred_pg": 0.369921398949596,
+          "team_volume_scale": 0.5788191855359285
+        },
+        "passing_tds": {
+          "pred_pg": 1.071837390387621,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 127.71345183627399,
+          "team_volume_scale": 0.5547496041042441
+        },
+        "rushing_tds": {
+          "pred_pg": 0.1903404248771213,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 25.55235837289885,
+          "team_volume_scale": 1.0
+        }
+      },
+      "candidate_composed": {
+        "attempts": {
+          "pred_pg": 33.08968317608667,
+          "team_volume_scale": 0.8814587907371926
+        },
+        "carries": {
+          "pred_pg": 4.146181818181818,
+          "team_volume_scale": 1.0
+        },
+        "completions": {
+          "pred_pg": 21.588744668372826,
+          "team_volume_scale": 0.8814587907371926
+        },
+        "interceptions": {
+          "pred_pg": 0.6715876500854799,
+          "team_volume_scale": 0.8814587907371926
+        },
+        "passing_tds": {
+          "pred_pg": 1.0756494289499043,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 217.2058452466159,
+          "team_volume_scale": 0.8074090305957518
+        },
+        "rushing_tds": {
+          "pred_pg": 0.1743030303030303,
+          "team_volume_scale": 1.0
+        },
+        "rushing_yards": {
+          "pred_pg": 23.496000000000002,
+          "team_volume_scale": 1.0
+        }
+      },
+      "baseline_fantasy": {
+        "rank": 15,
+        "ppg": 12.353323223654865,
+        "season": 210.0064948021327
+      },
+      "candidate_fantasy": {
+        "rank": 12,
+        "ppg": 15.043074407311476,
+        "season": 255.7322649242951
+      }
+    },
+    "QB12_candidate": {
+      "player_id": "00-0033873",
+      "display_name": "Patrick Mahomes",
+      "rank": 12,
+      "ppg": 15.043074407311476
+    }
+  },
+  "burrow": {
+    "historical_decomposition": [
+      {
+        "season": 2022,
+        "active_starts": 16.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 37.875,
+        "attempts_per_game_conflated": 37.875,
+        "carries_per_active": 4.6875,
+        "carries_per_game_conflated": 4.6875,
+        "passing_yards_per_active": 279.6875,
+        "designed_carries_per_active": null,
+        "scramble_carries_per_active": null,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 14.16,
+          "partial_exit_rate": 0.012800000000000002,
+          "sample_active_starts": 42.0,
+          "input_seasons": [
+            2020,
+            2021,
+            2022
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 14.0
+        },
+        "note": "Full-ish season"
+      },
+      {
+        "season": 2023,
+        "active_starts": 10.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 36.5,
+        "attempts_per_game_conflated": 36.5,
+        "carries_per_active": 3.1,
+        "carries_per_game_conflated": 3.1,
+        "passing_yards_per_active": 230.9,
+        "designed_carries_per_active": 1.7,
+        "scramble_carries_per_active": 1.4,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 13.266666666666667,
+          "partial_exit_rate": 0.010666666666666665,
+          "sample_active_starts": 52.0,
+          "input_seasons": [
+            2020,
+            2021,
+            2022,
+            2023
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 13.0
+        },
+        "note": "Short seasons reduce active_starts / availability; attempts_per_active stays near healthy starter levels when active."
+      },
+      {
+        "season": 2024,
+        "active_starts": 17.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 38.35294117647059,
+        "attempts_per_game_conflated": 38.35294117647059,
+        "carries_per_active": 2.4705882352941178,
+        "carries_per_game_conflated": 2.4705882352941178,
+        "passing_yards_per_active": 289.29411764705884,
+        "designed_carries_per_active": 1.1764705882352942,
+        "scramble_carries_per_active": 1.2941176470588236,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 14.779850746268657,
+          "partial_exit_rate": 0.009552238805970151,
+          "sample_active_starts": 59.0,
+          "input_seasons": [
+            2021,
+            2022,
+            2023,
+            2024
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 14.75
+        },
+        "note": "Full-ish season"
+      },
+      {
+        "season": 2025,
+        "active_starts": 8.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 34.75,
+        "attempts_per_game_conflated": 34.75,
+        "carries_per_active": 1.75,
+        "carries_per_game_conflated": 1.75,
+        "passing_yards_per_active": 226.125,
+        "designed_carries_per_active": null,
+        "scramble_carries_per_active": null,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 13.055084745762713,
+          "partial_exit_rate": 0.010847457627118641,
+          "sample_active_starts": 51.0,
+          "input_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 12.75
+        },
+        "note": "Short seasons reduce active_starts / availability; attempts_per_active stays near healthy starter levels when active."
+      }
+    ],
+    "2026_rewrite": {
+      "availability": {
+        "expected_active_starts": 13.055084745762713,
+        "partial_exit_rate": 0.010847457627118641,
+        "sample_active_starts": 51.0,
+        "input_seasons": [
+          2022,
+          2023,
+          2024,
+          2025
+        ],
+        "method": "player_empirical_shrunk",
+        "empirical_active_starts_mean": 12.75
+      },
+      "archetype": "pocket_passer",
+      "rates": {
+        "attempts": 37.27450980392157,
+        "completions": 25.313725490196077,
+        "passing_yards": 264.921568627451,
+        "passing_tds": 2.156862745098039,
+        "interceptions": 0.6274509803921569,
+        "carries": 3.210752836659071,
+        "rushing_yards": 12.107029697653187,
+        "rushing_tds": 0.14020268974353073
+      },
+      "designed_carries_per_active": 1.4014109347442683,
+      "scramble_per_dropback": 0.03677400457703926
+    },
+    "baseline": {
+      "rank": 29,
+      "ppg": 9.36866223859808,
+      "attempts": 17.97066823591866
+    },
+    "candidate": {
+      "rank": 21,
+      "ppg": 13.6195478905551,
+      "attempts": 30.072555680292677
+    },
+    "candidate_attempts_pg": 30.072555680292677,
+    "expected_active_starts": 13.055084745762713,
+    "diagnosis": "Shortened 2023/2025 seasons cut active_starts (availability), while attempts_per_active stayed near healthy starter levels (~36\u201338). Low sealed output is driven by team-volume/backup squeeze on conflated rates and full-season backup floors \u2014 not by a collapsed active-start attempt rate. Candidate rewrites active rate + expected starts separately."
+  },
+  "lamar": {
+    "historical_decomposition": [
+      {
+        "season": 2022,
+        "active_starts": 11.0,
+        "partial_exits": 1.0,
+        "attempts_per_active": 29.272727272727273,
+        "attempts_per_game_conflated": 27.166666666666668,
+        "carries_per_active": 10.090909090909092,
+        "carries_per_game_conflated": 9.333333333333334,
+        "passing_yards_per_active": 202.8181818181818,
+        "designed_carries_per_active": null,
+        "scramble_carries_per_active": null,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 13.266666666666667,
+          "partial_exit_rate": 0.04122222222222222,
+          "sample_active_starts": 52.0,
+          "input_seasons": [
+            2019,
+            2020,
+            2021,
+            2022
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 13.0
+        },
+        "note": "Short seasons reduce active_starts / availability; attempts_per_active stays near healthy starter levels when active."
+      },
+      {
+        "season": 2023,
+        "active_starts": 16.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 28.5625,
+        "attempts_per_game_conflated": 28.5625,
+        "carries_per_active": 9.25,
+        "carries_per_game_conflated": 9.25,
+        "passing_yards_per_active": 229.875,
+        "designed_carries_per_active": 5.6875,
+        "scramble_carries_per_active": 4.75,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 13.479508196721312,
+          "partial_exit_rate": 0.0405464480874317,
+          "sample_active_starts": 53.0,
+          "input_seasons": [
+            2020,
+            2021,
+            2022,
+            2023
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 13.25
+        },
+        "note": "Full-ish season"
+      },
+      {
+        "season": 2024,
+        "active_starts": 17.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 27.88235294117647,
+        "attempts_per_game_conflated": 27.88235294117647,
+        "carries_per_active": 8.176470588235293,
+        "carries_per_game_conflated": 8.176470588235293,
+        "passing_yards_per_active": 245.41176470588235,
+        "designed_carries_per_active": 6.294117647058823,
+        "scramble_carries_per_active": 3.176470588235294,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 13.90873015873016,
+          "partial_exit_rate": 0.03925925925925926,
+          "sample_active_starts": 55.0,
+          "input_seasons": [
+            2021,
+            2022,
+            2023,
+            2024
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 13.75
+        },
+        "note": "Full-ish season"
+      },
+      {
+        "season": 2025,
+        "active_starts": 13.0,
+        "partial_exits": 0.0,
+        "attempts_per_active": 26.153846153846153,
+        "attempts_per_game_conflated": 26.153846153846153,
+        "carries_per_active": 5.153846153846154,
+        "carries_per_game_conflated": 5.153846153846154,
+        "passing_yards_per_active": 196.07692307692307,
+        "designed_carries_per_active": null,
+        "scramble_carries_per_active": null,
+        "forward_availability_for_next_season": {
+          "expected_active_starts": 14.342307692307692,
+          "partial_exit_rate": 0.023948717948717946,
+          "sample_active_starts": 57.0,
+          "input_seasons": [
+            2022,
+            2023,
+            2024,
+            2025
+          ],
+          "method": "player_empirical_shrunk",
+          "empirical_active_starts_mean": 14.25
+        },
+        "note": "Short seasons reduce active_starts / availability; attempts_per_active stays near healthy starter levels when active."
+      }
+    ],
+    "archetype_2026": {
+      "archetype": "designed_runner",
+      "sample_active_starts": 57.0,
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "features": {
+        "designed_carries_per_active": 6.0,
+        "scramble_per_dropback": 0.1393194051698885,
+        "carries_per_active": 8.157894736842104
+      }
+    },
+    "hierarchical_priors_2026": {
+      "archetype": "designed_runner",
+      "shrink": 0.8260869565217391,
+      "sample_active_starts": 57.0,
+      "input_seasons": [
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "priors": {
+        "designed_carries_per_active": 6.037472976219073,
+        "scramble_per_dropback": 0.13524007801367793,
+        "designed_ypc": 4.751615266972067,
+        "scramble_ypa": 7.925466064729263,
+        "carries_per_active": 8.141964929137641,
+        "rushing_yards_per_active": 48.19473136359997,
+        "rushing_tds_per_active": 0.2989831051325166
+      },
+      "peer_means": {
+        "designed_carries_per_active": 6.2154696132596685,
+        "scramble_per_dropback": 0.11586327402167773,
+        "designed_ypc": 3.418106575333409,
+        "scramble_ypa": 7.699376000139393,
+        "carries_per_active": 8.066298342541437,
+        "rushing_yards_per_active": 40.45303867403315,
+        "rushing_tds_per_active": 0.5524861878453039
+      },
+      "player_means": {
+        "designed_carries_per_active": 6.0,
+        "scramble_per_dropback": 0.1393194051698885,
+        "designed_ypc": 5.032353938895994,
+        "scramble_ypa": 7.973063973063972,
+        "carries_per_active": 8.157894736842104,
+        "rushing_yards_per_active": 49.824561403508774,
+        "rushing_tds_per_active": 0.24561403508771928
+      }
+    },
+    "stages": {
+      "raw": {
+        "carries": 4.422580581350364,
+        "rushing_tds": 0.1130676329087628,
+        "rushing_yards": 26.67435986443961
+      },
+      "baseline_composed": {
+        "attempts": 15.727597062314073,
+        "carries": 4.422580581350364,
+        "rushing_tds": 0.1130676329087628,
+        "rushing_yards": 26.67435986443961
+      },
+      "candidate_composed": {
+        "attempts": 26.381325641404466,
+        "carries": 8.141964929137641,
+        "rushing_tds": 0.2989831051325166,
+        "rushing_yards": 48.19473136359997
+      },
+      "designed_scramble_prior": {
+        "designed_carries_per_active": 6.037472976219073,
+        "scramble_per_dropback": 0.13524007801367793,
+        "carries_per_active": 8.141964929137641,
+        "rushing_yards_per_active": 48.19473136359997,
+        "rushing_tds_per_active": 0.2989831051325166
+      }
+    }
+  },
+  "allocation_report_summary": {
+    "mode": "joint_qb_room_v2_active_conditional",
+    "teams": 64,
+    "n_conservation_flags": 0
+  }
+}

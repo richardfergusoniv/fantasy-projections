@@ -1,0 +1,220 @@
+{
+  "player_id": "00-0034796",
+  "stages": [
+    {
+      "stage": "1_raw_historical_source",
+      "rows": [
+        {
+          "season": 2022,
+          "games_played": 12.0,
+          "carries": 112.0,
+          "rushing_yards": 764.0,
+          "designed_carries": 86.0,
+          "scramble_carries": 26.0,
+          "carries_pg": 9.333333333333334,
+          "qb_designed_run_rate": 0.1963470319634703,
+          "qb_scramble_per_dropback": 0.06860158311345646
+        },
+        {
+          "season": 2023,
+          "games_played": 16.0,
+          "carries": 148.0,
+          "rushing_yards": 821.0,
+          "designed_carries": 82.0,
+          "scramble_carries": 66.0,
+          "carries_pg": 9.25,
+          "qb_designed_run_rate": 0.13553719008264462,
+          "qb_scramble_per_dropback": 0.12406015037593984
+        },
+        {
+          "season": 2024,
+          "games_played": 17.0,
+          "carries": 139.0,
+          "rushing_yards": 915.0,
+          "designed_carries": 94.0,
+          "scramble_carries": 46.0,
+          "carries_pg": 8.176470588235293,
+          "qb_designed_run_rate": 0.15309446254071662,
+          "qb_scramble_per_dropback": 0.08812260536398467
+        },
+        {
+          "season": 2025,
+          "games_played": 13.0,
+          "carries": 67.0,
+          "rushing_yards": 349.0,
+          "designed_carries": 37.0,
+          "scramble_carries": 30.0,
+          "carries_pg": 5.153846153846154,
+          "qb_designed_run_rate": 0.09090909090909091,
+          "qb_scramble_per_dropback": 0.0797872340425532
+        }
+      ]
+    },
+    {
+      "stage": "2_season_feature_construction",
+      "notes": [
+        "qb_designed_run_rate is computed and present in FEATURE_COLS and BLEND_FEATURES",
+        "QB rows are deliberately EXCLUDED from BLEND_FEATURES games-weighted blending (features.py: blendable = position in RB/WR/TE only)",
+        "Therefore a partial/injured season's designed-run feature is not pooled with prior seasons in the legacy column used by the sealed model",
+        "Additive expansion columns (scramble/YPC/RZ/GL/pooled/archetype) are attached but are NOT in the sealed QB_carries feature contract"
+      ],
+      "2025_designed_per_game": 2.8461538461538463,
+      "2024_designed_per_game": 5.529411764705882,
+      "2025_qb_designed_run_rate": 0.09090909090909091,
+      "2024_qb_designed_run_rate": 0.15309446254071662
+    },
+    {
+      "stage": "3_transition_pair_training_row",
+      "label": "carries_per_elig",
+      "note": "QB_carries trains on role-rate carries_per_elig with ROLE_FEATURES including qb_designed_run_rate and prior_role_rate_3y. Transition pairs use season T features to predict season T+1 labels."
+    },
+    {
+      "stage": "4_serialized_model_feature_contract",
+      "qb_designed_run_rate_in_contract": true,
+      "importance_split_rank": 18,
+      "importance_gain": 41.967621862888336,
+      "importance_gain_rank": 21,
+      "prior_carries_pg_gain": 222.9316160082817,
+      "prior_role_rate_3y_gain": 4349.219163537025,
+      "top5_gain": {
+        "prior_role_rate_3y": 4349.219163537025,
+        "depth_tier": 1763.2021713256836,
+        "prior_rushing_yards_pg": 744.4898110628128,
+        "prior_role_rate": 518.2952464222908,
+        "prior_carries_pg": 222.9316160082817
+      },
+      "verdict": "PRESENT at runtime in FEATURE_COLS, BLEND_FEATURES, and sealed QB_carries.joblib contract \u2014 not missing. Low gain (overwhelmed by prior_role_rate_3y / prior_rushing_yards_pg / prior_carries_pg). QB blend exclusion leaves injured-season designed rate unpooled in the legacy column."
+    },
+    {
+      "stage": "5_2026_inference_row",
+      "source_season": 2025,
+      "unpatched_prior_carries_pg": 5.153846153846154,
+      "games_weighted_2022_2025_carries_pg": 8.03448275862069,
+      "patched_prior_carries_pg": 8.03448275862069,
+      "patch_audit": {
+        "target_season": 2026,
+        "patches": {
+          "qb_designed_run_rate": {
+            "before": 0.09090909090909091,
+            "pooled": 0.1432617839636952,
+            "after": 0.1432617839636952,
+            "input_seasons": [
+              2022,
+              2023,
+              2024,
+              2025
+            ],
+            "sample_games": 58.0
+          },
+          "prior_carries_pg": {
+            "before": 5.153846153846154,
+            "pooled": 8.03448275862069,
+            "after": 8.03448275862069,
+            "input_seasons": [
+              2022,
+              2023,
+              2024,
+              2025
+            ],
+            "sample_games": 58.0
+          },
+          "prior_rushing_yards_pg": {
+            "before": 26.846153846153847,
+            "pooled": 49.12068965517241,
+            "after": 49.12068965517241,
+            "input_seasons": [
+              2022,
+              2023,
+              2024,
+              2025
+            ],
+            "sample_games": 58.0
+          },
+          "prior_rushing_tds_pg": {
+            "before": 0.15384615384615385,
+            "pooled": 0.2413793103448276,
+            "after": 0.2413793103448276,
+            "input_seasons": [
+              2022,
+              2023,
+              2024,
+              2025
+            ],
+            "sample_games": 58.0
+          },
+          "prior_role_rate": {
+            "before": 5.153846153846154,
+            "pooled": 8.03448275862069,
+            "after": 8.03448275862069,
+            "input_seasons": [
+              2022,
+              2023,
+              2024,
+              2025
+            ],
+            "sample_games": 58.0
+          },
+          "prior_role_rate_3y": {
+            "before": null,
+            "pooled": 8.03448275862069,
+            "after": 8.03448275862069,
+            "input_seasons": [
+              2022,
+              2023,
+              2024,
+              2025
+            ],
+            "sample_games": 58.0
+          }
+        }
+      },
+      "qb_blend_exclusion": true
+    },
+    {
+      "stage": "6_raw_model_prediction",
+      "rates": {
+        "attempts": 22.333715513139094,
+        "carries": 4.422580581350364,
+        "rushing_tds": 0.1130676329087628,
+        "rushing_yards": 26.67435986443961
+      },
+      "reconstructed_unpatched_carries_pred": 3.3002807531470255,
+      "reconstructed_patched_carries_pred": 7.266554568272601
+    },
+    {
+      "stage": "7_team_volume_reconciliation",
+      "rates": {
+        "attempts": {
+          "pred_pg": 23.271110483908807,
+          "team_volume_scale": 1.0521599784523472
+        },
+        "carries": {
+          "pred_pg": 4.505757534866991,
+          "team_volume_scale": 1.0
+        },
+        "passing_yards": {
+          "pred_pg": 164.3780360322704,
+          "team_volume_scale": 1.0654445584455223
+        },
+        "rushing_yards": {
+          "pred_pg": 21.806181658398327,
+          "team_volume_scale": 1.0
+        }
+      },
+      "note": "Rush stats have team_volume_scale=1.0; reconcile does not restore rushing"
+    },
+    {
+      "stage": "8_composition",
+      "note": "compose_board hygiene; carries remain ~4.5 through finalization under sealed path"
+    },
+    {
+      "stage": "9_ensemble_output",
+      "fantasy_pts": 16.718282016349605,
+      "fantasy_pts_season": 284.2107942779433,
+      "v2_pred": 318.63958549877543,
+      "pg_carries": 4.505757534866991,
+      "pg_rushing_yards": 21.806181658398327,
+      "rank_note": "accuracy-first ensemble board"
+    }
+  ]
+}

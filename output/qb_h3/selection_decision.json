@@ -1,0 +1,961 @@
+{
+  "generated_at": "2026-09-03T19:22:33.255488+00:00",
+  "decision": {
+    "verdict": "NO-GO FOR H3",
+    "reasons": [
+      "latest_oos_primary_bootstrap_ci_includes_zero"
+    ],
+    "gates": {
+      "reconciliation_source": "portable_fixture",
+      "reconciliation_ran": true,
+      "projections_db": {
+        "path": "/workspace/data/projections.db",
+        "exists": false,
+        "size_bytes": 0,
+        "usable": false,
+        "placeholder": false
+      },
+      "sealed_db_injection": false,
+      "portable_fixture_reconciliation": true,
+      "no_material_single_season_regression": true,
+      "overall_non_inferiority": true,
+      "primary_cohort_fit_folds": true,
+      "latest_oos_primary_improve": true,
+      "latest_oos_bootstrap_ci": false,
+      "latest_oos_spearman": true,
+      "latest_oos_top12": true,
+      "ensemble_weights": "unchanged_sealed_weights_only_no_nested_reweight_attempted",
+      "pipeline_note": "Frozen H3: features \u2192 active rates \u2192 role-aware expected starts \u2192 starter/backup allocation \u2192 portable team reconciliation \u2192 composition \u2192 unchanged-weight ensemble identity. Compared to sealed model_points_end_to_end. projections.db is a zero-byte placeholder and was not opened.",
+      "non_qb_projection_changes": 0,
+      "team_volume_conservation": "exact_on_portable_qb_room"
+    },
+    "failing_stage_and_cohorts": {
+      "stages": [
+        "frozen_h3_with_portable_reconciliation_vs_sealed_e2e"
+      ],
+      "cohorts": [
+        "latest_oos_primary_bootstrap_ci_includes_zero"
+      ]
+    },
+    "terminology": {
+      "2025": "latest_chronological_oos_fold",
+      "2026": "prospective_holdout_diagnostics_only",
+      "not_pristine_holdout": true
+    },
+    "ensemble": "sealed_weights_unchanged",
+    "next_hypothesis": "NO-GO FOR H3: infrastructure repair applied; remaining failure is a legitimate frozen-architecture result. Identify the failing stage and cohorts before considering an H4 hypothesis. Do not start H4 from this script."
+  },
+  "folds": [
+    {
+      "season": 2023,
+      "n": 42,
+      "fold_label": "fit",
+      "cohorts": {
+        "all": {
+          "n": 42,
+          "sealed_points_mae": 80.96830428332866,
+          "h3_points_mae": 72.96483401272835,
+          "delta_points_mae": -8.003470270600317,
+          "sealed_ppg_mae": 4.579638974756046,
+          "h3_pp_active_mae": 11.47210884450728,
+          "sealed_spearman": 0.5343975366663967,
+          "h3_spearman": 0.6527023741998218,
+          "h3_attempts_mae": 7.597405894532399,
+          "h3_carries_mae": 1.1178997068541499,
+          "h3_starts_mae": 4.460538094975424,
+          "double_avail_violations": 0
+        },
+        "depth1": {
+          "n": 28,
+          "sealed_points_mae": 93.63273785317769,
+          "h3_points_mae": 81.67312030448743,
+          "delta_points_mae": -11.959617548690261,
+          "sealed_ppg_mae": 4.652601798916442,
+          "h3_pp_active_mae": 3.080375917179665,
+          "sealed_spearman": -0.03338806787082649,
+          "h3_spearman": 0.2889983579638752,
+          "h3_attempts_mae": 3.2123018406868886,
+          "h3_carries_mae": 1.0004195090840946,
+          "h3_starts_mae": 3.4050162622411833,
+          "double_avail_violations": 0
+        },
+        "dual_threat": {
+          "n": 6,
+          "sealed_points_mae": 59.88070610528294,
+          "h3_points_mae": 67.18694887678602,
+          "delta_points_mae": 7.306242771503079,
+          "sealed_ppg_mae": 4.417417963075809,
+          "h3_pp_active_mae": 6.770331145389473,
+          "sealed_spearman": 0.8857142857142858,
+          "h3_spearman": 0.7714285714285715,
+          "h3_attempts_mae": 2.4762825517421096,
+          "h3_carries_mae": 1.0958202819416056,
+          "h3_starts_mae": 3.6868887779056503,
+          "double_avail_violations": 0
+        },
+        "pocket_passer": {},
+        "insufficient_history": {
+          "n": 36,
+          "sealed_points_mae": 84.48290397966963,
+          "h3_points_mae": 73.92781486871871,
+          "delta_points_mae": -10.555089110950917,
+          "sealed_ppg_mae": 4.6066758100360845,
+          "h3_pp_active_mae": 12.255738461026915,
+          "sealed_spearman": 0.4846846846846847,
+          "h3_spearman": 0.6195624195624196,
+          "h3_attempts_mae": 8.450926451664111,
+          "h3_carries_mae": 1.1215796110062408,
+          "h3_starts_mae": 4.5894796478203865,
+          "double_avail_violations": 0
+        },
+        "returning_injury": {
+          "n": 11,
+          "sealed_points_mae": 85.2809595480939,
+          "h3_points_mae": 70.14427114440895,
+          "delta_points_mae": -15.136688403684957,
+          "sealed_ppg_mae": 5.618056236586102,
+          "h3_pp_active_mae": 8.418930700231368,
+          "sealed_spearman": 0.4090909090909091,
+          "h3_spearman": 0.5818181818181819,
+          "h3_attempts_mae": 5.864950187936511,
+          "h3_carries_mae": 1.293038593583271,
+          "h3_starts_mae": 5.205184620653991,
+          "double_avail_violations": 0
+        },
+        "primary": {
+          "n": 14,
+          "sealed_points_mae": 74.23201632937266,
+          "h3_points_mae": 64.28010838177555,
+          "delta_points_mae": -9.951907947597107,
+          "sealed_ppg_mae": 5.156455758463137,
+          "h3_pp_active_mae": 6.835092066480615,
+          "sealed_spearman": 0.6395604395604396,
+          "h3_spearman": 0.7362637362637363,
+          "h3_attempts_mae": 5.243772703994625,
+          "h3_carries_mae": 1.171146210269024,
+          "h3_starts_mae": 4.539422033440913,
+          "double_avail_violations": 0
+        },
+        "top12_actual": {
+          "n": 12,
+          "sealed_points_mae": 76.21860156788925,
+          "h3_points_mae": 70.40791810023892,
+          "delta_points_mae": -5.810683467650335,
+          "sealed_ppg_mae": 5.2811497403265895,
+          "h3_pp_active_mae": 2.1488434298706593,
+          "sealed_spearman": 0.39860139860139865,
+          "h3_spearman": 0.3426573426573427,
+          "h3_attempts_mae": 1.904298315810031,
+          "h3_carries_mae": 0.9351985519317898,
+          "h3_starts_mae": 2.7265133835604813,
+          "double_avail_violations": 0
+        }
+      },
+      "reconciliation": {
+        "source": "portable_fixture",
+        "projections_db": {
+          "path": "/workspace/data/projections.db",
+          "exists": false,
+          "size_bytes": 0,
+          "usable": false,
+          "placeholder": false
+        },
+        "projections_db_error": "data/projections.db is missing or zero bytes (gitignored Cloud placeholder). Do not open it and do not silently skip team reconciliation. Use the portable QB reconciliation fixture (output/qb_h3/infra/) built from public-derived Parquet sources. status={'path': '/workspace/data/projections.db', 'exists': False, 'size_bytes': 0, 'usable': False, 'placeholder': False}",
+        "fixture_path": "/workspace/output/qb_h3/infra/portable_qb_reconcile_fixture.parquet",
+        "fixture_present": true,
+        "reconciliation_will_run": true,
+        "schema_version": "qb_h3_reconcile_contract_v1"
+      },
+      "team_starts_conservation_mae": 6.661338147750939e-16,
+      "double_avail_violations": 0,
+      "conservation_violations": [],
+      "primary_bootstrap_delta_mae": {
+        "mean": -10.271766991388748,
+        "ci95": [
+          -32.0179562283982,
+          10.753311321795099
+        ]
+      },
+      "top10_negative": [
+        {
+          "display_name": "Ryan Tannehill",
+          "actual_points": 80.04,
+          "sealed_points": 160.16543862291073,
+          "h3_points": 247.25128387692124,
+          "ae_delta": 87.08584525401052,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Jalen Hurts",
+          "actual_points": 366.82,
+          "sealed_points": 344.63765538818683,
+          "h3_points": 278.53171650055367,
+          "ae_delta": 66.10593888763316,
+          "archetype": "mobile_scrambler"
+        },
+        {
+          "display_name": "Taysom Hill",
+          "actual_points": 129.02,
+          "sealed_points": 97.12307908383356,
+          "h3_points": 38.65872708949581,
+          "ae_delta": 58.46435199433775,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Justin Herbert",
+          "actual_points": 233.66000000000005,
+          "sealed_points": 274.44357972878134,
+          "h3_points": 327.1279666689622,
+          "ae_delta": 52.68438694018084,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Kyler Murray",
+          "actual_points": 144.36,
+          "sealed_points": 169.09546605131948,
+          "h3_points": 79.36071028751192,
+          "ae_delta": 40.26382366116863,
+          "archetype": "mobile_scrambler"
+        },
+        {
+          "display_name": "Patrick Mahomes",
+          "actual_points": 286.22,
+          "sealed_points": 314.0601231670992,
+          "h3_points": 353.5273103889858,
+          "ae_delta": 39.467187221886604,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Zach Wilson",
+          "actual_points": 129.94,
+          "sealed_points": 38.91948285520657,
+          "h3_points": 11.318185110572259,
+          "ae_delta": 27.60129774463431,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Geno Smith",
+          "actual_points": 228.76,
+          "sealed_points": 269.1225323204069,
+          "h3_points": 161.86346880433877,
+          "ae_delta": 26.533998875254326,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Deshaun Watson",
+          "actual_points": 84.8,
+          "sealed_points": 243.84639825831783,
+          "h3_points": 268.7063303303303,
+          "ae_delta": 24.85993207201244,
+          "archetype": "mobile_scrambler"
+        },
+        {
+          "display_name": "Mike White",
+          "actual_points": 4.06,
+          "sealed_points": 33.95739957494707,
+          "h3_points": 57.464131478824825,
+          "ae_delta": 23.506731903877753,
+          "archetype": "insufficient_history"
+        }
+      ],
+      "top10_positive": [
+        {
+          "display_name": "Daniel Jones",
+          "actual_points": 58.96,
+          "sealed_points": 338.78034456090666,
+          "h3_points": 205.87336214986342,
+          "ae_delta": -132.90698241104326,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Kenny Pickett",
+          "actual_points": 110.2,
+          "sealed_points": 269.69684418754446,
+          "h3_points": 154.43714259395728,
+          "ae_delta": -115.2597015935872,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Gardner Minshew",
+          "actual_points": 202.2,
+          "sealed_points": 50.23957886587654,
+          "h3_points": 152.70514550654454,
+          "ae_delta": -102.46556664066802,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Joe Burrow",
+          "actual_points": 149.16000000000005,
+          "sealed_points": 377.4827649747917,
+          "h3_points": 285.48023478260865,
+          "ae_delta": -92.00253019218303,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Lamar Jackson",
+          "actual_points": 341.22,
+          "sealed_points": 266.8753012601239,
+          "h3_points": 315.33846153846156,
+          "ae_delta": -48.46316027833768,
+          "archetype": "mobile_scrambler"
+        },
+        {
+          "display_name": "Brock Purdy",
+          "actual_points": 299.6,
+          "sealed_points": 161.72078728008535,
+          "h3_points": 206.16800224585043,
+          "ae_delta": -44.447214965765085,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Russell Wilson",
+          "actual_points": 262.9,
+          "sealed_points": 201.0916538841477,
+          "h3_points": 285.97555065880687,
+          "ae_delta": -38.7327954570454,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Jimmy Garoppolo",
+          "actual_points": 62.1,
+          "sealed_points": 234.6021496472921,
+          "h3_points": 197.1719736461805,
+          "ae_delta": -37.43017600111159,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Dak Prescott",
+          "actual_points": 342.84,
+          "sealed_points": 223.88761094584203,
+          "h3_points": 258.4965498455714,
+          "ae_delta": -34.60893889972937,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Tyrod Taylor",
+          "actual_points": 87.34,
+          "sealed_points": 14.71520266863435,
+          "h3_points": 125.59061949310927,
+          "ae_delta": -34.37417783825639,
+          "archetype": "insufficient_history"
+        }
+      ]
+    },
+    {
+      "season": 2024,
+      "n": 43,
+      "fold_label": "fit",
+      "cohorts": {
+        "all": {
+          "n": 43,
+          "sealed_points_mae": 71.74525662169069,
+          "h3_points_mae": 60.071218704587544,
+          "delta_points_mae": -11.674037917103142,
+          "sealed_ppg_mae": 4.187415487518212,
+          "h3_pp_active_mae": 6.295827503366246,
+          "sealed_spearman": 0.7493204469948657,
+          "h3_spearman": 0.7719722138326789,
+          "h3_attempts_mae": 6.302762243593092,
+          "h3_carries_mae": 1.0305449332570078,
+          "h3_starts_mae": 3.6538175107935893,
+          "double_avail_violations": 0
+        },
+        "depth1": {
+          "n": 29,
+          "sealed_points_mae": 78.83033475814678,
+          "h3_points_mae": 71.06294789942518,
+          "delta_points_mae": -7.7673868587215935,
+          "sealed_ppg_mae": 2.795206431243571,
+          "h3_pp_active_mae": 3.5089216953837368,
+          "sealed_spearman": 0.4197044334975369,
+          "h3_spearman": 0.5216748768472905,
+          "h3_attempts_mae": 4.134537509610201,
+          "h3_carries_mae": 1.0313761776255956,
+          "h3_starts_mae": 2.8779046602394835,
+          "double_avail_violations": 0
+        },
+        "dual_threat": {
+          "n": 11,
+          "sealed_points_mae": 94.12609666401846,
+          "h3_points_mae": 89.11051301361985,
+          "delta_points_mae": -5.015583650398611,
+          "sealed_ppg_mae": 4.842723485279346,
+          "h3_pp_active_mae": 4.564697332084412,
+          "sealed_spearman": 0.45454545454545453,
+          "h3_spearman": 0.6272727272727273,
+          "h3_attempts_mae": 4.440414578033385,
+          "h3_carries_mae": 1.2021588704826345,
+          "h3_starts_mae": 3.401077296367346,
+          "double_avail_violations": 0
+        },
+        "pocket_passer": {
+          "n": 14,
+          "sealed_points_mae": 66.16055913423601,
+          "h3_points_mae": 59.706343761471835,
+          "delta_points_mae": -6.454215372764175,
+          "sealed_ppg_mae": 4.130450053332405,
+          "h3_pp_active_mae": 4.377784586120031,
+          "sealed_spearman": 0.8769230769230769,
+          "h3_spearman": 0.7362637362637363,
+          "h3_attempts_mae": 4.564532485948619,
+          "h3_carries_mae": 0.6889421462510652,
+          "h3_starts_mae": 3.6775363809747446,
+          "double_avail_violations": 0
+        },
+        "insufficient_history": {
+          "n": 18,
+          "sealed_points_mae": 62.411730197177334,
+          "h3_points_mae": 42.608774915935584,
+          "delta_points_mae": -19.80295528124175,
+          "sealed_ppg_mae": 3.831255937697591,
+          "h3_pp_active_mae": 8.845551543674425,
+          "sealed_spearman": 0.7420020639834881,
+          "h3_spearman": 0.8575851393188855,
+          "h3_attempts_mae": 8.792820072936392,
+          "h3_carries_mae": 1.1913608059570808,
+          "h3_starts_mae": 3.7898218539131725,
+          "double_avail_violations": 0
+        },
+        "returning_injury": {
+          "n": 13,
+          "sealed_points_mae": 62.59578524432114,
+          "h3_points_mae": 49.50779576476228,
+          "delta_points_mae": -13.087989479558864,
+          "sealed_ppg_mae": 3.6475718463318025,
+          "h3_pp_active_mae": 4.531521213180566,
+          "sealed_spearman": 0.7967032967032966,
+          "h3_spearman": 0.8076923076923077,
+          "h3_attempts_mae": 6.008097581183555,
+          "h3_carries_mae": 1.1221125968082557,
+          "h3_starts_mae": 3.3707089494804143,
+          "double_avail_violations": 0
+        },
+        "primary": {
+          "n": 21,
+          "sealed_points_mae": 78.60522596837046,
+          "h3_points_mae": 66.68813924752844,
+          "delta_points_mae": -11.917086720842022,
+          "sealed_ppg_mae": 4.577783776333855,
+          "h3_pp_active_mae": 4.560053088866452,
+          "sealed_spearman": 0.6857142857142857,
+          "h3_spearman": 0.7636363636363636,
+          "h3_attempts_mae": 5.654048097111608,
+          "h3_carries_mae": 1.1843539823146723,
+          "h3_starts_mae": 3.393794806757645,
+          "double_avail_violations": 0
+        },
+        "top12_actual": {
+          "n": 12,
+          "sealed_points_mae": 68.79953331432047,
+          "h3_points_mae": 83.44457377449713,
+          "delta_points_mae": 14.64504046017666,
+          "sealed_ppg_mae": 4.55656010080593,
+          "h3_pp_active_mae": 2.9677269283972656,
+          "sealed_spearman": 0.44055944055944063,
+          "h3_spearman": 0.2447552447552448,
+          "h3_attempts_mae": 3.7573954624636117,
+          "h3_carries_mae": 0.8529192866560772,
+          "h3_starts_mae": 3.0739988581431823,
+          "double_avail_violations": 0
+        }
+      },
+      "reconciliation": {
+        "source": "portable_fixture",
+        "projections_db": {
+          "path": "/workspace/data/projections.db",
+          "exists": false,
+          "size_bytes": 0,
+          "usable": false,
+          "placeholder": false
+        },
+        "projections_db_error": "data/projections.db is missing or zero bytes (gitignored Cloud placeholder). Do not open it and do not silently skip team reconciliation. Use the portable QB reconciliation fixture (output/qb_h3/infra/) built from public-derived Parquet sources. status={'path': '/workspace/data/projections.db', 'exists': False, 'size_bytes': 0, 'usable': False, 'placeholder': False}",
+        "fixture_path": "/workspace/output/qb_h3/infra/portable_qb_reconcile_fixture.parquet",
+        "fixture_present": true,
+        "reconciliation_will_run": true,
+        "schema_version": "qb_h3_reconcile_contract_v1"
+      },
+      "team_starts_conservation_mae": 3.3306690738754696e-16,
+      "double_avail_violations": 0,
+      "conservation_violations": [],
+      "primary_bootstrap_delta_mae": {
+        "mean": -11.856100278042835,
+        "ci95": [
+          -32.12878845484181,
+          8.150516771998669
+        ]
+      },
+      "top10_negative": [
+        {
+          "display_name": "Patrick Mahomes",
+          "actual_points": 282.52,
+          "sealed_points": 279.14134588671226,
+          "h3_points": 357.1266487630212,
+          "ae_delta": 71.22799464973349,
+          "archetype": "mobile_scrambler"
+        },
+        {
+          "display_name": "Geno Smith",
+          "actual_points": 266.0,
+          "sealed_points": 230.21981827398392,
+          "h3_points": 168.2598059500252,
+          "ae_delta": 61.96001232395872,
+          "archetype": "pocket_passer"
+        },
+        {
+          "display_name": "Kirk Cousins",
+          "actual_points": 180.32,
+          "sealed_points": 208.28654030777625,
+          "h3_points": 263.1100252465911,
+          "ae_delta": 54.82348493881483,
+          "archetype": "pocket_passer"
+        },
+        {
+          "display_name": "Sam Darnold",
+          "actual_points": 315.96,
+          "sealed_points": 180.56648025950915,
+          "h3_points": 131.60854545454544,
+          "ae_delta": 48.95793480496371,
+          "archetype": "designed_runner"
+        },
+        {
+          "display_name": "Jordan Love",
+          "actual_points": 227.86,
+          "sealed_points": 250.30082165874245,
+          "h3_points": 157.73262310085235,
+          "ae_delta": 47.68655524040523,
+          "archetype": "pocket_passer"
+        },
+        {
+          "display_name": "Josh Johnson",
+          "actual_points": 0.78,
+          "sealed_points": 0.0,
+          "h3_points": 48.77549830415164,
+          "ae_delta": 47.21549830415164,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Jalen Hurts",
+          "actual_points": 325.12,
+          "sealed_points": 330.3784263945119,
+          "h3_points": 290.99189583333333,
+          "ae_delta": 28.869677772154773,
+          "archetype": "designed_runner"
+        },
+        {
+          "display_name": "Kyler Murray",
+          "actual_points": 303.24,
+          "sealed_points": 282.9205817741124,
+          "h3_points": 258.11172977624784,
+          "ae_delta": 24.808851997864565,
+          "archetype": "mobile_scrambler"
+        },
+        {
+          "display_name": "Baker Mayfield",
+          "actual_points": 367.8,
+          "sealed_points": 244.037441911929,
+          "h3_points": 220.35085311448412,
+          "ae_delta": 23.68658879744487,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Brock Purdy",
+          "actual_points": 272.86,
+          "sealed_points": 250.94538695796285,
+          "h3_points": 229.56072407170296,
+          "ae_delta": 21.38466288625989,
+          "archetype": "insufficient_history"
+        }
+      ],
+      "top10_positive": [
+        {
+          "display_name": "Justin Fields",
+          "actual_points": 121.14,
+          "sealed_points": 290.47514596262226,
+          "h3_points": 185.41278420834908,
+          "ae_delta": -105.0623617542732,
+          "archetype": "designed_runner"
+        },
+        {
+          "display_name": "Jameis Winston",
+          "actual_points": 127.14,
+          "sealed_points": 30.57420145212199,
+          "h3_points": 109.08508315738389,
+          "ae_delta": -78.51088170526191,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Josh Allen",
+          "actual_points": 374.34,
+          "sealed_points": 277.9529687055378,
+          "h3_points": 396.75239557739553,
+          "ae_delta": -73.97463571706663,
+          "archetype": "designed_runner"
+        },
+        {
+          "display_name": "Jacoby Brissett",
+          "actual_points": 45.24,
+          "sealed_points": 187.44555849849112,
+          "h3_points": 115.06670494466074,
+          "ae_delta": -72.37885355383037,
+          "archetype": "mobile_scrambler"
+        },
+        {
+          "display_name": "Gardner Minshew",
+          "actual_points": 102.32,
+          "sealed_points": 205.1583009688122,
+          "h3_points": 138.6014282157592,
+          "ae_delta": -66.556872753053,
+          "archetype": "pocket_passer"
+        },
+        {
+          "display_name": "Aaron Rodgers",
+          "actual_points": 256.58,
+          "sealed_points": 189.4002490768605,
+          "h3_points": 255.7573242711567,
+          "ae_delta": -66.35707519429621,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Tua Tagovailoa",
+          "actual_points": 181.58,
+          "sealed_points": 278.58833289633594,
+          "h3_points": 214.6828007845861,
+          "ae_delta": -63.905532111749835,
+          "archetype": "pocket_passer"
+        },
+        {
+          "display_name": "Aidan O'Connell",
+          "actual_points": 97.48,
+          "sealed_points": 29.12906413017022,
+          "h3_points": 89.77602317661314,
+          "ae_delta": -60.646959046442916,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Cooper Rush",
+          "actual_points": 113.56,
+          "sealed_points": 6.556648030792025,
+          "h3_points": 64.78080604285226,
+          "ae_delta": -58.22415801206024,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Will Levis",
+          "actual_points": 129.94,
+          "sealed_points": 217.25338578198983,
+          "h3_points": 161.31297375160054,
+          "ae_delta": -55.9404120303893,
+          "archetype": "pocket_passer"
+        }
+      ]
+    },
+    {
+      "season": 2025,
+      "n": 37,
+      "fold_label": "latest_chronological_oos",
+      "cohorts": {
+        "all": {
+          "n": 37,
+          "sealed_points_mae": 66.8222269314665,
+          "h3_points_mae": 67.87978224446569,
+          "delta_points_mae": 1.0575553129991846,
+          "sealed_ppg_mae": 4.86227766635206,
+          "h3_pp_active_mae": 6.892039918312695,
+          "sealed_spearman": 0.5589473070099774,
+          "h3_spearman": 0.5476853782367116,
+          "h3_attempts_mae": 3.2834220281007065,
+          "h3_carries_mae": 1.0038166493506582,
+          "h3_starts_mae": 3.8004156197286143,
+          "double_avail_violations": 0
+        },
+        "depth1": {
+          "n": 27,
+          "sealed_points_mae": 65.5936145941868,
+          "h3_points_mae": 68.86097536700755,
+          "delta_points_mae": 3.2673607728207514,
+          "sealed_ppg_mae": 3.6883827006312653,
+          "h3_pp_active_mae": 2.938321970419811,
+          "sealed_spearman": 0.22927797549984186,
+          "h3_spearman": 0.26988246383736375,
+          "h3_attempts_mae": 2.2002428693276292,
+          "h3_carries_mae": 0.8824229735841919,
+          "h3_starts_mae": 2.9740293572091727,
+          "double_avail_violations": 0
+        },
+        "dual_threat": {
+          "n": 12,
+          "sealed_points_mae": 81.69012098996882,
+          "h3_points_mae": 72.26190813604579,
+          "delta_points_mae": -9.428212853923029,
+          "sealed_ppg_mae": 5.769798784266949,
+          "h3_pp_active_mae": 11.615554556449707,
+          "sealed_spearman": 0.3426573426573427,
+          "h3_spearman": 0.4265734265734266,
+          "h3_attempts_mae": 1.621879944116564,
+          "h3_carries_mae": 1.4718612909285766,
+          "h3_starts_mae": 3.4258541245692604,
+          "double_avail_violations": 0
+        },
+        "pocket_passer": {
+          "n": 12,
+          "sealed_points_mae": 69.5454043325485,
+          "h3_points_mae": 61.39693961722185,
+          "delta_points_mae": -8.148464715326654,
+          "sealed_ppg_mae": 4.8462381245640485,
+          "h3_pp_active_mae": 5.16323807907058,
+          "sealed_spearman": 0.5524475524475525,
+          "h3_spearman": 0.6503496503496504,
+          "h3_attempts_mae": 2.7137474777019825,
+          "h3_carries_mae": 0.5845804832289936,
+          "h3_starts_mae": 4.072584764411493,
+          "double_avail_violations": 0
+        },
+        "insufficient_history": {
+          "n": 13,
+          "sealed_points_mae": 50.58431481492706,
+          "h3_points_mae": 69.81890538507844,
+          "delta_points_mae": 19.234590570151376,
+          "sealed_ppg_mae": 4.039371596081097,
+          "h3_pp_active_mae": 4.127689642409712,
+          "sealed_spearman": 0.6703296703296703,
+          "h3_spearman": 0.4945054945054945,
+          "h3_attempts_mae": 5.343006613684891,
+          "h3_carries_mae": 0.9587626720064235,
+          "h3_starts_mae": 3.8949316355530508,
+          "double_avail_violations": 0
+        },
+        "returning_injury": {
+          "n": 11,
+          "sealed_points_mae": 82.4959992052048,
+          "h3_points_mae": 78.42810568181129,
+          "delta_points_mae": -4.067893523393508,
+          "sealed_ppg_mae": 6.595588818445549,
+          "h3_pp_active_mae": 5.754620403067638,
+          "sealed_spearman": 0.6090909090909091,
+          "h3_spearman": 0.36363636363636365,
+          "h3_attempts_mae": 2.467109021117763,
+          "h3_carries_mae": 0.963981639465096,
+          "h3_starts_mae": 4.352081189310554,
+          "double_avail_violations": 0
+        },
+        "primary": {
+          "n": 20,
+          "sealed_points_mae": 75.33891215965257,
+          "h3_points_mae": 71.88713033172029,
+          "delta_points_mae": -3.4517818279322796,
+          "sealed_ppg_mae": 5.660738118529608,
+          "h3_pp_active_mae": 9.617931420303613,
+          "sealed_spearman": 0.5518796992481202,
+          "h3_spearman": 0.4992481203007519,
+          "h3_attempts_mae": 2.2343293882585216,
+          "h3_carries_mae": 1.1178685348515267,
+          "h3_starts_mae": 3.714920898635566,
+          "double_avail_violations": 0
+        },
+        "top12_actual": {
+          "n": 12,
+          "sealed_points_mae": 75.56380893726568,
+          "h3_points_mae": 59.96665048963479,
+          "delta_points_mae": -15.597158447630889,
+          "sealed_ppg_mae": 5.271964585835012,
+          "h3_pp_active_mae": 2.2011470459499556,
+          "sealed_spearman": -0.7320501594135719,
+          "h3_spearman": -0.24168163157672945,
+          "h3_attempts_mae": 2.12689274652631,
+          "h3_carries_mae": 0.8510951915149333,
+          "h3_starts_mae": 1.7510870673730106,
+          "double_avail_violations": 0
+        }
+      },
+      "reconciliation": {
+        "source": "portable_fixture",
+        "projections_db": {
+          "path": "/workspace/data/projections.db",
+          "exists": false,
+          "size_bytes": 0,
+          "usable": false,
+          "placeholder": false
+        },
+        "projections_db_error": "data/projections.db is missing or zero bytes (gitignored Cloud placeholder). Do not open it and do not silently skip team reconciliation. Use the portable QB reconciliation fixture (output/qb_h3/infra/) built from public-derived Parquet sources. status={'path': '/workspace/data/projections.db', 'exists': False, 'size_bytes': 0, 'usable': False, 'placeholder': False}",
+        "fixture_path": "/workspace/output/qb_h3/infra/portable_qb_reconcile_fixture.parquet",
+        "fixture_present": true,
+        "reconciliation_will_run": true,
+        "schema_version": "qb_h3_reconcile_contract_v1"
+      },
+      "team_starts_conservation_mae": 6.661338147750939e-16,
+      "double_avail_violations": 0,
+      "conservation_violations": [],
+      "primary_bootstrap_delta_mae": {
+        "mean": -3.5334808801647086,
+        "ci95": [
+          -22.634220683583184,
+          16.649211041989062
+        ]
+      },
+      "top10_negative": [
+        {
+          "display_name": "Russell Wilson",
+          "actual_points": 49.84,
+          "sealed_points": 139.4707633067271,
+          "h3_points": 227.37473299513644,
+          "ae_delta": 87.90396968840935,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Sam Darnold",
+          "actual_points": 243.42,
+          "sealed_points": 242.89314652107245,
+          "h3_points": 161.13195045849034,
+          "ae_delta": 81.76119606258212,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Jayden Daniels",
+          "actual_points": 116.28,
+          "sealed_points": 255.0606765585199,
+          "h3_points": 336.4207695343331,
+          "ae_delta": 81.36009297581319,
+          "archetype": "designed_runner"
+        },
+        {
+          "display_name": "C.J. Stroud",
+          "actual_points": 208.54,
+          "sealed_points": 208.82713238466977,
+          "h3_points": 254.95926928822544,
+          "ae_delta": 46.132136903555676,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Lamar Jackson",
+          "actual_points": 218.86,
+          "sealed_points": 278.1598654474069,
+          "h3_points": 317.70984162145913,
+          "ae_delta": 39.54997617405223,
+          "archetype": "designed_runner"
+        },
+        {
+          "display_name": "Jordan Love",
+          "actual_points": 235.14,
+          "sealed_points": 200.2102991318104,
+          "h3_points": 163.30913558300688,
+          "ae_delta": 36.90116354880351,
+          "archetype": "pocket_passer"
+        },
+        {
+          "display_name": "Tyrod Taylor",
+          "actual_points": 61.46,
+          "sealed_points": 54.589155355275295,
+          "h3_points": 104.33559710654498,
+          "ae_delta": 36.004752461820274,
+          "archetype": "mobile_scrambler"
+        },
+        {
+          "display_name": "Patrick Mahomes",
+          "actual_points": 281.18,
+          "sealed_points": 257.45089371215926,
+          "h3_points": 333.8806633906634,
+          "ae_delta": 28.971557102822658,
+          "archetype": "mobile_scrambler"
+        },
+        {
+          "display_name": "Taysom Hill",
+          "actual_points": 38.28,
+          "sealed_points": 70.80674399030032,
+          "h3_points": 97.65275154976553,
+          "ae_delta": 26.846007559465207,
+          "archetype": "insufficient_history"
+        },
+        {
+          "display_name": "Baker Mayfield",
+          "actual_points": 273.92,
+          "sealed_points": 279.75788820195766,
+          "h3_points": 242.71395079594794,
+          "ae_delta": 25.36816100209444,
+          "archetype": "insufficient_history"
+        }
+      ],
+      "top10_positive": [
+        {
+          "display_name": "Josh Allen",
+          "actual_points": 368.62,
+          "sealed_points": 253.44424757266464,
+          "h3_points": 388.9393515413958,
+          "ae_delta": -94.85640088593956,
+          "archetype": "designed_runner"
+        },
+        {
+          "display_name": "Marcus Mariota",
+          "actual_points": 129.5,
+          "sealed_points": 15.195769803753633,
+          "h3_points": 94.91528418710782,
+          "ae_delta": -79.71951438335418,
+          "archetype": "designed_runner"
+        },
+        {
+          "display_name": "Jared Goff",
+          "actual_points": 307.06,
+          "sealed_points": 221.30878049061877,
+          "h3_points": 275.58944027177944,
+          "ae_delta": -54.280659781160665,
+          "archetype": "pocket_passer"
+        },
+        {
+          "display_name": "Justin Fields",
+          "actual_points": 138.66,
+          "sealed_points": 194.4488687071231,
+          "h3_points": 134.35409442669797,
+          "ae_delta": -51.48296313382107,
+          "archetype": "designed_runner"
+        },
+        {
+          "display_name": "Mac Jones",
+          "actual_points": 132.04000000000002,
+          "sealed_points": 30.086049103448897,
+          "h3_points": 63.44958993152052,
+          "ae_delta": -33.36354082807162,
+          "archetype": "pocket_passer"
+        },
+        {
+          "display_name": "Bo Nix",
+          "actual_points": 300.84000000000003,
+          "sealed_points": 262.55658994873744,
+          "h3_points": 294.81045812281025,
+          "ae_delta": -32.25386817407281,
+          "archetype": "mobile_scrambler"
+        },
+        {
+          "display_name": "Matthew Stafford",
+          "actual_points": 356.38,
+          "sealed_points": 200.9359782319412,
+          "h3_points": 231.89391795537517,
+          "ae_delta": -30.95793972343398,
+          "archetype": "pocket_passer"
+        },
+        {
+          "display_name": "Daniel Jones",
+          "actual_points": 230.14,
+          "sealed_points": 60.90527875823816,
+          "h3_points": 91.52736116614318,
+          "ae_delta": -30.622082407905026,
+          "archetype": "designed_runner"
+        },
+        {
+          "display_name": "Aaron Rodgers",
+          "actual_points": 226.58,
+          "sealed_points": 194.4616795579614,
+          "h3_points": 217.08422874749078,
+          "ae_delta": -22.622549189529394,
+          "archetype": "pocket_passer"
+        },
+        {
+          "display_name": "Trevor Lawrence",
+          "actual_points": 342.17999999999995,
+          "sealed_points": 204.85232007233128,
+          "h3_points": 224.1852007959479,
+          "ae_delta": -19.332880723616626,
+          "archetype": "insufficient_history"
+        }
+      ]
+    }
+  ]
+}

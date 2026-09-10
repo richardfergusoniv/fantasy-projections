@@ -1,0 +1,347 @@
+{
+  "generated_at": "2026-09-03T18:23:42.152679+00:00",
+  "decision": {
+    "verdict": "GO",
+    "production_promotion": "NO",
+    "reasons": [],
+    "gates": {
+      "overall_non_inferiority": true,
+      "primary_cohort_fit_folds": true,
+      "holdout_primary_improve": true,
+      "holdout_bootstrap_ci": true,
+      "holdout_top12_non_inferior": true,
+      "holdout_spearman": true,
+      "use_2026_for_selection": false
+    },
+    "selected_configuration": "active_start_rates+archetype_priors+joint_v2",
+    "predeclared_thresholds": {
+      "overall_mae_non_inferiority_tol": 0.02,
+      "cohort_improve_min_fit_folds": 2,
+      "holdout_cohort_must_improve": true,
+      "holdout_bootstrap_ci_must_exclude_zero": true,
+      "top12_mae_non_inferiority_tol": 0.03,
+      "spearman_max_drop": 0.02
+    },
+    "note": "GO means chronological experiment gates vs conflated-rate baseline passed. Production promotion remains NO: sealed release and active pointer are not modified.",
+    "next_falsifiable_hypothesis": null
+  },
+  "folds": [
+    {
+      "season": 2023,
+      "n": 42,
+      "cohorts": {
+        "all": {
+          "n": 42,
+          "base_points_mae": 91.1495156708371,
+          "cand_points_mae": 86.08286581175375,
+          "delta_points_mae": -5.0666498590833555,
+          "base_ppg_mae": 4.403769430071951,
+          "cand_ppg_mae": 4.646749074912289,
+          "base_spearman": 0.4676282310995868,
+          "cand_spearman": 0.559841179807147,
+          "base_attempts_mae": 7.704048583302784,
+          "cand_attempts_mae": 7.597405894532399,
+          "base_carries_mae": 0.940842109959757,
+          "cand_carries_mae": 0.939515433052505,
+          "base_games_mae": 5.023809523809524,
+          "cand_games_mae": 3.401375131849641
+        },
+        "pocket_passer": {
+          "n": 32,
+          "base_points_mae": 76.4255361929737,
+          "cand_points_mae": 86.20170972167256,
+          "delta_points_mae": 9.776173528698862,
+          "base_ppg_mae": 4.262458264978486,
+          "cand_ppg_mae": 4.466905326639405,
+          "base_spearman": 0.6381964809384163,
+          "cand_spearman": 0.6392961876832844,
+          "base_attempts_mae": 7.118350065477823,
+          "cand_attempts_mae": 6.80099100165428,
+          "base_carries_mae": 0.90083891292531,
+          "cand_carries_mae": 0.9128833200083876,
+          "base_games_mae": 3.65625,
+          "cand_games_mae": 3.4130399796002724
+        },
+        "returning_injury": {
+          "n": 11,
+          "base_points_mae": 111.64935537190082,
+          "cand_points_mae": 92.2035766138687,
+          "delta_points_mae": -19.44577875803212,
+          "base_ppg_mae": 4.059125114784205,
+          "cand_ppg_mae": 4.554398351870504,
+          "base_spearman": 0.10909090909090911,
+          "cand_spearman": 0.3545454545454546,
+          "base_attempts_mae": 7.820849731077004,
+          "cand_attempts_mae": 5.864950187936511,
+          "base_carries_mae": 0.7526409048467874,
+          "cand_carries_mae": 1.005231957088651,
+          "base_games_mae": 7.0,
+          "cand_games_mae": 4.151381955807793
+        },
+        "primary": {
+          "n": 11,
+          "base_points_mae": 111.64935537190082,
+          "cand_points_mae": 92.2035766138687,
+          "delta_points_mae": -19.44577875803212,
+          "base_ppg_mae": 4.059125114784205,
+          "cand_ppg_mae": 4.554398351870504,
+          "base_spearman": 0.10909090909090911,
+          "cand_spearman": 0.3545454545454546,
+          "base_attempts_mae": 7.820849731077004,
+          "cand_attempts_mae": 5.864950187936511,
+          "base_carries_mae": 0.7526409048467874,
+          "cand_carries_mae": 1.005231957088651,
+          "base_games_mae": 7.0,
+          "cand_games_mae": 4.151381955807793
+        },
+        "top12_actual": {
+          "n": 12,
+          "base_points_mae": 101.39166666666667,
+          "cand_points_mae": 74.22468734563456,
+          "delta_points_mae": -27.166979321032102,
+          "base_ppg_mae": 4.194985828305682,
+          "cand_ppg_mae": 2.000875184039328,
+          "base_spearman": 0.07692307692307693,
+          "cand_spearman": 0.32867132867132864,
+          "base_attempts_mae": 4.667317642869112,
+          "cand_attempts_mae": 1.904298315810031,
+          "base_carries_mae": 0.9356827132562427,
+          "cand_carries_mae": 0.6668681338328476,
+          "base_games_mae": 3.9166666666666665,
+          "cand_games_mae": 2.7265133835604813
+        }
+      },
+      "primary_bootstrap_delta_mae": {
+        "mean": -20.194922643173143,
+        "ci95": [
+          -83.27819549303729,
+          47.986239815505755
+        ]
+      }
+    },
+    {
+      "season": 2024,
+      "n": 43,
+      "cohorts": {
+        "all": {
+          "n": 43,
+          "base_points_mae": 74.82577759320783,
+          "cand_points_mae": 70.7588645673886,
+          "delta_points_mae": -4.0669130258192325,
+          "base_ppg_mae": 3.7193782928957333,
+          "cand_ppg_mae": 4.092941544059692,
+          "base_spearman": 0.6463304137722742,
+          "cand_spearman": 0.6505587435819994,
+          "base_attempts_mae": 6.3784560040203,
+          "cand_attempts_mae": 6.302762243593092,
+          "base_carries_mae": 0.8415064814346621,
+          "cand_carries_mae": 1.0271583597675986,
+          "base_games_mae": 4.511627906976744,
+          "cand_games_mae": 3.0991498793006187
+        },
+        "dual_threat": {
+          "n": 11,
+          "base_points_mae": 86.76218181818182,
+          "cand_points_mae": 86.90051465461046,
+          "delta_points_mae": 0.13833283642864558,
+          "base_ppg_mae": 3.8198481037678893,
+          "cand_ppg_mae": 4.097309022597949,
+          "base_spearman": 0.6272727272727273,
+          "cand_spearman": 0.6727272727272727,
+          "base_attempts_mae": 6.869578304939268,
+          "cand_attempts_mae": 4.440414578033385,
+          "base_carries_mae": 1.0408512387790465,
+          "cand_carries_mae": 1.2021588704826345,
+          "base_games_mae": 4.2727272727272725,
+          "cand_games_mae": 2.8312513776052577
+        },
+        "pocket_passer": {
+          "n": 25,
+          "base_points_mae": 77.30728222222223,
+          "cand_points_mae": 65.56707207586096,
+          "delta_points_mae": -11.740210146361264,
+          "base_ppg_mae": 3.9006849440102376,
+          "cand_ppg_mae": 3.606439882604917,
+          "base_spearman": 0.4969230769230769,
+          "cand_spearman": 0.6169230769230769,
+          "base_attempts_mae": 6.10928225369402,
+          "cand_attempts_mae": 5.036492454169238,
+          "base_carries_mae": 0.7693083778966132,
+          "cand_carries_mae": 0.7761251088742387,
+          "base_games_mae": 4.44,
+          "cand_games_mae": 2.9725416540052185
+        },
+        "returning_injury": {
+          "n": 13,
+          "base_points_mae": 77.25650793650794,
+          "cand_points_mae": 60.52417962323863,
+          "delta_points_mae": -16.732328313269313,
+          "base_ppg_mae": 3.4539714762361817,
+          "cand_ppg_mae": 3.616685707460039,
+          "base_spearman": 0.5439560439560439,
+          "cand_spearman": 0.8076923076923077,
+          "base_attempts_mae": 5.780252590546709,
+          "cand_attempts_mae": 6.008097581183555,
+          "base_carries_mae": 0.6412042206159854,
+          "cand_carries_mae": 1.0580571708412319,
+          "base_games_mae": 5.615384615384615,
+          "cand_games_mae": 3.238571070554876
+        },
+        "primary": {
+          "n": 21,
+          "base_points_mae": 80.93421919879063,
+          "cand_points_mae": 72.3501872575803,
+          "delta_points_mae": -8.584031941210327,
+          "base_ppg_mae": 3.809874633147743,
+          "cand_ppg_mae": 3.7489038994036936,
+          "base_spearman": 0.6038961038961038,
+          "cand_spearman": 0.7818181818181819,
+          "base_attempts_mae": 6.6305570596536985,
+          "cand_attempts_mae": 5.654048097111608,
+          "base_carries_mae": 0.8926039219106446,
+          "cand_carries_mae": 1.144700623382705,
+          "base_games_mae": 4.9523809523809526,
+          "cand_games_mae": 3.0135149242616937
+        },
+        "top12_actual": {
+          "n": 12,
+          "base_points_mae": 91.867,
+          "cand_points_mae": 84.81911076011424,
+          "delta_points_mae": -7.047889239885762,
+          "base_ppg_mae": 3.256164278531925,
+          "cand_ppg_mae": 3.016690007239328,
+          "base_spearman": 0.30069930069930073,
+          "cand_spearman": 0.2447552447552448,
+          "base_attempts_mae": 4.896667609351433,
+          "cand_attempts_mae": 3.7573954624636117,
+          "base_carries_mae": 0.8149101307189542,
+          "cand_carries_mae": 0.8812340169803322,
+          "base_games_mae": 3.4166666666666665,
+          "cand_games_mae": 3.0739988581431823
+        }
+      },
+      "primary_bootstrap_delta_mae": {
+        "mean": -8.485125691397615,
+        "ci95": [
+          -44.521875531101905,
+          24.12904134178689
+        ]
+      }
+    },
+    {
+      "season": 2025,
+      "n": 37,
+      "cohorts": {
+        "all": {
+          "n": 37,
+          "base_points_mae": 81.07258476737887,
+          "cand_points_mae": 67.47862423917881,
+          "delta_points_mae": -13.593960528200057,
+          "base_ppg_mae": 3.752894419923831,
+          "cand_ppg_mae": 3.1206187967010792,
+          "base_spearman": 0.5111730196875975,
+          "cand_spearman": 0.5262284402581738,
+          "base_attempts_mae": 4.628831478096183,
+          "cand_attempts_mae": 3.2834220281007065,
+          "base_carries_mae": 1.1240374755080638,
+          "cand_carries_mae": 1.0207978925174988,
+          "base_games_mae": 3.864864864864865,
+          "cand_games_mae": 3.002362410581068
+        },
+        "dual_threat": {
+          "n": 12,
+          "base_points_mae": 85.83674736048265,
+          "cand_points_mae": 66.26099645757732,
+          "delta_points_mae": -19.575750902905327,
+          "base_ppg_mae": 3.4926768292981527,
+          "cand_ppg_mae": 2.9228119113928113,
+          "base_spearman": 0.3916083916083916,
+          "cand_spearman": 0.49650349650349657,
+          "base_attempts_mae": 4.825734001836943,
+          "cand_attempts_mae": 1.621879944116564,
+          "base_carries_mae": 1.6858103429794602,
+          "cand_carries_mae": 1.4718612909285766,
+          "base_games_mae": 3.75,
+          "cand_games_mae": 2.4186124467851293
+        },
+        "pocket_passer": {
+          "n": 22,
+          "base_points_mae": 82.76464400305575,
+          "cand_points_mae": 71.49723890553054,
+          "delta_points_mae": -11.267405097525213,
+          "base_ppg_mae": 3.9485589676218016,
+          "cand_ppg_mae": 3.2298159861125852,
+          "base_spearman": 0.37323546019198195,
+          "cand_spearman": 0.34500282326369286,
+          "base_attempts_mae": 4.517904540498125,
+          "cand_attempts_mae": 3.6656511059361816,
+          "base_carries_mae": 0.7928273709356596,
+          "cand_carries_mae": 0.771766456478944,
+          "base_games_mae": 3.590909090909091,
+          "cand_games_mae": 3.35015698952145
+        },
+        "returning_injury": {
+          "n": 11,
+          "base_points_mae": 104.90787412587412,
+          "cand_points_mae": 74.24732378883594,
+          "delta_points_mae": -30.660550337038174,
+          "base_ppg_mae": 4.805360114632841,
+          "cand_ppg_mae": 2.6952993152839384,
+          "base_spearman": 0.4090909090909091,
+          "cand_spearman": 0.46363636363636374,
+          "base_attempts_mae": 6.956496236977521,
+          "cand_attempts_mae": 2.467109021117763,
+          "base_carries_mae": 1.4443516821859068,
+          "cand_carries_mae": 0.9706292628675013,
+          "base_games_mae": 4.7272727272727275,
+          "cand_games_mae": 2.9984745080549704
+        },
+        "primary": {
+          "n": 20,
+          "base_points_mae": 90.80834841628958,
+          "cand_points_mae": 67.3379001669853,
+          "delta_points_mae": -23.47044824930427,
+          "base_ppg_mae": 4.05775566892258,
+          "cand_ppg_mae": 2.8543656089079854,
+          "base_spearman": 0.512781954887218,
+          "cand_spearman": 0.5759398496240601,
+          "base_attempts_mae": 5.808491712535831,
+          "cand_attempts_mae": 2.2343293882585216,
+          "base_carries_mae": 1.4502109532624237,
+          "cand_carries_mae": 1.1215247277228495,
+          "base_games_mae": 4.2,
+          "cand_games_mae": 2.63163767181997
+        },
+        "top12_actual": {
+          "n": 12,
+          "base_points_mae": 77.32660683760683,
+          "cand_points_mae": 57.300698165287166,
+          "delta_points_mae": -20.025908672319666,
+          "base_ppg_mae": 3.4483139050491993,
+          "cand_ppg_mae": 2.0429260557175555,
+          "base_spearman": -0.31523691075225585,
+          "cand_spearman": -0.25919479328518813,
+          "base_attempts_mae": 3.741441993464052,
+          "cand_attempts_mae": 2.12689274652631,
+          "base_carries_mae": 1.1413549073475542,
+          "cand_carries_mae": 0.8149514275919021,
+          "base_games_mae": 2.5,
+          "cand_games_mae": 1.7510870673730106
+        }
+      },
+      "primary_bootstrap_delta_mae": {
+        "mean": -23.32985817051067,
+        "ci95": [
+          -47.01799039495498,
+          -0.7622304484855873
+        ]
+      }
+    }
+  ],
+  "non_qb_invariance": {
+    "pass": true,
+    "n_compared": 3271,
+    "n_changed": 0,
+    "max_abs_delta": 0.0
+  }
+}

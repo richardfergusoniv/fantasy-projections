@@ -1032,6 +1032,55 @@ def player_season_designed_rushes(conn, seasons=SEASONS):
     return pd.read_sql(q, conn)
 
 
+def player_season_qb_rush_splits(conn, seasons=SEASONS):
+    """Designed vs scramble carries/yards plus RZ/GL designed rates and dropbacks.
+
+    Additive to ``player_season_designed_rushes`` for the QB rush expansion
+    feature set. Sealed models do not consume these columns until retrained.
+    """
+    season_list = ",".join(map(str, seasons))
+    designed = pd.read_sql(
+        f"""
+        select season, rusher_player_id as player_id,
+               count(*) as designed_carries,
+               sum(rushing_yards) as designed_rushing_yards,
+               sum(case when yardline_100 <= 20 then 1 else 0 end) as rz_designed_carries,
+               sum(case when yardline_100 <= 5 then 1 else 0 end) as gl_designed_carries
+        from pbp
+        where season in ({season_list}) and season_type = 'REG'
+          and rush_attempt = 1 and qb_scramble = 0 and rusher_player_id is not null
+        group by season, rusher_player_id
+        """,
+        conn,
+    )
+    scramble = pd.read_sql(
+        f"""
+        select season, rusher_player_id as player_id,
+               count(*) as scramble_carries,
+               sum(rushing_yards) as scramble_rushing_yards
+        from pbp
+        where season in ({season_list}) and season_type = 'REG'
+          and qb_scramble = 1 and rusher_player_id is not null
+        group by season, rusher_player_id
+        """,
+        conn,
+    )
+    dropbacks = pd.read_sql(
+        f"""
+        select season, passer_player_id as player_id, count(*) as dropbacks
+        from pbp
+        where season in ({season_list}) and season_type = 'REG'
+          and passer_player_id is not null
+          and (pass_attempt = 1 or sack = 1)
+        group by season, passer_player_id
+        """,
+        conn,
+    )
+    out = designed.merge(scramble, on=["season", "player_id"], how="outer")
+    out = out.merge(dropbacks, on=["season", "player_id"], how="left")
+    return out
+
+
 def team_season_defense_epa(conn, seasons=SEASONS):
     """Team-season defensive efficiency: mean EPA/play ALLOWED (as `defteam`),
     split pass vs. rush, from `pbp.epa`. Lower (more negative) = stronger
