@@ -1,0 +1,49 @@
+name: Cleanup Vercel Deployments
+
+# Frees Functions/Deployment Storage by deleting old deployments and
+# shortening retention. Keeps current production + a short rollback window.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "If true, only list what would be deleted"
+        required: true
+        type: boolean
+        default: false
+      keep_production:
+        description: "Extra production deployments to keep beyond current"
+        required: true
+        type: string
+        default: "3"
+      keep_preview:
+        description: "Recent preview/other deployments to keep"
+        required: true
+        type: string
+        default: "5"
+
+concurrency:
+  group: cleanup-vercel-deployments
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cleanup old Vercel deployments
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          KEEP_PRODUCTION: ${{ inputs.keep_production }}
+          KEEP_PREVIEW: ${{ inputs.keep_preview }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+          SET_RETENTION: "1"
+          PREVIEW_RETENTION_DAYS: "7"
+          PRODUCTION_RETENTION_DAYS: "30"
+          CANCELED_RETENTION_DAYS: "1"
+          ERRORED_RETENTION_DAYS: "1"
+        run: |
+          chmod +x scripts/cleanup_vercel_deployments.sh
+          ./scripts/cleanup_vercel_deployments.sh
