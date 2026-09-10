@@ -40,4 +40,19 @@ describe("ApiClient error parsing", () => {
     );
     expect(recoveryActionForError(err)).toContain("Run sync");
   });
+
+  it("steers historical membership gaps away from SLEEPER_USER_ID blame", () => {
+    const err = new ApiClientError(
+      "This league has no synced memberships (league_membership_unavailable)",
+      400,
+      {
+        detail: {
+          code: "league_membership_unavailable",
+          message: "This league has no synced memberships",
+        },
+      },
+    );
+    expect(recoveryActionForError(err)).toContain("2026");
+    expect(recoveryActionForError(err)).not.toContain("SLEEPER_USER_ID");
+  });
 });

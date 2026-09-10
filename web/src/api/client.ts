@@ -104,7 +104,9 @@ export function recoveryActionForError(error: unknown): string | null {
   }
   switch (error.code) {
     case "owner_roster_unavailable":
-      return "Fix SLEEPER_USER_ID / owner membership, then run sync from Operations.";
+      return "Confirm SLEEPER_USER_ID matches your Sleeper account, then run sync from Operations.";
+    case "league_membership_unavailable":
+      return "Select an active 2026 configured league (historical seasons often have no synced memberships).";
     case "roster_snapshot_unavailable":
       return "Select another week or run sync from Operations.";
     case "matchup_snapshot_incomplete":

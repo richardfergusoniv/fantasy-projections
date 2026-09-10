@@ -38,6 +38,13 @@ export interface LeagueSummary {
   is_dynasty: boolean;
   /** False when the league is synced but not in the owner config file. */
   is_configured?: boolean;
+  /**
+   * Owner's league-specific roster id when SLEEPER_USER_ID is configured and
+   * membership was synced. Null/undefined means decisions cannot resolve the
+   * owner for this league (common for historical seasons with no members).
+   */
+  owner_roster_id?: number | null;
+  total_rosters?: number;
 }
 
 export interface LeagueDetail extends LeagueSummary {
