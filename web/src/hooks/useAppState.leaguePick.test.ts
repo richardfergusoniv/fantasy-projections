@@ -11,6 +11,7 @@ function league(
     is_dynasty: false,
     is_configured: true,
     owner_roster_id: null,
+    decision_ready: false,
     ...partial,
   };
 }
@@ -40,3 +41,19 @@ describe("pickPreferredLeagueId", () => {
     expect(pickPreferredLeagueId(items, ["a", "b"], "b", { showAll: false })).toBe("b");
   });
 });
+
+  it("still prefers owner-ready leagues when showAll is true", () => {
+    const items = [
+      league({ id: "hist", name: "2025", season: 2025, owner_roster_id: null, decision_ready: false }),
+      league({
+        id: "owned",
+        name: "2026",
+        season: ACTIVE_SEASON,
+        owner_roster_id: 6,
+        decision_ready: true,
+      }),
+    ];
+    expect(
+      pickPreferredLeagueId(items, ["owned"], "hist", { showAll: true }),
+    ).toBe("owned");
+  });

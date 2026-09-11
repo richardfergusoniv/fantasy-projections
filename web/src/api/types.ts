@@ -44,6 +44,9 @@ export interface LeagueSummary {
    * owner for this league (common for historical seasons with no members).
    */
   owner_roster_id?: number | null;
+  /** True when the configured owner has a synced membership for decisions. */
+  decision_ready?: boolean;
+  member_count?: number;
   total_rosters?: number;
 }
 

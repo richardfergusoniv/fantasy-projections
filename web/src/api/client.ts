@@ -262,11 +262,24 @@ export class ApiClient {
     return this.request(`/jobs/${jobId}`);
   }
 
-  getLeagues(): Promise<{ leagues: LeagueSummary[]; configuredLeagueIds: string[] }> {
+  getLeagues(): Promise<{
+    leagues: LeagueSummary[];
+    configuredLeagueIds: string[];
+    activeSeason?: number;
+    defaultLeagueId?: string | null;
+    decisionReadyLeagueIds?: string[];
+  }> {
     return this.request<RawRecord>("/leagues").then((raw) => ({
       leagues: adaptLeagues(raw),
       configuredLeagueIds: Array.isArray(raw.configured_league_ids)
         ? raw.configured_league_ids.map(String)
+        : [],
+      activeSeason:
+        raw.active_season == null ? undefined : Number(raw.active_season),
+      defaultLeagueId:
+        raw.default_league_id == null ? null : String(raw.default_league_id),
+      decisionReadyLeagueIds: Array.isArray(raw.decision_ready_league_ids)
+        ? raw.decision_ready_league_ids.map(String)
         : [],
     }));
   }

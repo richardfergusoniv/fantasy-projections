@@ -12,6 +12,7 @@ from src.app.api.v1.leagues import get_matchups, get_rosters
 from src.app.availability.gsis_link import link_identities_to_release_players
 from src.app.config import get_settings
 from src.app.decisions.services import (
+    _USERNAME_TO_USER_ID_CACHE,
     LeagueContextError,
     LineupService,
     TradeService,
@@ -31,10 +32,10 @@ from src.app.persistence.repositories import LeagueRepository
 from src.app.projections.loader import PlayerSummary
 
 
-def _league(session: Session, league_id: str = "league-1") -> League:
+def _league(session: Session, league_id: str = "league-1", *, season: int = 2026) -> League:
     row = League(
         league_id=league_id,
-        season=2026,
+        season=season,
         name="Test League",
         league_type="redraft",
         raw_json={"roster_positions": ["QB", "RB", "WR", "TE", "FLEX", "BN"]},
@@ -321,6 +322,66 @@ def test_numeric_sleeper_user_id_coerces_to_exact_string(monkeypatch, db_session
     monkeypatch.setenv("SLEEPER_USER_ID", "739931264659927040")
     get_settings.cache_clear()
     assert _resolve_owner_roster_id(db_session, "league-1", explicit_roster_id=None) == 9
+    get_settings.cache_clear()
+
+
+
+
+def test_username_fallback_resolves_owner_when_user_id_mismatches(monkeypatch, db_session: Session):
+    """SLEEPER_USERNAME recovers when SLEEPER_USER_ID does not match members."""
+    _USERNAME_TO_USER_ID_CACHE.clear()
+    monkeypatch.setenv("SLEEPER_USER_ID", "stale-or-quoted-id")
+    monkeypatch.setenv("SLEEPER_USERNAME", "rdfergus15")
+    get_settings.cache_clear()
+    _league(db_session)
+    db_session.add(
+        LeagueMember(
+            league_id="league-1",
+            user_id="739931264659927040",
+            roster_id=4,
+            display_name="Richard",
+        )
+    )
+    db_session.flush()
+
+    def _fake_get_user(self, username: str):
+        assert username == "rdfergus15"
+        return {"user_id": "739931264659927040", "username": "rdfergus15"}
+
+    monkeypatch.setattr(
+        "src.app.league.sleeper.client.SleeperClient.get_user",
+        _fake_get_user,
+        raising=True,
+    )
+    assert _resolve_owner_roster_id(db_session, "league-1", explicit_roster_id=None) == 4
+    _USERNAME_TO_USER_ID_CACHE.clear()
+    get_settings.cache_clear()
+
+
+def test_list_leagues_hides_empty_historical_by_default(monkeypatch, db_session: Session):
+    from src.app.api.v1.leagues import list_leagues
+
+    monkeypatch.setenv("SLEEPER_USER_ID", "owner-6")
+    get_settings.cache_clear()
+    _league(db_session, "league-2026", season=2026)
+    _league(db_session, "league-2025-empty", season=2025)
+    db_session.add(
+        LeagueMember(
+            league_id="league-2026",
+            user_id="owner-6",
+            roster_id=6,
+            display_name="Owner",
+        )
+    )
+    db_session.flush()
+    payload = list_leagues(user=AppUser(email="owner@example.com"), db=db_session)
+    ids = {row["league_id"] for row in payload["leagues"]}
+    assert "league-2026" in ids
+    assert "league-2025-empty" not in ids
+    assert payload["active_season"] == 2026
+    assert payload["default_league_id"] == "league-2026"
+    ready = next(row for row in payload["leagues"] if row["league_id"] == "league-2026")
+    assert ready["decision_ready"] is True
     get_settings.cache_clear()
 
 

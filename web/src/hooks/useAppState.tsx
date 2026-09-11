@@ -91,7 +91,9 @@ export function pickPreferredLeagueId(
   // seasons often exist in `league` without `league_member` rows and cannot load
   // lineup/waiver decisions.
   const withOwner = pool.filter(
-    (league) => league.owner_roster_id != null && Number.isFinite(league.owner_roster_id),
+    (league) =>
+      league.decision_ready === true ||
+      (league.owner_roster_id != null && Number.isFinite(league.owner_roster_id)),
   );
   if (withOwner.length) {
     pool = withOwner;
@@ -114,9 +116,14 @@ export function pickPreferredLeagueId(
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [leagues, setLeagues] = useState<LeagueSummary[]>([]);
   const [configuredLeagueIds, setConfiguredLeagueIds] = useState<string[]>([]);
-  const [showAllLeagues, setShowAllLeaguesState] = useState<boolean>(
-    () => readLocal(SHOW_ALL_LEAGUES_KEY) === "true",
-  );
+  // Historical toggle was removed from the UI, but a sticky localStorage flag
+  // previously kept empty-membership leagues selectable. Always clear it.
+  const [showAllLeagues, setShowAllLeaguesState] = useState<boolean>(() => {
+    if (readLocal(SHOW_ALL_LEAGUES_KEY) === "true") {
+      writeLocal(SHOW_ALL_LEAGUES_KEY, "false");
+    }
+    return false;
+  });
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(() =>
     readLocal(LEAGUE_KEY),
   );
@@ -150,9 +157,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setLeagues(items);
       setConfiguredLeagueIds(configured);
       setSelectedLeagueId((current) => {
-        const showAll = readLocal(SHOW_ALL_LEAGUES_KEY) === "true";
+        // Ignore obsolete show-all sticky state; decisions need an owner roster.
         const next = pickPreferredLeagueId(items, configured, current, {
-          showAll,
+          showAll: false,
         });
         if (next) {
           writeLocal(LEAGUE_KEY, next);
@@ -234,14 +241,28 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const configuredPool = pool.filter((league) => configuredSet.has(league.id));
       if (configuredPool.length) pool = configuredPool;
     }
+
+    // Hide leagues that cannot resolve the owner whenever any decision-ready
+    // league exists. This removes the need to manually clear show-all storage.
+    const ready = pool.filter(
+      (league) =>
+        league.decision_ready === true ||
+        (league.owner_roster_id != null && Number.isFinite(league.owner_roster_id)),
+    );
+    if (ready.length) pool = ready;
     return pool;
   }, [configuredLeagueIds, leagues, showAllLeagues]);
 
-  // Snap off-season selections back to the active season when history is hidden.
+  // Snap away from historical / non-decision-ready selections automatically.
+  // The historical toggle was removed from the UI; do not honor sticky show-all.
   useEffect(() => {
-    if (showAllLeagues || leaguesLoading || !leagues.length) return;
+    if (leaguesLoading || !leagues.length) return;
     const selected = leagues.find((league) => league.id === selectedLeagueId);
-    if (selected?.season === ACTIVE_SEASON) return;
+    const selectedReady =
+      selected != null &&
+      (selected.decision_ready === true ||
+        (selected.owner_roster_id != null && Number.isFinite(selected.owner_roster_id)));
+    if (selected?.season === ACTIVE_SEASON && selectedReady) return;
     const next = pickPreferredLeagueId(leagues, configuredLeagueIds, null, {
       showAll: false,
     });
@@ -255,7 +276,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     leagues,
     leaguesLoading,
     selectedLeagueId,
-    showAllLeagues,
   ]);
 
   const selectedLeague =

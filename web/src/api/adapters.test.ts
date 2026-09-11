@@ -11,6 +11,7 @@ describe("adaptLeagues", () => {
           name: "Owned",
           season: 2026,
           owner_roster_id: 6,
+          decision_ready: true,
         },
         {
           id: "orphan",
@@ -18,11 +19,14 @@ describe("adaptLeagues", () => {
           name: "Orphan",
           season: 2025,
           owner_roster_id: null,
+          decision_ready: false,
         },
       ],
     });
     expect(leagues[0].owner_roster_id).toBe(6);
     expect(leagues[1].owner_roster_id).toBeNull();
+    expect(leagues[0].decision_ready).toBe(true);
+    expect(leagues[1].decision_ready).toBe(false);
   });
 });
 

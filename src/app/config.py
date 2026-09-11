@@ -187,6 +187,17 @@ class Settings(BaseSettings):
         cleaned = value.strip().strip("\"'")
         return cleaned or None
 
+    @field_validator("sleeper_username", mode="before")
+    @classmethod
+    def _normalize_sleeper_username(cls, value: object) -> object:
+        """Strip whitespace/quotes from dashboard-pasted Sleeper usernames."""
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            return value
+        cleaned = value.strip().strip("\"'")
+        return cleaned or None
+
     @field_validator("app_cors_origins")
     @classmethod
     def _split_origins(cls, value: str) -> str:
