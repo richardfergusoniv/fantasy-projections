@@ -53,21 +53,51 @@ def classify_qb_archetype(
     *,
     target_season: int,
 ) -> str:
-    """Classify mobile vs pocket from prior-season carries/game only."""
+    """Classify mobile vs pocket with missingness-safe designed/scramble handling.
+
+    Null designed/scramble history is never treated as pocket evidence. When
+    designed and scramble are both observed low, return ``pocket``. When only
+    carries are observed, high carries ⇒ mobile; otherwise ``insufficient_history``
+    (not pocket). Empty identity/history ⇒ ``unknown``.
+    """
+    if player_id is None or str(player_id).strip() == "":
+        return "unknown"
     prior = history_before(history, target_season)
     prior = prior[prior["player_id"].astype(str).eq(str(player_id))]
     if prior.empty:
         return "unknown"
     rates = per_game_rates(prior)
-    # Games-weighted mean carries/game over lookback.
+    # Games-weighted mean over lookback.
     rates = rates.sort_values("season").tail(LOOKBACK_SEASONS)
     w = pd.to_numeric(rates["games"], errors="coerce").clip(lower=0.0)
     car = pd.to_numeric(rates["carries_pg"], errors="coerce")
-    mask = w.gt(0) & car.notna()
-    if not mask.any():
+    des = (
+        pd.to_numeric(rates["designed_carries_pg"], errors="coerce")
+        if "designed_carries_pg" in rates.columns
+        else pd.Series(np.nan, index=rates.index)
+    )
+    scr = (
+        pd.to_numeric(rates["scramble_carries_pg"], errors="coerce")
+        if "scramble_carries_pg" in rates.columns
+        else pd.Series(np.nan, index=rates.index)
+    )
+    car_mask = w.gt(0) & car.notna()
+    if not car_mask.any() and not (w.gt(0) & des.notna()).any() and not (w.gt(0) & scr.notna()).any():
         return "unknown"
-    mean_car = float(np.average(car[mask], weights=w[mask]))
-    return "mobile" if mean_car >= MOBILE_CARRIES_PG_THRESHOLD else "pocket"
+    mean_car = float(np.average(car[car_mask], weights=w[car_mask])) if car_mask.any() else None
+    des_mask = w.gt(0) & des.notna()
+    scr_mask = w.gt(0) & scr.notna()
+    mean_des = float(np.average(des[des_mask], weights=w[des_mask])) if des_mask.any() else None
+    mean_scr = float(np.average(scr[scr_mask], weights=w[scr_mask])) if scr_mask.any() else None
+
+    if mean_car is not None and mean_car >= MOBILE_CARRIES_PG_THRESHOLD:
+        return "mobile"
+    # Pocket requires observed designed AND scramble; null designed is never pocket.
+    if mean_des is None or mean_scr is None:
+        return "insufficient_history" if mean_car is not None else "unknown"
+    if mean_car is not None and mean_car < MOBILE_CARRIES_PG_THRESHOLD:
+        return "pocket"
+    return "insufficient_history"
 
 
 def _season_weights(games: pd.Series) -> pd.Series:
