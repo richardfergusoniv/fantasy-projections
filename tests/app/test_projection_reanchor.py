@@ -374,13 +374,36 @@ def test_daily_refresh_skips_weekly_promotion_by_default(db_session, monkeypatch
     assert result["incremental"]["mode"] == "weekly_rnd_disabled"
 
 
-def test_matchup_win_probability_unavailable_when_gate_false(db_session):
+def test_matchup_win_probability_allowed_for_sealed_without_weekly_v2(
+    db_session, monkeypatch, tmp_path
+):
+    """Prod sealed_release must publish matchup win% without weekly-v2 weights.
+
+    Regression: the gate previously required weekly_v2 ``trained`` + auto-publish,
+    which blanked Home matchup win probability for every league on sealed_release.
+    """
+    from src.app.config import get_settings
     from src.app.projections.service import ProjectionService
+    from src.app.projections.source import ProjectionSource
+
+    monkeypatch.setenv("APP_PROJECTION_SOURCE", "sealed_release")
+    monkeypatch.setenv("WEEKLY_RND_ENABLED", "false")
+    monkeypatch.setenv("WEEKLY_V2_MODELS_DIR", str(tmp_path / "empty_models"))
+    monkeypatch.setenv("WEEKLY_V2_OUTPUTS_DIR", str(tmp_path / "empty_outputs"))
+    get_settings.cache_clear()
 
     svc = ProjectionService(db_session, season=2026)
-    allowed = svc.matchup_win_probability_allowed(week=1)
-    # Weekly R&D gates typically fail in test env
-    assert isinstance(allowed, bool)
+    assert svc.matchup_win_probability_allowed(week=1) is True
+    assert (
+        svc.matchup_win_probability_allowed(
+            week=1, source=ProjectionSource.STATUS_ADJUSTED_RELEASE
+        )
+        is True
+    )
+    assert (
+        svc.matchup_win_probability_allowed(week=1, source=ProjectionSource.WEEKLY_V2_RND)
+        is False
+    )
 
 
 def test_sealed_release_ignores_weekly_db_run(db_session: Session, monkeypatch, tmp_path):

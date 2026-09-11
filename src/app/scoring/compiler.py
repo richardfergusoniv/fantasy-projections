@@ -174,6 +174,8 @@ DST_KEY_MAP: dict[str, str] = {
     "def_blk_kick": "blocked_kicks",
     "blk_kick_ret_yd": "blocked_kick_return_yards",
     "def_pts_allowed": "points_allowed",
+    # Sleeper linear "points per point allowed" (distinct from pts_allow_* brackets).
+    "pts_allow": "points_allowed",
     "def_yds_allowed": "yards_allowed",
     "def_4_and_stop": "fourth_down_stops",
     "def_3_and_out": "three_and_outs",
