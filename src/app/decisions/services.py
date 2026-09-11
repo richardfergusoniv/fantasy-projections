@@ -610,7 +610,7 @@ class LineupService:
             raise LeagueContextError(f"{detail}:league={league_id},week={week}")
 
         matchup_allowed = ctx.projection_service.matchup_win_probability_allowed(
-            season=ctx.season, week=week
+            season=ctx.season, week=week, source=ctx.projection_source
         )
         if matchup_incomplete or not opp_candidates:
             # Optimize the owner's lineup without publishing a win probability

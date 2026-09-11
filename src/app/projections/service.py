@@ -203,11 +203,32 @@ class ProjectionService:
     def get(self, player_id: str, *, requested_source: ProjectionSource | None = None) -> PlayerSummary | None:
         return self.players(requested_source=requested_source).get(player_id)
 
-    def matchup_win_probability_allowed(self, *, season: int | None = None, week: int = 1) -> bool:
-        from src.app.projections.weekly_v2_bridge import weekly_v2_readiness
+    def matchup_win_probability_allowed(
+        self,
+        *,
+        season: int | None = None,
+        week: int = 1,
+        source: ProjectionSource | None = None,
+    ) -> bool:
+        """Whether lineup responses may publish a matchup win probability.
 
-        readiness = weekly_v2_readiness(season or self.season, week)
-        return readiness.state == "trained" and readiness.auto_publish_allowed
+        Sealed / status-adjusted / weekly_props paths estimate win% from
+        opponent-paired Monte Carlo draws. That is allowed without weekly-v2.
+
+        Weekly-v2 R&D win% is gated on trained artifacts + auto-publish so a
+        fixture or fallback weekly model cannot publish matchup probabilities.
+        """
+        effective = source or self.effective_source()
+        if effective == ProjectionSource.WEEKLY_V2_RND:
+            from src.app.projections.weekly_v2_bridge import weekly_v2_readiness
+
+            readiness = weekly_v2_readiness(season or self.season, week)
+            return readiness.state == "trained" and readiness.auto_publish_allowed
+        return effective in {
+            ProjectionSource.SEALED_RELEASE,
+            ProjectionSource.STATUS_ADJUSTED_RELEASE,
+            ProjectionSource.WEEKLY_PROPS,
+        }
 
     @staticmethod
     def ensure_bundle_available(season: int = 2026) -> None:

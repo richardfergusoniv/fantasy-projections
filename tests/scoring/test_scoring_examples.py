@@ -251,6 +251,36 @@ def test_simple_defense_league_has_no_points_allowed_bracket():
     assert points == pytest.approx(13.0)
 
 
+def test_linear_pts_allow_is_mapped_not_unsupported():
+    """Sleeper ``pts_allow`` is per-point DST scoring, not a bracket key.
+
+    Prod redraft league 1355920300633513984 uses ``pts_allow: -0.1`` alongside
+    ``pts_allow_*`` brackets. Leaving it unmapped made ``require_publishable``
+    fail closed and blanked that league's matchup/lineup recommendations.
+    """
+    contract = compile_sleeper_scoring(
+        {
+            "pts_allow": -0.1,
+            "pts_allow_14_20": -1.0,
+            "pts_allow_21_27": -2.0,
+            "sack": 1.0,
+        },
+        ["DEF", "BN"],
+    )
+    assert contract.unsupported_keys == []
+    require_publishable(contract, "league-pts-allow")
+    dst = [rule for rule in contract.dst_rules if rule.stat == "points_allowed"]
+    assert len(dst) == 1
+    assert dst[0].points_per_unit == pytest.approx(-0.1)
+    # 17 points allowed * -0.1 = -1.7, plus the 14–20 bracket (-1), plus 1 sack.
+    points = score_stat_draw(
+        {"points_allowed": 17, "sacks": 1},
+        contract,
+        position="DEF",
+    )
+    assert points == pytest.approx(-1.7 - 1.0 + 1.0)
+
+
 # ------------------------------------------------------------- negative scoring
 
 
