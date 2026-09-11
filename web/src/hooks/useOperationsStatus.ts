@@ -2,7 +2,16 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { OperationsStatus } from "../api/types";
 
-export function useOperationsStatus() {
+export interface UseOperationsStatusOptions {
+  /**
+   * When false, skip the network call. Home defers ops so lineup/waivers
+   * claim the first-paint network slot before the storage-probing status route.
+   */
+  enabled?: boolean;
+}
+
+export function useOperationsStatus(options: UseOperationsStatusOptions = {}) {
+  const { enabled = true } = options;
   const [data, setData] = useState<OperationsStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,8 +30,9 @@ export function useOperationsStatus() {
   }, []);
 
   useEffect(() => {
+    if (!enabled) return;
     void refresh();
-  }, [refresh]);
+  }, [enabled, refresh]);
 
-  return { data, loading, error, refresh };
+  return { data, loading, error, refresh, enabled };
 }

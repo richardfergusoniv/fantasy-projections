@@ -1,8 +1,9 @@
 """Concurrent reads against a file-backed database must not corrupt each other.
 
 FastAPI runs synchronous endpoints in a thread pool, so two requests overlap
-routinely — the PWA itself issues `/leagues` and `/operations/status` together on
-first paint. The engine used to hand every thread the *same* SQLite connection
+routinely — the PWA issues `/leagues` immediately and (after a short defer on
+Home) `/operations/status` while other screens may still fan out in parallel.
+The engine used to hand every thread the *same* SQLite connection
 (`StaticPool`), so those two requests interleaved on one cursor and whichever
 lost the race failed with `IndexError: tuple index out of range` from
 SQLAlchemy's result processor, returning a 500.

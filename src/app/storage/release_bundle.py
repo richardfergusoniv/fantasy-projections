@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +20,18 @@ from src.projection.release_bundle import (
     sha256_file,
     validate_namespace,
 )
+
+#: Home and /health/ready both probe storage. A short in-process TTL avoids
+#: paying a multi-second S3 put/get on every overlapping request on a warm
+#: serverless instance (measured ~3.3s on prod readiness).
+_STORAGE_PROBE_TTL_SECONDS = 60.0
+_storage_probe_cache: tuple[float, dict[str, Any]] | None = None
+
+
+def clear_storage_probe_cache() -> None:
+    """Test helper: drop the process-local storage health cache."""
+    global _storage_probe_cache
+    _storage_probe_cache = None
 
 
 class ReleaseBundleResolver:
@@ -156,12 +169,29 @@ def upload_bytes_to_storage(content: bytes, *, key: str, content_type: str) -> s
     return f"{LOCAL_SCHEME}{dest.as_posix()}"
 
 
-def probe_storage_round_trip() -> dict[str, Any]:
+def probe_storage_round_trip(*, force: bool = False) -> dict[str, Any]:
+    global _storage_probe_cache
+    now = time.monotonic()
+    if not force and _storage_probe_cache is not None:
+        cached_at, payload = _storage_probe_cache
+        if now - cached_at < _STORAGE_PROBE_TTL_SECONDS:
+            return dict(payload)
     try:
         store = get_artifact_store()
         uri = store.put_json({"probe": "readiness"})
         echoed = store.get_json(uri)
         healthy = echoed == {"probe": "readiness"}
-        return {"status": "healthy" if healthy else "degraded", "writable": True, "readable": healthy}
+        result: dict[str, Any] = {
+            "status": "healthy" if healthy else "degraded",
+            "writable": True,
+            "readable": healthy,
+        }
     except (ArtifactError, OSError) as exc:
-        return {"status": "degraded", "writable": False, "readable": False, "detail": type(exc).__name__}
+        result = {
+            "status": "degraded",
+            "writable": False,
+            "readable": False,
+            "detail": type(exc).__name__,
+        }
+    _storage_probe_cache = (now, result)
+    return dict(result)
