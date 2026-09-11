@@ -125,8 +125,17 @@ class Settings(BaseSettings):
     weekly_props_shadow_only: bool = True
     #: Enable automatic status-overlay publication after gate passes.
     status_overlay_auto_publish: bool = True
-    #: Comma-separated weekly prop providers enabled for live fetch (empty = fixtures/manual).
-    weekly_props_providers: str = "draftkings,fanduel,bettingpros,oddschecker"
+    #: live (default prod path) | fixture (offline / tests).
+    weekly_props_mode: str = "live"
+    #: Comma-separated weekly prop providers. Live mode currently implements
+    #: draftkings + fanduel; other names report live_provider_not_implemented.
+    weekly_props_providers: str = "draftkings,fanduel"
+    #: After market-close scrape, also refresh season-long O/U snapshots used by
+    #: Draft Vegas consensus (writes vegas_raw + shadow consensus by default).
+    season_vegas_refresh: bool = True
+    #: When true, overwrite sealed draft_assistant/data/vegas_consensus_{season}.json.
+    #: Default false — write shadow consensus under data/props/season_consensus/.
+    season_vegas_write_sealed: bool = False
 
     @classmethod
     def settings_customise_sources(

@@ -80,11 +80,37 @@ uv run python scripts/validate_compose_config.py    # [verified 2026-08-31]
 | `monday-night` | Monday 4:00 PM |
 | `weekly-close-preliminary` | Tuesday 5:00 AM |
 | `weekly-correction` | Wednesday 5:00 PM |
+| `weekly-props-open` | Wednesday 10:00 AM |
+| `weekly-props-market-close` | Daily 11:00 PM (EOD / market-close O/Us) |
+| `weekly-props-refresh-thu` | Thursday 5:00 PM |
+| `weekly-props-refresh-sat` | Saturday 10:00 AM |
+| `weekly-props-refresh-sun` | Sunday 8:00 AM |
 | `full-release` | On demand |
 
 Schedules are wall-clock local and converted to UTC through `zoneinfo`, so the
 two annual DST transitions are handled rather than assumed away. Weekly close
 postpones itself when the NFL week is not final.
+
+### Live Vegas / player props
+
+`WEEKLY_PROPS_MODE=live` (default) scrapes DraftKings + FanDuel over/unders on
+each weekly-props slot. DraftKings requires the `curl_cffi` dependency for TLS
+impersonation; FanDuel uses the public SBAPI. Snapshots land under
+`data/props/snapshots/`. With `SEASON_VEGAS_REFRESH=true`, the same job also
+writes season-long O/U closing lines into `draft_assistant/data/vegas_raw/` and
+rebuilds a **shadow** consensus at `data/props/season_consensus/` (sealed
+`vegas_consensus_{season}.json` is only overwritten when
+`SEASON_VEGAS_WRITE_SEALED=true`). Keep `WEEKLY_PROPS_SHADOW_ONLY=true` until
+gates look stable, then promote and optionally set
+`APP_PROJECTION_SOURCE=weekly_props`.
+
+Verify:
+
+```powershell
+uv run python -m src.app.jobs.scheduler list
+uv run python -m src.ingest.props.cli --season 2026 --week 2 --mode live
+uv run python -m src.app.jobs.scheduler run-once weekly-props-market-close
+```
 
 Run one job manually — **[verified 2026-08-31]**:
 
