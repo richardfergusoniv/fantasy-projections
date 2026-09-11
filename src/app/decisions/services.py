@@ -14,13 +14,14 @@ from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
-from src.app.availability.identity import PlayerIdentityResolver
+from src.app.availability.identity import PlayerIdentityResolver, normalize_name
 from src.app.decisions.draws import (
     DEFAULT_DRAW_COUNT,
     DrawSet,
     build_draw_set,
     stable_seed,
 )
+from src.draft_assistant.market_adp import canonicalize_player_name
 from src.app.decisions.lineup import (
     matchup_probabilities,
     swap_recommendations,
@@ -117,6 +118,71 @@ class _LeagueContext:
         )
         self.draw_count = draw_count
         self._identity = PlayerIdentityResolver(session)
+        self._props_name_index: dict[str, str] | None = None
+        self._props_player_ids: set[str] | None = None
+
+    def board_source(self) -> str:
+        """UI flip seam: vegas_props vs league_value for the active decision path."""
+        if self.projection_source == ProjectionSource.WEEKLY_PROPS:
+            return "vegas_props"
+        return "league_value"
+
+    def _uses_weekly_props_run(self) -> bool:
+        return (
+            self.projection_source == ProjectionSource.WEEKLY_PROPS
+            and self.run is not None
+            and is_weekly_props_run(self.run)
+        )
+
+    def _ensure_props_indexes(self) -> None:
+        """Index the active weekly_props run by player id and normalized name/team."""
+        if self._props_name_index is not None and self._props_player_ids is not None:
+            return
+        name_index: dict[str, str] = {}
+        player_ids: set[str] = set()
+        if self._uses_weekly_props_run():
+            assert self.run is not None
+            for row in self.projections.player_projections(self.run.id):
+                player_ids.add(row.player_id)
+                mean = row.mean_json or {}
+                raw_name = str(mean.get("name") or "")
+                canon = canonicalize_player_name(raw_name)
+                norm = normalize_name(raw_name)
+                team = str(mean.get("team") or row.team or "").upper()
+                for key in {canon, norm} - {""}:
+                    name_index.setdefault(key, row.player_id)
+                    if team:
+                        name_index.setdefault(f"{key}|{team}", row.player_id)
+        self._props_name_index = name_index
+        self._props_player_ids = player_ids
+
+    def _props_player_id_set(self) -> set[str]:
+        self._ensure_props_indexes()
+        assert self._props_player_ids is not None
+        return self._props_player_ids
+
+    def _match_props_by_name(
+        self, *, name: str | None, team: str | None = None
+    ) -> str | None:
+        """Map a Sleeper identity name onto a weekly_props projection id."""
+        if not name or not self._uses_weekly_props_run():
+            return None
+        self._ensure_props_indexes()
+        assert self._props_name_index is not None
+        canon = canonicalize_player_name(name)
+        norm = normalize_name(name)
+        team_key = str(team or "").upper()
+        for key in (canon, norm):
+            if not key:
+                continue
+            if team_key:
+                hit = self._props_name_index.get(f"{key}|{team_key}")
+                if hit:
+                    return hit
+            hit = self._props_name_index.get(key)
+            if hit:
+                return hit
+        return None
 
     def _uses_weekly_db_run(self) -> bool:
         if self.requested_source == ProjectionSource.WEEKLY_PROPS:
@@ -197,7 +263,12 @@ class _LeagueContext:
         return None
 
     def resolve_player_id(self, raw_id: str) -> str | None:
-        """Map a roster id (Sleeper or canonical) onto the projection id space."""
+        """Map a roster id (Sleeper or canonical) onto the projection id space.
+
+        For ``weekly_props``, prefer ids that exist on the props run. When GSIS /
+        sealed links are missing, fall back to name (+ team) against the run so
+        Sleeper roster identity alone is enough for the primary Vegas view.
+        """
         if not raw_id:
             return None
         key = str(raw_id)
@@ -221,8 +292,28 @@ class _LeagueContext:
                 .order_by(PlayerIdentity.player_id.asc())
                 .first()
             )
+
+        props_ids = self._props_player_id_set() if self._uses_weekly_props_run() else set()
+
         if row is not None:
             projected = projection_id_for_identity(row)
+            # Vegas-primary: accept the identity projection id when it is on the
+            # props run, even if the sealed bundle is cold.
+            if props_ids:
+                if projected in props_ids:
+                    return projected
+                if row.player_id in props_ids:
+                    return row.player_id
+                if row.gsis_id and row.gsis_id in props_ids:
+                    return row.gsis_id
+                by_name = self._match_props_by_name(name=row.name, team=row.team)
+                if by_name:
+                    return by_name
+                # Special-teams still use identity ids (simulator path).
+                if row.position in {"K", "DEF", "DST"}:
+                    return row.player_id
+                return None
+
             if self.bundle.get(projected) is not None or projected != row.player_id:
                 # Prefer an explicit GSIS link even before the bundle is warm.
                 if row.gsis_id or projected.startswith("00-"):
@@ -243,6 +334,9 @@ class _LeagueContext:
             if row.position in {"K", "DEF", "DST"}:
                 return row.player_id
             return None
+
+        if props_ids and key in props_ids:
+            return key
         if self.bundle.get(key) is not None:
             return key
         return None
@@ -283,12 +377,14 @@ class _LeagueContext:
                     availability_probability=float(row.availability_probability or 0.0),
                 )
 
-        for pid in wanted:
-            if pid in found:
-                continue
-            summary = self.bundle.get(pid)
-            if summary is not None:
-                found[pid] = summary
+        # Vegas-primary view: do not silently fill gaps from sealed_release.
+        if not self._uses_weekly_props_run():
+            for pid in wanted:
+                if pid in found:
+                    continue
+                summary = self.bundle.get(pid)
+                if summary is not None:
+                    found[pid] = summary
 
         still_missing = [pid for pid in wanted if pid not in found]
         if still_missing:
@@ -406,6 +502,8 @@ class _LeagueContext:
             "players_without_projection": missing,
             "baseline_scoring": self.bundle.meta.get("scoring"),
             "recentred_uncertainty_players": draw_set.recentred_players,
+            # Seam for League Value ↔ Vegas Props UI flip (in-season later).
+            "board_source": self.board_source(),
         }
         base.update(self.projection_context.to_dict())
         base.update(
@@ -751,16 +849,39 @@ class LineupService:
             opponent_totals=opponent_totals,
         )
 
+        # Prefer props-run / identity names over sealed bundle when on Vegas path
+        # (#53), while still emitting Matchup board bench/opponent rows (#56).
+        display_by_id: dict[str, tuple[str | None, str | None]] = {}
+        board_ids = list(
+            dict.fromkeys(
+                [
+                    *recommended.starters,
+                    *evaluation["opponent_starters"],
+                    *user_candidates,
+                    *opp_candidates,
+                ]
+            )
+        )
+        if ctx._uses_weekly_props_run() and ctx.run is not None and board_ids:
+            for row in ctx.projections.player_projections(ctx.run.id, board_ids):
+                mean = row.mean_json or {}
+                display_by_id[row.player_id] = (
+                    str(mean.get("name") or "") or None,
+                    mean.get("team") or row.team,
+                )
+        props_path = ctx._uses_weekly_props_run()
+
         def _player_row(
             pid: str, *, slot: str | None, on_bench: bool = False
         ) -> dict:
             player = draw_set.players[pid]
-            summary = ctx.bundle.get(pid)
+            summary = None if props_path else ctx.bundle.get(pid)
+            props_name, props_team = display_by_id.get(pid, (None, None))
             return {
                 "player_id": pid,
-                "name": summary.name if summary else pid,
+                "name": props_name or (summary.name if summary else None) or pid,
                 "position": player.position,
-                "team": summary.team if summary else None,
+                "team": props_team or (summary.team if summary else None),
                 "slot": "BN" if on_bench else slot,
                 "expected_points": round(player.mean, 3),
                 "points_p10": round(player.percentile(0.1), 3),
@@ -825,6 +946,7 @@ class LineupService:
             "win_probability": probs.get("win") if matchup_allowed else None,
             "matchup_win_probability_available": matchup_allowed,
             "capability_mode": ctx.projection_context.capability_mode,
+            "board_source": ctx.board_source(),
             "current_lineup_probabilities": evaluation["current_probabilities"]
             if matchup_allowed
             else None,
