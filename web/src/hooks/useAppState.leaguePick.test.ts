@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { LeagueSummary } from "../api/types";
-import { ACTIVE_SEASON, pickPreferredLeagueId } from "./useAppState";
+import {
+  ACTIVE_SEASON,
+  pickPreferredLeagueId,
+  shouldKeepSelectedLeague,
+} from "./useAppState";
 
 function league(
   partial: Partial<LeagueSummary> & Pick<LeagueSummary, "id" | "name" | "season">,
@@ -40,7 +44,6 @@ describe("pickPreferredLeagueId", () => {
     ];
     expect(pickPreferredLeagueId(items, ["a", "b"], "b", { showAll: false })).toBe("b");
   });
-});
 
   it("still prefers owner-ready leagues when showAll is true", () => {
     const items = [
@@ -57,3 +60,53 @@ describe("pickPreferredLeagueId", () => {
       pickPreferredLeagueId(items, ["owned"], "hist", { showAll: true }),
     ).toBe("owned");
   });
+
+  it("keeps the current active league when no decision-ready leagues exist", () => {
+    const items = [
+      league({ id: "fixture-standard", name: "Standard", season: ACTIVE_SEASON }),
+      league({ id: "fixture-superflex", name: "Superflex", season: ACTIVE_SEASON }),
+    ];
+    expect(
+      pickPreferredLeagueId(items, [], "fixture-superflex", { showAll: false }),
+    ).toBe("fixture-superflex");
+  });
+});
+
+describe("shouldKeepSelectedLeague", () => {
+  it("keeps any active-season pick when no leagues are decision-ready", () => {
+    const items = [
+      league({ id: "fixture-standard", name: "Standard", season: ACTIVE_SEASON }),
+      league({ id: "fixture-superflex", name: "Superflex", season: ACTIVE_SEASON }),
+    ];
+    expect(shouldKeepSelectedLeague(items[1], items)).toBe(true);
+  });
+
+  it("snaps away from a non-ready active pick when a ready league exists", () => {
+    const items = [
+      league({
+        id: "ready",
+        name: "Ready",
+        season: ACTIVE_SEASON,
+        owner_roster_id: 1,
+        decision_ready: true,
+      }),
+      league({ id: "orphan", name: "Orphan", season: ACTIVE_SEASON }),
+    ];
+    expect(shouldKeepSelectedLeague(items[1], items)).toBe(false);
+    expect(shouldKeepSelectedLeague(items[0], items)).toBe(true);
+  });
+
+  it("does not keep historical selections", () => {
+    const items = [
+      league({ id: "hist", name: "2025", season: 2025 }),
+      league({
+        id: "ready",
+        name: "Ready",
+        season: ACTIVE_SEASON,
+        owner_roster_id: 1,
+        decision_ready: true,
+      }),
+    ];
+    expect(shouldKeepSelectedLeague(items[0], items)).toBe(false);
+  });
+});
