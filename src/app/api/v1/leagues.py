@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.app.api.deps import (
@@ -117,9 +120,49 @@ def _meta(session: Session, league_id: str, *, week: int = 1) -> dict:
 
 
 @router.get("/leagues")
-def list_leagues(user: AppUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def list_leagues(
+    user: AppUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    include_all: Annotated[
+        bool,
+        Query(
+            description=(
+                "When false (default), omit historical/empty-membership leagues that "
+                "cannot resolve owner decisions. Pass true for ops/debug."
+            ),
+        ),
+    ] = False,
+):
+    from src.app.config import get_settings
+    from src.app.decisions.services import _owner_user_id_candidates
+
+    settings = get_settings()
+    active_season = 2026
     leagues = db.query(League).all()
     configured_ids = _configured_league_ids()
+    owner_keys = _owner_user_id_candidates(settings)
+    owner_roster_by_league: dict[str, int] = {}
+    if owner_keys:
+        for member in (
+            db.query(LeagueMember)
+            .filter(LeagueMember.user_id.in_(owner_keys))
+            .all()
+        ):
+            # One owner roster per league is expected; keep the lowest id if
+            # duplicates ever appear so the payload stays deterministic.
+            current = owner_roster_by_league.get(member.league_id)
+            if current is None or member.roster_id < current:
+                owner_roster_by_league[member.league_id] = member.roster_id
+
+    member_count_by_league: dict[str, int] = {
+        league_id: count
+        for league_id, count in (
+            db.query(LeagueMember.league_id, func.count(LeagueMember.id))
+            .group_by(LeagueMember.league_id)
+            .all()
+        )
+    }
+
     payload = []
     for league in leagues:
         snapshot = (
@@ -131,6 +174,10 @@ def list_leagues(user: AppUser = Depends(get_current_user), db: Session = Depend
         scoring_type = "custom"
         if snapshot and snapshot.normalized_json:
             scoring_type = snapshot.normalized_json.get("scoring_type", scoring_type)
+        owner_roster_id = owner_roster_by_league.get(league.league_id)
+        is_configured = league.league_id in configured_ids if configured_ids else True
+        member_count = int(member_count_by_league.get(league.league_id, 0))
+        decision_ready = owner_roster_id is not None
         payload.append(
             {
                 "id": league.league_id,
@@ -140,15 +187,36 @@ def list_leagues(user: AppUser = Depends(get_current_user), db: Session = Depend
                 "season": league.season,
                 "scoring_type": scoring_type,
                 "is_dynasty": league.league_type == "dynasty",
-                "is_configured": (
-                    league.league_id in configured_ids if configured_ids else True
-                ),
+                "is_configured": is_configured,
+                "owner_roster_id": owner_roster_id,
+                "member_count": member_count,
+                "decision_ready": decision_ready,
                 "roster_positions": league.raw_json.get("roster_positions", []) if league.raw_json else [],
             }
         )
-    meta = _meta(db, leagues[0].league_id if leagues else "")
+
+    if not include_all:
+        # Keep the active season (and any decision-ready league). Drop historical
+        # empty-membership shells that only exist from season-chain sync.
+        payload = [
+            row
+            for row in payload
+            if row["decision_ready"]
+            or (
+                row["is_configured"]
+                and int(row["season"] or 0) == active_season
+            )
+        ]
+
+    meta = _meta(db, payload[0]["league_id"] if payload else (leagues[0].league_id if leagues else ""))
     if configured_ids:
         meta["configured_league_ids"] = sorted(configured_ids)
+    meta["active_season"] = active_season
+    decision_ready_ids = [row["league_id"] for row in payload if row.get("decision_ready")]
+    meta["decision_ready_league_ids"] = decision_ready_ids
+    meta["default_league_id"] = decision_ready_ids[0] if decision_ready_ids else (
+        payload[0]["league_id"] if payload else None
+    )
     return {"leagues": payload, **meta}
 
 

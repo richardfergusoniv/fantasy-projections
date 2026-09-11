@@ -421,6 +421,80 @@ class _LeagueContext:
         return base
 
 
+_USERNAME_TO_USER_ID_CACHE: dict[str, str | None] = {}
+
+
+def _configured_sleeper_username(settings) -> str | None:
+    username = (settings.sleeper_username or "").strip() or None
+    if username:
+        return username
+    if settings.sleeper_owner_config or settings.sleeper_owner_json:
+        try:
+            from src.app.league.sleeper.owner_config import load_owner_config
+
+            loaded = (load_owner_config().username or "").strip()
+            return loaded or None
+        except (FileNotFoundError, OSError, ValueError):
+            return None
+    return None
+
+
+def _lookup_user_id_for_username(username: str, *, use_fixtures: bool) -> str | None:
+    """Resolve a Sleeper username to user_id (cached; read-only GET)."""
+    cache_key = username.strip().lower()
+    if cache_key in _USERNAME_TO_USER_ID_CACHE:
+        return _USERNAME_TO_USER_ID_CACHE[cache_key]
+    try:
+        from src.app.league.sleeper.client import SleeperClient
+
+        payload = SleeperClient(use_fixtures=use_fixtures).get_user(username.strip())
+        user_id = str(payload.get("user_id") or "").strip() or None
+    except Exception:
+        user_id = None
+    _USERNAME_TO_USER_ID_CACHE[cache_key] = user_id
+    return user_id
+
+
+def _owner_user_id_candidates(settings) -> list[str]:
+    """Ordered Sleeper user ids that may identify the configured owner.
+
+    Prefer the configured ``SLEEPER_USER_ID``. When that is missing or does not
+    match league memberships (quoted/stale id, etc.), also try resolving
+    ``SLEEPER_USERNAME`` / owner-config username via the Sleeper user endpoint.
+    """
+    candidates: list[str] = []
+    seen: set[str] = set()
+
+    def _add(value: str | None) -> None:
+        if not value:
+            return
+        key = str(value).strip()
+        if not key or key in seen:
+            return
+        seen.add(key)
+        candidates.append(key)
+
+    _add(settings.sleeper_user_id)
+    username = _configured_sleeper_username(settings)
+    if username:
+        _add(_lookup_user_id_for_username(username, use_fixtures=settings.use_sleeper_fixtures))
+    return candidates
+
+
+def _members_for_owner_keys(session: Session, league_id: str, owner_keys: list[str]):
+    if not owner_keys:
+        return []
+    return (
+        session.query(LeagueMember)
+        .filter(
+            LeagueMember.league_id == league_id,
+            LeagueMember.user_id.in_(owner_keys),
+        )
+        .order_by(LeagueMember.roster_id.asc())
+        .all()
+    )
+
+
 def _resolve_owner_roster_id(
     session: Session, league_id: str, *, explicit_roster_id: int | None
 ) -> int:
@@ -431,10 +505,14 @@ def _resolve_owner_roster_id(
     assistant requests use the stable Sleeper user id imported into
     ``league_member``.
 
+    When ``SLEEPER_USER_ID`` does not match a membership, fall back to
+    ``SLEEPER_USERNAME`` (or owner-config username) resolved through Sleeper so
+    a quoted/stale id cannot strand an otherwise correct deployment.
+
     Production fails closed when the owner identity is missing or ambiguous so
     recommendations cannot silently target another manager. Fixture and local
-    development retain the legacy roster-``1`` fallback only when
-    ``SLEEPER_USER_ID`` is unset.
+    development retain the legacy roster-``1`` fallback only when no owner
+    identity is configured.
     """
     if explicit_roster_id is not None:
         return explicit_roster_id
@@ -442,18 +520,36 @@ def _resolve_owner_roster_id(
     from src.app.config import get_settings
 
     settings = get_settings()
-    sleeper_user_id = settings.sleeper_user_id
-    if sleeper_user_id:
+    owner_keys = _owner_user_id_candidates(settings)
+    username = _configured_sleeper_username(settings)
+
+    members = _members_for_owner_keys(session, league_id, owner_keys)
+    if not members and username:
+        # Last-resort in-DB match: some syncs store the Sleeper username as the
+        # member display name even when the configured user id is wrong.
         members = (
             session.query(LeagueMember)
             .filter(
                 LeagueMember.league_id == league_id,
-                LeagueMember.user_id == str(sleeper_user_id),
+                LeagueMember.display_name.ilike(username),
             )
             .order_by(LeagueMember.roster_id.asc())
             .all()
         )
+
+    if owner_keys or username:
         if not members:
+            league_member_count = (
+                session.query(LeagueMember)
+                .filter(LeagueMember.league_id == league_id)
+                .count()
+            )
+            if league_member_count == 0:
+                # Historical seasons are often imported without users/rosters.
+                # That is a sync/coverage gap, not a wrong SLEEPER_USER_ID.
+                raise LeagueContextError(
+                    f"league_membership_not_synced:league={league_id}"
+                )
             raise LeagueContextError(f"owner_roster_not_found:league={league_id}")
         roster_ids = sorted({member.roster_id for member in members})
         if len(roster_ids) > 1:
@@ -467,6 +563,7 @@ def _resolve_owner_roster_id(
     return 1
 
 
+
 def _public_decision_error(exc: Exception) -> tuple[str, str]:
     """Map internal LeagueContextError reasons to safe public codes."""
     reason = str(exc)
@@ -475,6 +572,11 @@ def _public_decision_error(exc: Exception) -> tuple[str, str]:
             "owner_identity_unconfigured",
             "owner_roster_unavailable",
             "Owner roster is not configured for this deployment. Set SLEEPER_USER_ID and re-sync.",
+        ),
+        (
+            "league_membership_not_synced",
+            "league_membership_unavailable",
+            "This league has no synced memberships. Select an active configured league or run sync.",
         ),
         (
             "owner_roster_not_found",

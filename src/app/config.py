@@ -164,6 +164,40 @@ class Settings(BaseSettings):
             return None
         return value
 
+    @field_validator("sleeper_user_id", mode="before")
+    @classmethod
+    def _normalize_sleeper_user_id(cls, value: object) -> object:
+        """Strip whitespace/quotes from dashboard-pasted Sleeper user ids.
+
+        Vercel/GitHub secret UIs often wrap values in quotes or leave trailing
+        newlines. Those would never match ``league_member.user_id`` and surface
+        as ``owner_roster_unavailable`` on every decision request.
+
+        Coerce ints to strings so large Sleeper snowflake ids stay exact if a
+        JSON/env parser ever promotes the value to a number.
+        """
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, int):
+            return str(value)
+        if not isinstance(value, str):
+            return value
+        cleaned = value.strip().strip("\"'")
+        return cleaned or None
+
+    @field_validator("sleeper_username", mode="before")
+    @classmethod
+    def _normalize_sleeper_username(cls, value: object) -> object:
+        """Strip whitespace/quotes from dashboard-pasted Sleeper usernames."""
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            return value
+        cleaned = value.strip().strip("\"'")
+        return cleaned or None
+
     @field_validator("app_cors_origins")
     @classmethod
     def _split_origins(cls, value: str) -> str:

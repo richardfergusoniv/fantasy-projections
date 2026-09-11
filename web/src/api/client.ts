@@ -104,7 +104,9 @@ export function recoveryActionForError(error: unknown): string | null {
   }
   switch (error.code) {
     case "owner_roster_unavailable":
-      return "Fix SLEEPER_USER_ID / owner membership, then run sync from Operations.";
+      return "Confirm SLEEPER_USER_ID matches your Sleeper account, then run sync from Operations.";
+    case "league_membership_unavailable":
+      return "Select an active 2026 configured league (historical seasons often have no synced memberships).";
     case "roster_snapshot_unavailable":
       return "Select another week or run sync from Operations.";
     case "matchup_snapshot_incomplete":
@@ -260,11 +262,24 @@ export class ApiClient {
     return this.request(`/jobs/${jobId}`);
   }
 
-  getLeagues(): Promise<{ leagues: LeagueSummary[]; configuredLeagueIds: string[] }> {
+  getLeagues(): Promise<{
+    leagues: LeagueSummary[];
+    configuredLeagueIds: string[];
+    activeSeason?: number;
+    defaultLeagueId?: string | null;
+    decisionReadyLeagueIds?: string[];
+  }> {
     return this.request<RawRecord>("/leagues").then((raw) => ({
       leagues: adaptLeagues(raw),
       configuredLeagueIds: Array.isArray(raw.configured_league_ids)
         ? raw.configured_league_ids.map(String)
+        : [],
+      activeSeason:
+        raw.active_season == null ? undefined : Number(raw.active_season),
+      defaultLeagueId:
+        raw.default_league_id == null ? null : String(raw.default_league_id),
+      decisionReadyLeagueIds: Array.isArray(raw.decision_ready_league_ids)
+        ? raw.decision_ready_league_ids.map(String)
         : [],
     }));
   }

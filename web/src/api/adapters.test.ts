@@ -1,5 +1,34 @@
 import { describe, expect, it } from "vitest";
-import { adaptLineup } from "./adapters";
+import { adaptLeagues, adaptLineup } from "./adapters";
+
+describe("adaptLeagues", () => {
+  it("preserves owner_roster_id including null for unsynced memberships", () => {
+    const leagues = adaptLeagues({
+      leagues: [
+        {
+          id: "owned",
+          league_id: "owned",
+          name: "Owned",
+          season: 2026,
+          owner_roster_id: 6,
+          decision_ready: true,
+        },
+        {
+          id: "orphan",
+          league_id: "orphan",
+          name: "Orphan",
+          season: 2025,
+          owner_roster_id: null,
+          decision_ready: false,
+        },
+      ],
+    });
+    expect(leagues[0].owner_roster_id).toBe(6);
+    expect(leagues[1].owner_roster_id).toBeNull();
+    expect(leagues[0].decision_ready).toBe(true);
+    expect(leagues[1].decision_ready).toBe(false);
+  });
+});
 
 describe("adaptLineup", () => {
   it("does not fabricate win probability when the API withholds it", () => {

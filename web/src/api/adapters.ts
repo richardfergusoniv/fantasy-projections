@@ -79,6 +79,18 @@ export function adaptLeagues(raw: RawRecord): LeagueSummary[] {
     roster_positions: (league.roster_positions as string[]) ?? [],
     is_dynasty: Boolean(league.is_dynasty ?? league.type === "dynasty"),
     is_configured: league.is_configured !== false,
+    owner_roster_id:
+      league.owner_roster_id == null || league.owner_roster_id === ""
+        ? null
+        : Number(league.owner_roster_id),
+    decision_ready:
+      league.decision_ready == null
+        ? league.owner_roster_id != null && league.owner_roster_id !== ""
+        : Boolean(league.decision_ready),
+    member_count:
+      league.member_count == null || league.member_count === ""
+        ? undefined
+        : Number(league.member_count),
   }));
 }
 
