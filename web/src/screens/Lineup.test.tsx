@@ -207,10 +207,14 @@ describe("Matchup board", () => {
     expect(vegas).toBeDisabled();
   });
 
-  it("does not fan out injury lookups for every starter when there are no swaps", async () => {
+  it("loads injury evidence for starters even when there are no swaps", async () => {
     renderLineup();
     await screen.findByText("Patrick Mahomes");
-    expect(getInjuryEvidence).not.toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(getInjuryEvidence).toHaveBeenCalled();
+    });
+    // Swap-only players are not required; starters are enough for board citations.
+    expect(getInjuryEvidence.mock.calls.some((call) => call[0] === "qb1")).toBe(true);
   });
 
   it("applies a recommended swap onto the board", async () => {

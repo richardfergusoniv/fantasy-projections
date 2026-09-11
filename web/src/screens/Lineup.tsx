@@ -218,11 +218,17 @@ export function LineupScreen() {
   const modeLabel =
     OPPONENT_MODES.find((option) => option.value === opponentMode)?.label ?? opponentMode;
 
+  // Starters + swap participants: actionable evidence (e.g. questionable QB) must
+  // still surface on the board even when the optimizer recommends no swaps.
+  // Inert placeholders are filtered in the UI via isActionableInjuryEvidence.
   const evidencePlayerIds = useMemo(() => {
-    return (lineup.data?.swaps ?? []).flatMap((swap) => [
+    if (!lineup.data) return [];
+    const fromStarters = lineup.data.starters.map((player) => player.player_id);
+    const fromSwaps = lineup.data.swaps.flatMap((swap) => [
       swap.in_player_id,
       swap.out_player_id,
     ]);
+    return [...fromStarters, ...fromSwaps];
   }, [lineup.data]);
   const evidence = useInjuryEvidence(evidencePlayerIds);
 
