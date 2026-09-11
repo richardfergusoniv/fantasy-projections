@@ -28,6 +28,9 @@ concurrency:
 jobs:
   cleanup:
     runs-on: ubuntu-latest
+    # VERCEL_* secrets are stored on the GitHub "production" environment
+    # (same as Deploy Production), not as repo-level secrets.
+    environment: production
     steps:
       - uses: actions/checkout@v4
 
