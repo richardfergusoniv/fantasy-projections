@@ -366,12 +366,23 @@ def matchup_probabilities(
     )
 
     opponent_source = opponent_mode
+    opponent_assignments = dict(opponent_lineup.assignments)
     if opponent_mode == "current":
         submitted = [
             pid for pid in (opponent_submitted_starters or []) if pid in draw_set.players
         ]
         if submitted:
             opponent_ids = submitted
+            # Legal slot labels for the submitted set (display only — does not
+            # change which players score in the matchup totals).
+            seats = expand_seats(contract)
+            opp_players = [draw_set.players[pid] for pid in opponent_ids]
+            opponent_assignments, _ = _assign_optimal(
+                seats,
+                opp_players,
+                _mean_scores(draw_set, opp_players),
+                required_player_ids=frozenset(opponent_ids),
+            )
         else:
             opponent_ids = opponent_lineup.starters
             opponent_source = "optimized_fallback_no_submitted_lineup"
@@ -399,6 +410,7 @@ def matchup_probabilities(
         "opponent_mode": opponent_mode,
         "opponent_lineup_source": opponent_source,
         "opponent_starters": opponent_ids,
+        "opponent_assignments": opponent_assignments,
         "opponent_expected_points": float(opponent_totals.mean())
         if opponent_totals.size
         else 0.0,

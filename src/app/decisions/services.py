@@ -849,40 +849,78 @@ class LineupService:
             opponent_totals=opponent_totals,
         )
 
-        starter_details = []
-        # Prefer props-run / identity names over sealed bundle when on Vegas path.
+        # Prefer props-run / identity names over sealed bundle when on Vegas path
+        # (#53), while still emitting Matchup board bench/opponent rows (#56).
         display_by_id: dict[str, tuple[str | None, str | None]] = {}
-        if ctx._uses_weekly_props_run() and ctx.run is not None:
-            for row in ctx.projections.player_projections(
-                ctx.run.id, list(recommended.starters)
-            ):
+        board_ids = list(
+            dict.fromkeys(
+                [
+                    *recommended.starters,
+                    *evaluation["opponent_starters"],
+                    *user_candidates,
+                    *opp_candidates,
+                ]
+            )
+        )
+        if ctx._uses_weekly_props_run() and ctx.run is not None and board_ids:
+            for row in ctx.projections.player_projections(ctx.run.id, board_ids):
                 mean = row.mean_json or {}
                 display_by_id[row.player_id] = (
                     str(mean.get("name") or "") or None,
                     mean.get("team") or row.team,
                 )
-        for pid in recommended.starters:
+        props_path = ctx._uses_weekly_props_run()
+
+        def _player_row(
+            pid: str, *, slot: str | None, on_bench: bool = False
+        ) -> dict:
             player = draw_set.players[pid]
-            summary = None if ctx._uses_weekly_props_run() else ctx.bundle.get(pid)
+            summary = None if props_path else ctx.bundle.get(pid)
             props_name, props_team = display_by_id.get(pid, (None, None))
-            starter_details.append(
-                {
-                    "player_id": pid,
-                    "name": props_name
-                    or (summary.name if summary else None)
-                    or pid,
-                    "position": player.position,
-                    "team": props_team or (summary.team if summary else None),
-                    "slot": recommended.assignments.get(pid),
-                    "expected_points": round(player.mean, 3),
-                    "points_p10": round(player.percentile(0.1), 3),
-                    "points_p50": round(player.percentile(0.5), 3),
-                    "points_p90": round(player.percentile(0.9), 3),
-                    "availability_probability": round(player.availability_probability, 4),
-                    "draw_mode": player.mode,
-                    "locked": player.locked,
-                }
-            )
+            return {
+                "player_id": pid,
+                "name": props_name or (summary.name if summary else None) or pid,
+                "position": player.position,
+                "team": props_team or (summary.team if summary else None),
+                "slot": "BN" if on_bench else slot,
+                "expected_points": round(player.mean, 3),
+                "points_p10": round(player.percentile(0.1), 3),
+                "points_p50": round(player.percentile(0.5), 3),
+                "points_p90": round(player.percentile(0.9), 3),
+                "availability_probability": round(player.availability_probability, 4),
+                "draw_mode": player.mode,
+                "locked": player.locked,
+            }
+
+        starter_details = [
+            _player_row(pid, slot=recommended.assignments.get(pid))
+            for pid in recommended.starters
+        ]
+        opp_assignments = evaluation.get("opponent_assignments") or {}
+        opponent_starter_details = [
+            _player_row(pid, slot=opp_assignments.get(pid))
+            for pid in evaluation["opponent_starters"]
+            if pid in draw_set.players
+        ]
+        recommended_set = set(recommended.starters)
+        bench_details = [
+            _player_row(pid, slot=None, on_bench=True)
+            for pid in user_candidates
+            if pid not in recommended_set
+        ]
+        # Highest projected bench first — mirrors start/sit browsing.
+        bench_details.sort(
+            key=lambda row: float(row["expected_points"] or 0.0), reverse=True
+        )
+        opp_starter_set = set(evaluation["opponent_starters"])
+        opponent_bench_details = [
+            _player_row(pid, slot=None, on_bench=True)
+            for pid in opp_candidates
+            if pid not in opp_starter_set
+        ]
+        opponent_bench_details.sort(
+            key=lambda row: float(row["expected_points"] or 0.0), reverse=True
+        )
 
         provenance = ctx.provenance(draw_set, missing)
         if matchup_degraded_reason:
@@ -891,12 +929,14 @@ class LineupService:
                 "matchup_degraded": True,
                 "matchup_degraded_reason": matchup_degraded_reason,
             }
+        opponent_roster_id = opponent.roster_id if opponent is not None else None
         return {
             "week": week,
             "opponent_mode": opponent_mode,
             "opponent_lineup_source": evaluation["opponent_lineup_source"],
             "recommended_starters": recommended.starters,
             "starters": starter_details,
+            "bench": bench_details,
             "slot_assignments": recommended.assignments,
             "unfilled_seats": recommended.unfilled_seats,
             "expected_points": round(recommended.expected_points, 4),
@@ -912,7 +952,10 @@ class LineupService:
             else None,
             "current_starters": evaluation["current_starters"],
             "current_expected_points": round(evaluation["current_expected_points"], 4),
+            "opponent_roster_id": opponent_roster_id,
             "opponent_starters": evaluation["opponent_starters"],
+            "opponent_starter_details": opponent_starter_details,
+            "opponent_bench": opponent_bench_details,
             "opponent_expected_points": round(evaluation["opponent_expected_points"], 4),
             "recommended_swaps": swaps,
             "swaps": swaps,

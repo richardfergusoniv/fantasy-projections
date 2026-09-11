@@ -12,7 +12,7 @@ test.describe("screen smoke (production bundle)", () => {
       exactHeading?: boolean;
     }> = [
       { link: "Home", heading: "Decisions", exactHeading: true },
-      { link: "Lineup", heading: /Lineup/i },
+      { link: "Matchup", heading: /Matchup/i },
       { link: "Waivers", heading: /Waivers/i },
       { link: "Trade", heading: /Trade Lab/i, exact: false },
       { link: "Draft", heading: /Draft assistant/i },

@@ -5,7 +5,9 @@ import type {
   Citation,
   InjuryEvidence,
   LeagueSummary,
+  LineupBoardSource,
   LineupRecommendation,
+  LineupStarter,
   MagicLinkResponse,
   ManagerTendencies,
   PointsRange,
@@ -120,15 +122,69 @@ export function adaptRosters(raw: RawRecord): Roster[] {
   }));
 }
 
+function adaptLineupStarter(raw: RawRecord): LineupStarter {
+  const points = pointsRangeFrom({
+    expected_points: raw.expected_points ?? raw.points_mean ?? raw.points,
+    quantiles: {
+      "0.1": raw.points_p10,
+      "0.5": raw.points_p50,
+      "0.9": raw.points_p90,
+      ...(typeof raw.quantiles === "object" && raw.quantiles ? (raw.quantiles as RawRecord) : {}),
+    },
+  });
+  return {
+    player_id: String(raw.player_id ?? ""),
+    name: String(raw.name ?? raw.player_id ?? ""),
+    position: String(raw.position ?? "FLEX"),
+    team: raw.team ? String(raw.team) : undefined,
+    slot: raw.slot ? String(raw.slot) : undefined,
+    expected_points: points.mean,
+    points_p10: points.p10,
+    points_p50: points.p50,
+    points_p90: points.p90,
+    opponent: raw.opponent != null ? String(raw.opponent) : raw.nfl_opponent != null ? String(raw.nfl_opponent) : null,
+    locked: Boolean(raw.locked),
+  };
+}
+
+function adaptBoardSource(raw: RawRecord): LineupBoardSource | undefined {
+  const direct = raw.board_source ?? (raw.meta as RawRecord | undefined)?.board_source;
+  if (direct === "vegas_props" || direct === "league_value") {
+    return direct;
+  }
+  const effective = String(
+    raw.effective_source ?? (raw.meta as RawRecord | undefined)?.effective_source ?? "",
+  );
+  if (effective === "weekly_props") return "vegas_props";
+  if (effective === "sealed_release" || effective === "status_adjusted_release") {
+    return "league_value";
+  }
+  return undefined;
+}
+
 export function adaptLineup(raw: RawRecord): LineupRecommendation {
   const meta = metaFrom(raw);
   const swaps = (raw.swaps as RawRecord[] | undefined) ?? [];
   const probabilities = (raw.matchup_probabilities as Record<string, unknown> | undefined) ?? {};
   const matchupAllowed = raw.matchup_win_probability_available !== false;
+  const startersRaw = (raw.starters as RawRecord[] | undefined) ?? [];
+  const benchRaw = (raw.bench as RawRecord[] | undefined) ?? [];
+  // Prefer enriched detail rows; fall back to empty when API only published IDs.
+  const oppStarterRaw =
+    (raw.opponent_starter_details as RawRecord[] | undefined) ??
+    (Array.isArray(raw.opponent_starters) &&
+    raw.opponent_starters.length > 0 &&
+    typeof raw.opponent_starters[0] === "object"
+      ? (raw.opponent_starters as RawRecord[])
+      : []);
+  const oppBenchRaw = (raw.opponent_bench as RawRecord[] | undefined) ?? [];
   return {
     week: Number(raw.week),
     opponent_mode: (raw.opponent_mode as LineupRecommendation["opponent_mode"]) ?? "current",
-    starters: (raw.starters as LineupRecommendation["starters"]) ?? [],
+    starters: startersRaw.map(adaptLineupStarter),
+    bench: benchRaw.map(adaptLineupStarter),
+    opponent_starters: oppStarterRaw.map(adaptLineupStarter),
+    opponent_bench: oppBenchRaw.map(adaptLineupStarter),
     swaps: swaps.map((swap) => ({
       out_player_id: String(swap.out_player_id ?? swap.drop ?? ""),
       in_player_id: String(swap.in_player_id ?? swap.add ?? ""),
@@ -144,7 +200,21 @@ export function adaptLineup(raw: RawRecord): LineupRecommendation {
       loss: numberOrNull(probabilities.loss),
     },
     points: pointsRangeFrom(raw),
+    opponent_expected_points: numberOrNull(raw.opponent_expected_points),
+    opponent_roster_id:
+      raw.opponent_roster_id == null || raw.opponent_roster_id === ""
+        ? null
+        : Number(raw.opponent_roster_id),
+    opponent_lineup_source: raw.opponent_lineup_source
+      ? String(raw.opponent_lineup_source)
+      : undefined,
     contract_hash: raw.contract_hash ? String(raw.contract_hash) : undefined,
+    board_source: adaptBoardSource(raw),
+    effective_source: raw.effective_source
+      ? String(raw.effective_source)
+      : (raw.meta as RawRecord | undefined)?.effective_source
+        ? String((raw.meta as RawRecord).effective_source)
+        : undefined,
     meta,
   };
 }

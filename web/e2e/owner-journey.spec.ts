@@ -28,22 +28,25 @@ test.describe("owner journey", () => {
     // A Superflex dynasty league, so the lineup below must fill a SUPER_FLEX seat.
     await selectLeague(page, "fixture-superflex");
 
-    // -------------------------------------------------------------- lineup
-    await page.getByRole("link", { name: "Lineup" }).click();
+    // -------------------------------------------------------------- matchup
+    await page.getByRole("link", { name: "Matchup" }).click();
     await expect(page.getByRole("group", { name: /Matchup assumption/i })).toBeVisible();
 
     const modeBanner = page.getByTestId("active-opponent-mode");
-    await expect(modeBanner).toContainText("opponent_mode=current");
-    await expect(page.getByText(/Win probability under/i)).toBeVisible();
+    // Human-readable week + assumption label (no raw opponent_mode=… dump).
+    await expect(modeBanner).toContainText(/Opponent's current lineup/i);
+    await expect(page.getByLabel("Matchup summary")).toBeVisible();
+    await expect(page.getByText("Win%", { exact: true })).toBeVisible();
 
-    // Recommended starters are real players from the seeded roster, and the
-    // uncertainty band is shown rather than a bare point estimate.
-    const starters = page.locator(".starter-row, .starter-list li");
-    await expect(starters.first()).toBeVisible();
+    // Recommended starters are real players from the seeded roster on the
+    // you-vs-opponent board, with a projection mean shown.
+    const board = page.getByLabel("Starter matchup board");
+    await expect(board.locator(".matchup-board-row").first()).toBeVisible();
+    await expect(board.locator(".lineup-proj-mean").first()).toBeVisible();
 
     // Changing the matchup assumption must reach the server, not just relabel.
-    await page.getByLabel("Opponent's best possible lineup").check();
-    await expect(modeBanner).toContainText("opponent_mode=optimized");
+    await page.getByRole("button", { name: "Best possible" }).click();
+    await expect(modeBanner).toContainText(/Opponent's best possible lineup/i);
 
     // ------------------------------------------------------------- waivers
     await page.getByRole("link", { name: "Waivers" }).click();
@@ -92,11 +95,11 @@ test.describe("owner journey", () => {
     await page.getByRole("button", { name: "Run daily refresh" }).click();
     await expect(page.getByText(/Daily refresh: Job /)).toBeVisible({ timeout: 60_000 });
 
-    // Josh Allen is questionable in the fixture payload and starts for roster 1
-    // of the standard league.
+    // Josh Allen is questionable in the fixture payload; Matchup surfaces
+    // actionable injury as a status pill (not the old "Status …" prose).
     await selectLeague(page, "fixture-standard");
-    await page.getByRole("link", { name: "Lineup" }).click();
-    await expect(page.getByText(/Status questionable|Status .*questionable/i).first()).toBeVisible();
+    await page.getByRole("link", { name: "Matchup" }).click();
+    await expect(page.locator(".injury-pill").filter({ hasText: /questionable/i }).first()).toBeVisible();
 
     const citation = page.locator(".citation-list a").first();
     await expect(citation).toBeVisible();
@@ -114,7 +117,7 @@ test.describe("owner journey", () => {
   test("league selection survives a reload and stays league-specific", async ({ page }) => {
     await signIn(page);
     await selectLeague(page, "fixture-ppfd");
-    await page.getByRole("link", { name: "Lineup" }).click();
+    await page.getByRole("link", { name: "Matchup" }).click();
     const before = await page.getByTestId("active-opponent-mode").textContent();
 
     await page.reload();
@@ -126,7 +129,9 @@ test.describe("owner journey", () => {
     await expect(select).toBeEnabled();
     await expect(select).toHaveValue("fixture-ppfd");
     await expect(page.getByTestId("active-opponent-mode")).toContainText(
-      (before ?? "").includes("optimized") ? "optimized" : "current",
+      (before ?? "").toLowerCase().includes("best possible")
+        ? /Opponent's best possible lineup/i
+        : /Opponent's current lineup/i,
     );
     // The PPFD league has no kicker or defense seat, so its lineup must not
     // show one even though the previously selected league did.
@@ -145,7 +150,7 @@ test.describe("owner journey", () => {
 
   test("the shell fits a phone viewport without horizontal scroll", async ({ page }) => {
     await signIn(page);
-    await page.getByRole("link", { name: "Lineup" }).click();
+    await page.getByRole("link", { name: "Matchup" }).click();
     await expect(page.getByTestId("active-opponent-mode")).toBeVisible();
 
     const overflow = await page.evaluate(
