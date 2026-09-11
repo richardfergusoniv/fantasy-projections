@@ -302,6 +302,28 @@ def test_quoted_sleeper_user_id_still_resolves_owner(monkeypatch, db_session: Se
     get_settings.cache_clear()
 
 
+def test_numeric_sleeper_user_id_coerces_to_exact_string(monkeypatch, db_session: Session):
+    # Constructor path covers JSON/env parsers that promote snowflakes to int.
+    get_settings.cache_clear()
+    from src.app.config import Settings
+
+    settings = Settings(sleeper_user_id=739931264659927040)  # type: ignore[arg-type]
+    assert settings.sleeper_user_id == "739931264659927040"
+    db_session.add(
+        LeagueMember(
+            league_id="league-1",
+            user_id="739931264659927040",
+            roster_id=9,
+            display_name="Owner",
+        )
+    )
+    db_session.flush()
+    monkeypatch.setenv("SLEEPER_USER_ID", "739931264659927040")
+    get_settings.cache_clear()
+    assert _resolve_owner_roster_id(db_session, "league-1", explicit_roster_id=None) == 9
+    get_settings.cache_clear()
+
+
 def test_list_leagues_exposes_owner_roster_id(monkeypatch, db_session: Session):
     from src.app.api.v1.leagues import list_leagues
 

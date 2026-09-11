@@ -172,9 +172,16 @@ class Settings(BaseSettings):
         Vercel/GitHub secret UIs often wrap values in quotes or leave trailing
         newlines. Those would never match ``league_member.user_id`` and surface
         as ``owner_roster_unavailable`` on every decision request.
+
+        Coerce ints to strings so large Sleeper snowflake ids stay exact if a
+        JSON/env parser ever promotes the value to a number.
         """
         if value is None:
             return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, int):
+            return str(value)
         if not isinstance(value, str):
             return value
         cleaned = value.strip().strip("\"'")
