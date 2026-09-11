@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppStateProvider } from "../hooks/useAppState";
+import { BOARD_SOURCE_KEY } from "../projectionSource";
 import { HomeScreen } from "./Home";
 import type {
   LineupRecommendation,
@@ -46,6 +47,8 @@ function lineup(overrides: Partial<LineupRecommendation> = {}): LineupRecommenda
     win_probability: 0.58,
     matchup_probabilities: { win: 0.58, loss: 0.41, tie: 0.01 },
     points: { p10: 90, p50: 113, p90: 138, mean: 113 },
+    opponent_expected_points: 104.2,
+    board_source: "league_value",
     meta: META,
     ...overrides,
   };
@@ -104,20 +107,55 @@ describe("HomeScreen urgent decisions", () => {
     getOperationsStatus.mockResolvedValue(operations());
   });
 
-  it("shows the selected league and its matchup snapshot", async () => {
+  it("shows a scannable matchup chip and projection source toggle", async () => {
     renderHome();
 
     expect(await screen.findByText("Standard Half PPR")).toBeInTheDocument();
-    expect(await screen.findByText(/Win probability/i)).toBeInTheDocument();
-    // Uncertainty is never hidden on a recommendation surface.
-    expect(await screen.findByText(/Projected lineup points/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Draft assistant" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open Vegas Props" })).toHaveAttribute(
-      "href",
-      "/draft?pane=checklist",
-    );
+    expect(await screen.findByTestId("matchup-snapshot-chip")).toBeInTheDocument();
+    expect(await screen.findByText(/Win/i)).toBeInTheDocument();
+    expect(screen.getByText("113.0")).toBeInTheDocument();
+    expect(screen.getByText("104.2")).toBeInTheDocument();
+    // No interval prose, swap dump, or Draft Assistant deep-links.
+    expect(screen.queryByText(/Projected lineup points/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/80% interval/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Draft assistant" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Open Vegas Props" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Projection source" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Vegas Props" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "League Value" })).toBeInTheDocument();
     expect(screen.getByTestId("app-build-stamp")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeInTheDocument();
+  });
+
+  it("persists Vegas / League Value as the app projection preference", async () => {
+    renderHome();
+    await screen.findByText("Standard Half PPR");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Vegas Props" }));
+    await waitFor(() => {
+      expect(localStorage.getItem(BOARD_SOURCE_KEY)).toBe("vegas_props");
+    });
+    await waitFor(() => {
+      expect(getLineup).toHaveBeenCalledWith(
+        "fixture-standard",
+        1,
+        "current",
+        "weekly_props",
+      );
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "League Value" }));
+    await waitFor(() => {
+      expect(localStorage.getItem(BOARD_SOURCE_KEY)).toBe("league_value");
+    });
+    await waitFor(() => {
+      expect(getLineup).toHaveBeenCalledWith(
+        "fixture-standard",
+        1,
+        "current",
+        "sealed_release",
+      );
+    });
   });
 
   it("derives urgent items from swaps, waiver targets, and failed gates", async () => {

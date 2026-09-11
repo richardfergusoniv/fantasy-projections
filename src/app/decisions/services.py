@@ -78,6 +78,7 @@ class _LeagueContext:
         week: int | None,
         *,
         draw_count: int = DEFAULT_DRAW_COUNT,
+        requested_source: ProjectionSource | str | None = None,
     ) -> None:
         self.leagues = LeagueRepository(session)
         self.projections = ProjectionRepository(session)
@@ -99,7 +100,13 @@ class _LeagueContext:
         self.week = week
         self.season = self.league.season
         self.league_type = (self.league.league_type or "redraft").lower()
-        self.requested_source = configured_projection_source()
+        # Client/query override mirrors APP_PROJECTION_SOURCE when omitted.
+        if requested_source is None:
+            self.requested_source = configured_projection_source()
+        elif isinstance(requested_source, ProjectionSource):
+            self.requested_source = requested_source
+        else:
+            self.requested_source = ProjectionSource.parse(str(requested_source))
         self.projection_source = self.requested_source
         self.source_fallback_reason: str | None = None
         self.run = self._resolve_run(week)
@@ -745,10 +752,16 @@ class LineupService:
         opponent_mode: str = "current",
         user_roster_id: int | None = None,
         opponent_roster_id: int | None = None,
+        projection_source: str | ProjectionSource | None = None,
     ) -> dict:
         if opponent_mode not in {"current", "optimized"}:
             raise LeagueContextError(f"invalid_opponent_mode:{opponent_mode}")
-        ctx = _LeagueContext(self.session, league_id, week)
+        ctx = _LeagueContext(
+            self.session,
+            league_id,
+            week,
+            requested_source=projection_source,
+        )
         user_roster_id = _resolve_owner_roster_id(
             self.session, league_id, explicit_roster_id=user_roster_id
         )

@@ -198,13 +198,20 @@ describe("Matchup board", () => {
     expect(board).not.toHaveTextContent("Isiah Pacheco");
   });
 
-  it("shows a disabled League Value / Vegas Props seam", async () => {
+  it("toggles League Value / Vegas Props and refetches with projection_source", async () => {
     renderLineup();
     const leagueValue = await screen.findByRole("tab", { name: "League Value" });
     const vegas = screen.getByRole("tab", { name: "Vegas Props" });
     expect(leagueValue).toHaveAttribute("aria-selected", "true");
-    expect(leagueValue).toBeDisabled();
-    expect(vegas).toBeDisabled();
+    expect(leagueValue).not.toBeDisabled();
+    expect(vegas).not.toBeDisabled();
+
+    fireEvent.click(vegas);
+    await vi.waitFor(() => {
+      expect(getLineup).toHaveBeenCalledWith("lg1", 1, "current", "weekly_props");
+    });
+    expect(vegas).toHaveAttribute("aria-selected", "true");
+    expect(localStorage.getItem("fantasy-decisions:board-source")).toBe("vegas_props");
   });
 
   it("loads injury evidence for starters even when there are no swaps", async () => {
@@ -245,7 +252,7 @@ describe("Matchup board", () => {
     const best = screen.getByRole("button", { name: "Best possible" });
     fireEvent.click(best);
     await vi.waitFor(() => {
-      expect(getLineup).toHaveBeenCalledWith("lg1", 1, "optimized");
+      expect(getLineup).toHaveBeenCalledWith("lg1", 1, "optimized", null);
     });
   });
 });
