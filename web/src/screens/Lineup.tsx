@@ -226,7 +226,9 @@ export function LineupScreen() {
   }, [lineup.data]);
   const evidence = useInjuryEvidence(evidencePlayerIds);
 
-  const seats = selectedLeague?.roster_positions ?? [];
+  const seats = (selectedLeague?.roster_positions ?? []).filter(
+    (slot) => !["BN", "IR", "TAXI"].includes(slot),
+  );
   const orderedYou = useMemo(
     () => orderByRosterSlots(localStarters, seats),
     [localStarters, seats],
