@@ -29,6 +29,21 @@ def _is_memory_sqlite(url: str) -> bool:
     return url.startswith("sqlite") and ":memory:" in url
 
 
+def _needs_pgbouncer_safe_connect(url: str) -> bool:
+    """True when the DSN is fronted by PgBouncer transaction pooling.
+
+    Supabase transaction pooler hosts contain ``pooler`` and listen on ``:6543``.
+    Explicit ``pgbouncer=true`` query flags are treated the same way.
+    """
+    lowered = url.lower()
+    return (
+        "pooler" in lowered
+        or "pgbouncer=true" in lowered
+        or ":6543/" in lowered
+        or ":6543?" in lowered
+    )
+
+
 def _build_engine(url: str, *, serverless: bool = False) -> Engine:
     connect_args: dict[str, object] = {}
     pool_kwargs: dict[str, object] = {}
@@ -37,8 +52,16 @@ def _build_engine(url: str, *, serverless: bool = False) -> Engine:
         connect_args["timeout"] = SQLITE_BUSY_TIMEOUT_SECONDS
         if _is_memory_sqlite(url):
             pool_kwargs["poolclass"] = StaticPool
-    elif serverless:
-        pool_kwargs["poolclass"] = NullPool
+    elif url.startswith("postgresql"):
+        if serverless:
+            pool_kwargs["poolclass"] = NullPool
+        # Transaction-mode PgBouncer reuses server backends across clients.
+        # psycopg3's default prepared-statement cache then collides as
+        # ``DuplicatePreparedStatement: prepared statement "_pg3_0" already exists``,
+        # which the API surfaces as opaque HTTP 500s on multi-statement routes
+        # (GET /leagues, lineup, waivers, operations). Disable prepares.
+        if serverless or _needs_pgbouncer_safe_connect(url):
+            connect_args["prepare_threshold"] = None
     engine = create_engine(
         url,
         future=True,
