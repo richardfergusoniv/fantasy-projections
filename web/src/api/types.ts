@@ -71,6 +71,20 @@ export interface RosterPlayer {
   slot?: string;
 }
 
+/**
+ * One recommended starter seat. Points come from the decision engine's draws;
+ * NFL opponent is optional until schedule is joined into the lineup payload.
+ */
+export interface LineupStarter extends RosterPlayer {
+  expected_points: number | null;
+  points_p10: number | null;
+  points_p50: number | null;
+  points_p90: number | null;
+  /** NFL opponent abbr when the API publishes it (e.g. "DAL" or "@DAL"). */
+  opponent?: string | null;
+  locked?: boolean;
+}
+
 export interface Roster {
   roster_id: number;
   week: number;
@@ -136,16 +150,28 @@ export interface LineupSwap {
   reason: string;
 }
 
+/** Which projection board the lineup decision was scored against. */
+export type LineupBoardSource = "league_value" | "vegas_props";
+
 export interface LineupRecommendation {
   week: number;
   opponent_mode: OpponentMode;
-  starters: RosterPlayer[];
+  starters: LineupStarter[];
   swaps: LineupSwap[];
   win_probability: number | null;
   /** Full matchup probability vector (win/loss/tie) when the API supplies it. */
   matchup_probabilities: Record<string, number | null>;
   points: PointsRange;
+  /** Fantasy opponent projected points when the API publishes them. */
+  opponent_expected_points?: number | null;
   contract_hash?: string;
+  /**
+   * UI seam for League Value ↔ Vegas Props. Present once the decisions API
+   * publishes it; the Lineup screen shows a read-only tab strip until toggle
+   * wiring lands.
+   */
+  board_source?: LineupBoardSource;
+  effective_source?: string;
   meta: ApiMeta;
 }
 

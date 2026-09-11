@@ -2,13 +2,87 @@ import { useMemo, useState } from "react";
 import { AsyncStateBanner } from "../components/AsyncState";
 import { CitationList } from "../components/CitationList";
 import { FreshnessBadge } from "../components/FreshnessBadge";
+import { isActionableInjuryEvidence } from "../components/injuryEvidence";
+import { LineupSourceTabs } from "../components/LineupSourceTabs";
 import { OpponentModeToggle, OPPONENT_MODES } from "../components/OpponentModeToggle";
 import { Panel } from "../components/Panel";
-import { MaybeNumber, UncertaintyRange } from "../components/UncertaintyRange";
+import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
 import { useInjuryEvidence } from "../hooks/useInjuryEvidence";
 import { useLineupRecommendation } from "../hooks/useReadonlyRecommendation";
-import type { OpponentMode } from "../api/types";
+import type { InjuryEvidence, LineupStarter, OpponentMode, PointsRange } from "../api/types";
+
+function starterPoints(player: LineupStarter): PointsRange {
+  return {
+    p10: player.points_p10,
+    p50: player.points_p50,
+    p90: player.points_p90,
+    mean: player.expected_points,
+  };
+}
+
+function formatOpp(opponent: string | null | undefined): string {
+  if (!opponent) return "—";
+  const trimmed = opponent.trim();
+  if (!trimmed) return "—";
+  if (trimmed.startsWith("@") || trimmed.startsWith("vs")) return trimmed;
+  return `vs ${trimmed}`;
+}
+
+function StarterRow({
+  player,
+  evidence,
+}: {
+  player: LineupStarter;
+  evidence?: InjuryEvidence;
+}) {
+  const pts = starterPoints(player);
+  const showEvidence = isActionableInjuryEvidence(evidence);
+  const teamPos = [player.team, player.position].filter(Boolean).join(" · ");
+
+  return (
+    <li className="lineup-row">
+      <span className="lineup-slot" title={player.slot ?? player.position}>
+        {player.slot ?? player.position}
+      </span>
+      <div className="lineup-player">
+        <span className="lineup-name">{player.name}</span>
+        <span className="lineup-meta">
+          {teamPos ? <span>{teamPos}</span> : null}
+          <span className="lineup-opp">{formatOpp(player.opponent)}</span>
+        </span>
+        {showEvidence && evidence ? (
+          <div className="evidence lineup-evidence">
+            <p className="muted">
+              <span className={`injury-pill injury-${evidence.status.toLowerCase()}`}>
+                {evidence.status}
+              </span>{" "}
+              {evidence.summary}
+            </p>
+            {evidence.sources.length ? (
+              <CitationList
+                citations={evidence.sources}
+                label={`Injury sources for ${player.name}`}
+              />
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+      <div className="lineup-proj" aria-label={`Projected ${player.expected_points ?? "n/a"} points`}>
+        <span className="lineup-proj-mean">
+          <MaybeNumber value={player.expected_points} digits={1} />
+        </span>
+        {pts.p10 != null && pts.p90 != null ? (
+          <span className="lineup-proj-range">
+            {pts.p10.toFixed(1)}–{pts.p90.toFixed(1)}
+          </span>
+        ) : (
+          <span className="lineup-proj-range lineup-proj-range-missing">range —</span>
+        )}
+      </div>
+    </li>
+  );
+}
 
 export function LineupScreen() {
   const { selectedLeagueId, selectedLeague, week, availableWeeks, rostersLoading } = useAppState();
@@ -18,17 +92,13 @@ export function LineupScreen() {
   const modeLabel =
     OPPONENT_MODES.find((option) => option.value === opponentMode)?.label ?? opponentMode;
 
-  // Evidence for the players a swap moves *and* for the players being started.
-  // Swap-only was too narrow: when the optimizer agrees with the submitted
-  // lineup there are no swaps, so a questionable starter's cited report — the
-  // thing most likely to change the owner's mind — was never shown at all.
+  // Evidence only for players a swap actually moves — starter-wide lookups just
+  // produce "Status unknown / No evidence" noise on every row.
   const evidencePlayerIds = useMemo(() => {
-    const swapped = (lineup.data?.swaps ?? []).flatMap((swap) => [
+    return (lineup.data?.swaps ?? []).flatMap((swap) => [
       swap.in_player_id,
       swap.out_player_id,
     ]);
-    const starters = (lineup.data?.starters ?? []).map((player) => player.player_id);
-    return [...swapped, ...starters];
   }, [lineup.data]);
   const evidence = useInjuryEvidence(evidencePlayerIds);
 
@@ -44,9 +114,11 @@ export function LineupScreen() {
 
   const noLeague = !selectedLeagueId;
   const noWeek = !rostersLoading && week == null;
+  const meanPts = lineup.data?.points.mean ?? null;
+  const oppPts = lineup.data?.opponent_expected_points ?? null;
 
   return (
-    <div className="screen">
+    <div className="screen lineup-screen">
       <Panel
         title="Lineup"
         actions={
@@ -59,22 +131,19 @@ export function LineupScreen() {
           />
         }
       >
-        <OpponentModeToggle
-          value={opponentMode}
-          onChange={setOpponentMode}
-          disabled={noLeague || week == null}
-        />
+        <LineupSourceTabs boardSource={lineup.data?.board_source} />
 
-        <p className="mode-active" data-testid="active-opponent-mode">
-          Showing: <strong>{modeLabel}</strong>
-          {lineup.data ? (
-            <>
-              {" "}
-              (server confirmed <code>opponent_mode={lineup.data.opponent_mode}</code> for week{" "}
-              {lineup.data.week})
-            </>
-          ) : null}
-        </p>
+        <div className="lineup-toolbar">
+          <OpponentModeToggle
+            value={opponentMode}
+            onChange={setOpponentMode}
+            disabled={noLeague || week == null}
+            compact
+          />
+          <p className="lineup-week-label muted" data-testid="active-opponent-mode">
+            Week {lineup.data?.week ?? week ?? "—"} · {modeLabel}
+          </p>
+        </div>
 
         {noLeague ? (
           <p className="state-notice state-empty">
@@ -117,65 +186,45 @@ export function LineupScreen() {
 
         {lineup.data ? (
           <>
-            <div className="decision-summary">
-              <p className="win-prob">
-                Win probability under {modeLabel.toLowerCase()}:{" "}
-                <strong>
-                  <MaybeNumber value={lineup.data.win_probability} digits={1} percent />
-                </strong>
-              </p>
-              <UncertaintyRange
-                label="Projected lineup points"
-                range={lineup.data.points}
-              />
-              {Object.keys(lineup.data.matchup_probabilities).length ? (
-                <ul className="prob-breakdown">
-                  {Object.entries(lineup.data.matchup_probabilities).map(([outcome, value]) => (
-                    <li key={outcome}>
-                      <span className="label">{outcome}</span>
-                      <MaybeNumber value={value} digits={1} percent />
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              <p className="muted provenance">
-                Release <code>{lineup.data.meta.projection_run_id}</code>
-                {lineup.data.contract_hash ? (
-                  <>
-                    {" "}
-                    · scoring contract <code>{lineup.data.contract_hash.slice(0, 12)}</code>
-                  </>
+            <div className="lineup-summary" aria-label="Matchup summary">
+              <div className="lineup-summary-stat">
+                <span className="lineup-summary-label">Win%</span>
+                <span className="lineup-summary-value">
+                  <MaybeNumber value={lineup.data.win_probability} digits={0} percent />
+                </span>
+              </div>
+              <div className="lineup-summary-stat">
+                <span className="lineup-summary-label">Proj</span>
+                <span className="lineup-summary-value">
+                  <MaybeNumber value={meanPts} digits={1} />
+                </span>
+                {lineup.data.points.p10 != null && lineup.data.points.p90 != null ? (
+                  <span className="lineup-summary-sub">
+                    {lineup.data.points.p10.toFixed(0)}–{lineup.data.points.p90.toFixed(0)}
+                  </span>
                 ) : null}
-              </p>
+              </div>
+              <div className="lineup-summary-stat">
+                <span className="lineup-summary-label">Opp</span>
+                <span className="lineup-summary-value">
+                  <MaybeNumber value={oppPts} digits={1} />
+                </span>
+              </div>
             </div>
 
-            <h3 className="section-title">Starters</h3>
+            <div className="lineup-section-head">
+              <h3 className="section-title">Starters</h3>
+              <span className="lineup-col-hint muted">PROJ</span>
+            </div>
             {lineup.data.starters.length ? (
-              <ul className="starter-list">
-                {lineup.data.starters.map((player) => {
-                  const playerEvidence = evidence.byPlayerId[player.player_id];
-                  return (
-                    <li key={player.player_id} className="roster-slot">
-                      <span className="label">{player.slot ?? player.position}</span>
-                      <span>
-                        {player.name}{" "}
-                        <span className={`pos-badge ${player.position}`}>{player.position}</span>
-                      </span>
-                      {playerEvidence ? (
-                        <div className="evidence">
-                          <p className="muted">
-                            Status <strong>{playerEvidence.status}</strong> —{" "}
-                            {playerEvidence.summary}
-                          </p>
-                          <CitationList
-                            citations={playerEvidence.sources}
-                            label={`Injury sources for ${player.name}`}
-                          />
-                        </div>
-                      ) : null}
-                    </li>
-                  );
-                })}
+              <ul className="lineup-list">
+                {lineup.data.starters.map((player) => (
+                  <StarterRow
+                    key={`${player.slot ?? player.position}-${player.player_id}`}
+                    player={player}
+                    evidence={evidence.byPlayerId[player.player_id]}
+                  />
+                ))}
               </ul>
             ) : (
               <p className="empty-state">
@@ -185,14 +234,12 @@ export function LineupScreen() {
 
             <h3 className="section-title">Recommended swaps</h3>
             {lineup.data.swaps.length ? (
-              <ul className="swap-list">
+              <ul className="swap-list lineup-swaps">
                 {lineup.data.swaps.map((swap) => {
                   const inEvidence = evidence.byPlayerId[swap.in_player_id];
                   const outEvidence = evidence.byPlayerId[swap.out_player_id];
-                  const citations = [
-                    ...(inEvidence?.sources ?? []),
-                    ...(outEvidence?.sources ?? []),
-                  ];
+                  const actionable = [inEvidence, outEvidence].filter(isActionableInjuryEvidence);
+                  const citations = actionable.flatMap((item) => item!.sources);
                   return (
                     <li
                       key={`${swap.out_player_id}-${swap.in_player_id}`}
@@ -200,30 +247,29 @@ export function LineupScreen() {
                     >
                       <p className="swap-rationale">{swap.reason}</p>
                       <p className="muted">
-                        Win probability change:{" "}
+                        Win probability{" "}
                         <MaybeNumber value={swap.win_probability_delta} digits={1} percent />
                       </p>
-                      {inEvidence || outEvidence ? (
+                      {actionable.length ? (
                         <div className="evidence">
-                          {[inEvidence, outEvidence].filter(Boolean).map((item) => (
+                          {actionable.map((item) => (
                             <p key={item!.player_id} className="muted">
-                              {item!.player_id}: status <strong>{item!.status}</strong> —{" "}
+                              <span
+                                className={`injury-pill injury-${item!.status.toLowerCase()}`}
+                              >
+                                {item!.status}
+                              </span>{" "}
                               {item!.summary}
                             </p>
                           ))}
-                          <CitationList
-                            citations={citations}
-                            label={`Injury sources for ${swap.in_player_id} and ${swap.out_player_id}`}
-                            emptyMessage="No injury sources published for either player in this swap."
-                          />
+                          {citations.length ? (
+                            <CitationList
+                              citations={citations}
+                              label={`Injury sources for ${swap.in_player_id} and ${swap.out_player_id}`}
+                            />
+                          ) : null}
                         </div>
-                      ) : evidence.loading ? (
-                        <p className="muted">Loading injury evidence…</p>
-                      ) : (
-                        <p className="muted">
-                          Injury evidence not available for these players.
-                        </p>
-                      )}
+                      ) : null}
                     </li>
                   );
                 })}
@@ -233,7 +279,7 @@ export function LineupScreen() {
                 No swaps recommended — the optimizer agrees with your current starters.
               </p>
             )}
-            {evidence.failed.length ? (
+            {evidence.failed.length && lineup.data.swaps.length ? (
               <p className="state-notice state-partial">
                 <span className="state-glyph" aria-hidden="true">
                   ◑
