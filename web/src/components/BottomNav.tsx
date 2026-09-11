@@ -3,7 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 const PRIMARY_NAV = [
   { to: "/", label: "Home", icon: "⌂" },
-  { to: "/lineup", label: "Lineup", icon: "▣" },
+  { to: "/lineup", label: "Matchup", icon: "▣" },
   { to: "/waivers", label: "Waivers", icon: "＋" },
   { to: "/trade-lab", label: "Trade", icon: "⇄" },
   { to: "/draft", label: "Draft", icon: "◎" },

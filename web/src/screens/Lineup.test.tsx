@@ -24,7 +24,13 @@ const LEAGUES: LeagueSummary[] = [
 ];
 
 const ROSTERS = [
-  { roster_id: 1, week: 1, players: ["qb1", "rb1"], starters: ["qb1", "rb1"], reserve: [] },
+  {
+    roster_id: 1,
+    week: 1,
+    players: ["qb1", "rb1", "rb2"],
+    starters: ["qb1", "rb1"],
+    reserve: [],
+  },
 ];
 
 function starter(
@@ -72,6 +78,38 @@ function lineup(overrides: Partial<LineupRecommendation> = {}): LineupRecommenda
         opponent: "@JAX",
       }),
     ],
+    bench: [
+      starter({
+        player_id: "rb2",
+        name: "Kareem Hunt",
+        position: "RB",
+        slot: "BN",
+        team: "KC",
+        expected_points: 9.4,
+        points_p10: 4,
+        points_p90: 15,
+      }),
+    ],
+    opponent_starters: [
+      starter({
+        player_id: "opp-qb",
+        name: "Josh Allen",
+        position: "QB",
+        slot: "QB",
+        team: "BUF",
+        expected_points: 24.1,
+        opponent: "@MIA",
+      }),
+      starter({
+        player_id: "opp-rb",
+        name: "James Cook",
+        position: "RB",
+        slot: "RB",
+        team: "BUF",
+        expected_points: 13.8,
+      }),
+    ],
+    opponent_bench: [],
     swaps: [],
     win_probability: 0.61,
     matchup_probabilities: { win: 0.61, loss: 0.37, tie: 0.02 },
@@ -109,7 +147,7 @@ function renderLineup() {
   );
 }
 
-describe("LineupScreen fantasy layout", () => {
+describe("Matchup board", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
@@ -128,23 +166,36 @@ describe("LineupScreen fantasy layout", () => {
     } satisfies InjuryEvidence);
   });
 
-  it("renders slot / player / opponent / projected points without release hash noise", async () => {
+  it("renders you vs opponent starters with projections and bench", async () => {
     renderLineup();
 
     expect(await screen.findByText("Patrick Mahomes")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Matchup" })).toBeInTheDocument();
+    expect(screen.getByText("Josh Allen")).toBeInTheDocument();
     expect(screen.getByText("Isiah Pacheco")).toBeInTheDocument();
-    expect(screen.getByText("QB")).toBeInTheDocument();
-    expect(screen.getByText(/KC · QB/)).toBeInTheDocument();
-    expect(screen.getByText("vs HOU")).toBeInTheDocument();
-    expect(screen.getByText("@JAX")).toBeInTheDocument();
+    expect(screen.getByText("James Cook")).toBeInTheDocument();
+    expect(screen.getByText("Kareem Hunt")).toBeInTheDocument();
+    expect(screen.getByLabelText("Starter matchup board")).toBeInTheDocument();
     expect(screen.getByText("22.4")).toBeInTheDocument();
-    expect(screen.getByText("11.2")).toBeInTheDocument();
+    expect(screen.getByText("24.1")).toBeInTheDocument();
 
     expect(screen.queryByText(/Release/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/scoring contract/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/should-not-appear-on-screen/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Status unknown/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/No evidence/i)).not.toBeInTheDocument();
+  });
+
+  it("swaps a bench player into a starter slot locally", async () => {
+    renderLineup();
+    await screen.findByText("Kareem Hunt");
+
+    fireEvent.click(screen.getByRole("button", { name: /Kareem Hunt/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Isiah Pacheco/i }));
+
+    expect(screen.getByText(/Lineup adjusted locally/i)).toBeInTheDocument();
+    // Hunt should now appear in the starter board (still named); Pacheco on bench.
+    const board = screen.getByLabelText("Starter matchup board");
+    expect(board).toHaveTextContent("Kareem Hunt");
+    expect(board).not.toHaveTextContent("Isiah Pacheco");
   });
 
   it("shows a disabled League Value / Vegas Props seam", async () => {
@@ -162,7 +213,7 @@ describe("LineupScreen fantasy layout", () => {
     expect(getInjuryEvidence).not.toHaveBeenCalled();
   });
 
-  it("shows actionable swap evidence only", async () => {
+  it("applies a recommended swap onto the board", async () => {
     getLineup.mockResolvedValue(
       lineup({
         swaps: [
@@ -170,35 +221,18 @@ describe("LineupScreen fantasy layout", () => {
             out_player_id: "rb1",
             in_player_id: "rb2",
             win_probability_delta: 0.03,
-            reason: "Start Bijan Robinson over Isiah Pacheco",
+            reason: "Start Kareem Hunt over Isiah Pacheco",
           },
         ],
       }),
     );
-    getInjuryEvidence.mockImplementation(async (id: string) => {
-      if (id === "rb1") {
-        return {
-          player_id: "rb1",
-          status: "Questionable",
-          summary: "Ankle — limited practice",
-          sources: [{ title: "Injury report", url: "https://example.com/inj", publisher: "example.com" }],
-          meta: META,
-        } satisfies InjuryEvidence;
-      }
-      return {
-        player_id: id,
-        status: "unknown",
-        summary: "No evidence",
-        sources: [],
-        meta: META,
-      } satisfies InjuryEvidence;
-    });
 
     renderLineup();
-    expect(await screen.findByText(/Start Bijan Robinson/)).toBeInTheDocument();
-    expect(await screen.findAllByText("Questionable")).not.toHaveLength(0);
-    expect(screen.getAllByText(/Ankle/).length).toBeGreaterThan(0);
-    expect(screen.queryByText(/No evidence/i)).not.toBeInTheDocument();
+    expect(await screen.findByText(/Start Kareem Hunt/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Apply on board" }));
+    expect(screen.getByText(/Lineup adjusted locally/i)).toBeInTheDocument();
+    const board = screen.getByLabelText("Starter matchup board");
+    expect(board).toHaveTextContent("Kareem Hunt");
   });
 
   it("switches compact opponent mode", async () => {

@@ -82,6 +82,29 @@ describe("adaptLineup", () => {
           points_p90: 31.2,
         },
       ],
+      bench: [
+        {
+          player_id: "00-bench",
+          name: "Bench RB",
+          position: "RB",
+          slot: "BN",
+          expected_points: 6.2,
+          points_p10: 2,
+          points_p90: 11,
+        },
+      ],
+      opponent_starter_details: [
+        {
+          player_id: "00-opp",
+          name: "Josh Allen",
+          position: "QB",
+          team: "BUF",
+          slot: "QB",
+          expected_points: 24.0,
+        },
+      ],
+      opponent_bench: [],
+      opponent_starters: ["00-opp"],
       swaps: [],
       win_probability: 0.55,
       matchup_probabilities: { win: 0.55, tie: 0.02, loss: 0.43 },
@@ -104,6 +127,12 @@ describe("adaptLineup", () => {
       points_p10: 14.1,
       points_p90: 31.2,
       opponent: null,
+    });
+    expect(lineup.bench).toHaveLength(1);
+    expect(lineup.opponent_starters[0]).toMatchObject({
+      name: "Josh Allen",
+      slot: "QB",
+      expected_points: 24.0,
     });
     expect(lineup.opponent_expected_points).toBe(111.4);
     expect(lineup.board_source).toBe("league_value");

@@ -156,7 +156,14 @@ export type LineupBoardSource = "league_value" | "vegas_props";
 export interface LineupRecommendation {
   week: number;
   opponent_mode: OpponentMode;
+  /** Your recommended (or locally adjusted) starters with projections. */
   starters: LineupStarter[];
+  /** Your bench with the same projection treatment as starters. */
+  bench: LineupStarter[];
+  /** Opponent starters under the active opponent_mode assumption. */
+  opponent_starters: LineupStarter[];
+  /** Opponent bench (optional; empty when opponent roster is unavailable). */
+  opponent_bench: LineupStarter[];
   swaps: LineupSwap[];
   win_probability: number | null;
   /** Full matchup probability vector (win/loss/tie) when the API supplies it. */
@@ -164,10 +171,13 @@ export interface LineupRecommendation {
   points: PointsRange;
   /** Fantasy opponent projected points when the API publishes them. */
   opponent_expected_points?: number | null;
+  opponent_roster_id?: number | null;
+  /** How opponent starters were chosen (`current` / `optimized` / fallback). */
+  opponent_lineup_source?: string;
   contract_hash?: string;
   /**
    * UI seam for League Value ↔ Vegas Props. Present once the decisions API
-   * publishes it; the Lineup screen shows a read-only tab strip until toggle
+   * publishes it; the Matchup screen shows a read-only tab strip until toggle
    * wiring lands.
    */
   board_source?: LineupBoardSource;

@@ -29,7 +29,7 @@ test.describe("owner journey", () => {
     await selectLeague(page, "fixture-superflex");
 
     // -------------------------------------------------------------- lineup
-    await page.getByRole("link", { name: "Lineup" }).click();
+    await page.getByRole("link", { name: "Matchup" }).click();
     await expect(page.getByRole("group", { name: /Matchup assumption/i })).toBeVisible();
 
     const modeBanner = page.getByTestId("active-opponent-mode");
@@ -95,7 +95,7 @@ test.describe("owner journey", () => {
     // Josh Allen is questionable in the fixture payload and starts for roster 1
     // of the standard league.
     await selectLeague(page, "fixture-standard");
-    await page.getByRole("link", { name: "Lineup" }).click();
+    await page.getByRole("link", { name: "Matchup" }).click();
     await expect(page.getByText(/Status questionable|Status .*questionable/i).first()).toBeVisible();
 
     const citation = page.locator(".citation-list a").first();
@@ -114,7 +114,7 @@ test.describe("owner journey", () => {
   test("league selection survives a reload and stays league-specific", async ({ page }) => {
     await signIn(page);
     await selectLeague(page, "fixture-ppfd");
-    await page.getByRole("link", { name: "Lineup" }).click();
+    await page.getByRole("link", { name: "Matchup" }).click();
     const before = await page.getByTestId("active-opponent-mode").textContent();
 
     await page.reload();
@@ -145,7 +145,7 @@ test.describe("owner journey", () => {
 
   test("the shell fits a phone viewport without horizontal scroll", async ({ page }) => {
     await signIn(page);
-    await page.getByRole("link", { name: "Lineup" }).click();
+    await page.getByRole("link", { name: "Matchup" }).click();
     await expect(page.getByTestId("active-opponent-mode")).toBeVisible();
 
     const overflow = await page.evaluate(

@@ -1351,6 +1351,208 @@ a {
   }
 }
 
+/* —— Matchup board (you vs opponent starters) —— */
+
+.matchup-board-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.5rem minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: end;
+  margin: 0 0 var(--space-2);
+  padding: 0 0 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.matchup-side-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.matchup-side-label-center {
+  text-align: center;
+}
+
+.matchup-side-label-opp {
+  text-align: right;
+}
+
+.matchup-board {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+}
+
+.matchup-board-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.5rem minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: start;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  animation: lineup-row-in var(--duration) var(--ease-out) both;
+}
+
+.matchup-board-row:nth-child(1) {
+  animation-delay: 20ms;
+}
+.matchup-board-row:nth-child(2) {
+  animation-delay: 40ms;
+}
+.matchup-board-row:nth-child(3) {
+  animation-delay: 60ms;
+}
+.matchup-board-row:nth-child(4) {
+  animation-delay: 80ms;
+}
+.matchup-board-row:nth-child(5) {
+  animation-delay: 100ms;
+}
+.matchup-board-row:nth-child(6) {
+  animation-delay: 120ms;
+}
+.matchup-board-row:nth-child(7) {
+  animation-delay: 140ms;
+}
+.matchup-board-row:nth-child(8) {
+  animation-delay: 160ms;
+}
+
+.matchup-board-slot {
+  margin-top: 0.35rem;
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.matchup-board-you,
+.matchup-board-opp {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.matchup-board-you {
+  grid-template-columns: minmax(0, 1fr) 3.2rem;
+}
+
+.matchup-board-opp {
+  grid-template-columns: 3.2rem minmax(0, 1fr);
+}
+
+.matchup-board-opp .lineup-proj {
+  justify-items: start;
+}
+
+.matchup-board-opp .matchup-player {
+  text-align: right;
+}
+
+.matchup-board-opp .lineup-meta {
+  justify-content: flex-end;
+}
+
+.matchup-player {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.matchup-player-btn {
+  width: 100%;
+  margin: 0;
+  padding: 0.15rem 0.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.matchup-player-btn:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.matchup-player-btn.is-selected,
+.matchup-bench-row.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.matchup-player-empty {
+  padding: 0.35rem 0;
+  font-size: var(--text-sm);
+}
+
+.matchup-locked {
+  color: var(--warning);
+  font-weight: 700;
+}
+
+.matchup-adjust-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+
+.matchup-apply-swap {
+  margin-top: 0.35rem;
+}
+
+.matchup-bench-row .matchup-player-btn {
+  padding-left: 0;
+}
+
+@media (min-width: 720px) {
+  .matchup-board-head,
+  .matchup-board-row {
+    grid-template-columns: minmax(0, 1fr) 3rem minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .matchup-board-you {
+    grid-template-columns: minmax(0, 1fr) 4rem;
+  }
+
+  .matchup-board-opp {
+    grid-template-columns: 4rem minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .matchup-board-you,
+  .matchup-board-opp {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .matchup-board-opp .lineup-proj {
+    justify-items: end;
+    order: 2;
+  }
+
+  .matchup-board-opp .matchup-player {
+    order: 1;
+  }
+
+  .matchup-board-you .lineup-proj {
+    justify-items: start;
+    order: 2;
+  }
+}
+
 .pos-badge {
   display: inline-block;
   padding: 0.1rem 0.35rem;

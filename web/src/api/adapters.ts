@@ -168,10 +168,23 @@ export function adaptLineup(raw: RawRecord): LineupRecommendation {
   const probabilities = (raw.matchup_probabilities as Record<string, unknown> | undefined) ?? {};
   const matchupAllowed = raw.matchup_win_probability_available !== false;
   const startersRaw = (raw.starters as RawRecord[] | undefined) ?? [];
+  const benchRaw = (raw.bench as RawRecord[] | undefined) ?? [];
+  // Prefer enriched detail rows; fall back to empty when API only published IDs.
+  const oppStarterRaw =
+    (raw.opponent_starter_details as RawRecord[] | undefined) ??
+    (Array.isArray(raw.opponent_starters) &&
+    raw.opponent_starters.length > 0 &&
+    typeof raw.opponent_starters[0] === "object"
+      ? (raw.opponent_starters as RawRecord[])
+      : []);
+  const oppBenchRaw = (raw.opponent_bench as RawRecord[] | undefined) ?? [];
   return {
     week: Number(raw.week),
     opponent_mode: (raw.opponent_mode as LineupRecommendation["opponent_mode"]) ?? "current",
     starters: startersRaw.map(adaptLineupStarter),
+    bench: benchRaw.map(adaptLineupStarter),
+    opponent_starters: oppStarterRaw.map(adaptLineupStarter),
+    opponent_bench: oppBenchRaw.map(adaptLineupStarter),
     swaps: swaps.map((swap) => ({
       out_player_id: String(swap.out_player_id ?? swap.drop ?? ""),
       in_player_id: String(swap.in_player_id ?? swap.add ?? ""),
@@ -188,6 +201,13 @@ export function adaptLineup(raw: RawRecord): LineupRecommendation {
     },
     points: pointsRangeFrom(raw),
     opponent_expected_points: numberOrNull(raw.opponent_expected_points),
+    opponent_roster_id:
+      raw.opponent_roster_id == null || raw.opponent_roster_id === ""
+        ? null
+        : Number(raw.opponent_roster_id),
+    opponent_lineup_source: raw.opponent_lineup_source
+      ? String(raw.opponent_lineup_source)
+      : undefined,
     contract_hash: raw.contract_hash ? String(raw.contract_hash) : undefined,
     board_source: adaptBoardSource(raw),
     effective_source: raw.effective_source
