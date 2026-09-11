@@ -421,8 +421,10 @@ def run_full_release(session: Session, *, automatic: bool = True) -> dict:
 def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
     """Scrape weekly player props, consensus, and shadow/promote market candidates.
 
+    Production uses live DraftKings + FanDuel fetch (``WEEKLY_PROPS_MODE=live``).
     Provider failures are isolated: remaining successful sources may still clear
-    coverage gates. Publication failures never swap the active weekly pointer.
+    coverage gates. Publication failures never swap the active weekly pointer
+    while ``WEEKLY_PROPS_SHADOW_ONLY`` remains true.
     """
     import json
     from pathlib import Path
@@ -430,7 +432,7 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
     from src.app.config import get_settings
     from src.app.ops.alerts import send_ops_alert
     from src.app.projections.source import weekly_props_shadow_only
-    from src.ingest.props.service import default_fixture_providers, run_ingest
+    from src.ingest.props.service import build_providers, run_ingest
     from src.ingest.props.snapshot import SnapshotStore
     from src.projection.weekly_props.baseline import (
         WeeklyBaselineError,
@@ -450,18 +452,54 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
         / "fixtures"
         / "providers"
     )
-    providers = default_fixture_providers(fixtures_dir)
+    mode = str(getattr(settings, "weekly_props_mode", "live") or "live").lower()
+    providers = build_providers(
+        mode=mode,
+        provider_names=getattr(settings, "weekly_props_providers", "draftkings,fanduel"),
+        fixtures_dir=fixtures_dir,
+    )
     ingest = run_ingest(
         season=season,
         week=week,
         providers=providers,
         store=SnapshotStore(),
+        mode=mode,
     )
+
+    season_refresh_payload: dict | None = None
+    if bool(getattr(settings, "season_vegas_refresh", True)) and mode == "live":
+        try:
+            from src.ingest.props.season_refresh import refresh_season_ou
+
+            season_refresh_payload = refresh_season_ou(
+                season=season,
+                providers=tuple(
+                    name
+                    for name in str(
+                        getattr(settings, "weekly_props_providers", "draftkings,fanduel")
+                    ).split(",")
+                    if name.strip() in {"draftkings", "fanduel"}
+                )
+                or ("draftkings", "fanduel"),
+                update_vegas_raw=True,
+                rebuild_consensus=True,
+                write_sealed_consensus=bool(
+                    getattr(settings, "season_vegas_write_sealed", False)
+                ),
+            ).to_dict()
+        except Exception as exc:  # noqa: BLE001 — do not fail weekly ingest
+            season_refresh_payload = {"status": "error", "error": str(exc)}
+
     if ingest.success_count == 0:
         send_ops_alert(
             "weekly_props_ingest_failed",
             json.dumps(
-                {"season": season, "week": week, "ingest": ingest.to_dict()},
+                {
+                    "season": season,
+                    "week": week,
+                    "ingest": ingest.to_dict(),
+                    "season_ou": season_refresh_payload,
+                },
                 indent=2,
             ),
         )
@@ -471,6 +509,7 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
             "week": week,
             "season_week_source": season_week.source,
             "ingest": ingest.to_dict(),
+            "season_ou": season_refresh_payload,
         }
 
     try:
@@ -483,6 +522,7 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
             "season_week_source": season_week.source,
             "reason": str(exc),
             "ingest": ingest.to_dict(),
+            "season_ou": season_refresh_payload,
         }
         send_ops_alert("weekly_props_baseline_failed", json.dumps(payload, indent=2, default=str))
         return payload
@@ -509,6 +549,7 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
         "week": week,
         "season_week_source": season_week.source,
         "ingest": ingest.to_dict(),
+        "season_ou": season_refresh_payload,
         "baseline": {
             "source": baseline_bundle.baseline_source,
             "baseline_run_id": baseline_bundle.baseline_run_id,
@@ -538,6 +579,7 @@ JOB_HANDLERS = {
     "weekly-correction": run_full_release,
     "full-release": run_full_release,
     "weekly-props-open": run_weekly_props,
+    "weekly-props-market-close": run_weekly_props,
     "weekly-props-refresh-thu": run_weekly_props,
     "weekly-props-refresh-sat": run_weekly_props,
     "weekly-props-refresh-sun": run_weekly_props,

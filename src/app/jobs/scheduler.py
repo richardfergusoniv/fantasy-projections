@@ -36,6 +36,7 @@ LONG_RUNNING_JOBS = frozenset(
         "weekly-correction",
         "full-release",
         "weekly-props-open",
+        "weekly-props-market-close",
         "weekly-props-refresh-thu",
         "weekly-props-refresh-sat",
         "weekly-props-refresh-sun",
@@ -100,6 +101,14 @@ SCHEDULE_SLOTS: dict[str, ScheduleSlot] = {
             "weekly-props-open",
             frozenset({WEDNESDAY}),
             10,
+            0,
+        ),
+        # End-of-day closing lines (America/Los_Angeles). Captures where
+        # over/unders sit at market close and refreshes season O/U snapshots.
+        ScheduleSlot(
+            "weekly-props-market-close",
+            EVERY_DAY,
+            23,
             0,
         ),
         ScheduleSlot(
