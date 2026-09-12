@@ -355,9 +355,18 @@ export class ApiClient {
     );
   }
 
-  getLineup(leagueId: string, week: number, opponentMode: OpponentMode = "current"): Promise<LineupRecommendation> {
+  getLineup(
+    leagueId: string,
+    week: number,
+    opponentMode: OpponentMode = "current",
+    projectionSource?: string | null,
+  ): Promise<LineupRecommendation> {
+    const params = new URLSearchParams({ opponent_mode: opponentMode });
+    if (projectionSource) {
+      params.set("projection_source", projectionSource);
+    }
     return this.request<RawRecord>(
-      `/leagues/${leagueId}/lineup/${week}?opponent_mode=${opponentMode}`,
+      `/leagues/${leagueId}/lineup/${week}?${params.toString()}`,
     ).then(adaptLineup);
   }
 

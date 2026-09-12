@@ -349,11 +349,27 @@ def recommend_lineup(
     league_id: str,
     week: int,
     opponent_mode: str = "current",
+    projection_source: Annotated[
+        str | None,
+        Query(
+            description=(
+                "Optional APP_PROJECTION_SOURCE override for this request "
+                "(sealed_release, status_adjusted_release, weekly_props). "
+                "Omitted → server env default. UI board_source maps "
+                "vegas_props→weekly_props and league_value→sealed_release."
+            ),
+        ),
+    ] = None,
     user: AppUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     try:
-        result = LineupService(db).recommend(league_id, week, opponent_mode=opponent_mode)
+        result = LineupService(db).recommend(
+            league_id,
+            week,
+            opponent_mode=opponent_mode,
+            projection_source=projection_source,
+        )
     except ValueError as exc:
         raise _decision_http_error(
             league_id,

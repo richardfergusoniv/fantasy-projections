@@ -6,11 +6,13 @@ import {
   getCachedRecommendation,
 } from "../cache/recommendationsCache";
 import type {
+  LineupBoardSource,
   LineupRecommendation,
   OpponentMode,
   ReadonlyRecommendationKey,
   WaiverRecommendation,
 } from "../api/types";
+import { boardSourceToProjectionSource } from "../projectionSource";
 
 interface UseRecommendationOptions<T> {
   key: ReadonlyRecommendationKey;
@@ -113,16 +115,23 @@ export function useLineupRecommendation(
   leagueId: string | null,
   week: number | null,
   opponentMode: OpponentMode = "current",
+  boardSource: LineupBoardSource | null = null,
 ) {
+  const projectionSource = boardSource
+    ? boardSourceToProjectionSource(boardSource)
+    : null;
   const fetcher = useCallback(
-    (id: string, wk: number) => api.getLineup(id, wk, opponentMode),
-    [opponentMode],
+    (id: string, wk: number) => api.getLineup(id, wk, opponentMode, projectionSource),
+    [opponentMode, projectionSource],
   );
+  const sourceVariant = projectionSource
+    ? `projection_source=${projectionSource}`
+    : "projection_source=default";
   return useReadonlyRecommendation({
     key: "lineup",
     leagueId,
     week,
-    variant: `opponent_mode=${opponentMode}`,
+    variant: `opponent_mode=${opponentMode}&${sourceVariant}`,
     fetcher,
   });
 }

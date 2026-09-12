@@ -622,7 +622,7 @@ def test_lineup_failure_returns_code_not_exception_text(monkeypatch, client: Tes
     _login(client)
     secret = "roster snapshot /srv/secrets/roster.json missing for owner@example.com"
 
-    def boom(self, league_id, week, opponent_mode="current"):
+    def boom(self, league_id, week, opponent_mode="current", **kwargs):
         raise ValueError(secret)
 
     monkeypatch.setattr("src.app.decisions.services.LineupService.recommend", boom)

@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { AppBuildStamp } from "../components/AppBuildStamp";
 import { AsyncStateBanner } from "../components/AsyncState";
-import { FreshnessBadge } from "../components/FreshnessBadge";
+import { LineupSourceTabs } from "../components/LineupSourceTabs";
 import { Panel } from "../components/Panel";
-import { MaybeNumber, UncertaintyRange } from "../components/UncertaintyRange";
+import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
 import { useOperationsStatus } from "../hooks/useOperationsStatus";
 import {
@@ -19,6 +18,15 @@ interface UrgentItem {
   severity: "action" | "warning";
 }
 
+function projectedScore(points: {
+  mean: number | null;
+  p50: number | null;
+}): number | null {
+  if (points.mean != null) return points.mean;
+  if (points.p50 != null) return points.p50;
+  return null;
+}
+
 export function HomeScreen() {
   const {
     selectedLeague,
@@ -29,8 +37,10 @@ export function HomeScreen() {
     week,
     availableWeeks,
     weekIsUserChosen,
+    boardSource,
+    setBoardSource,
   } = useAppState();
-  const lineup = useLineupRecommendation(selectedLeagueId, week);
+  const lineup = useLineupRecommendation(selectedLeagueId, week, "current", boardSource);
   const waivers = useWaiverRecommendation(selectedLeagueId, week);
   const operations = useOperationsStatus();
   const [refreshingShell, setRefreshingShell] = useState(false);
@@ -81,6 +91,9 @@ export function HomeScreen() {
     });
   }
 
+  const score = lineup.data ? projectedScore(lineup.data.points) : null;
+  const oppScore = lineup.data?.opponent_expected_points ?? null;
+
   return (
     <div className="screen home-screen">
       <div className="home-build-row">
@@ -126,34 +139,20 @@ export function HomeScreen() {
         ) : null}
       </Panel>
 
-      <Panel title="Draft assistant">
+      <Panel title="Projection source">
         <p className="muted">
-          Two boards over the same players: <strong>League Value</strong> ranks by points above
-          replacement in your league's scoring, and <strong>Vegas Props</strong> shows the market
-          — draft ADP, sportsbook season lines, and Sharp SOS ranks.
+          Choose how Matchup and this snapshot are scored. Same toggle as the Matchup board —
+          Vegas Props or League Value (sealed).
         </p>
-        <div className="stack">
-          <Link className="btn btn-primary" to="/draft?pane=checklist">
-            Open Vegas Props
-          </Link>
-          <Link className="btn btn-ghost" to="/draft">
-            Open League Value
-          </Link>
-        </div>
+        <LineupSourceTabs
+          value={boardSource}
+          onChange={setBoardSource}
+          fallbackSource={lineup.data?.board_source}
+          hint={false}
+        />
       </Panel>
 
-      <Panel
-        title="Matchup snapshot"
-        actions={
-          <FreshnessBadge
-            dataAsOf={lineup.data?.meta.data_as_of}
-            cachedAt={lineup.cachedAt}
-            fromCache={lineup.fromCache}
-            offline={lineup.offline}
-            runId={lineup.data?.meta.projection_run_id}
-          />
-        }
-      >
+      <Panel title="Matchup snapshot">
         <AsyncStateBanner
           label="Matchup snapshot"
           loading={lineup.loading}
@@ -168,23 +167,31 @@ export function HomeScreen() {
           onRetry={() => void lineup.refresh()}
         />
         {lineup.data ? (
-          <div className="matchup-card">
-            <p className="win-prob">
-              Win probability:{" "}
-              <strong>
-                <MaybeNumber value={lineup.data.win_probability} digits={1} percent />
+          <div className="matchup-card matchup-chip" data-testid="matchup-snapshot-chip">
+            <div className="matchup-chip-score">
+              <span className="matchup-chip-label">Proj</span>
+              <strong className="matchup-chip-you">
+                <MaybeNumber value={score} digits={1} />
               </strong>
-            </p>
-            <UncertaintyRange label="Projected lineup points" range={lineup.data.points} />
-            <p className="muted">
-              {lineup.data.swaps.length} suggested swap
-              {lineup.data.swaps.length === 1 ? "" : "s"}
-            </p>
-            <ul className="swap-list">
-              {lineup.data.swaps.slice(0, 3).map((swap) => (
-                <li key={`${swap.out_player_id}-${swap.in_player_id}`}>{swap.reason}</li>
-              ))}
-            </ul>
+              {oppScore != null ? (
+                <>
+                  <span className="matchup-chip-sep" aria-hidden="true">
+                    –
+                  </span>
+                  <span className="matchup-chip-opp">
+                    <MaybeNumber value={oppScore} digits={1} />
+                  </span>
+                </>
+              ) : null}
+            </div>
+            {lineup.data.win_probability != null ? (
+              <p className="win-prob matchup-chip-win">
+                Win{" "}
+                <strong>
+                  <MaybeNumber value={lineup.data.win_probability} digits={0} percent />
+                </strong>
+              </p>
+            ) : null}
           </div>
         ) : null}
       </Panel>

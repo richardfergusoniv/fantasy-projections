@@ -45,8 +45,15 @@ test.describe("screen smoke (production bundle)", () => {
     await expect(page.getByRole("link", { name: "Regression Model" })).toHaveCount(0);
 
     await page.getByRole("link", { name: "Home", exact: true }).click();
-    await page.getByRole("link", { name: "Open Vegas Props" }).click();
-    await expect(page).toHaveURL(/\/draft\?pane=checklist/);
+    await expect(page.getByRole("heading", { name: "Projection source" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Vegas Props" })).toBeVisible();
+    await page.getByRole("tab", { name: "Vegas Props" }).click();
+    await expect(page.getByRole("tab", { name: "Vegas Props" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(page).not.toHaveURL(/\/draft/);
+    await page.getByRole("link", { name: "Matchup", exact: true }).click();
     await expect(page.getByRole("tab", { name: "Vegas Props" })).toHaveAttribute(
       "aria-selected",
       "true",

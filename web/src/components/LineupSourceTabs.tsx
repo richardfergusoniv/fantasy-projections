@@ -1,4 +1,5 @@
 import type { LineupBoardSource } from "../api/types";
+import { labelForBoardSource } from "../projectionSource";
 
 const TABS: Array<{ id: LineupBoardSource; label: string }> = [
   { id: "league_value", label: "League Value" },
@@ -6,18 +7,24 @@ const TABS: Array<{ id: LineupBoardSource; label: string }> = [
 ];
 
 /**
- * Read-only seam for the future League Value ↔ Vegas Props flip.
+ * League Value ↔ Vegas Props toggle shared by Home and Matchup.
  *
- * Draft already toggles boards; in-season Lineup will follow the same pattern
- * once `board_source` is published and source switching is wired. Until then
- * the strip shows which board scored this lineup and stays non-interactive.
+ * Preference is persisted in app state (`fantasy-decisions:board-source`) and
+ * sent to lineup as `?projection_source=` (APP_PROJECTION_SOURCE equivalent).
  */
 export function LineupSourceTabs({
-  boardSource,
+  value,
+  onChange,
+  /** When preference is unset, highlight this from the last API response. */
+  fallbackSource,
+  hint = true,
 }: {
-  boardSource?: LineupBoardSource;
+  value: LineupBoardSource | null;
+  onChange: (source: LineupBoardSource) => void;
+  fallbackSource?: LineupBoardSource;
+  hint?: boolean;
 }) {
-  const active: LineupBoardSource = boardSource ?? "league_value";
+  const active: LineupBoardSource = value ?? fallbackSource ?? "league_value";
   return (
     <div className="lineup-source-strip">
       <div
@@ -34,19 +41,19 @@ export function LineupSourceTabs({
               role="tab"
               className={`draft-pane-tab${selected ? " is-active" : ""}`}
               aria-selected={selected}
-              disabled
-              title="Board switch coming soon — currently follows the API projection source"
+              onClick={() => onChange(tab.id)}
             >
               {tab.label}
             </button>
           );
         })}
       </div>
-      <p className="lineup-source-hint muted">
-        {boardSource
-          ? `Scored with ${active === "vegas_props" ? "Vegas Props" : "League Value"}.`
-          : "Projection board follows the server source (toggle coming soon)."}
-      </p>
+      {hint ? (
+        <p className="lineup-source-hint muted">
+          Scoring with {labelForBoardSource(active)}
+          {value == null ? " (server default until you pick)" : ""}.
+        </p>
+      ) : null}
     </div>
   );
 }
