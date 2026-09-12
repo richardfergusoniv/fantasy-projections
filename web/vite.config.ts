@@ -79,19 +79,19 @@ export default defineConfig({
           {
             // Always fetch HTML from the network so deploys show up immediately.
             // A NetworkFirst HTML cache was still serving day-old shells on iOS.
+            // Exclude /api and /health so those requests are never claimed by
+            // Workbox — NetworkOnly still throws opaque `no-response` when the
+            // function times out or the connection drops, which hid real API
+            // failures behind "FetchEvent.respondWith … no-response".
             urlPattern: ({ request, url }: { request: Request; url: URL }) =>
               request.mode === "navigate" &&
               !url.pathname.startsWith("/api/") &&
               !url.pathname.startsWith("/health/"),
             handler: "NetworkOnly",
           },
-          {
-            urlPattern: ({ url }: { url: URL }) => {
-              const path = url.pathname;
-              return path.startsWith("/api/") || path.startsWith("/health/");
-            },
-            handler: "NetworkOnly",
-          },
+          // Do not register a Workbox route for /api or /health. Unmatched
+          // requests fall through to the browser network stack (no caching,
+          // native fetch errors instead of Workbox no-response).
         ],
       },
     }),

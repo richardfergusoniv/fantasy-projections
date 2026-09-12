@@ -9,4 +9,10 @@ describe("isUncacheableAppUrl", () => {
     expect(isUncacheableAppUrl("/assets/index.js")).toBe(false);
     expect(isUncacheableAppUrl("/")).toBe(false);
   });
+
+  it("documents that API paths must stay unmatched by Workbox routes", () => {
+    // Policy helper stays in sync with vite.config navigate exclusions.
+    // Registering NetworkOnly for these paths caused prod no-response errors.
+    expect(isUncacheableAppUrl(new URL("https://app.example/api/v1/x"))).toBe(true);
+  });
 });

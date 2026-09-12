@@ -63,7 +63,7 @@ test.describe("PWA auth and manifest (production build)", () => {
     expect(page.url()).not.toContain("token=");
   });
 
-  test("service worker keeps HTML fresh and API paths network-only", async ({ page }) => {
+  test("service worker keeps HTML fresh and does not claim API fetches", async ({ page }) => {
     await page.goto("/login");
     const swUrl = await page.evaluate(async () => {
       const registration = await navigator.serviceWorker.getRegistration();
@@ -76,6 +76,8 @@ test.describe("PWA auth and manifest (production build)", () => {
     const response = await page.request.get(swUrl!);
     const body = await response.text();
     expect(body).not.toMatch(/\/api\/v1\/(?!auth)/);
+    // Navigations stay NetworkOnly; API/health must not get a Workbox route
+    // (NetworkOnly on API turns timeouts into opaque no-response errors).
     expect(body).toContain("NetworkOnly");
     expect(body).not.toContain("NetworkFirst");
     expect(body).not.toContain("html-navigations");
@@ -84,6 +86,9 @@ test.describe("PWA auth and manifest (production build)", () => {
     expect(body).not.toContain("isUncacheableAppUrl");
     expect(body).toMatch(/startsWith\(["']\/api\//);
     expect(body).toMatch(/startsWith\(["']\/health\//);
+    // Exactly one NetworkOnly route (navigations). A second route for /api
+    // would wrap authenticated JSON and hide real status/timeouts.
+    expect(body.match(/new \w+\.NetworkOnly/g)?.length ?? 0).toBe(1);
     // Navigations must not be bound to a frozen precached index.html revision.
     expect(body).not.toContain('url:"index.html"');
     await expect(page.getByTestId("app-build-stamp")).toBeVisible();

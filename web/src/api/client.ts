@@ -94,9 +94,35 @@ function formatApiErrorDetail(detail: ApiError["detail"] | undefined): string | 
   return undefined;
 }
 
+/**
+ * Translate raw fetch / Workbox failures into something a human can act on.
+ * Installed PWAs previously routed /api through Workbox NetworkOnly, which
+ * surfaces timeouts as opaque `no-response` instead of HTTP status text.
+ */
+export function formatFetchFailure(error: unknown, path?: string): string {
+  const raw = error instanceof Error ? error.message : String(error ?? "");
+  const where = path ? ` (${path})` : "";
+  if (/no-response|FetchEvent\.respondWith/i.test(raw)) {
+    return (
+      `The service worker got no response from the API${where}. ` +
+      "The request likely timed out or failed on the server. " +
+      "Try League Value, hard-refresh, or unregister the site's service worker."
+    );
+  }
+  if (/Failed to fetch|NetworkError|Load failed|network timeout/i.test(raw)) {
+    return `Network request failed${where}. Check connectivity or retry; if it persists the API may be timing out.`;
+  }
+  return raw || `Network request failed${where}.`;
+}
+
 /** Safe recovery guidance for known decision failure codes. */
 export function recoveryActionForError(error: unknown): string | null {
   if (!(error instanceof ApiClientError)) {
+    // Stale Workbox wrappers still throw plain Errors with no-response text.
+    const msg = error instanceof Error ? error.message : "";
+    if (/no-response|FetchEvent\.respondWith/i.test(msg)) {
+      return "Switch to League Value, or hard-refresh / clear site data so the new service worker can load.";
+    }
     return null;
   }
   if (error.status === 401) {
@@ -115,6 +141,8 @@ export function recoveryActionForError(error: unknown): string | null {
       return "Publish or restore the active projection release, then retry.";
     case "identity_resolution_incomplete":
       return "Run sync from Operations so roster players can link to the projection release.";
+    case "weekly_props_unavailable":
+      return "Switch the board to League Value until weekly Vegas props are promoted.";
     case "authentication_required":
       return "Sign in again to continue.";
     case "service_temporarily_unavailable":
@@ -187,11 +215,16 @@ export class ApiClient {
       suppressUnauthorized = false,
       ...fetchInit
     } = init;
-    const response = await fetch(this.url(path), {
-      ...fetchInit,
-      headers,
-      credentials: "include",
-    });
+    let response: Response;
+    try {
+      response = await fetch(this.url(path), {
+        ...fetchInit,
+        headers,
+        credentials: "include",
+      });
+    } catch (err) {
+      throw new ApiClientError(formatFetchFailure(err, path), 0);
+    }
 
     if (!response.ok) {
       let body: ApiError | undefined;
@@ -205,11 +238,10 @@ export class ApiClient {
           listener();
         }
       }
-      throw new ApiClientError(
-        formatApiErrorDetail(body?.detail) ?? response.statusText,
-        response.status,
-        body,
-      );
+      const detail =
+        formatApiErrorDetail(body?.detail) ??
+        (response.statusText || `HTTP ${response.status}`);
+      throw new ApiClientError(detail, response.status, body);
     }
 
     if (response.status === 204) {

@@ -41,6 +41,46 @@ describe("ApiClient error parsing", () => {
     expect(recoveryActionForError(err)).toContain("Run sync");
   });
 
+  it("steers weekly_props gaps toward League Value", () => {
+    const err = new ApiClientError(
+      "Weekly Vegas props are not promoted (weekly_props_unavailable)",
+      422,
+      {
+        detail: {
+          code: "weekly_props_unavailable",
+          message: "Weekly Vegas props are not promoted for this week.",
+        },
+      },
+    );
+    expect(recoveryActionForError(err)).toContain("League Value");
+  });
+
+  it("rewrites Workbox no-response fetch failures", async () => {
+    const { formatFetchFailure } = await import("./client");
+    expect(
+      formatFetchFailure(
+        new Error(
+          'FetchEvent.respondWith received an error: no-response: no-response :: [{"url":"https://example.test/api/v1/leagues/1/lineup/1"}]',
+        ),
+        "/leagues/1/lineup/1",
+      ),
+    ).toMatch(/service worker got no response/i);
+
+    const client = new ApiClient({ baseUrl: "http://example.test" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockRejectedValue(
+        new Error("no-response :: [{\"url\":\"http://example.test/api/v1/leagues\"}]"),
+      ),
+    );
+    await expect(client.getLeagues()).rejects.toMatchObject({
+      name: "ApiClientError",
+      status: 0,
+      message: expect.stringMatching(/service worker got no response/i),
+    });
+    vi.unstubAllGlobals();
+  });
+
   it("steers historical membership gaps away from SLEEPER_USER_ID blame", () => {
     const err = new ApiClientError(
       "This league has no synced memberships (league_membership_unavailable)",
