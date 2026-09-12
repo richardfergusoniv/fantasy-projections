@@ -6,8 +6,8 @@ import { AppStateProvider } from "../hooks/useAppState";
 import { LineupScreen } from "./Lineup";
 
 const META = {
-  data_as_of: "2026-09-11T12:00:00Z",
-  projection_run_id: "weekly-2026-w01-hashy-release",
+  data_as_of: new Date().toISOString(),
+  projection_run_id: "weekly-2026-w01-hashy",
 };
 
 const LEAGUES: LeagueSummary[] = [

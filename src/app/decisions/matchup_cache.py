@@ -42,13 +42,21 @@ def roster_input_fingerprint(
     opponent_snapshot_id: str | None,
     owner_starters: list | None,
     opponent_starters: list | None,
+    owner_players: list | None = None,
+    opponent_players: list | None = None,
 ) -> str:
-    """Stable input key: roster snapshot rows + submitted starters."""
+    """Stable input key: roster snapshot rows + starters + full player pools.
+
+    Players are included so a bench add/drop without a starter change still
+    invalidates optimized lineups (even if snapshot ids were somehow reused).
+    """
     own = ",".join(str(p) for p in (owner_starters or []) if p)
     opp = ",".join(str(p) for p in (opponent_starters or []) if p)
+    own_pool = ",".join(sorted(str(p) for p in (owner_players or []) if p))
+    opp_pool = ",".join(sorted(str(p) for p in (opponent_players or []) if p))
     return (
-        f"owner={owner_roster_id}:{owner_snapshot_id}:[{own}]|"
-        f"opp={opponent_roster_id or 0}:{opponent_snapshot_id or 'none'}:[{opp}]"
+        f"owner={owner_roster_id}:{owner_snapshot_id}:[{own}]:pool[{own_pool}]|"
+        f"opp={opponent_roster_id or 0}:{opponent_snapshot_id or 'none'}:[{opp}]:pool[{opp_pool}]"
     )
 
 
@@ -72,7 +80,12 @@ def load_matchup_board(
     projection_run_id: str,
     input_fingerprint: str,
 ) -> dict[str, Any] | None:
-    """Return newest matching board payload, or None on miss/stale."""
+    """Return newest matching board payload, or None on miss/stale.
+
+    ``board_source`` is the **requested** UI source (vegas_props | league_value),
+    not the effective source after fallback. Rows without ``cache_key_source``
+    (pre-fix schema) are treated as misses so sticky wrong boards recompute.
+    """
     rows = (
         session.query(DecisionSnapshot)
         .filter(
@@ -87,9 +100,13 @@ def load_matchup_board(
     )
     for row in rows:
         payload = row.result_json or {}
-        if payload.get("board_source") != board_source:
+        # Require explicit requested-source key; do not match on effective
+        # board_source alone (that conflated vegas fallback with league_value).
+        if payload.get("cache_key_source") != board_source:
             continue
         if payload.get("input_fingerprint") != input_fingerprint:
+            continue
+        if payload.get("schema_version", 0) < 2:
             continue
         return {
             **payload,
@@ -111,10 +128,17 @@ def store_matchup_board(
     roster_snapshot_id: str | None,
     input_fingerprint: str,
     board: dict[str, Any],
+    effective_board_source: str | None = None,
 ) -> DecisionSnapshot | None:
-    """Upsert-style write: drop stale twins, insert fresh board."""
+    """Upsert-style write: drop stale twins, insert fresh board.
+
+    ``board_source`` is the requested UI cache key. ``effective_board_source`` is
+    what decisions actually scored (may differ on weekly_props fallback).
+    """
     if not projection_run_exists(session, projection_run_id):
         return None
+
+    effective = effective_board_source or board.get("board_source") or board_source
 
     stale = (
         session.query(DecisionSnapshot)
@@ -128,14 +152,21 @@ def store_matchup_board(
     )
     for row in stale:
         payload = row.result_json or {}
-        if payload.get("board_source") == board_source:
+        # Drop twins for this requested source, plus legacy rows that only
+        # keyed on effective board_source (schema_version < 2).
+        key = payload.get("cache_key_source")
+        if key == board_source or (
+            key is None and payload.get("board_source") in {board_source, effective}
+        ):
             session.delete(row)
 
     result_json = {
         **board,
-        "board_source": board_source,
+        "board_source": effective,
+        "cache_key_source": board_source,
+        "requested_board_source": board_source,
         "input_fingerprint": input_fingerprint,
-        "schema_version": 1,
+        "schema_version": 2,
     }
     row = DecisionSnapshot(
         kind=MATCHUP_BOARD_KIND,
@@ -187,6 +218,14 @@ def mode_payload_from_board(board: dict[str, Any], opponent_mode: str) -> dict[s
     meta["decision_cache"] = cache_label
     if board.get("decision_snapshot_id"):
         meta["decision_snapshot_id"] = board.get("decision_snapshot_id")
+    # Surface actual/optimized sides for clients that want the full board.
+    if board.get("owner_actual") is not None:
+        out["owner_actual"] = board["owner_actual"]
+    if board.get("owner_optimized") is not None:
+        out["owner_optimized"] = board["owner_optimized"]
+    if board.get("requested_board_source") is not None:
+        out["requested_board_source"] = board["requested_board_source"]
+        meta["requested_board_source"] = board["requested_board_source"]
     out["meta"] = meta
     out["decision_cache"] = cache_label
     return out

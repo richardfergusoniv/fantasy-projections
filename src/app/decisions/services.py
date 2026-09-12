@@ -22,14 +22,13 @@ from src.app.decisions.draws import (
     stable_seed,
 )
 from src.app.decisions.lineup import (
-    _assign_optimal,
-    _mean_scores,
-    expand_seats,
+    assign_submitted_seat_labels,
     matchup_probabilities,
     optimize_lineup,
     swap_recommendations,
 )
 from src.app.decisions.matchup_cache import (
+    board_source_for_projection_source,
     load_matchup_board,
     mode_payload_from_board,
     projection_run_exists,
@@ -834,19 +833,30 @@ class LineupService:
             opponent_snapshot_id=opponent.id if opponent else None,
             owner_starters=list(user_roster.starters or []),
             opponent_starters=list((opponent.starters if opponent else []) or []),
+            owner_players=list(user_roster.players or []),
+            opponent_players=list((opponent.players if opponent else []) or []),
         )
-        board_source = ctx.board_source()
+        # Cache by *requested* UI source so weekly_props→sealed fallback cannot
+        # share / overwrite the league_value slot.
+        requested_board_source = board_source_for_projection_source(
+            ctx.requested_source.value
+        )
+        effective_board_source = ctx.board_source()
         cache_run_id = ctx.projection_run_id
-        if (
+        # Never serve/persist a board built under a source fallback — sticky
+        # sealed numbers under a Vegas request are the accuracy bug Richard hit.
+        can_cache = (
             not bypass_cache
+            and not ctx.source_fallback_reason
             and cache_run_id
             and projection_run_exists(self.session, cache_run_id)
-        ):
+        )
+        if can_cache:
             cached = load_matchup_board(
                 self.session,
                 league_id=league_id,
                 week=week,
-                board_source=board_source,
+                board_source=requested_board_source,
                 projection_run_id=cache_run_id,
                 input_fingerprint=fingerprint,
             )
@@ -864,15 +874,21 @@ class LineupService:
             input_fingerprint=fingerprint,
         )
         board["_cache_hit"] = False
-        if cache_run_id and projection_run_exists(self.session, cache_run_id):
+        board["requested_board_source"] = requested_board_source
+        if (
+            not ctx.source_fallback_reason
+            and cache_run_id
+            and projection_run_exists(self.session, cache_run_id)
+        ):
             stored = store_matchup_board(
                 self.session,
                 league_id=league_id,
                 week=week,
-                board_source=board_source,
+                board_source=requested_board_source,
                 projection_run_id=cache_run_id,
                 roster_snapshot_id=user_roster.id,
                 input_fingerprint=fingerprint,
+                effective_board_source=effective_board_source,
                 board={k: v for k, v in board.items() if not k.startswith("_")},
             )
             if stored is not None:
@@ -985,6 +1001,29 @@ class LineupService:
             expected = float(totals.mean()) if totals.size else 0.0
             return starters, bench, round(expected, 4)
 
+        # Owner actual = submitted Sleeper starters (slot labels for display).
+        # Matchup "You" must mirror this set — not the win%-optimal lineup —
+        # so swaps Apply against the same board Richard sees in Sleeper.
+        # Seat labels follow Sleeper starter *order* (not re-optimized), or You
+        # vs Opp rows scramble when the FE aligns by slot.
+        owner_actual_lineup = optimize_lineup(
+            draw_set,
+            ctx.contract,
+            candidate_ids=user_candidates,
+            objective="points",
+        )
+        if submitted_user:
+            owner_actual_ids = submitted_user
+            owner_actual_assignments = assign_submitted_seat_labels(
+                ctx.contract, submitted_user
+            )
+        else:
+            owner_actual_ids = owner_actual_lineup.starters
+            owner_actual_assignments = dict(owner_actual_lineup.assignments)
+        owner_actual_starters, owner_actual_bench, owner_actual_points = _side_details(
+            owner_actual_ids, user_candidates, owner_actual_assignments
+        )
+
         by_opponent_mode: dict[str, dict] = {}
         owner_optimized_side: dict | None = None
         opponent_actual_side: dict | None = None
@@ -1020,7 +1059,10 @@ class LineupService:
                 opponent_totals=opponent_totals,
             )
 
-            starter_details, bench_details, _ = _side_details(
+            # Primary board rows = actual Sleeper starters.
+            starter_details = owner_actual_starters
+            bench_details = owner_actual_bench
+            rec_starter_details, rec_bench_details, rec_points = _side_details(
                 recommended.starters, user_candidates, recommended.assignments
             )
             opp_assignments = evaluation.get("opponent_assignments") or {}
@@ -1039,28 +1081,45 @@ class LineupService:
             resolved_opp_roster_id = (
                 opponent.roster_id if opponent is not None else None
             )
+            current_probs = (
+                evaluation["current_probabilities"] if matchup_allowed else None
+            )
+            # Win% on the payload matches the lineup shown in `starters` (actual).
+            shown_probs = current_probs if current_probs is not None else probs
             payload = {
                 "week": week,
                 "opponent_mode": mode,
                 "opponent_lineup_source": evaluation["opponent_lineup_source"],
                 "recommended_starters": recommended.starters,
+                "recommended_starter_details": rec_starter_details,
+                "recommended_bench": rec_bench_details,
+                "recommended_expected_points": rec_points,
+                "recommended_slot_assignments": recommended.assignments,
+                "recommended_win_probability": probs.get("win")
+                if matchup_allowed
+                else None,
                 "starters": starter_details,
                 "bench": bench_details,
-                "slot_assignments": recommended.assignments,
+                "slot_assignments": owner_actual_assignments,
                 "unfilled_seats": recommended.unfilled_seats,
-                "expected_points": round(recommended.expected_points, 4),
+                "expected_points": owner_actual_points,
                 "quantiles": {
                     k: round(v, 4) for k, v in recommended.quantiles.items()
                 },
                 "objective": recommended.objective,
-                "matchup_probabilities": probs,
-                "win_probability": probs.get("win") if matchup_allowed else None,
+                "matchup_probabilities": shown_probs
+                if shown_probs is not None
+                else {"win": None, "tie": None, "loss": None},
+                "win_probability": (shown_probs or {}).get("win")
+                if matchup_allowed
+                else None,
                 "matchup_win_probability_available": matchup_allowed,
                 "capability_mode": ctx.projection_context.capability_mode,
                 "board_source": ctx.board_source(),
-                "current_lineup_probabilities": evaluation["current_probabilities"]
-                if matchup_allowed
-                else None,
+                "requested_board_source": board_source_for_projection_source(
+                    ctx.requested_source.value
+                ),
+                "current_lineup_probabilities": current_probs,
                 "current_starters": evaluation["current_starters"],
                 "current_expected_points": round(
                     evaluation["current_expected_points"], 4
@@ -1081,9 +1140,9 @@ class LineupService:
 
             if owner_optimized_side is None:
                 owner_optimized_side = {
-                    "starters": starter_details,
-                    "bench": bench_details,
-                    "expected_points": payload["expected_points"],
+                    "starters": rec_starter_details,
+                    "bench": rec_bench_details,
+                    "expected_points": rec_points,
                     "slot_assignments": recommended.assignments,
                 }
             if mode == "current":
@@ -1101,34 +1160,12 @@ class LineupService:
                     "lineup_source": evaluation["opponent_lineup_source"],
                 }
 
-        # Owner actual = submitted Sleeper starters (slot labels for display).
-        owner_actual_lineup = optimize_lineup(
-            draw_set,
-            ctx.contract,
-            candidate_ids=user_candidates,
-            objective="points",
-        )
-        if submitted_user:
-            seats = expand_seats(ctx.contract)
-            own_players = [draw_set.players[pid] for pid in submitted_user]
-            own_assignments, _ = _assign_optimal(
-                seats,
-                own_players,
-                _mean_scores(draw_set, own_players),
-                required_player_ids=frozenset(submitted_user),
-            )
-            owner_actual_ids = submitted_user
-            owner_actual_assignments = own_assignments
-        else:
-            owner_actual_ids = owner_actual_lineup.starters
-            owner_actual_assignments = dict(owner_actual_lineup.assignments)
-        owner_actual_starters, owner_actual_bench, owner_actual_points = _side_details(
-            owner_actual_ids, user_candidates, owner_actual_assignments
-        )
-
         return {
             "week": week,
             "board_source": ctx.board_source(),
+            "requested_board_source": board_source_for_projection_source(
+                ctx.requested_source.value
+            ),
             "projection_run_id": ctx.projection_run_id,
             "input_fingerprint": input_fingerprint,
             "owner_actual": {
@@ -1146,43 +1183,51 @@ class LineupService:
     def _matchup_opponent_roster_id(
         self, league_id: str, week: int, user_roster_id: int
     ) -> int | None:
-        """Resolve the opponent from the newest coherent weekly matchup pairing."""
-        owner = (
+        """Resolve the opponent from the newest coherent weekly matchup pairing.
+
+        Prefer a sync generation where owner and opponent share ``fetched_at``.
+        Matchup upserts used to skip unchanged rows, so the owner's latest row
+        can be days older than peers — walking older owner rows finds the last
+        coherent pair before falling back to matchup_id-only matching.
+        """
+        owner_rows = (
             self.session.query(MatchupSnapshot)
             .filter(
                 MatchupSnapshot.league_id == league_id,
                 MatchupSnapshot.week == week,
                 MatchupSnapshot.roster_id == user_roster_id,
+                MatchupSnapshot.matchup_id > 0,
             )
             .order_by(
                 MatchupSnapshot.fetched_at.desc(),
                 MatchupSnapshot.id.desc(),
             )
-            .first()
+            .all()
         )
-        if owner is None or owner.matchup_id <= 0:
+        if not owner_rows:
             return None
-        # Restrict opponent candidates to the same observation generation so an
-        # owner row from one sync cannot pair with a stale opponent from another.
-        opponent = (
-            self.session.query(MatchupSnapshot)
-            .filter(
-                MatchupSnapshot.league_id == league_id,
-                MatchupSnapshot.week == week,
-                MatchupSnapshot.matchup_id == owner.matchup_id,
-                MatchupSnapshot.roster_id != user_roster_id,
-                MatchupSnapshot.fetched_at == owner.fetched_at,
+
+        for owner in owner_rows:
+            opponent = (
+                self.session.query(MatchupSnapshot)
+                .filter(
+                    MatchupSnapshot.league_id == league_id,
+                    MatchupSnapshot.week == week,
+                    MatchupSnapshot.matchup_id == owner.matchup_id,
+                    MatchupSnapshot.roster_id != user_roster_id,
+                    MatchupSnapshot.fetched_at == owner.fetched_at,
+                )
+                .order_by(
+                    MatchupSnapshot.fetched_at.desc(),
+                    MatchupSnapshot.id.desc(),
+                )
+                .first()
             )
-            .order_by(
-                MatchupSnapshot.fetched_at.desc(),
-                MatchupSnapshot.id.desc(),
-            )
-            .first()
-        )
-        if opponent is not None:
-            return opponent.roster_id
-        # If equal-timestamp pairing is absent (partial import), fall back to the
-        # newest opponent row for the same matchup_id without inventing a rival.
+            if opponent is not None:
+                return opponent.roster_id
+
+        # Last resort: newest peer sharing the newest owner's matchup_id.
+        owner = owner_rows[0]
         opponent = (
             self.session.query(MatchupSnapshot)
             .filter(

@@ -169,6 +169,8 @@ export function HomeScreen() {
           value={boardSource}
           onChange={setBoardSource}
           fallbackSource={lineup.data?.board_source}
+          effectiveSource={lineup.data?.board_source}
+          fallbackReason={lineup.data?.fallback_reason}
           hint={false}
         />
       </Panel>

@@ -394,6 +394,8 @@ export function LineupScreen() {
           value={boardSource}
           onChange={setBoardSource}
           fallbackSource={lineup.data?.board_source}
+          effectiveSource={lineup.data?.board_source}
+          fallbackReason={lineup.data?.fallback_reason}
         />
 
         <div className="lineup-toolbar">

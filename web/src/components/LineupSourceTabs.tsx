@@ -17,14 +17,23 @@ export function LineupSourceTabs({
   onChange,
   /** When preference is unset, highlight this from the last API response. */
   fallbackSource,
+  /** Effective board the API scored (may differ from preference on fallback). */
+  effectiveSource,
+  /** Server fallback reason, e.g. missing_weekly_props_pointer. */
+  fallbackReason,
   hint = true,
 }: {
   value: LineupBoardSource | null;
   onChange: (source: LineupBoardSource) => void;
   fallbackSource?: LineupBoardSource;
+  effectiveSource?: LineupBoardSource;
+  fallbackReason?: string | null;
   hint?: boolean;
 }) {
   const active: LineupBoardSource = value ?? fallbackSource ?? "league_value";
+  const scoredAs = effectiveSource ?? fallbackSource;
+  const diverged =
+    Boolean(value) && Boolean(scoredAs) && value !== scoredAs;
   return (
     <div className="lineup-source-strip">
       <div
@@ -50,8 +59,18 @@ export function LineupSourceTabs({
       </div>
       {hint ? (
         <p className="lineup-source-hint muted">
-          Scoring with {labelForBoardSource(active)}
-          {value == null ? " (server default until you pick)" : ""}.
+          {diverged && scoredAs ? (
+            <>
+              Asked for {labelForBoardSource(active)}; scoring with{" "}
+              {labelForBoardSource(scoredAs)}
+              {fallbackReason ? ` (${fallbackReason.replace(/_/g, " ")})` : ""}.
+            </>
+          ) : (
+            <>
+              Scoring with {labelForBoardSource(active)}
+              {value == null ? " (server default until you pick)" : ""}.
+            </>
+          )}
         </p>
       ) : null}
     </div>

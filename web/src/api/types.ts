@@ -180,7 +180,11 @@ export interface LineupRecommendation {
    * preference that maps to `?projection_source=` on lineup fetches.
    */
   board_source?: LineupBoardSource;
+  /** Requested UI board source (may differ from board_source on fallback). */
+  requested_board_source?: LineupBoardSource;
   effective_source?: string;
+  /** Why the API fell back from the requested projection source, when set. */
+  fallback_reason?: string | null;
   meta: ApiMeta;
 }
 

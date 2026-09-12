@@ -13,7 +13,7 @@ const STORAGE_KEY = "fantasy-decisions:recommendations";
  * next read, which is how a shape change (or a key-collision fix like adding
  * `opponent_mode`) invalidates stale offline data instead of misreading it.
  */
-export const CACHE_SCHEMA_VERSION = 2;
+export const CACHE_SCHEMA_VERSION = 3;
 
 /** Most entries we keep. Two screens x two opponent modes x two leagues. */
 const MAX_ENTRIES = 8;

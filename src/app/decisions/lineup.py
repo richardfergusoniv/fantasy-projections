@@ -68,6 +68,23 @@ def expand_seats(contract: ScoringContract) -> list[Seat]:
     return seats
 
 
+def assign_submitted_seat_labels(
+    contract: ScoringContract, submitted_ids: list[str]
+) -> dict[str, str]:
+    """Map Sleeper starter *order* onto league seats for display.
+
+    Sleeper's ``starters`` array is positional against ``roster_positions``.
+    Re-solving with ``_assign_optimal`` for display reshuffles players across
+    slots (e.g. WR↔FLEX), which misaligns You vs Opp rows on the Matchup board.
+    """
+    seats = expand_seats(contract)
+    assignments: dict[str, str] = {}
+    for seat, player_id in zip(seats, submitted_ids):
+        if player_id:
+            assignments[player_id] = seat.slot
+    return assignments
+
+
 def _assign_optimal(
     seats: list[Seat],
     candidates: list[PlayerDraws],
@@ -373,16 +390,9 @@ def matchup_probabilities(
         ]
         if submitted:
             opponent_ids = submitted
-            # Legal slot labels for the submitted set (display only — does not
-            # change which players score in the matchup totals).
-            seats = expand_seats(contract)
-            opp_players = [draw_set.players[pid] for pid in opponent_ids]
-            opponent_assignments, _ = _assign_optimal(
-                seats,
-                opp_players,
-                _mean_scores(draw_set, opp_players),
-                required_player_ids=frozenset(opponent_ids),
-            )
+            # Preserve Sleeper seat order for board alignment (display only —
+            # does not change which players score in the matchup totals).
+            opponent_assignments = assign_submitted_seat_labels(contract, opponent_ids)
         else:
             opponent_ids = opponent_lineup.starters
             opponent_source = "optimized_fallback_no_submitted_lineup"
