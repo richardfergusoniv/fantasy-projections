@@ -415,30 +415,60 @@ class SleeperSyncService:
         return inserted
 
     def _upsert_matchup_snapshots(self, league_id: str, matchups: list[dict], week: int) -> int:
-        inserted = 0
+        """Write one coherent matchup generation per sync.
+
+        All rows in a sync share ``fetched_at``. Skipping unchanged points left
+        owner rows days behind peers, so lineup pairing fell back across
+        generations and could surface the wrong opponent after rematches.
+        """
+        if not matchups:
+            return 0
+
+        incoming: dict[int, tuple[int, float | None]] = {}
         for matchup in matchups:
             roster_id = int(matchup["roster_id"])
             matchup_id = int(matchup.get("matchup_id", 0) or 0)
             points = matchup.get("points")
-            existing = (
-                self.session.query(MatchupSnapshot)
-                .filter(
-                    MatchupSnapshot.league_id == league_id,
-                    MatchupSnapshot.week == week,
-                    MatchupSnapshot.roster_id == roster_id,
-                    MatchupSnapshot.matchup_id == matchup_id,
-                )
-                .all()
+            incoming[roster_id] = (matchup_id, points)
+
+        latest_rows = (
+            self.session.query(MatchupSnapshot)
+            .filter(
+                MatchupSnapshot.league_id == league_id,
+                MatchupSnapshot.week == week,
             )
-            if any(row.points == points for row in existing):
-                continue
+            .order_by(
+                MatchupSnapshot.fetched_at.desc(),
+                MatchupSnapshot.id.desc(),
+            )
+            .all()
+        )
+        latest_by_roster: dict[int, MatchupSnapshot] = {}
+        for row in latest_rows:
+            latest_by_roster.setdefault(row.roster_id, row)
+
+        if latest_by_roster and set(latest_by_roster) == set(incoming):
+            identical = all(
+                latest_by_roster[roster_id].matchup_id == matchup_id
+                and latest_by_roster[roster_id].points == points
+                for roster_id, (matchup_id, points) in incoming.items()
+            )
+            # Same roster set + same pairings/points: still refresh timestamps as
+            # one generation when the previous generation was split across times.
+            generation_times = {row.fetched_at for row in latest_by_roster.values()}
+            if identical and len(generation_times) == 1:
+                return 0
+
+        fetched_at = datetime.now(UTC)
+        inserted = 0
+        for roster_id, (matchup_id, points) in incoming.items():
             self.session.add(
                 MatchupSnapshot(
                     league_id=league_id,
                     week=week,
                     roster_id=roster_id,
                     matchup_id=matchup_id,
-                    fetched_at=datetime.now(UTC),
+                    fetched_at=fetched_at,
                     points=points,
                 )
             )

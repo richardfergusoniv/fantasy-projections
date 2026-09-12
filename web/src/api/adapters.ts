@@ -210,11 +210,25 @@ export function adaptLineup(raw: RawRecord): LineupRecommendation {
       : undefined,
     contract_hash: raw.contract_hash ? String(raw.contract_hash) : undefined,
     board_source: adaptBoardSource(raw),
+    requested_board_source: (() => {
+      const requested =
+        raw.requested_board_source ??
+        (raw.meta as RawRecord | undefined)?.requested_board_source;
+      if (requested === "vegas_props" || requested === "league_value") {
+        return requested;
+      }
+      return undefined;
+    })(),
     effective_source: raw.effective_source
       ? String(raw.effective_source)
       : (raw.meta as RawRecord | undefined)?.effective_source
         ? String((raw.meta as RawRecord).effective_source)
         : undefined,
+    fallback_reason: (() => {
+      const reason =
+        raw.fallback_reason ?? (raw.meta as RawRecord | undefined)?.fallback_reason;
+      return reason != null && reason !== "" ? String(reason) : null;
+    })(),
     meta,
   };
 }

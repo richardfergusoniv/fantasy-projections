@@ -1,4 +1,4 @@
-"""Matchup board decision_snapshot cache — hit, miss, invalidate."""
+"""Matchup board decision_snapshot cache — hit, miss, invalidate, accuracy."""
 
 from __future__ import annotations
 
@@ -44,6 +44,8 @@ def test_recommend_caches_board_then_serves_hit(seeded_lineup: Session):
     )
     assert len(rows) == 1
     board = rows[0].result_json
+    assert board["schema_version"] == 2
+    assert board["cache_key_source"] == "league_value"
     assert board["owner_actual"]["starters"]
     assert board["owner_optimized"]["starters"]
     assert board["opponent_actual"] is not None
@@ -54,11 +56,67 @@ def test_recommend_caches_board_then_serves_hit(seeded_lineup: Session):
     assert second["decision_cache"] == "hit"
     assert second["recommended_starters"] == first["recommended_starters"]
     assert second["expected_points"] == first["expected_points"]
+    assert [p["player_id"] for p in second["starters"]] == [
+        p["player_id"] for p in first["starters"]
+    ]
 
     # Switching opponent_mode must not recompute when the board is warm.
     optimized = service.recommend("fixture-standard", 1, opponent_mode="optimized")
     assert optimized["decision_cache"] == "hit"
     assert optimized["opponent_mode"] == "optimized"
+
+
+def test_cache_hit_matches_fresh_bypass(seeded_lineup: Session):
+    """decision_cache hit must not drift from a fresh recompute."""
+    service = LineupService(seeded_lineup)
+    miss = service.recommend("fixture-standard", 1, opponent_mode="current")
+    assert miss["decision_cache"] == "miss"
+    hit = service.recommend("fixture-standard", 1, opponent_mode="current")
+    assert hit["decision_cache"] == "hit"
+    fresh = service.recommend(
+        "fixture-standard", 1, opponent_mode="current", bypass_cache=True
+    )
+    assert fresh["decision_cache"] == "miss"
+
+    def _ids(payload, key="starters"):
+        return [row["player_id"] for row in payload[key]]
+
+    assert _ids(hit) == _ids(fresh) == _ids(miss)
+    assert hit["expected_points"] == fresh["expected_points"] == miss["expected_points"]
+    assert hit["opponent_expected_points"] == fresh["opponent_expected_points"]
+    assert _ids(hit, "opponent_starter_details") == _ids(
+        fresh, "opponent_starter_details"
+    )
+    assert hit["current_starters"] == fresh["current_starters"]
+    assert hit["recommended_starters"] == fresh["recommended_starters"]
+
+
+def test_starters_are_submitted_sleeper_actual(seeded_lineup: Session):
+    """Matchup 'You' column must be current Sleeper starters, not optimized."""
+    from src.app.decisions.services import _resolve_owner_roster_id
+
+    service = LineupService(seeded_lineup)
+    payload = service.recommend("fixture-standard", 1, opponent_mode="current")
+    owner_roster_id = _resolve_owner_roster_id(
+        seeded_lineup, "fixture-standard", explicit_roster_id=None
+    )
+    latest = (
+        seeded_lineup.query(RosterSnapshot)
+        .filter(
+            RosterSnapshot.league_id == "fixture-standard",
+            RosterSnapshot.week == 1,
+            RosterSnapshot.roster_id == owner_roster_id,
+        )
+        .order_by(RosterSnapshot.fetched_at.desc(), RosterSnapshot.id.desc())
+        .first()
+    )
+    assert latest is not None
+    shown = [row["player_id"] for row in payload["starters"]]
+    assert shown == payload["current_starters"]
+    assert payload["expected_points"] == payload["current_expected_points"]
+    # Optimized / recommended may differ from actual; both are published.
+    assert payload["recommended_starters"]
+    assert payload["owner_actual"]["expected_points"] == payload["expected_points"]
 
 
 def test_roster_change_invalidates_fingerprint(seeded_lineup: Session):
@@ -138,7 +196,7 @@ def test_vegas_and_league_value_are_separate_cache_keys(seeded_lineup: Session):
         .first()
     )
     assert run is not None
-    fingerprint = "owner=1:snap:[a]|opp=2:snap2:[b]"
+    fingerprint = "owner=1:snap:[a]:pool[a]|opp=2:snap2:[b]:pool[b]"
     for source in ("league_value", "vegas_props"):
         stored = store_matchup_board(
             seeded_lineup,
@@ -148,6 +206,7 @@ def test_vegas_and_league_value_are_separate_cache_keys(seeded_lineup: Session):
             projection_run_id=run.id,
             roster_snapshot_id="snap",
             input_fingerprint=fingerprint,
+            effective_board_source=source,
             board={
                 "by_opponent_mode": {
                     "current": {"opponent_mode": "current", "board_source": source},
@@ -178,6 +237,71 @@ def test_vegas_and_league_value_are_separate_cache_keys(seeded_lineup: Session):
         input_fingerprint=fingerprint,
     )
     assert league is not None and vegas is not None
-    assert league["board_source"] == "league_value"
-    assert vegas["board_source"] == "vegas_props"
+    assert league["cache_key_source"] == "league_value"
+    assert vegas["cache_key_source"] == "vegas_props"
     assert league["decision_snapshot_id"] != vegas["decision_snapshot_id"]
+
+
+def test_weekly_props_fallback_does_not_persist_cache(seeded_lineup: Session, monkeypatch):
+    """Vegas request falling back to sealed must not sticky-cache under either key."""
+    monkeypatch.setenv("APP_PROJECTION_SOURCE", "weekly_props")
+    get_settings.cache_clear()
+    service = LineupService(seeded_lineup)
+    first = service.recommend(
+        "fixture-standard", 1, opponent_mode="current", projection_source="weekly_props"
+    )
+    assert first.get("fallback_reason") == "missing_weekly_props_pointer" or first.get(
+        "meta", {}
+    ).get("fallback_reason") == "missing_weekly_props_pointer"
+    assert first["decision_cache"] == "miss"
+    assert (
+        seeded_lineup.query(DecisionSnapshot)
+        .filter(DecisionSnapshot.kind == MATCHUP_BOARD_KIND)
+        .count()
+        == 0
+    )
+    second = service.recommend(
+        "fixture-standard", 1, opponent_mode="current", projection_source="weekly_props"
+    )
+    assert second["decision_cache"] == "miss"
+
+
+def test_legacy_schema_v1_cache_is_treated_as_miss(seeded_lineup: Session):
+    from src.app.persistence.models import ProjectionRun
+
+    service = LineupService(seeded_lineup)
+    # Warm a real board so we know recommend works, then replace with legacy row.
+    service.recommend("fixture-standard", 1, opponent_mode="current")
+    run = (
+        seeded_lineup.query(ProjectionRun)
+        .order_by(ProjectionRun.as_of.desc())
+        .first()
+    )
+    assert run is not None
+    seeded_lineup.query(DecisionSnapshot).filter(
+        DecisionSnapshot.kind == MATCHUP_BOARD_KIND
+    ).delete()
+    seeded_lineup.flush()
+    # Manually insert a schema_version=1 style payload (no cache_key_source).
+    row = DecisionSnapshot(
+        kind=MATCHUP_BOARD_KIND,
+        league_id="fixture-standard",
+        week=1,
+        projection_run_id=run.id,
+        result_json={
+            "board_source": "league_value",
+            "input_fingerprint": "stale",
+            "schema_version": 1,
+            "by_opponent_mode": {
+                "current": {"opponent_mode": "current", "starters": []},
+                "optimized": {"opponent_mode": "optimized", "starters": []},
+            },
+        },
+        created_at=datetime.now(UTC),
+    )
+    seeded_lineup.add(row)
+    seeded_lineup.flush()
+
+    again = service.recommend("fixture-standard", 1, opponent_mode="current")
+    assert again["decision_cache"] == "miss"
+    assert again["starters"]
