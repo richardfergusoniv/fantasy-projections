@@ -264,3 +264,45 @@ def test_board_source_league_value_when_sealed(db_session: Session, monkeypatch)
     ctx = _LeagueContext(db_session, "props-league", 2)
     assert ctx.board_source() == "league_value"
     get_settings.cache_clear()
+
+
+def test_requested_source_override_ignores_env_default(db_session: Session, monkeypatch):
+    """Client `projection_source` query mirrors APP override for the UI toggle."""
+    monkeypatch.setenv("APP_PROJECTION_SOURCE", "sealed_release")
+    monkeypatch.setenv("SLEEPER_USER_ID", "owner-1")
+    get_settings.cache_clear()
+    from src.app.decisions.services import _LeagueContext
+    from src.app.projections.source import ProjectionSource
+
+    _seed_props_lineup_league(db_session)
+
+    class _ColdBundle:
+        namespace = "cold"
+        meta: ClassVar[dict] = {"scoring": "ppr"}
+
+        def load_bundle(self):
+            return None
+
+        def get(self, pid):
+            return None
+
+        def load(self):
+            return {}
+
+        def as_of(self):
+            return datetime.now(UTC).isoformat()
+
+    monkeypatch.setattr(
+        "src.app.decisions.services.get_bundle_loader",
+        lambda season: _ColdBundle(),
+    )
+
+    ctx = _LeagueContext(
+        db_session,
+        "props-league",
+        2,
+        requested_source="weekly_props",
+    )
+    assert ctx.requested_source == ProjectionSource.WEEKLY_PROPS
+    assert ctx.board_source() == "vegas_props"
+    get_settings.cache_clear()

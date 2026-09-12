@@ -180,9 +180,17 @@ function BenchRow({
 }
 
 export function LineupScreen() {
-  const { selectedLeagueId, selectedLeague, week, availableWeeks, rostersLoading } = useAppState();
+  const {
+    selectedLeagueId,
+    selectedLeague,
+    week,
+    availableWeeks,
+    rostersLoading,
+    boardSource,
+    setBoardSource,
+  } = useAppState();
   const [opponentMode, setOpponentMode] = useState<OpponentMode>("current");
-  const lineup = useLineupRecommendation(selectedLeagueId, week, opponentMode);
+  const lineup = useLineupRecommendation(selectedLeagueId, week, opponentMode, boardSource);
 
   const [localStarters, setLocalStarters] = useState<LineupStarter[]>([]);
   const [localBench, setLocalBench] = useState<LineupStarter[]>([]);
@@ -382,7 +390,11 @@ export function LineupScreen() {
           />
         }
       >
-        <LineupSourceTabs boardSource={lineup.data?.board_source} />
+        <LineupSourceTabs
+          value={boardSource}
+          onChange={setBoardSource}
+          fallbackSource={lineup.data?.board_source}
+        />
 
         <div className="lineup-toolbar">
           <OpponentModeToggle

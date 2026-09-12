@@ -176,9 +176,8 @@ export interface LineupRecommendation {
   opponent_lineup_source?: string;
   contract_hash?: string;
   /**
-   * UI seam for League Value ↔ Vegas Props. Present once the decisions API
-   * publishes it; the Matchup screen shows a read-only tab strip until toggle
-   * wiring lands.
+   * UI seam for League Value ↔ Vegas Props. Home + Matchup share a persisted
+   * preference that maps to `?projection_source=` on lineup fetches.
    */
   board_source?: LineupBoardSource;
   effective_source?: string;

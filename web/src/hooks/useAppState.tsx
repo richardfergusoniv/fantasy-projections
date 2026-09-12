@@ -8,7 +8,11 @@ import {
   type ReactNode,
 } from "react";
 import { api } from "../api/client";
-import type { LeagueSummary, Roster } from "../api/types";
+import type { LeagueSummary, LineupBoardSource, Roster } from "../api/types";
+import {
+  readBoardSourcePreference,
+  writeBoardSourcePreference,
+} from "../projectionSource";
 import { readLocal, writeLocal } from "../storage/safeStorage";
 
 const LEAGUE_KEY = "fantasy-decisions:selected-league";
@@ -52,6 +56,14 @@ interface AppStateValue {
   setWeek: (week: number) => void;
   /** True when the week came from a saved user choice rather than the data. */
   weekIsUserChosen: boolean;
+
+  /**
+   * In-season projection board preference (League Value ↔ Vegas Props).
+   * Null means follow the server `APP_PROJECTION_SOURCE` default.
+   * Home + Matchup share this; passed to lineup as `?projection_source=`.
+   */
+  boardSource: LineupBoardSource | null;
+  setBoardSource: (source: LineupBoardSource) => void;
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null);
@@ -158,6 +170,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [weekOverride, setWeekOverride] = useState<number | null>(() =>
     readStoredWeek(readLocal(LEAGUE_KEY)),
   );
+  const [boardSource, setBoardSourceState] = useState<LineupBoardSource | null>(() =>
+    readBoardSourcePreference(),
+  );
+
+  const setBoardSource = useCallback((source: LineupBoardSource) => {
+    setBoardSourceState(source);
+    writeBoardSourcePreference(source);
+  }, []);
 
   const selectLeague = useCallback((leagueId: string) => {
     setSelectedLeagueId(leagueId);
@@ -318,9 +338,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       week,
       setWeek,
       weekIsUserChosen: weekOverride != null,
+      boardSource,
+      setBoardSource,
     }),
     [
       availableWeeks,
+      boardSource,
       configuredLeagueIds,
       leagues,
       leaguesError,
@@ -332,6 +355,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       selectLeague,
       selectedLeague,
       selectedLeagueId,
+      setBoardSource,
       setShowAllLeagues,
       setWeek,
       showAllLeagues,
