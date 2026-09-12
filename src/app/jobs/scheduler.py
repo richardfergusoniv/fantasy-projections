@@ -130,6 +130,9 @@ SCHEDULE_SLOTS: dict[str, ScheduleSlot] = {
             0,
         ),
         ScheduleSlot("full-release", frozenset(), 0, 0, on_demand=True),
+        ScheduleSlot(
+            "precompute-matchup-lineups", frozenset(), 0, 0, on_demand=True
+        ),
     )
 }
 

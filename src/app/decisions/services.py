@@ -21,10 +21,20 @@ from src.app.decisions.draws import (
     build_draw_set,
     stable_seed,
 )
-from src.draft_assistant.market_adp import canonicalize_player_name
 from src.app.decisions.lineup import (
+    _assign_optimal,
+    _mean_scores,
+    expand_seats,
     matchup_probabilities,
+    optimize_lineup,
     swap_recommendations,
+)
+from src.app.decisions.matchup_cache import (
+    load_matchup_board,
+    mode_payload_from_board,
+    projection_run_exists,
+    roster_input_fingerprint,
+    store_matchup_board,
 )
 from src.app.decisions.tendencies import ManagerTendencyService
 from src.app.decisions.trades import (
@@ -46,6 +56,7 @@ from src.app.projections.source import (
 from src.app.releases.gates import validate_matchup_probabilities
 from src.app.scoring.compiler import compile_sleeper_scoring, require_publishable
 from src.app.scoring.contract import ScoringContract
+from src.draft_assistant.market_adp import canonicalize_player_name
 from src.projection.special_teams.models import (
     KickerContext,
     TeamContext,
@@ -753,9 +764,31 @@ class LineupService:
         user_roster_id: int | None = None,
         opponent_roster_id: int | None = None,
         projection_source: str | ProjectionSource | None = None,
+        bypass_cache: bool = False,
     ) -> dict:
         if opponent_mode not in {"current", "optimized"}:
             raise LeagueContextError(f"invalid_opponent_mode:{opponent_mode}")
+        board = self.get_or_compute_matchup_board(
+            league_id,
+            week,
+            user_roster_id=user_roster_id,
+            opponent_roster_id=opponent_roster_id,
+            projection_source=projection_source,
+            bypass_cache=bypass_cache,
+        )
+        return mode_payload_from_board(board, opponent_mode)
+
+    def get_or_compute_matchup_board(
+        self,
+        league_id: str,
+        week: int,
+        *,
+        user_roster_id: int | None = None,
+        opponent_roster_id: int | None = None,
+        projection_source: str | ProjectionSource | None = None,
+        bypass_cache: bool = False,
+    ) -> dict:
+        """Compute-with-cache: both opponent modes + actual/optimized lineups."""
         ctx = _LeagueContext(
             self.session,
             league_id,
@@ -765,7 +798,6 @@ class LineupService:
         user_roster_id = _resolve_owner_roster_id(
             self.session, league_id, explicit_roster_id=user_roster_id
         )
-
         rosters = self.leagues.latest_rosters(league_id, week)
         user_roster = next((r for r in rosters if r.roster_id == user_roster_id), None)
         if user_roster is None:
@@ -795,6 +827,70 @@ class LineupService:
                 (r for r in rosters if r.roster_id == opponent_roster_id), None
             )
 
+        fingerprint = roster_input_fingerprint(
+            owner_roster_id=user_roster_id,
+            owner_snapshot_id=user_roster.id,
+            opponent_roster_id=opponent.roster_id if opponent else None,
+            opponent_snapshot_id=opponent.id if opponent else None,
+            owner_starters=list(user_roster.starters or []),
+            opponent_starters=list((opponent.starters if opponent else []) or []),
+        )
+        board_source = ctx.board_source()
+        cache_run_id = ctx.projection_run_id
+        if (
+            not bypass_cache
+            and cache_run_id
+            and projection_run_exists(self.session, cache_run_id)
+        ):
+            cached = load_matchup_board(
+                self.session,
+                league_id=league_id,
+                week=week,
+                board_source=board_source,
+                projection_run_id=cache_run_id,
+                input_fingerprint=fingerprint,
+            )
+            if cached is not None:
+                cached["_cache_hit"] = True
+                return cached
+
+        board = self._compute_matchup_board(
+            ctx=ctx,
+            week=week,
+            user_roster=user_roster,
+            opponent=opponent,
+            matchup_incomplete=matchup_incomplete,
+            matchup_degraded_reason=matchup_degraded_reason,
+            input_fingerprint=fingerprint,
+        )
+        board["_cache_hit"] = False
+        if cache_run_id and projection_run_exists(self.session, cache_run_id):
+            stored = store_matchup_board(
+                self.session,
+                league_id=league_id,
+                week=week,
+                board_source=board_source,
+                projection_run_id=cache_run_id,
+                roster_snapshot_id=user_roster.id,
+                input_fingerprint=fingerprint,
+                board={k: v for k, v in board.items() if not k.startswith("_")},
+            )
+            if stored is not None:
+                board["decision_snapshot_id"] = stored.id
+                board["cached_at"] = stored.created_at.isoformat()
+        return board
+
+    def _compute_matchup_board(
+        self,
+        *,
+        ctx: _LeagueContext,
+        week: int,
+        user_roster,
+        opponent,
+        matchup_incomplete: bool,
+        matchup_degraded_reason: str | None,
+        input_fingerprint: str,
+    ) -> dict:
         user_raw = [pid for pid in (user_roster.players or []) if pid]
         opp_raw = [pid for pid in ((opponent.players if opponent else []) or []) if pid]
         user_map, unresolved_user = ctx.resolve_roster_ids(user_raw)
@@ -820,61 +916,20 @@ class LineupService:
             detail = "no_projected_players_on_roster"
             if unresolved_user:
                 detail = f"no_projected_players_on_roster:unresolved={len(unresolved_user)}"
-            raise LeagueContextError(f"{detail}:league={league_id},week={week}")
+            raise LeagueContextError(f"{detail}:league={ctx.league_id},week={week}")
 
         matchup_allowed = ctx.projection_service.matchup_win_probability_allowed(
             season=ctx.season, week=week, source=ctx.projection_source
         )
         if matchup_incomplete or not opp_candidates:
-            # Optimize the owner's lineup without publishing a win probability
-            # against an arbitrary or missing opponent.
             matchup_allowed = False
             if matchup_degraded_reason is None:
                 matchup_degraded_reason = "matchup_opponent_unprojected"
 
-        evaluation = matchup_probabilities(
-            draw_set,
-            ctx.contract,
-            user_candidate_ids=user_candidates,
-            opponent_candidate_ids=opp_candidates,
-            user_starters=submitted_user,
-            opponent_mode=opponent_mode,
-            opponent_submitted_starters=submitted_opp,
-        )
-        recommended = evaluation["recommended"]
-        probs = evaluation["recommended_probabilities"]
-
-        if matchup_allowed:
-            gate = validate_matchup_probabilities(probs)
-            if not gate.passed:
-                raise LeagueContextError(
-                    f"matchup_probability_gate_failed:{gate.failures}"
-                )
-        else:
-            probs = {"win": None, "tie": None, "loss": None}
-
-        opponent_totals = draw_set.totals_for(evaluation["opponent_starters"])
-        swaps = swap_recommendations(
-            draw_set,
-            ctx.contract,
-            current_starters=submitted_user,
-            recommended=recommended,
-            opponent_totals=opponent_totals,
-        )
-
         # Prefer props-run / identity names over sealed bundle when on Vegas path
         # (#53), while still emitting Matchup board bench/opponent rows (#56).
         display_by_id: dict[str, tuple[str | None, str | None]] = {}
-        board_ids = list(
-            dict.fromkeys(
-                [
-                    *recommended.starters,
-                    *evaluation["opponent_starters"],
-                    *user_candidates,
-                    *opp_candidates,
-                ]
-            )
-        )
+        board_ids = list(dict.fromkeys([*user_candidates, *opp_candidates]))
         if ctx._uses_weekly_props_run() and ctx.run is not None and board_ids:
             for row in ctx.projections.player_projections(ctx.run.id, board_ids):
                 mean = row.mean_json or {}
@@ -905,75 +960,187 @@ class LineupService:
                 "locked": player.locked,
             }
 
-        starter_details = [
-            _player_row(pid, slot=recommended.assignments.get(pid))
-            for pid in recommended.starters
-        ]
-        opp_assignments = evaluation.get("opponent_assignments") or {}
-        opponent_starter_details = [
-            _player_row(pid, slot=opp_assignments.get(pid))
-            for pid in evaluation["opponent_starters"]
-            if pid in draw_set.players
-        ]
-        recommended_set = set(recommended.starters)
-        bench_details = [
-            _player_row(pid, slot=None, on_bench=True)
-            for pid in user_candidates
-            if pid not in recommended_set
-        ]
-        # Highest projected bench first — mirrors start/sit browsing.
-        bench_details.sort(
-            key=lambda row: float(row["expected_points"] or 0.0), reverse=True
+        def _side_details(
+            starter_ids: list[str],
+            candidate_ids: list[str],
+            assignments: dict[str, str],
+        ) -> tuple[list[dict], list[dict], float]:
+            starters = [
+                _player_row(pid, slot=assignments.get(pid))
+                for pid in starter_ids
+                if pid in draw_set.players
+            ]
+            starter_set = set(starter_ids)
+            bench = [
+                _player_row(pid, slot=None, on_bench=True)
+                for pid in candidate_ids
+                if pid not in starter_set
+            ]
+            bench.sort(
+                key=lambda row: float(row["expected_points"] or 0.0), reverse=True
+            )
+            totals = draw_set.totals_for(
+                [pid for pid in starter_ids if pid in draw_set.players]
+            )
+            expected = float(totals.mean()) if totals.size else 0.0
+            return starters, bench, round(expected, 4)
+
+        by_opponent_mode: dict[str, dict] = {}
+        owner_optimized_side: dict | None = None
+        opponent_actual_side: dict | None = None
+        opponent_optimized_side: dict | None = None
+
+        for mode in ("current", "optimized"):
+            evaluation = matchup_probabilities(
+                draw_set,
+                ctx.contract,
+                user_candidate_ids=user_candidates,
+                opponent_candidate_ids=opp_candidates,
+                user_starters=submitted_user,
+                opponent_mode=mode,
+                opponent_submitted_starters=submitted_opp,
+            )
+            recommended = evaluation["recommended"]
+            probs = evaluation["recommended_probabilities"]
+            if matchup_allowed:
+                gate = validate_matchup_probabilities(probs)
+                if not gate.passed:
+                    raise LeagueContextError(
+                        f"matchup_probability_gate_failed:{gate.failures}"
+                    )
+            else:
+                probs = {"win": None, "tie": None, "loss": None}
+
+            opponent_totals = draw_set.totals_for(evaluation["opponent_starters"])
+            swaps = swap_recommendations(
+                draw_set,
+                ctx.contract,
+                current_starters=submitted_user,
+                recommended=recommended,
+                opponent_totals=opponent_totals,
+            )
+
+            starter_details, bench_details, _ = _side_details(
+                recommended.starters, user_candidates, recommended.assignments
+            )
+            opp_assignments = evaluation.get("opponent_assignments") or {}
+            opponent_starter_details, opponent_bench_details, _ = _side_details(
+                evaluation["opponent_starters"], opp_candidates, opp_assignments
+            )
+
+            provenance = ctx.provenance(draw_set, missing)
+            if matchup_degraded_reason:
+                provenance = {
+                    **provenance,
+                    "matchup_degraded": True,
+                    "matchup_degraded_reason": matchup_degraded_reason,
+                }
+            provenance = {**provenance, "decision_cache": "miss"}
+            resolved_opp_roster_id = (
+                opponent.roster_id if opponent is not None else None
+            )
+            payload = {
+                "week": week,
+                "opponent_mode": mode,
+                "opponent_lineup_source": evaluation["opponent_lineup_source"],
+                "recommended_starters": recommended.starters,
+                "starters": starter_details,
+                "bench": bench_details,
+                "slot_assignments": recommended.assignments,
+                "unfilled_seats": recommended.unfilled_seats,
+                "expected_points": round(recommended.expected_points, 4),
+                "quantiles": {
+                    k: round(v, 4) for k, v in recommended.quantiles.items()
+                },
+                "objective": recommended.objective,
+                "matchup_probabilities": probs,
+                "win_probability": probs.get("win") if matchup_allowed else None,
+                "matchup_win_probability_available": matchup_allowed,
+                "capability_mode": ctx.projection_context.capability_mode,
+                "board_source": ctx.board_source(),
+                "current_lineup_probabilities": evaluation["current_probabilities"]
+                if matchup_allowed
+                else None,
+                "current_starters": evaluation["current_starters"],
+                "current_expected_points": round(
+                    evaluation["current_expected_points"], 4
+                ),
+                "opponent_roster_id": resolved_opp_roster_id,
+                "opponent_starters": evaluation["opponent_starters"],
+                "opponent_starter_details": opponent_starter_details,
+                "opponent_bench": opponent_bench_details,
+                "opponent_expected_points": round(
+                    evaluation["opponent_expected_points"], 4
+                ),
+                "recommended_swaps": swaps,
+                "swaps": swaps,
+                **provenance,
+                "meta": provenance,
+            }
+            by_opponent_mode[mode] = payload
+
+            if owner_optimized_side is None:
+                owner_optimized_side = {
+                    "starters": starter_details,
+                    "bench": bench_details,
+                    "expected_points": payload["expected_points"],
+                    "slot_assignments": recommended.assignments,
+                }
+            if mode == "current":
+                opponent_actual_side = {
+                    "starters": opponent_starter_details,
+                    "bench": opponent_bench_details,
+                    "expected_points": payload["opponent_expected_points"],
+                    "lineup_source": evaluation["opponent_lineup_source"],
+                }
+            else:
+                opponent_optimized_side = {
+                    "starters": opponent_starter_details,
+                    "bench": opponent_bench_details,
+                    "expected_points": payload["opponent_expected_points"],
+                    "lineup_source": evaluation["opponent_lineup_source"],
+                }
+
+        # Owner actual = submitted Sleeper starters (slot labels for display).
+        owner_actual_lineup = optimize_lineup(
+            draw_set,
+            ctx.contract,
+            candidate_ids=user_candidates,
+            objective="points",
         )
-        opp_starter_set = set(evaluation["opponent_starters"])
-        opponent_bench_details = [
-            _player_row(pid, slot=None, on_bench=True)
-            for pid in opp_candidates
-            if pid not in opp_starter_set
-        ]
-        opponent_bench_details.sort(
-            key=lambda row: float(row["expected_points"] or 0.0), reverse=True
+        if submitted_user:
+            seats = expand_seats(ctx.contract)
+            own_players = [draw_set.players[pid] for pid in submitted_user]
+            own_assignments, _ = _assign_optimal(
+                seats,
+                own_players,
+                _mean_scores(draw_set, own_players),
+                required_player_ids=frozenset(submitted_user),
+            )
+            owner_actual_ids = submitted_user
+            owner_actual_assignments = own_assignments
+        else:
+            owner_actual_ids = owner_actual_lineup.starters
+            owner_actual_assignments = dict(owner_actual_lineup.assignments)
+        owner_actual_starters, owner_actual_bench, owner_actual_points = _side_details(
+            owner_actual_ids, user_candidates, owner_actual_assignments
         )
 
-        provenance = ctx.provenance(draw_set, missing)
-        if matchup_degraded_reason:
-            provenance = {
-                **provenance,
-                "matchup_degraded": True,
-                "matchup_degraded_reason": matchup_degraded_reason,
-            }
-        opponent_roster_id = opponent.roster_id if opponent is not None else None
         return {
             "week": week,
-            "opponent_mode": opponent_mode,
-            "opponent_lineup_source": evaluation["opponent_lineup_source"],
-            "recommended_starters": recommended.starters,
-            "starters": starter_details,
-            "bench": bench_details,
-            "slot_assignments": recommended.assignments,
-            "unfilled_seats": recommended.unfilled_seats,
-            "expected_points": round(recommended.expected_points, 4),
-            "quantiles": {k: round(v, 4) for k, v in recommended.quantiles.items()},
-            "objective": recommended.objective,
-            "matchup_probabilities": probs,
-            "win_probability": probs.get("win") if matchup_allowed else None,
-            "matchup_win_probability_available": matchup_allowed,
-            "capability_mode": ctx.projection_context.capability_mode,
             "board_source": ctx.board_source(),
-            "current_lineup_probabilities": evaluation["current_probabilities"]
-            if matchup_allowed
-            else None,
-            "current_starters": evaluation["current_starters"],
-            "current_expected_points": round(evaluation["current_expected_points"], 4),
-            "opponent_roster_id": opponent_roster_id,
-            "opponent_starters": evaluation["opponent_starters"],
-            "opponent_starter_details": opponent_starter_details,
-            "opponent_bench": opponent_bench_details,
-            "opponent_expected_points": round(evaluation["opponent_expected_points"], 4),
-            "recommended_swaps": swaps,
-            "swaps": swaps,
-            **provenance,
-            "meta": provenance,
+            "projection_run_id": ctx.projection_run_id,
+            "input_fingerprint": input_fingerprint,
+            "owner_actual": {
+                "starters": owner_actual_starters,
+                "bench": owner_actual_bench,
+                "expected_points": owner_actual_points,
+                "slot_assignments": owner_actual_assignments,
+            },
+            "owner_optimized": owner_optimized_side,
+            "opponent_actual": opponent_actual_side,
+            "opponent_optimized": opponent_optimized_side,
+            "by_opponent_mode": by_opponent_mode,
         }
 
     def _matchup_opponent_roster_id(

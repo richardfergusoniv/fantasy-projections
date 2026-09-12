@@ -334,6 +334,17 @@ def run_daily_refresh(session: Session, *, automatic: bool = True) -> dict:
 
     for league_id in leagues:
         ManagerTendencyService(session).rebuild(league_id)
+
+    from src.app.decisions.matchup_cache import invalidate_matchup_boards
+
+    # Roster / matchup inputs changed — drop stale Matchup boards. Boards are
+    # rebuilt on the next GET (compute-with-cache) or via precompute-matchup-lineups.
+    invalidated = 0
+    for league_id in leagues:
+        invalidated += invalidate_matchup_boards(
+            session, league_id=league_id, week=season_week.week
+        )
+
     return {
         "leagues_synced": len(leagues),
         "sleeper_source": settings.sleeper_mode,
@@ -351,6 +362,73 @@ def run_daily_refresh(session: Session, *, automatic: bool = True) -> dict:
         "week": season_week.week,
         "season_week_source": season_week.source,
         "automatic": automatic,
+        "matchup_boards_invalidated": invalidated,
+    }
+
+
+def run_precompute_matchup_lineups(
+    session: Session,
+    *,
+    league_ids: list[str] | None = None,
+    week: int | None = None,
+) -> dict:
+    """Warm ``decision_snapshot`` matchup boards for both board sources.
+
+    Computes owner/opponent × actual/optimized once per league/week/source and
+    stores the FE-ready ``by_opponent_mode`` payloads. Failures are recorded per
+    league so one broken roster cannot abort the job.
+    """
+    from src.app.decisions.matchup_cache import (
+        BOARD_SOURCES,
+        projection_source_for_board_source,
+    )
+    from src.app.decisions.services import LeagueContextError, LineupService
+
+    season_week = resolve_season_week(session)
+    target_week = week if week is not None else season_week.week
+    if league_ids is None:
+        league_ids = [row.league_id for row in session.query(League).all()]
+
+    service = LineupService(session)
+    results: list[dict] = []
+    for league_id in league_ids:
+        for board_source in BOARD_SOURCES:
+            source = projection_source_for_board_source(board_source)
+            try:
+                board = service.get_or_compute_matchup_board(
+                    league_id,
+                    target_week,
+                    projection_source=source,
+                    bypass_cache=False,
+                )
+                results.append(
+                    {
+                        "league_id": league_id,
+                        "week": target_week,
+                        "board_source": board_source,
+                        "status": "ok",
+                        "cache_hit": bool(board.get("_cache_hit")),
+                        "decision_snapshot_id": board.get("decision_snapshot_id"),
+                    }
+                )
+            except (LeagueContextError, ValueError) as exc:
+                results.append(
+                    {
+                        "league_id": league_id,
+                        "week": target_week,
+                        "board_source": board_source,
+                        "status": "error",
+                        "error": str(exc)[:240],
+                    }
+                )
+    ok = sum(1 for row in results if row["status"] == "ok")
+    return {
+        "status": "completed",
+        "week": target_week,
+        "attempted": len(results),
+        "ok": ok,
+        "failed": len(results) - ok,
+        "results": results,
     }
 
 
@@ -566,6 +644,13 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
         "semantic_hash_unchanged",
     }:
         send_ops_alert("weekly_props_promote_failed", json.dumps(payload, indent=2, default=str))
+    if result.publication.promoted:
+        from src.app.decisions.matchup_cache import invalidate_matchup_boards
+
+        # New weekly_props run → vegas_props boards must rebuild.
+        payload["matchup_boards_invalidated"] = invalidate_matchup_boards(
+            session, week=week
+        )
     return payload
 
 
@@ -583,4 +668,5 @@ JOB_HANDLERS = {
     "weekly-props-refresh-thu": run_weekly_props,
     "weekly-props-refresh-sat": run_weekly_props,
     "weekly-props-refresh-sun": run_weekly_props,
+    "precompute-matchup-lineups": run_precompute_matchup_lineups,
 }
