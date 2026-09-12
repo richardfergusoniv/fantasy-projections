@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppBuildStamp } from "../components/AppBuildStamp";
 import { AsyncStateBanner } from "../components/AsyncState";
 import { LineupSourceTabs } from "../components/LineupSourceTabs";
@@ -42,7 +42,28 @@ export function HomeScreen() {
   } = useAppState();
   const lineup = useLineupRecommendation(selectedLeagueId, week, "current", boardSource);
   const waivers = useWaiverRecommendation(selectedLeagueId, week);
-  const operations = useOperationsStatus();
+  // Ops status probes artifact storage (~seconds on prod). Defer so Matchup /
+  // waivers own the first-paint network slot; Urgent still picks up gates later.
+  const [opsEnabled, setOpsEnabled] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const enable = () => {
+      if (!cancelled) setOpsEnabled(true);
+    };
+    const idleId =
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(enable, { timeout: 1500 })
+        : null;
+    const timerId = idleId == null ? window.setTimeout(enable, 0) : null;
+    return () => {
+      cancelled = true;
+      if (idleId != null && typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timerId != null) window.clearTimeout(timerId);
+    };
+  }, []);
+  const operations = useOperationsStatus({ enabled: opsEnabled });
   const [refreshingShell, setRefreshingShell] = useState(false);
 
   // Every entry below is derived from a response the app actually received.
@@ -199,7 +220,9 @@ export function HomeScreen() {
       <Panel title="Urgent decisions">
         <AsyncStateBanner
           label="Urgent decisions"
-          loading={lineup.loading || waivers.loading || operations.loading}
+          loading={
+            lineup.loading || waivers.loading || (opsEnabled && operations.loading)
+          }
           offline={false}
           error={operations.error}
           fromCache={false}
