@@ -729,6 +729,11 @@ def _public_decision_error(exc: Exception) -> tuple[str, str]:
             "Matchup win probability failed validation for this week.",
         ),
         (
+            "missing_weekly_props_pointer",
+            "weekly_props_unavailable",
+            "Weekly Vegas props are not promoted for this week. Switch to League Value, or promote a weekly_props run (set WEEKLY_PROPS_SHADOW_ONLY=false and publish).",
+        ),
+        (
             "league_or_rules_not_found",
             "projection_release_unavailable",
             "League rules are missing. Run sync for this league.",
@@ -794,6 +799,17 @@ class LineupService:
             week,
             requested_source=projection_source,
         )
+        # Fail fast: uncached sealed fallback under a Vegas request is expensive
+        # on Vercel and used to hang until Workbox reported opaque no-response.
+        # Until a weekly_props run is promoted, ask the client to use League Value.
+        if (
+            ctx.requested_source == ProjectionSource.WEEKLY_PROPS
+            and ctx.source_fallback_reason == "missing_weekly_props_pointer"
+        ):
+            raise LeagueContextError(
+                "missing_weekly_props_pointer:no promoted weekly_props run for "
+                f"season={ctx.season},week={week}"
+            )
         user_roster_id = _resolve_owner_roster_id(
             self.session, league_id, explicit_roster_id=user_roster_id
         )

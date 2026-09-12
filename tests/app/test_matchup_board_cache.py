@@ -12,7 +12,11 @@ from src.app.decisions.matchup_cache import (
     MATCHUP_BOARD_KIND,
     invalidate_matchup_boards,
 )
-from src.app.decisions.services import LineupService
+from src.app.decisions.services import (
+    LeagueContextError,
+    LineupService,
+    _public_decision_error,
+)
 from src.app.persistence.models import DecisionSnapshot, RosterSnapshot
 from src.app.releases.bridge import ReleaseBridge
 from src.app.seed import seed_development_data
@@ -242,28 +246,29 @@ def test_vegas_and_league_value_are_separate_cache_keys(seeded_lineup: Session):
     assert league["decision_snapshot_id"] != vegas["decision_snapshot_id"]
 
 
-def test_weekly_props_fallback_does_not_persist_cache(seeded_lineup: Session, monkeypatch):
-    """Vegas request falling back to sealed must not sticky-cache under either key."""
+def test_weekly_props_missing_pointer_fails_fast(seeded_lineup: Session, monkeypatch):
+    """Vegas request without a promoted weekly_props run must not hydrate sealed."""
     monkeypatch.setenv("APP_PROJECTION_SOURCE", "weekly_props")
     get_settings.cache_clear()
     service = LineupService(seeded_lineup)
-    first = service.recommend(
-        "fixture-standard", 1, opponent_mode="current", projection_source="weekly_props"
-    )
-    assert first.get("fallback_reason") == "missing_weekly_props_pointer" or first.get(
-        "meta", {}
-    ).get("fallback_reason") == "missing_weekly_props_pointer"
-    assert first["decision_cache"] == "miss"
+    with pytest.raises(LeagueContextError, match="missing_weekly_props_pointer"):
+        service.recommend(
+            "fixture-standard",
+            1,
+            opponent_mode="current",
+            projection_source="weekly_props",
+        )
     assert (
         seeded_lineup.query(DecisionSnapshot)
         .filter(DecisionSnapshot.kind == MATCHUP_BOARD_KIND)
         .count()
         == 0
     )
-    second = service.recommend(
-        "fixture-standard", 1, opponent_mode="current", projection_source="weekly_props"
+    code, message = _public_decision_error(
+        LeagueContextError("missing_weekly_props_pointer:no promoted weekly_props run")
     )
-    assert second["decision_cache"] == "miss"
+    assert code == "weekly_props_unavailable"
+    assert "League Value" in message
 
 
 def test_legacy_schema_v1_cache_is_treated_as_miss(seeded_lineup: Session):
