@@ -278,14 +278,20 @@ def get_rosters(league_id: str, user: AppUser = Depends(get_current_user), db: S
             identities.setdefault(row.gsis_id, row)
 
     def player_label(player_id: str) -> dict:
-        row = identities.get(str(player_id))
+        # Keep the roster's own id as `player_id`. Identity rows are often keyed
+        # by GSIS after linking, but Trade Lab (and the `players` array) still
+        # look up by the id stored on the snapshot — frequently a Sleeper id.
+        key = str(player_id)
+        row = identities.get(key)
         if row is None:
-            return {"player_id": str(player_id), "name": str(player_id)}
+            return {"player_id": key, "name": key}
         return {
-            "player_id": row.gsis_id or row.player_id,
+            "player_id": key,
             "name": row.name,
             "position": row.position,
             "team": row.team,
+            "sleeper_id": row.sleeper_id,
+            "gsis_id": row.gsis_id,
         }
 
     return {

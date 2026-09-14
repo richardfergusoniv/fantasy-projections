@@ -506,6 +506,55 @@ def test_rosters_endpoint_dedupes_historical_rows(db_session: Session):
     assert payload["rosters"][0]["players"] == ["b"]
 
 
+def test_rosters_player_details_keep_snapshot_player_ids(db_session: Session):
+    """Trade Lab joins names onto `players` ids, which may still be Sleeper ids.
+
+    Identity rows are often keyed by GSIS after linking. Remapping
+    `player_details.player_id` onto GSIS left the UI looking up Sleeper ids in
+    an empty map, so checklists rendered raw numbers except for ST players
+    whose identity `player_id` was already the Sleeper id.
+    """
+    now = datetime.now(UTC)
+    db_session.add_all(
+        [
+            RosterSnapshot(
+                league_id="league-1",
+                week=1,
+                roster_id=1,
+                fetched_at=now,
+                players=["11583", "k-sleeper"],
+                starters=["11583"],
+                reserve=[],
+            ),
+            PlayerIdentity(
+                player_id="00-0036322",
+                sleeper_id="11583",
+                gsis_id="00-0036322",
+                name="Justin Jefferson",
+                position="WR",
+                team="MIN",
+            ),
+            PlayerIdentity(
+                player_id="k-sleeper",
+                sleeper_id="k-sleeper",
+                gsis_id=None,
+                name="Will Reichard",
+                position="K",
+                team="MIN",
+            ),
+        ]
+    )
+    db_session.flush()
+    payload = get_rosters("league-1", user=AppUser(email="owner@example.com"), db=db_session)
+    details = {row["player_id"]: row for row in payload["rosters"][0]["player_details"]}
+    assert set(details) == {"11583", "k-sleeper"}
+    assert details["11583"]["name"] == "Justin Jefferson"
+    assert details["11583"]["position"] == "WR"
+    assert details["11583"]["sleeper_id"] == "11583"
+    assert details["k-sleeper"]["name"] == "Will Reichard"
+    assert details["k-sleeper"]["position"] == "K"
+
+
 def test_trade_does_not_depend_on_matchup_snapshots(db_session: Session, monkeypatch):
     """Trade evaluation keys off request roster sides, not MatchupSnapshot rows."""
     from src.app.decisions.trades import TradeSide
