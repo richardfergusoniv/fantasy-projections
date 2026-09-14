@@ -23,6 +23,7 @@ def validate_snapshots(
     week: int,
     policy: WeeklyPropsPolicy = DEFAULT_WEEKLY_POLICY,
     now: datetime | None = None,
+    ignore_age: bool = False,
 ) -> GateResult:
     failures: list[str] = []
     warnings: list[str] = []
@@ -43,7 +44,7 @@ def validate_snapshots(
             failures.append(f"snapshot_season_week_mismatch:{snap.source}")
             continue
         age_h = (clock - snap.fetched_at).total_seconds() / 3600.0
-        if age_h > policy.max_snapshot_age_hours:
+        if not ignore_age and age_h > policy.max_snapshot_age_hours:
             warnings.append(f"stale_snapshot:{snap.source}:{age_h:.1f}h")
             continue
         if not snap.quotes:

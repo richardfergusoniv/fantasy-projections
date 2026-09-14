@@ -65,6 +65,7 @@ from src.projection.special_teams.models import (
 from src.projection.weekly_props.provenance import (
     decision_provenance,
     is_weekly_props_run,
+    load_promoted_weekly_props_run,
 )
 
 #: Regular-season length used for horizon scaling when a league does not say.
@@ -227,10 +228,10 @@ class _LeagueContext:
 
     def _resolve_run(self, week: int | None):
         if self.requested_source == ProjectionSource.WEEKLY_PROPS and week is not None:
-            run = self.projections.active_run(
-                mode="weekly", season=self.season, week=week
+            run = load_promoted_weekly_props_run(
+                self.projections.session, season=self.season, week=week
             )
-            if run is not None and is_weekly_props_run(run):
+            if run is not None:
                 self.projection_source = ProjectionSource.WEEKLY_PROPS
                 self.source_fallback_reason = None
                 return run
@@ -731,7 +732,7 @@ def _public_decision_error(exc: Exception) -> tuple[str, str]:
         (
             "missing_weekly_props_pointer",
             "weekly_props_unavailable",
-            "Weekly Vegas props are not promoted for this week. Switch to League Value, or promote a weekly_props run (set WEEKLY_PROPS_SHADOW_ONLY=false and publish).",
+            "Weekly Vegas props are not promoted for this week. Switch to League Value. To promote: set WEEKLY_PROPS_SHADOW_ONLY=false in Vercel and in GitHub PRODUCTION_JOB_ENV, then run weekly-props-market-close (Operations or: uv run python -m src.app.jobs.scheduler run-once weekly-props-market-close).",
         ),
         (
             "league_or_rules_not_found",

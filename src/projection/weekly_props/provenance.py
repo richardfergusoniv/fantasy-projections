@@ -7,6 +7,8 @@ from typing import Any
 #: Decisions currently consume weekly_props as points/quantile draws only.
 WEEKLY_PROPS_SCORING_FIDELITY = "weekly_props_points_only"
 WEEKLY_PROPS_CAPABILITY_MODE = "weekly_props_market"
+#: Dedicated pointer so promoting Vegas Props does not replace weekly-v2 R&D.
+WEEKLY_PROPS_POINTER_MODE = "weekly_props"
 
 
 def decision_provenance(
@@ -33,7 +35,37 @@ def is_weekly_props_run(run: Any) -> bool:
         return False
     model_version = str(getattr(run, "model_version", "") or "")
     artifact_mode = str(getattr(run, "artifact_mode", "") or "")
-    return model_version.startswith("weekly_props") or artifact_mode == "market"
+    mode = str(getattr(run, "mode", "") or "")
+    return (
+        mode == WEEKLY_PROPS_POINTER_MODE
+        or model_version.startswith("weekly_props")
+        or artifact_mode == "market"
+    )
+
+
+def load_promoted_weekly_props_run(session: Any, *, season: int, week: int) -> Any | None:
+    """Return the active weekly_props run for ``season``/``week``, if any.
+
+    Prefers the dedicated ``weekly_props`` pointer so a weekly-v2 R&D pointer
+    occupying ``mode=weekly`` cannot masquerade as Vegas Props. Falls back to a
+    ``weekly`` pointer that actually is a weekly_props artifact (older tests /
+    the pre-split contract).
+    """
+    from src.app.persistence.models import ProjectionRun
+    from src.app.releases.publication import active_pointer
+
+    for mode in (WEEKLY_PROPS_POINTER_MODE, "weekly"):
+        pointer = active_pointer(session, mode=mode, season=season, week=week)
+        if pointer is None:
+            continue
+        run = (
+            session.query(ProjectionRun)
+            .filter(ProjectionRun.id == pointer.run_id)
+            .one_or_none()
+        )
+        if run is not None and is_weekly_props_run(run):
+            return run
+    return None
 
 
 def weekly_props_context_fields(

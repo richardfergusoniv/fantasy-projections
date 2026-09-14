@@ -6,6 +6,7 @@ defaults to ``sealed_release``; experimental weekly-v2 requires explicit opt-in.
 
 from __future__ import annotations
 
+import os
 from enum import Enum
 from typing import Literal
 
@@ -28,7 +29,7 @@ class ProjectionSource(str, Enum):
     WEEKLY_PROPS = "weekly_props"
 
     @classmethod
-    def parse(cls, raw: str | None) -> "ProjectionSource":
+    def parse(cls, raw: str | None) -> ProjectionSource:
         if raw is None or not str(raw).strip():
             return cls.SEALED_RELEASE
         normalized = str(raw).strip().lower()
@@ -65,8 +66,53 @@ def weekly_rnd_enabled() -> bool:
     return bool(settings.weekly_rnd_enabled)
 
 
+#: Canonical name first. Later keys are dashboard/typo aliases operators have used.
+WEEKLY_PROPS_SHADOW_ENV_KEYS = (
+    "WEEKLY_PROPS_SHADOW_ONLY",
+    "WEEKLY_PROP_SHADOW_ONLY",
+    "WEEKLY_PROPS_SHADOW",
+    "WEEKLY_PROP_SHADOW",
+    "weekly_prop_shadow",
+    "weekly_prop_shadow_only",
+    "weekly_props_shadow",
+)
+
+
+def parse_env_bool(raw: str) -> bool | None:
+    text = str(raw).strip().lower()
+    if text in {"1", "true", "yes", "on"}:
+        return True
+    if text in {"0", "false", "no", "off"}:
+        return False
+    return None
+
+
+def weekly_props_shadow_env_aliases_in_use() -> list[str]:
+    """Non-canonical env keys that are set (usually a mistyped dashboard name)."""
+    found: list[str] = []
+    for key in WEEKLY_PROPS_SHADOW_ENV_KEYS:
+        if key == "WEEKLY_PROPS_SHADOW_ONLY":
+            continue
+        raw = os.getenv(key)
+        if raw is not None and str(raw).strip():
+            found.append(key)
+    return found
+
+
 def weekly_props_shadow_only() -> bool:
-    """When true, weekly_props jobs evaluate candidates but never swap pointers."""
+    """When true, weekly_props jobs evaluate candidates but never swap pointers.
+
+    Reads process env first (including typo aliases) so GitHub ``PRODUCTION_JOB_ENV``
+    and Vercel dashboard keys take effect even when pydantic ``extra=ignore``
+    would drop an unexpected name.
+    """
+    for key in WEEKLY_PROPS_SHADOW_ENV_KEYS:
+        raw = os.getenv(key)
+        if raw is None or not str(raw).strip():
+            continue
+        parsed = parse_env_bool(str(raw))
+        if parsed is not None:
+            return parsed
     settings = get_settings()
     return bool(getattr(settings, "weekly_props_shadow_only", True))
 

@@ -10,7 +10,6 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from src.app.logging import get_logger
 from src.app.persistence.models import League
 from src.app.releases.gates import (
     GateResult,
@@ -37,8 +36,7 @@ from src.projection.weekly_props.gates import (
     validate_props_provenance,
     validate_snapshots,
 )
-
-logger = get_logger(__name__)
+from src.projection.weekly_props.provenance import WEEKLY_PROPS_POINTER_MODE
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_ARTIFACT_ROOT = REPO_ROOT / "data" / "props" / "fixtures"
@@ -187,9 +185,14 @@ class WeeklyPropsProjectionService:
         automatic: bool = True,
         shadow: bool = True,
         force: bool = False,
+        ignore_snapshot_age: bool = False,
     ) -> WeeklyPropsPromoteResult:
         snapshot_gate = validate_snapshots(
-            snapshots, season=season, week=week, policy=self.policy
+            snapshots,
+            season=season,
+            week=week,
+            policy=self.policy,
+            ignore_age=ignore_snapshot_age,
         )
         manifest = self.build_manifest_from_snapshots(
             season=season,
@@ -213,7 +216,9 @@ class WeeklyPropsProjectionService:
         )
 
         # Idempotency: same semantic hash already active → no new run.
-        pointer = active_pointer(self.session, mode="weekly", season=season, week=week)
+        pointer = active_pointer(
+            self.session, mode=WEEKLY_PROPS_POINTER_MODE, season=season, week=week
+        )
         if (
             pointer is not None
             and not force
@@ -275,39 +280,25 @@ class WeeklyPropsProjectionService:
                 self.session, self._league_ids(league_ids)
             ),
         }
-        if shadow:
-            # Shadow never swaps the pointer; still persist failed/candidate audit via publish
-            # by forcing a gate failure after computing the full report when requested.
-            # Prefer explicit shadow path: run publish only when not shadow.
-            logger.info(
-                "weekly_props_shadow_candidate",
-                run_id=candidate.run_id,
-                hash=manifest.semantic_input_hash[:12],
-                gates={k: v.to_dict() for k, v in gates.items()},
-            )
-            passed = all(g.passed for g in gates.values())
-            return WeeklyPropsPromoteResult(
-                publication=PublicationResult(
-                    run_id=candidate.run_id,
-                    promoted=False,
-                    reason="shadow_only" if passed else "shadow_gates_failed",
-                    gates={k: v.to_dict() for k, v in gates.items()},
-                ),
-                manifest_uri=manifest_uri,
-                semantic_input_hash=manifest.semantic_input_hash,
-                shadow=True,
-            )
-
         result = publish(
             self.session,
             candidate,
             gates=gates,
             register_partitions=True,
             validate_partitions=True,
+            activate=not shadow,
         )
+        if shadow and result.reason == "gate_failed":
+            result = PublicationResult(
+                run_id=result.run_id,
+                promoted=False,
+                reason="shadow_gates_failed",
+                gates=result.gates,
+                already_active=result.already_active,
+            )
         return WeeklyPropsPromoteResult(
             publication=result,
             manifest_uri=manifest_uri,
             semantic_input_hash=manifest.semantic_input_hash,
-            shadow=False,
+            shadow=shadow,
         )

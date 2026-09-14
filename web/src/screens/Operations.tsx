@@ -167,6 +167,52 @@ export function OperationsScreen() {
           </ul>
         ) : null}
 
+        <h3 className="section-title">Vegas Props (weekly_props)</h3>
+        <ul className="ops-list ops-modes">
+          <li>
+            <span>WEEKLY_PROPS_SHADOW_ONLY</span>
+            <strong
+              className={
+                data?.weekly_props?.shadow_only === false ? undefined : "state-warning-text"
+              }
+            >
+              {data?.weekly_props?.shadow_only == null
+                ? "unknown"
+                : data.weekly_props.shadow_only
+                  ? "true — jobs will not promote"
+                  : "false — jobs may promote"}
+            </strong>
+          </li>
+          <li>
+            <span>Promoted pointer this week</span>
+            <strong
+              className={data?.weekly_props?.promoted ? undefined : "state-warning-text"}
+            >
+              {data?.weekly_props?.promoted
+                ? data.weekly_props.run_id ?? "active"
+                : "none — Matchup Vegas Props will fail fast"}
+            </strong>
+          </li>
+          {data?.weekly_props?.last_job_name ? (
+            <li>
+              <span>Last weekly-props job</span>
+              <strong>
+                {data.weekly_props.last_job_name} · {data.weekly_props.last_job_reason ?? data.weekly_props.last_job_status}
+              </strong>
+            </li>
+          ) : null}
+        </ul>
+        {data?.weekly_props?.alias_env_keys?.length ? (
+          <ul className="urgent-list">
+            {data.weekly_props.alias_env_keys.map((key) => (
+              <li key={key} className="urgent-warning">
+                Env key {key} is set; the canonical name is WEEKLY_PROPS_SHADOW_ONLY. Also set it
+                on GitHub PRODUCTION_JOB_ENV — Vercel env does not run the scrape job.
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
         <ul className="ops-list">
           <li>
             <span>Last source snapshot</span>
@@ -246,6 +292,18 @@ export function OperationsScreen() {
             }
           >
             Full release
+          </button>
+          <button
+            className="btn btn-secondary"
+            type="button"
+            disabled={jobLoading}
+            onClick={() =>
+              void runJob("Weekly Vegas props", () =>
+                api.runOperationsJob("weekly-props-market-close", `ops-props-${Date.now()}`),
+              )
+            }
+          >
+            Run weekly Vegas props
           </button>
         </div>
 

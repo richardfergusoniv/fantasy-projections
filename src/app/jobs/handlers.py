@@ -590,6 +590,15 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
             "season_ou": season_refresh_payload,
         }
 
+    from src.projection.weekly_props.persist import (
+        activate_last_passing_weekly_props,
+        load_latest_provider_snapshots,
+        persist_provider_snapshots,
+        richer_stored_snapshots,
+    )
+
+    snapshot_uris = persist_provider_snapshots(session, list(ingest.snapshots))
+
     try:
         baseline_bundle = build_weekly_baselines(season=season, week=week)
     except WeeklyBaselineError as exc:
@@ -621,6 +630,40 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
         automatic=automatic,
         shadow=shadow,
     )
+    fallback_reason: str | None = None
+    if not shadow and not result.publication.promoted:
+        closing = activate_last_passing_weekly_props(session, season=season, week=week)
+        if closing is not None and closing.promoted:
+            result = type(result)(
+                publication=closing,
+                manifest_uri=result.manifest_uri,
+                semantic_input_hash=result.semantic_input_hash,
+                shadow=False,
+            )
+            fallback_reason = "activated_closing_line"
+        else:
+            stored = richer_stored_snapshots(
+                load_latest_provider_snapshots(session, season=season, week=week),
+                list(ingest.snapshots),
+            )
+            if stored:
+                retry = service.promote(
+                    season=season,
+                    week=week,
+                    snapshots=stored,
+                    baselines=baseline_bundle.baselines,
+                    identity_map=identity_map,
+                    slate_teams=baseline_bundle.slate_teams,
+                    baseline_run_id=baseline_bundle.baseline_run_id,
+                    status_overlay_id=baseline_bundle.status_overlay_id,
+                    slate_version=f"{season}-w{week:02d}-{len(baseline_bundle.slate_teams)}",
+                    automatic=automatic,
+                    shadow=False,
+                    ignore_snapshot_age=True,
+                )
+                if retry.publication.promoted:
+                    result = retry
+                    fallback_reason = "stored_closing_snapshots"
     payload = {
         "status": result.publication.reason,
         "season": season,
@@ -628,6 +671,8 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
         "season_week_source": season_week.source,
         "ingest": ingest.to_dict(),
         "season_ou": season_refresh_payload,
+        "snapshot_catalog_uris": snapshot_uris,
+        "fallback_reason": fallback_reason,
         "baseline": {
             "source": baseline_bundle.baseline_source,
             "baseline_run_id": baseline_bundle.baseline_run_id,
