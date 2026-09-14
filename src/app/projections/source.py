@@ -90,19 +90,18 @@ def weekly_props_shadow_env_aliases_in_use() -> list[str]:
 def weekly_props_shadow_only() -> bool:
     """When true, weekly_props jobs evaluate candidates but never swap pointers.
 
-    Reads process env first (including typo aliases) so GitHub ``PRODUCTION_JOB_ENV``
-    and Vercel dashboard keys take effect even when pydantic ``extra=ignore``
-    would drop an unexpected name.
+    Safe default is False: production jobs auto-promote after quality gates pass.
+    Advanced escape hatch is ``WEEKLY_PROPS_FORCE_SHADOW=true``. Historical
+    ``WEEKLY_PROPS_SHADOW_ONLY=true`` (and dashboard typos) are ignored so a
+    leftover secret from older examples does not require an env flip.
     """
-    for key in WEEKLY_PROPS_SHADOW_ENV_KEYS:
-        raw = os.getenv(key)
-        if raw is None or not str(raw).strip():
-            continue
+    settings = get_settings()
+    raw = os.getenv("WEEKLY_PROPS_FORCE_SHADOW")
+    if raw is not None and str(raw).strip():
         parsed = parse_env_bool(str(raw))
         if parsed is not None:
             return parsed
-    settings = get_settings()
-    return bool(getattr(settings, "weekly_props_shadow_only", True))
+    return bool(getattr(settings, "weekly_props_force_shadow", False))
 
 
 def resolve_effective_source(requested: ProjectionSource | None = None) -> ProjectionSource:

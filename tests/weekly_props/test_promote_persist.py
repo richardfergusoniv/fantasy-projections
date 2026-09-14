@@ -66,19 +66,29 @@ def _candidate(*, run_id: str, n_players: int = 52, status_meta: str = "test") -
     )
 
 
-def test_weekly_prop_shadow_typo_env_disables_shadow(monkeypatch):
+def test_weekly_prop_shadow_typo_env_does_not_enable_shadow(monkeypatch):
+    monkeypatch.delenv("WEEKLY_PROPS_FORCE_SHADOW", raising=False)
     monkeypatch.delenv("WEEKLY_PROPS_SHADOW_ONLY", raising=False)
-    monkeypatch.setenv("weekly_prop_shadow", "false")
-    get_settings.cache_clear()
-    assert weekly_props_shadow_only() is False
-    get_settings.cache_clear()
-
-
-def test_canonical_shadow_env_wins_over_typo(monkeypatch):
-    monkeypatch.setenv("WEEKLY_PROPS_SHADOW_ONLY", "false")
     monkeypatch.setenv("weekly_prop_shadow", "true")
     get_settings.cache_clear()
     assert weekly_props_shadow_only() is False
+    get_settings.cache_clear()
+
+
+def test_canonical_shadow_env_is_ignored_in_favor_of_auto_promote(monkeypatch):
+    monkeypatch.delenv("WEEKLY_PROPS_FORCE_SHADOW", raising=False)
+    monkeypatch.setenv("WEEKLY_PROPS_SHADOW_ONLY", "true")
+    monkeypatch.setenv("weekly_prop_shadow", "true")
+    get_settings.cache_clear()
+    assert weekly_props_shadow_only() is False
+    get_settings.cache_clear()
+
+
+def test_force_shadow_env_enables_shadow(monkeypatch):
+    monkeypatch.setenv("WEEKLY_PROPS_FORCE_SHADOW", "true")
+    monkeypatch.setenv("WEEKLY_PROPS_SHADOW_ONLY", "false")
+    get_settings.cache_clear()
+    assert weekly_props_shadow_only() is True
     get_settings.cache_clear()
 
 

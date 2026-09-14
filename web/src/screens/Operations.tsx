@@ -170,17 +170,17 @@ export function OperationsScreen() {
         <h3 className="section-title">Vegas Props (weekly_props)</h3>
         <ul className="ops-list ops-modes">
           <li>
-            <span>WEEKLY_PROPS_SHADOW_ONLY</span>
+            <span>Vegas promotion</span>
             <strong
               className={
-                data?.weekly_props?.shadow_only === false ? undefined : "state-warning-text"
+                data?.weekly_props?.shadow_only === true ? "state-warning-text" : undefined
               }
             >
               {data?.weekly_props?.shadow_only == null
                 ? "unknown"
                 : data.weekly_props.shadow_only
-                  ? "true — jobs will not promote"
-                  : "false — jobs may promote"}
+                  ? "shadow only — jobs will not promote (WEEKLY_PROPS_FORCE_SHADOW)"
+                  : "auto-promote when quality gates pass"}
             </strong>
           </li>
           <li>
@@ -206,8 +206,8 @@ export function OperationsScreen() {
           <ul className="urgent-list">
             {data.weekly_props.alias_env_keys.map((key) => (
               <li key={key} className="urgent-warning">
-                Env key {key} is set; the canonical name is WEEKLY_PROPS_SHADOW_ONLY. Also set it
-                on GitHub PRODUCTION_JOB_ENV — Vercel env does not run the scrape job.
+                Env key {key} is leftover; weekly-props jobs auto-promote unless
+                WEEKLY_PROPS_FORCE_SHADOW=true.
               </li>
             ))}
           </ul>

@@ -125,7 +125,7 @@ def test_operations_status_endpoint(client: TestClient):
     assert "failed_gates" in body
     assert body.get("active_projection_run_id")
     assert "weekly_props" in body
-    assert body["weekly_props"]["canonical_env"] == "WEEKLY_PROPS_SHADOW_ONLY"
+    assert body["weekly_props"]["canonical_env"] == "WEEKLY_PROPS_FORCE_SHADOW"
 
 
 def test_trade_tendencies_endpoint(client: TestClient):
