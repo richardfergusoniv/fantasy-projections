@@ -7,7 +7,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import func, or_
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 
 from src.app.api.deps import (
@@ -81,21 +81,60 @@ def _decision_http_error(league_id: str, exc: Exception, *, fallback_code: str, 
 
 
 def _latest_rule_snapshots_by_league(session: Session) -> dict[str, LeagueRuleSnapshot]:
-    """Newest rule snapshot per league in one query (avoids N+1 on GET /leagues)."""
+    """Newest rule snapshot per league without loading snapshot history.
+
+    Two-step (portable across SQLite tests and Postgres): ``max(fetched_at)``
+    per league, then fetch only those rows. Ties on ``fetched_at`` keep the
+    highest ``id``.
+    """
+    latest_times = (
+        session.query(
+            LeagueRuleSnapshot.league_id,
+            func.max(LeagueRuleSnapshot.fetched_at).label("max_fetched"),
+        )
+        .group_by(LeagueRuleSnapshot.league_id)
+        .all()
+    )
+    if not latest_times:
+        return {}
     snapshots = (
         session.query(LeagueRuleSnapshot)
-        .order_by(LeagueRuleSnapshot.fetched_at.desc(), LeagueRuleSnapshot.id.desc())
+        .filter(
+            or_(
+                *[
+                    and_(
+                        LeagueRuleSnapshot.league_id == league_id,
+                        LeagueRuleSnapshot.fetched_at == max_fetched,
+                    )
+                    for league_id, max_fetched in latest_times
+                ]
+            )
+        )
         .all()
     )
     latest: dict[str, LeagueRuleSnapshot] = {}
     for row in snapshots:
-        if row.league_id not in latest:
+        current = latest.get(row.league_id)
+        if current is None or row.id > current.id:
             latest[row.league_id] = row
     return latest
 
 
-def _available_weeks_by_league(session: Session) -> dict[str, list[int]]:
-    rows = session.query(RosterSnapshot.league_id, RosterSnapshot.week).distinct().all()
+def _available_weeks_by_league(
+    session: Session, *, active_season: int
+) -> dict[str, list[int]]:
+    """Distinct roster weeks for active-season leagues only.
+
+    Join ``League`` so a reused ``league_id`` across seasons cannot mix weeks
+    into Home's derived current week.
+    """
+    rows = (
+        session.query(RosterSnapshot.league_id, RosterSnapshot.week)
+        .join(League, League.league_id == RosterSnapshot.league_id)
+        .filter(League.season == active_season)
+        .distinct()
+        .all()
+    )
     weeks: dict[str, set[int]] = {}
     for league_id, week in rows:
         if week is None or int(week) <= 0:
@@ -171,7 +210,7 @@ def list_leagues(
     configured_ids = _configured_league_ids()
     owner_keys = owner_user_id_candidates(settings)
     snapshots_by_league = _latest_rule_snapshots_by_league(db)
-    weeks_by_league = _available_weeks_by_league(db)
+    weeks_by_league = _available_weeks_by_league(db, active_season=active_season)
     owner_roster_by_league: dict[str, int] = {}
     if owner_keys:
         for member in (

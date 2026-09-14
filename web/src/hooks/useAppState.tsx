@@ -221,6 +221,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!selectedLeagueId) {
       setRosters([]);
+      setRostersLoading(false);
       return;
     }
     // Home/Matchup only need the week list, which now arrives on GET /leagues.

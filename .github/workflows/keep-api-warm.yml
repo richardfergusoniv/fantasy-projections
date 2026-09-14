@@ -12,6 +12,7 @@ on:
 
 jobs:
   ping:
+    if: github.repository == 'richardfergusoniv/fantasy-projections'
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:

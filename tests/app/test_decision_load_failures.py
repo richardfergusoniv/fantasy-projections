@@ -456,9 +456,66 @@ def test_list_leagues_includes_available_weeks_without_loading_bundle(
         _boom,
         raising=True,
     )
+    _league(db_session, "league-2025", season=2025)
+    db_session.add(
+        RosterSnapshot(
+            league_id="league-2025",
+            week=17,
+            roster_id=1,
+            fetched_at=datetime.now(UTC),
+            players=["p-old"],
+            starters=["p-old"],
+            reserve=[],
+        )
+    )
+    db_session.flush()
+
     payload = list_leagues(user=AppUser(email="owner@example.com"), db=db_session)
     owned = next(row for row in payload["leagues"] if row["league_id"] == "league-owned")
     assert owned["available_weeks"] == [1, 3]
+    get_settings.cache_clear()
+
+
+def test_list_leagues_uses_newest_rule_snapshot_without_loading_history(
+    monkeypatch, db_session: Session
+):
+    from src.app.api.v1.leagues import list_leagues
+
+    monkeypatch.setenv("SLEEPER_USER_ID", "owner-6")
+    get_settings.cache_clear()
+    _league(db_session, "league-owned")
+    db_session.add(
+        LeagueMember(
+            league_id="league-owned",
+            user_id="owner-6",
+            roster_id=6,
+            display_name="Owner",
+        )
+    )
+    older = datetime.now(UTC) - timedelta(days=3)
+    newer = datetime.now(UTC)
+    db_session.add_all(
+        [
+            LeagueRuleSnapshot(
+                league_id="league-owned",
+                fetched_at=older,
+                raw_json={},
+                normalized_json={"scoring_type": "standard"},
+                contract_hash="old-contract",
+            ),
+            LeagueRuleSnapshot(
+                league_id="league-owned",
+                fetched_at=newer,
+                raw_json={},
+                normalized_json={"scoring_type": "half_ppr"},
+                contract_hash="new-contract",
+            ),
+        ]
+    )
+    db_session.flush()
+    payload = list_leagues(user=AppUser(email="owner@example.com"), db=db_session)
+    owned = next(row for row in payload["leagues"] if row["league_id"] == "league-owned")
+    assert owned["scoring_type"] == "half_ppr"
     get_settings.cache_clear()
 
 
