@@ -27,7 +27,7 @@ def validate_snapshots(
 ) -> GateResult:
     failures: list[str] = []
     warnings: list[str] = []
-    clock = now or datetime.now(timezone.utc)
+    clock = _aware_utc(now or datetime.now(timezone.utc))
     snaps = list(snapshots)
     if not snaps:
         failures.append("no_provider_snapshots")
@@ -43,10 +43,18 @@ def validate_snapshots(
         if snap.season != season or snap.week != week:
             failures.append(f"snapshot_season_week_mismatch:{snap.source}")
             continue
-        age_h = (clock - snap.fetched_at).total_seconds() / 3600.0
-        if not ignore_age and age_h > policy.max_snapshot_age_hours:
-            warnings.append(f"stale_snapshot:{snap.source}:{age_h:.1f}h")
+        try:
+            age_h = (clock - _aware_utc(snap.fetched_at)).total_seconds() / 3600.0
+        except (TypeError, ValueError):
+            failures.append(f"snapshot_timestamp_unusable:{snap.source}")
             continue
+        if age_h > policy.max_snapshot_age_hours:
+            warnings.append(f"stale_snapshot:{snap.source}:{age_h:.1f}h")
+            if not ignore_age:
+                continue
+            if age_h > policy.max_closing_line_age_hours:
+                warnings.append(f"closing_line_too_stale:{snap.source}:{age_h:.1f}h")
+                continue
         if not snap.quotes:
             warnings.append(f"empty_snapshot:{snap.source}")
             continue
@@ -54,6 +62,12 @@ def validate_snapshots(
     if usable < policy.min_source_success_count:
         failures.append(f"usable_source_below_minimum:{usable}")
     return GateResult(passed=not failures, failures=failures, warnings=warnings)
+
+
+def _aware_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 def validate_consensus_coverage(

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
+
+from src.projection.weekly_props.config import DEFAULT_WEEKLY_POLICY
 
 #: Decisions currently consume weekly_props as points/quantile draws only.
 WEEKLY_PROPS_SCORING_FIDELITY = "weekly_props_points_only"
@@ -84,6 +87,16 @@ def weekly_props_context_fields(
         caveats.append(f"source_fallback:{fallback_reason}")
     fidelity = WEEKLY_PROPS_SCORING_FIDELITY
     capability = WEEKLY_PROPS_CAPABILITY_MODE
+    snapshot_age_hours: float | None = None
+    as_of = getattr(run, "as_of", None) if run is not None else None
+    if isinstance(as_of, datetime):
+        clock = datetime.now(UTC)
+        if as_of.tzinfo is None:
+            as_of = as_of.replace(tzinfo=UTC)
+        snapshot_age_hours = round((clock - as_of.astimezone(UTC)).total_seconds() / 3600.0, 3)
+        caveats.append(f"snapshot_age_hours:{snapshot_age_hours:.1f}")
+        if snapshot_age_hours > DEFAULT_WEEKLY_POLICY.max_snapshot_age_hours:
+            caveats.append(f"stale_closing_line:{snapshot_age_hours:.1f}h")
     if run is not None and is_weekly_props_run(run):
         meta = getattr(run, "metadata_json", None) or {}
         if isinstance(meta, dict):
@@ -102,4 +115,5 @@ def weekly_props_context_fields(
         "projection_run_id": getattr(run, "id", None) if run is not None else None,
         "model_version": getattr(run, "model_version", None) if run is not None else None,
         "artifact_mode": getattr(run, "artifact_mode", None) if run is not None else None,
+        "snapshot_age_hours": snapshot_age_hours,
     }

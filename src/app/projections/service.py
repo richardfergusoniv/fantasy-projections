@@ -108,6 +108,7 @@ class ProjectionService:
                 "model_version": fields.get("model_version"),
                 "artifact_mode": fields.get("artifact_mode"),
                 "fallback_reason": fallback_reason,
+                "snapshot_age_hours": fields.get("snapshot_age_hours"),
             }
         elif source == ProjectionSource.STATUS_ADJUSTED_RELEASE and overlay_pointer:
             overlay_hash = str(overlay_pointer.get("overlay_hash") or "")

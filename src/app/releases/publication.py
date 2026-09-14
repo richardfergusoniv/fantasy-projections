@@ -261,9 +261,11 @@ def activate_existing_run(
     *,
     reason: str = "activated_closing_line",
     gates: dict | None = None,
+    extra: dict | None = None,
 ) -> PublicationResult:
     """Swap the pointer onto an already-persisted passing candidate."""
     gate_payload = gates or {}
+    extra_payload = extra or {}
     try:
         with session.begin_nested():
             run.status = "active"
@@ -286,6 +288,7 @@ def activate_existing_run(
                         "artifact_mode": run.artifact_mode,
                         "manifest_uri": run.manifest_uri,
                         "pointer_changed": changed,
+                        **extra_payload,
                     },
                 )
             )
@@ -390,32 +393,49 @@ def publish(
         return record_failure(session, candidate, reason="candidate_write_failed", gates=gate_payload)
 
     if not activate:
-        run = (
-            session.query(ProjectionRun)
-            .filter(ProjectionRun.id == candidate.run_id)
-            .one()
-        )
-        run.status = "shadow"
-        pointer = active_pointer(
-            session, mode=candidate.mode, season=candidate.season, week=candidate.week
-        )
-        previous_run_id = pointer.run_id if pointer is not None else None
-        session.add(
-            PromotionEvent(
+        try:
+            with session.begin_nested():
+                run = (
+                    session.query(ProjectionRun)
+                    .filter(ProjectionRun.id == candidate.run_id)
+                    .one()
+                )
+                run.status = "shadow"
+                pointer = active_pointer(
+                    session, mode=candidate.mode, season=candidate.season, week=candidate.week
+                )
+                previous_run_id = pointer.run_id if pointer is not None else None
+                session.add(
+                    PromotionEvent(
+                        mode=candidate.mode,
+                        candidate_run_id=candidate.run_id,
+                        previous_run_id=previous_run_id,
+                        promoted=False,
+                        validation_json={
+                            "reason": "shadow_only",
+                            "gates": gate_payload,
+                            "artifact_mode": candidate.artifact_mode,
+                            "manifest_uri": candidate.manifest_uri,
+                            **candidate.metadata,
+                        },
+                    )
+                )
+                session.flush()
+        except Exception as exc:  # noqa: BLE001
+            logger.error(
+                "shadow_persist_failed",
                 mode=candidate.mode,
-                candidate_run_id=candidate.run_id,
-                previous_run_id=previous_run_id,
-                promoted=False,
-                validation_json={
-                    "reason": "shadow_only",
-                    "gates": gate_payload,
-                    "artifact_mode": candidate.artifact_mode,
-                    "manifest_uri": candidate.manifest_uri,
-                    **candidate.metadata,
-                },
+                run_id=candidate.run_id,
+                error=str(exc),
             )
-        )
-        session.flush()
+            gate_payload["shadow_persist"] = {
+                "passed": False,
+                "failures": [f"{type(exc).__name__}: {exc}"],
+                "warnings": [],
+            }
+            return record_failure(
+                session, candidate, reason="shadow_persist_failed", gates=gate_payload
+            )
         logger.info(
             "weekly_props_shadow_persisted",
             run_id=candidate.run_id,

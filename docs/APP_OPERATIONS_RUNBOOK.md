@@ -114,7 +114,9 @@ Promote in production:
 1. In **Vercel → Environment Variables** (Production) set
    `WEEKLY_PROPS_SHADOW_ONLY=false`. Redeploy is not required for Python env on
    the next invocation, but do it if the dashboard still shows the old value.
-2. Copy the same line into `.env.production.jobs` and run
+2. Copy `.env.production.jobs.example` → `.env.production.jobs`, fill secrets,
+   then set `WEEKLY_PROPS_SHADOW_ONLY=false` (the example ships `true` so a
+   copy-paste cannot live-promote). Run
    `pwsh scripts/set_production_job_env_secret.ps1` so GitHub Actions sees it.
 3. Either wait for the next `weekly-props-*` slot, or run now:
    - GitHub Actions → **Production Jobs** → Run workflow
@@ -126,7 +128,11 @@ Promote in production:
 
 Passing shadow candidates are now persisted (player rows, no pointer swap). If
 a later live scrape is too thin (books pull lines after kickoff), the job
-promotes that stored closing line instead of failing `weekly_props_unavailable`.
+promotes that stored closing line when it is still within 72 hours
+(`max_closing_line_age_hours`). Older books fail fast to
+`weekly_props_unavailable` instead of becoming the live Vegas board. The
+promotion event records `closing_line_age_hours`, and Matchup provenance
+includes `snapshot_age_hours`.
 
 Verify:
 

@@ -14,8 +14,9 @@
 #   `[SENSITIVE]`). One-time setup:
 #     1. Copy `.env.production.jobs.example` → `.env.production.jobs`
 #     2. Fill values from the Vercel production dashboard
-#     3. Include `WEEKLY_PROPS_SHADOW_ONLY=false` to let weekly-props jobs promote
-#        (a Vercel-only env change does not affect this workflow)
+#     3. Leave `WEEKLY_PROPS_SHADOW_ONLY=true` until you are ready to promote,
+#        then set it to `false` (a Vercel-only env change does not affect this
+#        workflow)
 #     4. Run `pwsh scripts/set_production_job_env_secret.ps1`
 #
 # Optional runtime verification secrets:

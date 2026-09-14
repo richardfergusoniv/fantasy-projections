@@ -17,6 +17,19 @@ from pydantic_settings import (
 DEFAULT_SECRET_KEY = "dev-only-change-me"
 DEFAULT_ALLOWED_EMAIL = "owner@example.com"
 MIN_PRODUCTION_SECRET_LENGTH = 32
+
+#: Canonical name first. Later keys are dashboard/typo aliases operators have used.
+#: ``weekly_props_shadow_only()`` and Settings.AliasChoices must stay in sync —
+#: both read this tuple.
+WEEKLY_PROPS_SHADOW_ENV_KEYS = (
+    "WEEKLY_PROPS_SHADOW_ONLY",
+    "WEEKLY_PROP_SHADOW_ONLY",
+    "WEEKLY_PROPS_SHADOW",
+    "WEEKLY_PROP_SHADOW",
+    "weekly_prop_shadow",
+    "weekly_prop_shadow_only",
+    "weekly_props_shadow",
+)
 LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "[::1]", "::1"})
 
 # Canonical production origin for Fantasy Decisions (rdfergus15 Vercel project).
@@ -132,14 +145,8 @@ class Settings(BaseSettings):
     weekly_props_shadow_only: bool = Field(
         default=True,
         validation_alias=AliasChoices(
-            "WEEKLY_PROPS_SHADOW_ONLY",
             "weekly_props_shadow_only",
-            "WEEKLY_PROP_SHADOW_ONLY",
-            "WEEKLY_PROPS_SHADOW",
-            "WEEKLY_PROP_SHADOW",
-            "weekly_prop_shadow",
-            "weekly_prop_shadow_only",
-            "weekly_props_shadow",
+            *WEEKLY_PROPS_SHADOW_ENV_KEYS,
         ),
     )
     #: Enable automatic status-overlay publication after gate passes.

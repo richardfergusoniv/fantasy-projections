@@ -10,7 +10,7 @@ import os
 from enum import Enum
 from typing import Literal
 
-from src.app.config import get_settings
+from src.app.config import WEEKLY_PROPS_SHADOW_ENV_KEYS, get_settings
 
 ProjectionSourceName = Literal[
     "sealed_release",
@@ -64,18 +64,6 @@ def weekly_rnd_enabled() -> bool:
     """True only when weekly-v2 R&D source is explicitly enabled."""
     settings = get_settings()
     return bool(settings.weekly_rnd_enabled)
-
-
-#: Canonical name first. Later keys are dashboard/typo aliases operators have used.
-WEEKLY_PROPS_SHADOW_ENV_KEYS = (
-    "WEEKLY_PROPS_SHADOW_ONLY",
-    "WEEKLY_PROP_SHADOW_ONLY",
-    "WEEKLY_PROPS_SHADOW",
-    "WEEKLY_PROP_SHADOW",
-    "weekly_prop_shadow",
-    "weekly_prop_shadow_only",
-    "weekly_props_shadow",
-)
 
 
 def parse_env_bool(raw: str) -> bool | None:
