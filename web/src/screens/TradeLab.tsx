@@ -5,6 +5,7 @@ import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
 import { api } from "../api/client";
 import type { TradeEvaluation } from "../api/types";
+import { buildRosterPlayerLabels } from "../players/labels";
 
 type Horizon = TradeEvaluation["horizon"];
 
@@ -96,16 +97,7 @@ export function TradeLabScreen() {
   const sideAPool = playersFor(sideARosterId);
   const sideBPool = playersFor(sideBRosterId);
 
-  const playerLabels = useMemo(() => {
-    const labels = new Map<string, string>();
-    for (const roster of rosters) {
-      for (const player of roster.player_details ?? []) {
-        const position = player.position ? ` (${player.position})` : "";
-        labels.set(player.player_id, `${player.name}${position}`);
-      }
-    }
-    return labels;
-  }, [rosters]);
+  const playerLabels = useMemo(() => buildRosterPlayerLabels(rosters), [rosters]);
 
   const managerLabel = (rosterId: number) => {
     const roster = rosters.find((row) => row.roster_id === rosterId);

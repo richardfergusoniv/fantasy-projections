@@ -69,6 +69,9 @@ export interface RosterPlayer {
   position: string;
   team?: string;
   slot?: string;
+  /** Sleeper id when the API publishes it alongside a canonical/GSIS player_id. */
+  sleeper_id?: string;
+  gsis_id?: string;
 }
 
 /**

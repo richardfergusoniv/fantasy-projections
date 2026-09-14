@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adaptLeagues, adaptLineup } from "./adapters";
+import { adaptLeagues, adaptLineup, adaptRosters } from "./adapters";
 
 describe("adaptLeagues", () => {
   it("preserves owner_roster_id including null for unsynced memberships", () => {
@@ -150,5 +150,49 @@ describe("adaptLineup", () => {
       projection_run_id: "weekly-props-w01",
     });
     expect(lineup.board_source).toBe("vegas_props");
+  });
+});
+
+describe("adaptRosters", () => {
+  it("preserves roster player ids and optional identity aliases", () => {
+    const rosters = adaptRosters({
+      rosters: [
+        {
+          roster_id: 1,
+          week: 1,
+          players: [11583, "k-id"],
+          starters: [11583],
+          reserve: [],
+          manager_name: "rdfergus15",
+          player_details: [
+            {
+              player_id: "11583",
+              name: "Justin Jefferson",
+              position: "WR",
+              sleeper_id: "11583",
+              gsis_id: "00-0036322",
+            },
+            { player_id: "k-id", name: "Will Reichard", position: "K" },
+          ],
+        },
+      ],
+    });
+    expect(rosters[0].players).toEqual(["11583", "k-id"]);
+    expect(rosters[0].player_details).toEqual([
+      {
+        player_id: "11583",
+        name: "Justin Jefferson",
+        position: "WR",
+        sleeper_id: "11583",
+        gsis_id: "00-0036322",
+      },
+      {
+        player_id: "k-id",
+        name: "Will Reichard",
+        position: "K",
+        sleeper_id: undefined,
+        gsis_id: undefined,
+      },
+    ]);
   });
 });

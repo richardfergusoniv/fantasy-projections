@@ -116,8 +116,11 @@ export function adaptRosters(raw: RawRecord): Roster[] {
     player_details: ((roster.player_details as RawRecord[] | undefined) ?? []).map((player) => ({
       player_id: String(player.player_id),
       name: String(player.name ?? player.player_id),
+      // Same FLEX fallback as lineup/draft/waiver RosterPlayer producers.
       position: String(player.position ?? "FLEX"),
       team: player.team ? String(player.team) : undefined,
+      sleeper_id: player.sleeper_id != null && player.sleeper_id !== "" ? String(player.sleeper_id) : undefined,
+      gsis_id: player.gsis_id != null && player.gsis_id !== "" ? String(player.gsis_id) : undefined,
     })),
   }));
 }
