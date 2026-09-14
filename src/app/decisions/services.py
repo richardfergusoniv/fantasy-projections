@@ -676,7 +676,7 @@ def _public_decision_error(exc: Exception) -> tuple[str, str]:
         (
             "missing_weekly_props_pointer",
             "weekly_props_unavailable",
-            "Vegas lines aren't ready for this week yet — using League Value.",
+            "Vegas lines aren't ready for this week yet. Switch to League Value.",
         ),
         (
             "league_or_rules_not_found",

@@ -21,6 +21,14 @@ def test_resolve_effective_weekly_props():
     )
 
 
+def test_leftover_shadow_only_is_reported_as_alias(monkeypatch):
+    from src.app.projections.source import weekly_props_shadow_env_aliases_in_use
+
+    monkeypatch.setenv("WEEKLY_PROPS_SHADOW_ONLY", "true")
+    monkeypatch.delenv("WEEKLY_PROPS_FORCE_SHADOW", raising=False)
+    assert "WEEKLY_PROPS_SHADOW_ONLY" in weekly_props_shadow_env_aliases_in_use()
+
+
 def test_weekly_props_auto_promote_by_default(monkeypatch):
     from src.app.config import get_settings
     from src.app.projections.source import weekly_props_shadow_only

@@ -268,7 +268,7 @@ def test_weekly_props_missing_pointer_fails_fast(seeded_lineup: Session, monkeyp
         LeagueContextError("missing_weekly_props_pointer:no promoted weekly_props run")
     )
     assert code == "weekly_props_unavailable"
-    assert message == "Vegas lines aren't ready for this week yet — using League Value."
+    assert message == "Vegas lines aren't ready for this week yet. Switch to League Value."
     assert "WEEKLY_PROPS_SHADOW_ONLY" not in message
     assert "uv run" not in message
     assert "Operations" not in message

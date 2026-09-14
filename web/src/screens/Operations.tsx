@@ -173,7 +173,7 @@ export function OperationsScreen() {
             <span>Vegas promotion</span>
             <strong
               className={
-                data?.weekly_props?.shadow_only === true ? "state-warning-text" : undefined
+                data?.weekly_props?.shadow_only === false ? undefined : "state-warning-text"
               }
             >
               {data?.weekly_props?.shadow_only == null

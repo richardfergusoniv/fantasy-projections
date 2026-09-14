@@ -43,16 +43,17 @@ describe("ApiClient error parsing", () => {
 
   it("explains weekly_props gaps without operator homework", () => {
     const err = new ApiClientError(
-      "Vegas lines aren't ready for this week yet — using League Value. (weekly_props_unavailable)",
+      "Vegas lines aren't ready for this week yet. Switch to League Value.",
       422,
       {
         detail: {
           code: "weekly_props_unavailable",
-          message: "Vegas lines aren't ready for this week yet — using League Value.",
+          message: "Vegas lines aren't ready for this week yet. Switch to League Value.",
         },
       },
     );
     const recovery = recoveryActionForError(err);
+    expect(err.message).toMatch(/Switch to League Value/i);
     expect(recovery).toMatch(/next good scrape/i);
     expect(recovery).not.toMatch(/WEEKLY_PROPS_SHADOW_ONLY|Operations|uv run/i);
   });

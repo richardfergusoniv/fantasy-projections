@@ -76,10 +76,14 @@ def parse_env_bool(raw: str) -> bool | None:
 
 
 def weekly_props_shadow_env_aliases_in_use() -> list[str]:
-    """Non-canonical env keys that are set (usually a mistyped dashboard name)."""
+    """Old shadow-only env keys that are set (ignored for promotion).
+
+    Includes leftover ``WEEKLY_PROPS_SHADOW_ONLY``. Skips the current escape
+    hatch ``WEEKLY_PROPS_FORCE_SHADOW``.
+    """
     found: list[str] = []
     for key in WEEKLY_PROPS_SHADOW_ENV_KEYS:
-        if key == "WEEKLY_PROPS_SHADOW_ONLY":
+        if key == "WEEKLY_PROPS_FORCE_SHADOW":
             continue
         raw = os.getenv(key)
         if raw is not None and str(raw).strip():

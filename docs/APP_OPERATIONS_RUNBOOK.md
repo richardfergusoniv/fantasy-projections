@@ -105,8 +105,9 @@ overwritten when `SEASON_VEGAS_WRITE_SEALED=true`).
 
 Weekly-props jobs **auto-promote** a passing candidate onto the dedicated
 `weekly_props` pointer. Quality gates still apply (minimum players, freshness
-bounds). Thin or stale books are not promoted; Matchup/Home then show a short
-“Vegas lines aren’t ready” note and keep using League Value.
+bounds). Thin or stale books are not promoted; Matchup/Home fail fast with a
+short “Vegas lines aren’t ready” note. Switch to League Value until the next
+good scrape.
 
 No Vercel or GitHub `WEEKLY_PROPS_SHADOW_ONLY` flip is required. Leftover
 `WEEKLY_PROPS_SHADOW_ONLY=true` in older secrets is ignored. Advanced escape
