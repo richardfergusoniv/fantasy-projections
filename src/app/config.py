@@ -7,12 +7,29 @@ from functools import lru_cache
 from typing import Literal
 from urllib.parse import urlparse
 
-from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+from pydantic import AliasChoices, Field, field_validator
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 DEFAULT_SECRET_KEY = "dev-only-change-me"
 DEFAULT_ALLOWED_EMAIL = "owner@example.com"
 MIN_PRODUCTION_SECRET_LENGTH = 32
+
+#: Canonical name first. Later keys are dashboard/typo aliases operators have used.
+#: ``weekly_props_shadow_only()`` and Settings.AliasChoices must stay in sync —
+#: both read this tuple.
+WEEKLY_PROPS_SHADOW_ENV_KEYS = (
+    "WEEKLY_PROPS_SHADOW_ONLY",
+    "WEEKLY_PROP_SHADOW_ONLY",
+    "WEEKLY_PROPS_SHADOW",
+    "WEEKLY_PROP_SHADOW",
+    "weekly_prop_shadow",
+    "weekly_prop_shadow_only",
+    "weekly_props_shadow",
+)
 LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "[::1]", "::1"})
 
 # Canonical production origin for Fantasy Decisions (rdfergus15 Vercel project).
@@ -47,6 +64,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        populate_by_name=True,
     )
 
     app_env: Literal["development", "test", "production"] = "development"
@@ -122,7 +140,15 @@ class Settings(BaseSettings):
     #: Explicit opt-in for weekly-v2 R&D source (never selected by default).
     weekly_rnd_enabled: bool = False
     #: When true, weekly_props jobs build/gate candidates but never swap pointers.
-    weekly_props_shadow_only: bool = True
+    #: Canonical env: WEEKLY_PROPS_SHADOW_ONLY. Common dashboard typos are
+    #: accepted so a mistyped weekly_prop_shadow line still takes effect.
+    weekly_props_shadow_only: bool = Field(
+        default=True,
+        validation_alias=AliasChoices(
+            "weekly_props_shadow_only",
+            *WEEKLY_PROPS_SHADOW_ENV_KEYS,
+        ),
+    )
     #: Enable automatic status-overlay publication after gate passes.
     status_overlay_auto_publish: bool = True
     #: live (default prod path) | fixture (offline / tests).

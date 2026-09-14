@@ -255,6 +255,69 @@ def record_failure(
     return PublicationResult(run_id=None, promoted=False, reason=reason, gates=gates)
 
 
+def activate_existing_run(
+    session: Session,
+    run: ProjectionRun,
+    *,
+    reason: str = "activated_closing_line",
+    gates: dict | None = None,
+    extra: dict | None = None,
+) -> PublicationResult:
+    """Swap the pointer onto an already-persisted passing candidate."""
+    gate_payload = gates or {}
+    extra_payload = extra or {}
+    try:
+        with session.begin_nested():
+            run.status = "active"
+            previous_run_id, changed = swap_pointer(
+                session,
+                mode=run.mode,
+                season=run.season,
+                week=run.week,
+                run_id=run.id,
+            )
+            session.add(
+                PromotionEvent(
+                    mode=run.mode,
+                    candidate_run_id=run.id,
+                    previous_run_id=previous_run_id,
+                    promoted=True,
+                    validation_json={
+                        "reason": reason,
+                        "gates": gate_payload,
+                        "artifact_mode": run.artifact_mode,
+                        "manifest_uri": run.manifest_uri,
+                        "pointer_changed": changed,
+                        **extra_payload,
+                    },
+                )
+            )
+            session.flush()
+    except Exception as exc:  # noqa: BLE001
+        logger.error(
+            "pointer_swap_failed",
+            mode=run.mode,
+            run_id=run.id,
+            error=str(exc),
+        )
+        return PublicationResult(
+            run_id=run.id,
+            promoted=False,
+            reason="pointer_swap_failed",
+            gates={
+                **gate_payload,
+                "pointer_swap": {
+                    "passed": False,
+                    "failures": [f"{type(exc).__name__}: {exc}"],
+                    "warnings": [],
+                },
+            },
+        )
+    return PublicationResult(
+        run_id=run.id, promoted=True, reason=reason, gates=gate_payload
+    )
+
+
 def publish(
     session: Session,
     candidate: Candidate,
@@ -262,8 +325,14 @@ def publish(
     gates: dict[str, GateResult],
     register_partitions: bool = True,
     validate_partitions: bool = True,
+    activate: bool = True,
 ) -> PublicationResult:
-    """Gate ``candidate`` and, only if every gate passes, promote it."""
+    """Gate ``candidate`` and persist it.
+
+    When ``activate`` is true and every gate passes, swap the active pointer.
+    When ``activate`` is false (weekly_props shadow), persist player rows with
+    status ``shadow`` so a later promote can reuse the week's closing line.
+    """
     passed, gate_payload = merge_gates(gates)
     if not passed:
         return record_failure(session, candidate, reason="gate_failed", gates=gate_payload)
@@ -322,6 +391,62 @@ def publish(
             "warnings": [],
         }
         return record_failure(session, candidate, reason="candidate_write_failed", gates=gate_payload)
+
+    if not activate:
+        try:
+            with session.begin_nested():
+                run = (
+                    session.query(ProjectionRun)
+                    .filter(ProjectionRun.id == candidate.run_id)
+                    .one()
+                )
+                run.status = "shadow"
+                pointer = active_pointer(
+                    session, mode=candidate.mode, season=candidate.season, week=candidate.week
+                )
+                previous_run_id = pointer.run_id if pointer is not None else None
+                session.add(
+                    PromotionEvent(
+                        mode=candidate.mode,
+                        candidate_run_id=candidate.run_id,
+                        previous_run_id=previous_run_id,
+                        promoted=False,
+                        validation_json={
+                            "reason": "shadow_only",
+                            "gates": gate_payload,
+                            "artifact_mode": candidate.artifact_mode,
+                            "manifest_uri": candidate.manifest_uri,
+                            **candidate.metadata,
+                        },
+                    )
+                )
+                session.flush()
+        except Exception as exc:  # noqa: BLE001
+            logger.error(
+                "shadow_persist_failed",
+                mode=candidate.mode,
+                run_id=candidate.run_id,
+                error=str(exc),
+            )
+            gate_payload["shadow_persist"] = {
+                "passed": False,
+                "failures": [f"{type(exc).__name__}: {exc}"],
+                "warnings": [],
+            }
+            return record_failure(
+                session, candidate, reason="shadow_persist_failed", gates=gate_payload
+            )
+        logger.info(
+            "weekly_props_shadow_persisted",
+            run_id=candidate.run_id,
+            player_count=len(candidate.rows),
+        )
+        return PublicationResult(
+            run_id=candidate.run_id,
+            promoted=False,
+            reason="shadow_only",
+            gates=gate_payload,
+        )
 
     # Phase 2 — promote-only. Nothing here writes projection data.
     try:

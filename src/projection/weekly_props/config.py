@@ -32,6 +32,13 @@ class WeeklyPropsPolicy:
         )
     )
     max_snapshot_age_hours: float = 36.0
+    #: Closing-line fallback may reuse an older book than a live scrape (Friday
+    #: close → Sunday refresh is in range). Tuesday's book on Sunday is not.
+    max_closing_line_age_hours: float = 72.0
+    #: Extra quotes vs a thin live scrape before preferring the stored book.
+    #: Quote count, not player count — distinct from ``min_candidate_players``.
+    min_stored_quote_advantage: int = 50
+    min_stored_snapshot_age_minutes: float = 5.0
     min_source_success_count: int = 1
     min_distinct_books_per_market: int = 1
     require_two_sided: bool = True

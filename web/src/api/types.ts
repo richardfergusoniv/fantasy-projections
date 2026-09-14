@@ -460,6 +460,7 @@ export interface OperationsModes {
   sleeper_source?: "fixture" | "live";
   projection_source?: string;
   weekly_rnd_enabled?: boolean;
+  weekly_props_shadow_only?: boolean | null;
   /** `trained` | `fallback` | `fixture` — the weekly v2 artifact state. */
   weekly_v2_state?: string;
   weekly_v2_model_version?: string | null;
@@ -491,6 +492,22 @@ export interface OperationsWeeklyRndPanel {
   failed_gates?: string[];
 }
 
+export interface OperationsWeeklyPropsPanel {
+  canonical_env?: string;
+  shadow_only?: boolean | null;
+  alias_env_keys?: string[];
+  promoted?: boolean;
+  run_id?: string | null;
+  model_version?: string | null;
+  last_job_name?: string | null;
+  last_job_status?: string | null;
+  last_job_reason?: string | null;
+  last_job_at?: string | null;
+  last_job_shadow?: boolean | null;
+  last_job_week?: number | null;
+  error?: string;
+}
+
 export interface OperationsStatus {
   data_as_of?: string;
   // The API sends `null` when nothing has been recorded yet, and "never synced"
@@ -500,6 +517,7 @@ export interface OperationsStatus {
   modes?: OperationsModes;
   production?: OperationsProductionPanel;
   weekly_rnd?: OperationsWeeklyRndPanel;
+  weekly_props?: OperationsWeeklyPropsPanel;
   capabilities?: {
     capabilities: CapabilityStatus[];
     production_healthy: boolean;

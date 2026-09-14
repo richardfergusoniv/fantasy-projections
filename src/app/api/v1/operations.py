@@ -138,6 +138,42 @@ def _scheduler_health(db: Session, now: datetime) -> dict:
     }
 
 
+def _weekly_props_status(db: Session, season: int, week: int | None) -> dict:
+    """Operator-facing Vegas Props promotion / env wiring."""
+    from src.app.projections.source import (
+        weekly_props_shadow_env_aliases_in_use,
+        weekly_props_shadow_only,
+    )
+    from src.projection.weekly_props.provenance import load_promoted_weekly_props_run
+
+    run = (
+        load_promoted_weekly_props_run(db, season=season, week=week)
+        if week is not None
+        else None
+    )
+    last_job = (
+        db.query(JobRun)
+        .filter(JobRun.job_name.like("weekly-props%"))
+        .order_by(JobRun.started_at.desc())
+        .first()
+    )
+    meta = (last_job.metadata_json or {}) if last_job is not None else {}
+    return {
+        "canonical_env": "WEEKLY_PROPS_SHADOW_ONLY",
+        "shadow_only": weekly_props_shadow_only(),
+        "alias_env_keys": weekly_props_shadow_env_aliases_in_use(),
+        "promoted": bool(run is not None and getattr(run, "status", None) == "active"),
+        "run_id": getattr(run, "id", None) if run is not None else None,
+        "model_version": getattr(run, "model_version", None) if run is not None else None,
+        "last_job_name": last_job.job_name if last_job is not None else None,
+        "last_job_status": last_job.status if last_job is not None else None,
+        "last_job_reason": meta.get("status") or meta.get("fallback_reason"),
+        "last_job_at": _iso(last_job.finished_at or last_job.started_at) if last_job else None,
+        "last_job_shadow": meta.get("shadow"),
+        "last_job_week": meta.get("week"),
+    }
+
+
 @router.get("/operations/status")
 def operations_status(user: AppUser = Depends(get_current_user), db: Session = Depends(get_db)):
     settings = get_settings()
@@ -233,6 +269,14 @@ def operations_status(user: AppUser = Depends(get_current_user), db: Session = D
     capability_matrix = build_capability_matrix(db, season=season, week=week)
     artifact_store = _artifact_store_health()
     scheduler = _scheduler_health(db, now)
+    try:
+        weekly_props = _weekly_props_status(db, season, week)
+    except Exception as exc:  # noqa: BLE001 — status endpoints must not throw
+        weekly_props = {
+            "canonical_env": "WEEKLY_PROPS_SHADOW_ONLY",
+            "shadow_only": None,
+            "error": type(exc).__name__,
+        }
 
     data_age = _age_hours(latest_source.fetched_at if latest_source else None, now)
     evidence_age = _age_hours(latest_evidence.fetched_at if latest_evidence else None, now)
@@ -304,6 +348,7 @@ def operations_status(user: AppUser = Depends(get_current_user), db: Session = D
             "sleeper_source": settings.sleeper_mode,
             "projection_source": settings.app_projection_source,
             "weekly_rnd_enabled": settings.weekly_rnd_enabled,
+            "weekly_props_shadow_only": weekly_props.get("shadow_only"),
             "weekly_v2_state": readiness.state,
             "weekly_v2_model_version": readiness.model_version,
             "weekly_v2_manifest_uri": readiness.manifest_uri,
@@ -331,6 +376,7 @@ def operations_status(user: AppUser = Depends(get_current_user), db: Session = D
             "auto_publish_allowed": readiness.auto_publish_allowed,
             "failed_gates": list(readiness.reasons),
         },
+        "weekly_props": weekly_props,
         "capabilities": capability_matrix.to_dict(),
         "jobs": {
             "latest": _job_payload(latest_job),

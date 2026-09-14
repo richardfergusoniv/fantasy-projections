@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Literal
@@ -43,6 +44,17 @@ QuoteRejectReason = Literal[
     "wrong_slate",
     "odds_less_alt",
 ]
+
+
+def _parse_datetime(value: Any) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    text = str(value).strip()
+    if not text:
+        return None
+    return datetime.fromisoformat(text)
 
 
 SCORING_MARKETS: tuple[str, ...] = (
@@ -114,6 +126,36 @@ class NormalizedQuote:
         )
         return payload
 
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> NormalizedQuote:
+        data = dict(payload)
+        fetched = _parse_datetime(data.get("fetched_at"))
+        if fetched is None:
+            raise ValueError("quote is missing fetched_at")
+        return cls(
+            source=str(data.get("source") or ""),
+            sportsbook=str(data.get("sportsbook") or ""),
+            event_id=data.get("event_id"),
+            game_id=data.get("game_id"),
+            player_name_raw=str(data.get("player_name_raw") or ""),
+            player_id=data.get("player_id"),
+            team=data.get("team"),
+            opponent=data.get("opponent"),
+            market=str(data.get("market") or ""),
+            period=str(data.get("period") or "full_game"),
+            line=float(data["line"]),
+            over_odds=data.get("over_odds"),
+            under_odds=data.get("under_odds"),
+            fetched_at=fetched,
+            event_start=_parse_datetime(data.get("event_start")),
+            source_url=data.get("source_url"),
+            raw_record_hash=str(data.get("raw_record_hash") or ""),
+            over_prob_novig=data.get("over_prob_novig"),
+            under_prob_novig=data.get("under_prob_novig"),
+            kind=data.get("kind") or "book",
+            reject_reason=data.get("reject_reason"),
+        )
+
 
 @dataclass(frozen=True)
 class ProviderSnapshot:
@@ -141,6 +183,29 @@ class ProviderSnapshot:
             "raw_uri": self.raw_uri,
             "metadata": dict(self.metadata),
         }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> ProviderSnapshot:
+        data = dict(payload)
+        fetched = _parse_datetime(data.get("fetched_at"))
+        if fetched is None:
+            raise ValueError("snapshot is missing fetched_at")
+        quotes = tuple(
+            NormalizedQuote.from_dict(quote) for quote in (data.get("quotes") or [])
+        )
+        urls = data.get("urls") or ()
+        return cls(
+            source=str(data.get("source") or ""),
+            season=int(data["season"]),
+            week=int(data["week"]),
+            fetched_at=fetched,
+            urls=tuple(str(url) for url in urls),
+            quotes=quotes,
+            success=bool(data.get("success")),
+            error=data.get("error"),
+            raw_uri=data.get("raw_uri"),
+            metadata=dict(data.get("metadata") or {}),
+        )
 
 
 @dataclass(frozen=True)

@@ -96,13 +96,43 @@ postpones itself when the NFL week is not final.
 `WEEKLY_PROPS_MODE=live` (default) scrapes DraftKings + FanDuel over/unders on
 each weekly-props slot. DraftKings requires the `curl_cffi` dependency for TLS
 impersonation; FanDuel uses the public SBAPI. Snapshots land under
-`data/props/snapshots/`. With `SEASON_VEGAS_REFRESH=true`, the same job also
-writes season-long O/U closing lines into `draft_assistant/data/vegas_raw/` and
-rebuilds a **shadow** consensus at `data/props/season_consensus/` (sealed
-`vegas_consensus_{season}.json` is only overwritten when
-`SEASON_VEGAS_WRITE_SEALED=true`). Keep `WEEKLY_PROPS_SHADOW_ONLY=true` until
-gates look stable, then promote and optionally set
-`APP_PROJECTION_SOURCE=weekly_props`.
+`data/props/snapshots/` **and** in the artifact store / `source_snapshot`
+catalog (GitHub Actions disks are ephemeral). With `SEASON_VEGAS_REFRESH=true`,
+the same job also writes season-long O/U closing lines into
+`draft_assistant/data/vegas_raw/` and rebuilds a **shadow** consensus at
+`data/props/season_consensus/` (sealed `vegas_consensus_{season}.json` is only
+overwritten when `SEASON_VEGAS_WRITE_SEALED=true`).
+
+Keep `WEEKLY_PROPS_SHADOW_ONLY=true` until gates look stable. Setting it false
+**only on Vercel does not promote** — scheduled jobs use GitHub
+`PRODUCTION_JOB_ENV`. Use the exact name `WEEKLY_PROPS_SHADOW_ONLY` (not
+`weekly_prop_shadow`). Then run a weekly-props job so a passing candidate is
+published onto the dedicated `weekly_props` pointer.
+
+Promote in production:
+
+1. In **Vercel → Environment Variables** (Production) set
+   `WEEKLY_PROPS_SHADOW_ONLY=false`. Redeploy is not required for Python env on
+   the next invocation, but do it if the dashboard still shows the old value.
+2. Copy `.env.production.jobs.example` → `.env.production.jobs`, fill secrets,
+   then set `WEEKLY_PROPS_SHADOW_ONLY=false` (the example ships `true` so a
+   copy-paste cannot live-promote). Run
+   `pwsh scripts/set_production_job_env_secret.ps1` so GitHub Actions sees it.
+3. Either wait for the next `weekly-props-*` slot, or run now:
+   - GitHub Actions → **Production Jobs** → Run workflow
+   - Operations → **Run weekly Vegas props**
+   - or `uv run python -m src.app.jobs.scheduler run-once weekly-props-market-close`
+     with production job env loaded
+4. Confirm Operations shows a promoted weekly_props pointer, then reload Matchup
+   → Vegas Props.
+
+Passing shadow candidates are now persisted (player rows, no pointer swap). If
+a later live scrape is too thin (books pull lines after kickoff), the job
+promotes that stored closing line when it is still within 72 hours
+(`max_closing_line_age_hours`). Older books fail fast to
+`weekly_props_unavailable` instead of becoming the live Vegas board. The
+promotion event records `closing_line_age_hours`, and Matchup provenance
+includes `snapshot_age_hours`.
 
 Verify:
 

@@ -15,6 +15,7 @@ from src.projection.weekly_props.config import (
     MODEL_VERSION,
     WeeklyPropsPolicy,
 )
+from src.projection.weekly_props.provenance import WEEKLY_PROPS_POINTER_MODE
 from src.projection.weekly_props.scoring import build_mean_json
 
 
@@ -161,7 +162,7 @@ def build_candidate(
         **(metadata or {}),
     }
     return Candidate(
-        mode="weekly",
+        mode=WEEKLY_PROPS_POINTER_MODE,
         season=manifest.season,
         week=manifest.week,
         run_id=f"weekly-props-{manifest.season}-w{manifest.week:02d}-{manifest.semantic_input_hash[:12]}",
