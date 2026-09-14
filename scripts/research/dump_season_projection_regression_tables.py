@@ -4,7 +4,11 @@
     docs/research/SEASON_PROJECTION_REGRESSION_REEXPLORE_2026-09-14.md
 
 Does not train, predict, compose, seal, or promote. Reads committed
-artifacts under output/ with the stdlib only.
+artifacts under ``output/`` and ``models/`` with the stdlib only.
+
+Those artifacts must be present (and, in a fresh clone, committed) or the
+script exits with a missing-file list. It does not download or regenerate
+them.
 
 Usage (from repo root):
 
@@ -23,6 +27,21 @@ HOLDOUT = ROOT / "output" / "backtest" / "veteran_holdout_2025.csv"
 ACCURACY = ROOT / "output" / "accuracy_first_2026" / "report.json"
 WEIGHTS = ROOT / "output" / "accuracy_first_2026" / "ensemble_weights.json"
 CONC = ROOT / "models" / "concentration_calibration.json"
+REQUIRED_ARTIFACTS = (EVAL_JSON, EVAL_CSV, HOLDOUT, ACCURACY, WEIGHTS, CONC)
+
+
+def _rel(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+def _require_artifacts() -> None:
+    missing = [path for path in REQUIRED_ARTIFACTS if not path.exists()]
+    if missing:
+        listing = "\n  ".join(_rel(path) for path in missing)
+        raise SystemExit(f"missing artifacts:\n  {listing}")
 
 
 def _print_eval_table(path: Path) -> None:
@@ -159,6 +178,7 @@ def _print_eval_csv_spotchecks(path: Path) -> None:
 
 
 def main() -> None:
+    _require_artifacts()
     print("RESEARCH-ONLY dump. No production artifacts were written.")
     _print_eval_table(EVAL_JSON)
     _print_rate_holdout(HOLDOUT)

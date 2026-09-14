@@ -47,12 +47,15 @@ receiving touchdowns). Team pass-volume anchors beat naive too.
 Knowing who the *best dozen* are, and how many points the stars will score, is
 much harder than ordering the whole list:
 
-- **QB:** The pretty 0.78 rank correlation is mostly “backups and zeros sort
-  to the bottom.” Among actual starters the rank correlation collapses to
-  ~0.22. The model missed 2025’s bounce-back / breakout QBs (Stafford, Maye,
-  Lawrence) and over-trusted players who then missed time (Burrow, Daniels).
-  A dedicated QB repair already tried and **failed** its starter gates
-  (NO-GO, 2026-09-03). Do not promote those arms.
+- **QB:** Rank correlation on **per-game rates** falls from 0.77 across all
+  eligible QBs (`all_eligible.rate_spearman` 0.765) to ~0.22 among actual
+  starters (`starter_8plus_games.rate_spearman` 0.217). The 0.78 figure usually
+  quoted is the all-eligible **season-points** Spearman (`metrics[].spearman`)
+  — same backup-vs-starter story, not a second collapse. The model missed
+  2025’s bounce-back / breakout QBs (Stafford, Maye, Lawrence) and over-trusted
+  players who then missed time (Burrow, Daniels). A dedicated QB repair already
+  tried and **failed** its starter gates (NO-GO, 2026-09-03). Do not promote
+  those arms.
 - **RB:** Whole-board rank is fine; identifying the RB1 tier is one of the
   better cells (17/24). Value-over-replacement is *slightly worse* than copy-
   last-year. Christian McCaffrey was the loud miss (186 projected vs 364
@@ -261,8 +264,10 @@ metrics; they are not a new scoreboard.
 
 **QB — orders the room, misses the starters that matter**
 
-- All-eligible rate Spearman 0.765; **starter 8+ games: 0.217**. Points MAE
-  39.2 vs **61.7** on that starter slice. **[artifact]** JSON
+- Like-for-like **rate** Spearman: `all_eligible.rate_spearman` 0.765 vs
+  `starter_8plus_games.rate_spearman` **0.217**. The usually quoted 0.78 is
+  all-eligible **season-points** Spearman (`metrics[].spearman` 0.780). Points
+  MAE 39.2 vs **61.7** on that starter slice. **[artifact]** JSON
   `qb_starter_metrics`.
 - Predicted top 12: Burrow, Mayfield, Lamar, Hurts, Herbert, Nix, Mahomes,
   Daniels, Allen, Caleb, Purdy, Darnold.
@@ -392,7 +397,7 @@ work once outcomes exist, plus diagnostics that are allowed now.
 
 | Gap | Why it matters | Blocked now? |
 |---|---|---|
-| All-eligible Spearman is the wrong QB headline | Starter ρ ~0.22 vs 0.78 overall | Research now; promotion after 2026 only if starter gates pass |
+| All-eligible Spearman is the wrong QB headline | Rate Spearman 0.765 all-eligible vs ~0.22 among starters (8+ games). The 0.78 figure is **points** Spearman on the same all-eligible set, not a starter rate. | Research now; promotion after 2026 only if starter gates pass |
 | TE replacement / VORP | TE13 too low every fold; avail. baseline wins VORP | Model-policy (do not retune TE weights in-season). Research OK |
 | WR/RB ceiling vs injury | Elite correction is TE-only; concentration is identity | Research OK; do not reopen closed RB/WR repair |
 | Unscored production stages | vacancy boosts, roster_moves, curated 2026 depth, elite correction | Extending the harness is research; cannot historically score 2026-only curated files |
@@ -450,9 +455,9 @@ These are consistent with the artifacts and **not** independently proven:
    Burrow/Daniels look “too high” on a mean board. A mid-α blend may help MAE
    and hurt decision quality. Needs nested fit + decision-quality gate, not
    another Sleeper delta.
-2. **H2.** QB all-eligible Spearman will keep looking great as long as the
-   model can identify non-starters. Starter-conditional metrics are the only
-   honest promotion surface.
+2. **H2.** QB all-eligible **points** Spearman will keep looking great as long
+   as the model can identify non-starters. Starter-conditional **rate** Spearman
+   (and starter MAE) are the only honest promotion surface.
 3. **H3.** WR zero-v1-weight is not “v1 is useless at WR”; it is “v1’s WR
    error is dominated by ceiling/injury that ADP already prices.” A v1 WR
    change that does not beat ADP on 2026 top-120 should not get weight.
@@ -531,7 +536,9 @@ RB/WR weights, 10k draws) **is** current.
 All from repo root. None of these write production defaults.
 
 ```bash
-# Tables in this note (stdlib; no DB, no models fit)
+# Tables in this note (stdlib; no DB, no models fit).
+# Requires the committed output/ and models/ artifacts listed in the script;
+# missing files exit with a relative-path list, not a traceback.
 python3 scripts/research/dump_season_projection_regression_tables.py
 
 # Inspect the JSON directly
