@@ -7,7 +7,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from src.app.api.deps import get_db, require_csrf, require_idempotency_key
-from src.app.assistant.gateway import AssistantGateway
 from src.app.assistant.validation import MAX_LEAGUE_ID_CHARS, MAX_WEEK, MIN_WEEK
 from src.app.config import get_settings
 from src.app.middleware.rate_limit import client_key, limiter
@@ -36,6 +35,8 @@ def assistant_response(
     db: Session = Depends(get_db),
     idempotency_key: str = Depends(require_idempotency_key),
 ):
+    from src.app.assistant.gateway import AssistantGateway
+
     settings = get_settings()
     limiter.check(f"assistant:{client_key(request)}", limit=settings.assistant_rate_limit_per_minute)
     gateway = AssistantGateway(db)

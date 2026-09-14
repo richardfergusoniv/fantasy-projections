@@ -12,13 +12,13 @@ from src.app.api.v1.leagues import get_matchups, get_rosters
 from src.app.availability.gsis_link import link_identities_to_release_players
 from src.app.config import get_settings
 from src.app.decisions.services import (
-    _USERNAME_TO_USER_ID_CACHE,
     LeagueContextError,
     LineupService,
     TradeService,
     _public_decision_error,
     _resolve_owner_roster_id,
 )
+from src.app.league.sleeper.owner_ids import USERNAME_TO_USER_ID_CACHE as _USERNAME_TO_USER_ID_CACHE
 from src.app.persistence.models import (
     AppUser,
     League,
@@ -405,6 +405,60 @@ def test_list_leagues_exposes_owner_roster_id(monkeypatch, db_session: Session):
     by_id = {row["league_id"]: row["owner_roster_id"] for row in payload["leagues"]}
     assert by_id["league-owned"] == 6
     assert by_id["league-orphan"] is None
+    get_settings.cache_clear()
+
+
+def test_list_leagues_includes_available_weeks_without_loading_bundle(
+    monkeypatch, db_session: Session
+):
+    from src.app.api.v1.leagues import list_leagues
+
+    monkeypatch.setenv("SLEEPER_USER_ID", "owner-6")
+    get_settings.cache_clear()
+    _league(db_session, "league-owned")
+    db_session.add(
+        LeagueMember(
+            league_id="league-owned",
+            user_id="owner-6",
+            roster_id=6,
+            display_name="Owner",
+        )
+    )
+    db_session.add_all(
+        [
+            RosterSnapshot(
+                league_id="league-owned",
+                week=1,
+                roster_id=6,
+                fetched_at=datetime.now(UTC),
+                players=["p1"],
+                starters=["p1"],
+                reserve=[],
+            ),
+            RosterSnapshot(
+                league_id="league-owned",
+                week=3,
+                roster_id=6,
+                fetched_at=datetime.now(UTC),
+                players=["p1"],
+                starters=["p1"],
+                reserve=[],
+            ),
+        ]
+    )
+    db_session.flush()
+
+    def _boom(*_args, **_kwargs):
+        raise AssertionError("GET /leagues must not load the sealed release bundle")
+
+    monkeypatch.setattr(
+        "src.app.projections.loader.ReleaseBundleLoader.load_bundle",
+        _boom,
+        raising=True,
+    )
+    payload = list_leagues(user=AppUser(email="owner@example.com"), db=db_session)
+    owned = next(row for row in payload["leagues"] if row["league_id"] == "league-owned")
+    assert owned["available_weeks"] == [1, 3]
     get_settings.cache_clear()
 
 

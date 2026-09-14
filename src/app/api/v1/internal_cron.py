@@ -7,13 +7,14 @@ import os
 from fastapi import APIRouter, Header, HTTPException
 
 from src.app.config import get_settings
-from src.app.jobs.scheduler import enqueue_due_slots, process_outbox, run_due
 
 router = APIRouter(prefix="/internal/cron", include_in_schema=False)
 
 
 @router.post("/run-due")
 def cron_run_due(authorization: str | None = Header(default=None)):
+    from src.app.jobs.scheduler import enqueue_due_slots, run_due
+
     settings = get_settings()
     if not settings.cron_secret:
         raise HTTPException(status_code=503, detail="cron_not_configured")
@@ -29,6 +30,8 @@ def cron_run_due(authorization: str | None = Header(default=None)):
 
 @router.post("/process-outbox")
 def cron_process_outbox(authorization: str | None = Header(default=None)):
+    from src.app.jobs.scheduler import process_outbox
+
     settings = get_settings()
     if not settings.cron_secret:
         raise HTTPException(status_code=503, detail="cron_not_configured")

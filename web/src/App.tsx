@@ -1,16 +1,36 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { AppShell } from "./components/AppShell";
 import { useAuth } from "./hooks/useAuth";
 import { AppStateProvider } from "./hooks/useAppState";
-import { AssistantScreen } from "./screens/Assistant";
-import { DraftScreen } from "./screens/Draft";
-import { DynastyScreen } from "./screens/Dynasty";
 import { HomeScreen } from "./screens/Home";
-import { LineupScreen } from "./screens/Lineup";
 import { LoginScreen } from "./screens/Login";
-import { OperationsScreen } from "./screens/Operations";
-import { TradeLabScreen } from "./screens/TradeLab";
-import { WaiversScreen } from "./screens/Waivers";
+
+const LineupScreen = lazy(() =>
+  import("./screens/Lineup").then((module) => ({ default: module.LineupScreen })),
+);
+const WaiversScreen = lazy(() =>
+  import("./screens/Waivers").then((module) => ({ default: module.WaiversScreen })),
+);
+const TradeLabScreen = lazy(() =>
+  import("./screens/TradeLab").then((module) => ({ default: module.TradeLabScreen })),
+);
+const DynastyScreen = lazy(() =>
+  import("./screens/Dynasty").then((module) => ({ default: module.DynastyScreen })),
+);
+const DraftScreen = lazy(() =>
+  import("./screens/Draft").then((module) => ({ default: module.DraftScreen })),
+);
+const AssistantScreen = lazy(() =>
+  import("./screens/Assistant").then((module) => ({ default: module.AssistantScreen })),
+);
+const OperationsScreen = lazy(() =>
+  import("./screens/Operations").then((module) => ({ default: module.OperationsScreen })),
+);
+
+function ScreenFallback() {
+  return <div className="screen empty-state">Loading screen…</div>;
+}
 
 /**
  * Explicit recovery path for an expired session.
@@ -76,19 +96,21 @@ function ProtectedRoutes() {
 
   return (
     <AppStateProvider>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route index element={<HomeScreen />} />
-          <Route path="lineup" element={<LineupScreen />} />
-          <Route path="waivers" element={<WaiversScreen />} />
-          <Route path="trade-lab" element={<TradeLabScreen />} />
-          <Route path="dynasty" element={<DynastyScreen />} />
-          <Route path="draft" element={<DraftScreen />} />
-          <Route path="assistant" element={<AssistantScreen />} />
-          <Route path="operations" element={<OperationsScreen />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Suspense fallback={<ScreenFallback />}>
+        <Routes>
+          <Route element={<AppShell />}>
+            <Route index element={<HomeScreen />} />
+            <Route path="lineup" element={<LineupScreen />} />
+            <Route path="waivers" element={<WaiversScreen />} />
+            <Route path="trade-lab" element={<TradeLabScreen />} />
+            <Route path="dynasty" element={<DynastyScreen />} />
+            <Route path="draft" element={<DraftScreen />} />
+            <Route path="assistant" element={<AssistantScreen />} />
+            <Route path="operations" element={<OperationsScreen />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </AppStateProvider>
   );
 }

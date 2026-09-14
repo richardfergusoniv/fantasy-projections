@@ -223,29 +223,49 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setRosters([]);
       return;
     }
+    // Home/Matchup only need the week list, which now arrives on GET /leagues.
+    // Full roster payloads (player identity join) wait until idle so they do
+    // not contend with lineup/waivers on the single Python function.
     let cancelled = false;
     setRostersLoading(true);
     setRostersError(null);
-    void api
-      .getRosters(selectedLeagueId)
-      .then((items) => {
-        if (!cancelled) setRosters(items);
-      })
-      .catch((err: Error) => {
-        if (!cancelled) {
-          setRosters([]);
-          setRostersError(err.message);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setRostersLoading(false);
-      });
+    const load = () => {
+      if (cancelled) return;
+      void api
+        .getRosters(selectedLeagueId)
+        .then((items) => {
+          if (!cancelled) setRosters(items);
+        })
+        .catch((err: Error) => {
+          if (!cancelled) {
+            setRosters([]);
+            setRostersError(err.message);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setRostersLoading(false);
+        });
+    };
+    const idleId =
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(load, { timeout: 2000 })
+        : null;
+    const timerId = idleId == null ? window.setTimeout(load, 0) : null;
     return () => {
       cancelled = true;
+      if (idleId != null && typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timerId != null) window.clearTimeout(timerId);
     };
   }, [selectedLeagueId]);
 
   const availableWeeks = useMemo(() => {
+    const selected = leagues.find((league) => league.id === selectedLeagueId);
+    const fromLeague = selected?.available_weeks;
+    if (fromLeague && fromLeague.length) {
+      return fromLeague;
+    }
     const weeks = new Set<number>();
     for (const roster of rosters) {
       if (Number.isInteger(roster.week) && roster.week > 0) {
@@ -253,7 +273,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }
     }
     return [...weeks].sort((a, b) => a - b);
-  }, [rosters]);
+  }, [leagues, rosters, selectedLeagueId]);
 
   const derivedWeek = availableWeeks.length ? availableWeeks[availableWeeks.length - 1] : null;
   const week = weekOverride ?? derivedWeek;

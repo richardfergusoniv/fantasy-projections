@@ -28,6 +28,20 @@ describe("adaptLeagues", () => {
     expect(leagues[0].decision_ready).toBe(true);
     expect(leagues[1].decision_ready).toBe(false);
   });
+
+  it("copies available_weeks so Home can pick a week without rosters", () => {
+    const leagues = adaptLeagues({
+      leagues: [
+        {
+          id: "owned",
+          name: "Owned",
+          season: 2026,
+          available_weeks: ["1", 3, 2, 2],
+        },
+      ],
+    });
+    expect(leagues[0].available_weeks).toEqual([1, 2, 3]);
+  });
 });
 
 describe("adaptLineup", () => {

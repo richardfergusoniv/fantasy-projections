@@ -536,64 +536,8 @@ class _LeagueContext:
         return base
 
 
-_USERNAME_TO_USER_ID_CACHE: dict[str, str | None] = {}
-
-
-def _configured_sleeper_username(settings) -> str | None:
-    username = (settings.sleeper_username or "").strip() or None
-    if username:
-        return username
-    if settings.sleeper_owner_config or settings.sleeper_owner_json:
-        try:
-            from src.app.league.sleeper.owner_config import load_owner_config
-
-            loaded = (load_owner_config().username or "").strip()
-            return loaded or None
-        except (FileNotFoundError, OSError, ValueError):
-            return None
-    return None
-
-
-def _lookup_user_id_for_username(username: str, *, use_fixtures: bool) -> str | None:
-    """Resolve a Sleeper username to user_id (cached; read-only GET)."""
-    cache_key = username.strip().lower()
-    if cache_key in _USERNAME_TO_USER_ID_CACHE:
-        return _USERNAME_TO_USER_ID_CACHE[cache_key]
-    try:
-        from src.app.league.sleeper.client import SleeperClient
-
-        payload = SleeperClient(use_fixtures=use_fixtures).get_user(username.strip())
-        user_id = str(payload.get("user_id") or "").strip() or None
-    except Exception:
-        user_id = None
-    _USERNAME_TO_USER_ID_CACHE[cache_key] = user_id
-    return user_id
-
-
-def _owner_user_id_candidates(settings) -> list[str]:
-    """Ordered Sleeper user ids that may identify the configured owner.
-
-    Prefer the configured ``SLEEPER_USER_ID``. When that is missing or does not
-    match league memberships (quoted/stale id, etc.), also try resolving
-    ``SLEEPER_USERNAME`` / owner-config username via the Sleeper user endpoint.
-    """
-    candidates: list[str] = []
-    seen: set[str] = set()
-
-    def _add(value: str | None) -> None:
-        if not value:
-            return
-        key = str(value).strip()
-        if not key or key in seen:
-            return
-        seen.add(key)
-        candidates.append(key)
-
-    _add(settings.sleeper_user_id)
-    username = _configured_sleeper_username(settings)
-    if username:
-        _add(_lookup_user_id_for_username(username, use_fixtures=settings.use_sleeper_fixtures))
-    return candidates
+from src.app.league.sleeper.owner_ids import configured_sleeper_username as _configured_sleeper_username
+from src.app.league.sleeper.owner_ids import owner_user_id_candidates as _owner_user_id_candidates
 
 
 def _members_for_owner_keys(session: Session, league_id: str, owner_keys: list[str]):

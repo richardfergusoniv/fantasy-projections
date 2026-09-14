@@ -46,8 +46,10 @@ export interface LeagueSummary {
   owner_roster_id?: number | null;
   /** True when the configured owner has a synced membership for decisions. */
   decision_ready?: boolean;
-  member_count?: number;
+    member_count?: number;
   total_rosters?: number;
+  /** Weeks with a roster snapshot. Lets Home pick a week without GET /rosters. */
+  available_weeks?: number[];
 }
 
 export interface LeagueDetail extends LeagueSummary {

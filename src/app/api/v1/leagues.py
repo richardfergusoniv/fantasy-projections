@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Annotated
-
 from datetime import UTC, datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from src.app.api.deps import (
@@ -18,12 +17,8 @@ from src.app.api.deps import (
     require_idempotency_key,
 )
 from src.app.config import get_settings
-from src.app.decisions.draft_board import DraftBoardService
-from src.app.decisions.services import LineupService, WaiverService
-from src.app.jobs.handlers import run_daily_refresh
-from src.app.jobs.runner import JobRunner
 from src.app.league.sleeper.owner_config import load_owner_config
-from src.app.league.sleeper.sync import SleeperSyncService
+from src.app.league.sleeper.owner_ids import owner_user_id_candidates
 from src.app.logging import get_logger
 from src.app.persistence.models import (
     AppUser,
@@ -32,9 +27,8 @@ from src.app.persistence.models import (
     LeagueMember,
     LeagueRuleSnapshot,
     MatchupSnapshot,
+    RosterSnapshot,
 )
-from src.app.persistence.repositories import ProjectionRepository
-from src.app.projections.loader import get_bundle_loader
 from src.app.projections.source import (
     ProjectionSource,
     configured_projection_source,
@@ -86,6 +80,30 @@ def _decision_http_error(league_id: str, exc: Exception, *, fallback_code: str, 
     return _unprocessable(code, message, league_id=league_id, exc=exc)
 
 
+def _latest_rule_snapshots_by_league(session: Session) -> dict[str, LeagueRuleSnapshot]:
+    """Newest rule snapshot per league in one query (avoids N+1 on GET /leagues)."""
+    snapshots = (
+        session.query(LeagueRuleSnapshot)
+        .order_by(LeagueRuleSnapshot.fetched_at.desc(), LeagueRuleSnapshot.id.desc())
+        .all()
+    )
+    latest: dict[str, LeagueRuleSnapshot] = {}
+    for row in snapshots:
+        if row.league_id not in latest:
+            latest[row.league_id] = row
+    return latest
+
+
+def _available_weeks_by_league(session: Session) -> dict[str, list[int]]:
+    rows = session.query(RosterSnapshot.league_id, RosterSnapshot.week).distinct().all()
+    weeks: dict[str, set[int]] = {}
+    for league_id, week in rows:
+        if week is None or int(week) <= 0:
+            continue
+        weeks.setdefault(str(league_id), set()).add(int(week))
+    return {league_id: sorted(values) for league_id, values in weeks.items()}
+
+
 def _meta(session: Session, league_id: str, *, week: int = 1) -> dict:
     snapshot = (
         session.query(LeagueRuleSnapshot)
@@ -96,6 +114,9 @@ def _meta(session: Session, league_id: str, *, week: int = 1) -> dict:
     league = session.query(League).filter(League.league_id == league_id).one_or_none()
     season = league.season if league else 2026
     source = configured_projection_source()
+    from src.app.persistence.repositories import ProjectionRepository
+    from src.projection.active_release import ActiveReleaseError, read_active_pointer
+
     projections = ProjectionRepository(session)
     run = None
     if source == ProjectionSource.WEEKLY_V2_RND and weekly_rnd_enabled():
@@ -104,9 +125,18 @@ def _meta(session: Session, league_id: str, *, week: int = 1) -> dict:
         run = projections.active_run(mode="preseason", season=season, week=None)
     projection_run_id = "fixture"
     if source in {ProjectionSource.SEALED_RELEASE, ProjectionSource.STATUS_ADJUSTED_RELEASE}:
-        bundle = get_bundle_loader(season).load_bundle()
-        if bundle is not None:
-            projection_run_id = f"preseason-{bundle.namespace}"
+        pointer = None
+        try:
+            pointer = read_active_pointer(season, session=session)
+        except ActiveReleaseError:
+            pointer = None
+        if pointer is None:
+            try:
+                pointer = read_active_pointer(season)
+            except ActiveReleaseError:
+                pointer = None
+        if pointer is not None:
+            projection_run_id = f"preseason-{pointer['namespace']}"
         elif run is not None:
             projection_run_id = run.id
     elif run is not None:
@@ -134,13 +164,14 @@ def list_leagues(
     ] = False,
 ):
     from src.app.config import get_settings
-    from src.app.decisions.services import _owner_user_id_candidates
 
     settings = get_settings()
     active_season = 2026
     leagues = db.query(League).all()
     configured_ids = _configured_league_ids()
-    owner_keys = _owner_user_id_candidates(settings)
+    owner_keys = owner_user_id_candidates(settings)
+    snapshots_by_league = _latest_rule_snapshots_by_league(db)
+    weeks_by_league = _available_weeks_by_league(db)
     owner_roster_by_league: dict[str, int] = {}
     if owner_keys:
         for member in (
@@ -165,12 +196,7 @@ def list_leagues(
 
     payload = []
     for league in leagues:
-        snapshot = (
-            db.query(LeagueRuleSnapshot)
-            .filter(LeagueRuleSnapshot.league_id == league.league_id)
-            .order_by(LeagueRuleSnapshot.fetched_at.desc())
-            .first()
-        )
+        snapshot = snapshots_by_league.get(league.league_id)
         scoring_type = "custom"
         if snapshot and snapshot.normalized_json:
             scoring_type = snapshot.normalized_json.get("scoring_type", scoring_type)
@@ -191,6 +217,7 @@ def list_leagues(
                 "owner_roster_id": owner_roster_id,
                 "member_count": member_count,
                 "decision_ready": decision_ready,
+                "available_weeks": weeks_by_league.get(league.league_id, []),
                 "roster_positions": league.raw_json.get("roster_positions", []) if league.raw_json else [],
             }
         )
@@ -269,13 +296,31 @@ def get_rosters(league_id: str, user: AppUser = Depends(get_current_user), db: S
         row.roster_id: row.display_name
         for row in db.query(LeagueMember).filter(LeagueMember.league_id == league_id).all()
     }
+    player_ids = {
+        str(pid)
+        for roster in rosters
+        for pid in (*(roster.players or []), *(roster.starters or []), *(roster.reserve or []))
+        if pid
+    }
     identities: dict[str, PlayerIdentity] = {}
-    for row in db.query(PlayerIdentity).all():
-        identities[row.player_id] = row
-        if row.sleeper_id:
-            identities.setdefault(row.sleeper_id, row)
-        if row.gsis_id:
-            identities.setdefault(row.gsis_id, row)
+    if player_ids:
+        id_list = list(player_ids)
+        for row in (
+            db.query(PlayerIdentity)
+            .filter(
+                or_(
+                    PlayerIdentity.player_id.in_(id_list),
+                    PlayerIdentity.sleeper_id.in_(id_list),
+                    PlayerIdentity.gsis_id.in_(id_list),
+                )
+            )
+            .all()
+        ):
+            identities[row.player_id] = row
+            if row.sleeper_id:
+                identities.setdefault(row.sleeper_id, row)
+            if row.gsis_id:
+                identities.setdefault(row.gsis_id, row)
 
     def player_label(player_id: str) -> dict:
         row = identities.get(str(player_id))
@@ -363,6 +408,8 @@ def recommend_lineup(
     user: AppUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    from src.app.decisions.services import LineupService
+
     try:
         result = LineupService(db).recommend(
             league_id,
@@ -396,6 +443,8 @@ def waiver_recommendations(
     user: AppUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    from src.app.decisions.services import WaiverService
+
     try:
         result = WaiverService(db).recommend(league_id, week)
     except ValueError as exc:
@@ -411,6 +460,7 @@ def waiver_recommendations(
 @router.get("/leagues/{league_id}/draft/board")
 def draft_board(league_id: str, user: AppUser = Depends(get_current_user), db: Session = Depends(get_db)):
     from src.app.config import get_settings
+    from src.app.decisions.draft_board import DraftBoardService
     from src.app.league.sleeper.client import SleeperClient
 
     league = db.query(League).filter(League.league_id == league_id).one_or_none()
@@ -468,6 +518,8 @@ def sleeper_connect(
     db: Session = Depends(get_db),
     idempotency_key: str = Depends(require_idempotency_key),
 ):
+    from src.app.league.sleeper.sync import SleeperSyncService
+
     settings = get_settings()
     username = settings.sleeper_username or "fixture_owner"
     sync = SleeperSyncService(db, use_fixtures=settings.use_sleeper_fixtures)
@@ -481,6 +533,9 @@ def sync_leagues(
     db: Session = Depends(get_db),
     idempotency_key: str = Depends(require_idempotency_key),
 ):
+    from src.app.jobs.handlers import run_daily_refresh
+    from src.app.jobs.runner import JobRunner
+
     runner = JobRunner(db)
     job = runner.run("sync-leagues", lambda: run_daily_refresh(db), idempotency_key=idempotency_key)
     return {"status": job.status, "job_id": job.id, "metadata": job.metadata_json}
