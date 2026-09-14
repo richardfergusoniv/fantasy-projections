@@ -89,4 +89,42 @@ describe("buildRosterPlayerLabels", () => {
     ]);
     expect(labels.get("11583")).toBe("Justin Jefferson (WR)");
   });
+
+  it("does not invent names when lengths match but details are reversed", () => {
+    const labels = buildRosterPlayerLabels([
+      roster({
+        players: ["11583", "11604"],
+        player_details: [
+          { player_id: "11604", name: "Puka Nacua", position: "WR" },
+          { player_id: "11583", name: "Justin Jefferson", position: "WR" },
+        ],
+      }),
+    ]);
+    expect(labels.get("11583")).toBe("Justin Jefferson (WR)");
+    expect(labels.get("11604")).toBe("Puka Nacua (WR)");
+  });
+
+  it("falls back to raw ids when a new payload is reversed without matching aliases", () => {
+    const labels = buildRosterPlayerLabels([
+      roster({
+        players: ["11583", "11604"],
+        player_details: [
+          {
+            player_id: "00-0037740",
+            name: "Puka Nacua",
+            position: "WR",
+            gsis_id: "00-0037740",
+          },
+          {
+            player_id: "00-0036322",
+            name: "Justin Jefferson",
+            position: "WR",
+            gsis_id: "00-0036322",
+          },
+        ],
+      }),
+    ]);
+    expect(labels.get("11583")).toBe("11583");
+    expect(labels.get("11604")).toBe("11604");
+  });
 });

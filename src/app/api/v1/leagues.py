@@ -261,6 +261,21 @@ def update_draft_order_rule(
 
 @router.get("/leagues/{league_id}/rosters")
 def get_rosters(league_id: str, user: AppUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Latest roster snapshots for a league.
+
+    ``player_details`` is a **response contract** keyed to the snapshot, not to
+    the projection id space:
+
+    - ``player_id`` is snapshot-scoped: the same id stored on
+      ``RosterSnapshot.players`` (often a Sleeper id). Trade Lab and other
+      checklist UIs join labels onto this field.
+    - ``gsis_id`` is the canonical join key for projections / identity rows.
+    - ``sleeper_id`` is the Sleeper id when known.
+
+    Do not treat ``player_details[].player_id`` as GSIS. A consumer that joins
+    it against a GSIS-keyed board will miss, which is the mirror of labelling
+    Sleeper roster ids from a GSIS-rewritten ``player_id``.
+    """
     from src.app.persistence.models import PlayerIdentity
     from src.app.persistence.repositories import LeagueRepository
 
@@ -303,6 +318,8 @@ def get_rosters(league_id: str, user: AppUser = Depends(get_current_user), db: S
                 "starters": r.starters,
                 "reserve": r.reserve,
                 "manager_name": members.get(r.roster_id),
+                # Same order as `players` (empty slots dropped). `player_id` is
+                # the snapshot id; `gsis_id` is the canonical projection key.
                 "player_details": [player_label(pid) for pid in (r.players or []) if pid],
             }
             for r in rosters

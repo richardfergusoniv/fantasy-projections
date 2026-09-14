@@ -39,22 +39,56 @@ function indexDetails(details: PlayerLabelSource[]): Map<string, PlayerLabelSour
 }
 
 /**
+ * Old `GET /leagues/{id}/rosters` remapped `player_details.player_id` onto GSIS
+ * and never published `sleeper_id` / `gsis_id`. The fixed server always emits
+ * those aliases. Index-joining is only for that legacy payload.
+ */
+function isLegacyRemappedDetails(details: PlayerLabelSource[]): boolean {
+  return details.length > 0 && details.every((detail) => !trim(detail.sleeper_id) && !trim(detail.gsis_id));
+}
+
+/**
+ * Server builds `player_details` as
+ * `[player_label(pid) for pid in (r.players or []) if pid]`, so order matches
+ * `players` when lengths match. If a detail's `player_id` is a roster slot at
+ * another index, that contract is already broken — do not guess by position.
+ * A wrong name in Trade Lab is worse than a raw id.
+ */
+function detailsFollowPlayersOrder(players: string[], details: PlayerLabelSource[]): boolean {
+  const indexByPlayer = new Map(players.map((id, index) => [id, index]));
+  for (const [index, detail] of details.entries()) {
+    const rosterIndex = indexByPlayer.get(detail.player_id);
+    if (rosterIndex != null && rosterIndex !== index) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function shouldJoinByIndex(players: string[], details: PlayerLabelSource[]): boolean {
+  return (
+    isLegacyRemappedDetails(details) &&
+    details.length === players.length &&
+    detailsFollowPlayersOrder(players, details)
+  );
+}
+
+/**
  * Map every rostered player id onto "Name (POS)".
  *
- * `GET /leagues/{id}/rosters` historically remapped `player_details.player_id`
- * onto GSIS while `players` kept the original Sleeper id. Join by every known
- * identifier and, when the arrays are aligned, by index so Trade Lab still
- * resolves names against that payload.
+ * Prefer identifier joins (`player_id`, `sleeper_id`, `gsis_id`). Fall back to
+ * index only for the legacy remapped payload, and only when lengths match and
+ * no detail's `player_id` sits on a different roster slot.
  */
 export function buildRosterPlayerLabels(rosters: Roster[]): Map<string, string> {
   const labels = new Map<string, string>();
   for (const roster of rosters) {
     const details = roster.player_details ?? [];
     const byId = indexDetails(details);
-    const aligned = details.length === roster.players.length;
+    const joinByIndex = shouldJoinByIndex(roster.players, details);
 
     for (const [index, playerId] of roster.players.entries()) {
-      const detail = byId.get(playerId) ?? (aligned ? details[index] : undefined);
+      const detail = byId.get(playerId) ?? (joinByIndex ? details[index] : undefined);
       labels.set(playerId, formatRosterPlayerLabel(playerId, detail));
     }
 
