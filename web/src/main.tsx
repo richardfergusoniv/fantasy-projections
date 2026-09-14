@@ -7,7 +7,16 @@ import { AuthProvider } from "./hooks/useAuth";
 import { registerServiceWorkerUpdates } from "./pwa/registerUpdates";
 import "./index.css";
 
-registerServiceWorkerUpdates(registerSW);
+function registerServiceWorkerWhenIdle(): void {
+  const run = () => registerServiceWorkerUpdates(registerSW);
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(run, { timeout: 3000 });
+    return;
+  }
+  window.addEventListener("load", run, { once: true });
+}
+
+registerServiceWorkerWhenIdle();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

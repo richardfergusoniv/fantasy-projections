@@ -71,6 +71,16 @@ function publisherFrom(url: string, fallback: string): string {
   }
 }
 
+function availableWeeksFrom(raw: unknown): number[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const weeks = new Set<number>();
+  for (const value of raw) {
+    const week = Number(value);
+    if (Number.isInteger(week) && week > 0) weeks.add(week);
+  }
+  return [...weeks].sort((a, b) => a - b);
+}
+
 export function adaptLeagues(raw: RawRecord): LeagueSummary[] {
   const leagues = (raw.leagues as RawRecord[] | undefined) ?? (Array.isArray(raw) ? raw : []);
   return leagues.map((league) => ({
@@ -93,6 +103,7 @@ export function adaptLeagues(raw: RawRecord): LeagueSummary[] {
       league.member_count == null || league.member_count === ""
         ? undefined
         : Number(league.member_count),
+    available_weeks: availableWeeksFrom(league.available_weeks),
   }));
 }
 

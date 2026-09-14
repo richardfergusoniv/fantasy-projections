@@ -10,8 +10,6 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from sqlalchemy.orm import Session
 
 from src.app.api.deps import get_current_user, get_db, require_csrf, require_idempotency_key
-from src.app.decisions.services import TradeService
-from src.app.decisions.tendencies import ManagerTendencyService
 from src.app.decisions.trades import TradeSide
 from src.app.logging import get_logger
 from src.app.persistence.models import AppUser, TradeProposal
@@ -85,6 +83,8 @@ def evaluate_trade_endpoint(
     db: Session = Depends(get_db),
     idempotency_key: str = Depends(require_idempotency_key),
 ):
+    from src.app.decisions.services import TradeService
+
     service = TradeService(db)
     try:
         result = service.evaluate(
@@ -163,6 +163,8 @@ def update_proposal_status(
 ):
     proposal = db.query(TradeProposal).filter(TradeProposal.id == proposal_id).one()
     proposal.status = payload.status
+    from src.app.decisions.tendencies import ManagerTendencyService
+
     ManagerTendencyService(db).rebuild(league_id)
     db.commit()
     return {"proposal_id": proposal.id, "status": proposal.status}
@@ -184,6 +186,8 @@ def manager_tendencies(
     user: AppUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    from src.app.decisions.tendencies import ManagerTendencyService
+
     features = ManagerTendencyService(db).get(league_id, roster_id)
     return {
         "league_id": league_id,

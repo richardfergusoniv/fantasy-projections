@@ -28,6 +28,7 @@ const LEAGUES = [
     scoring_type: "half_ppr",
     roster_positions: ["QB", "RB", "RB", "WR", "WR", "TE", "FLEX"],
     is_dynasty: false,
+    available_weeks: [1],
   },
 ];
 

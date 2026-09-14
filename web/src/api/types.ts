@@ -48,6 +48,8 @@ export interface LeagueSummary {
   decision_ready?: boolean;
   member_count?: number;
   total_rosters?: number;
+  /** Weeks with a roster snapshot. Lets Home pick a week without GET /rosters. */
+  available_weeks?: number[];
 }
 
 export interface LeagueDetail extends LeagueSummary {

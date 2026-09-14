@@ -1,0 +1,23 @@
+name: Keep API warm
+
+# The production PWA's first request is GET /api/v1/me against a single Python
+# serverless function. A cold isolate was measured at ~10s TTFB; a warm one is
+# ~60ms. Ping /health/live (JSON, no storage probe) so the isolate stays hot.
+# Do not use /health/ready — that route probes artifact storage (~5s when warm).
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    if: github.repository == 'richardfergusoniv/fantasy-projections'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Warm production API
+        run: |
+          curl -fsS --max-time 45 \
+            https://fantasy-projections-xi.vercel.app/health/live \
+            | grep -q '"status":"ok"'
