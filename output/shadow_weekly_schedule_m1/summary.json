@@ -1,0 +1,44 @@
+{
+  "schema_version": "weekly_latent_m1_v1",
+  "generated_at": "2026-09-15T20:25:37.707687+00:00",
+  "milestone": 1,
+  "season": 2026,
+  "dry_run": false,
+  "source": "sealed_board_plus_schedule_fixture",
+  "projections_path": "/workspace/draft_assistant/data/releases/v2_baseline_20260830/projections_2026.csv",
+  "schedule_path": "/workspace/src/projection/weekly_latent/fixtures/nfl_schedules_2026_reg.csv",
+  "sealed_namespace_read": "v2_baseline_20260830",
+  "n_teams": 32,
+  "n_team_weeks": 576,
+  "n_players": 778,
+  "n_player_weeks": 14004,
+  "n_bye_team_weeks": 32,
+  "conservation_passes": true,
+  "failing_checks": [],
+  "share_overflow_team_stats": {
+    "attempts": 9,
+    "carries": 12,
+    "passing_yards": 11,
+    "receiving_yards": 11,
+    "rushing_yards": 14,
+    "targets": 3
+  },
+  "product_split": {
+    "vegas": "external_weekly_benchmark",
+    "league_value": "season_scaffolding_prior",
+    "adp_and_season_vegas": "later_empirical_bands_only"
+  },
+  "does_not": [
+    "replace Vegas weekly props",
+    "promote or reseal League Value / v2_baseline_20260830",
+    "change freeze knobs or production defaults",
+    "train a model",
+    "use ADP or season-long Vegas as drivers",
+    "join same-week team_attempts/team_carries from add_team_pass_rate",
+    "wire into the PWA"
+  ],
+  "db": "FANTASY_PROJECTIONS_DB_PATH / default = /workspace/data/projections.db",
+  "db_opponent_priors": "no projections.db at /workspace/data/projections.db (priors stay 1.0)",
+  "production_hash_drift": {},
+  "games_per_season": 17
+}
