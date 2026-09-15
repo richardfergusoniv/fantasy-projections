@@ -1,0 +1,50 @@
+{
+  "schema_version": "weekly_feature_contract_v1",
+  "generated_at": "2026-09-15T19:35:55.726885+00:00",
+  "features": [
+    {
+      "feature": "targets_share_roll3",
+      "passes": true,
+      "max_observation_rule": "week < target_week",
+      "as_of_cutoff": "kickoff of target week",
+      "notes": "Leakage-safe: shift(1) then 3-week rolling mean (prior weeks only)."
+    },
+    {
+      "feature": "carries_share_roll3",
+      "passes": true,
+      "max_observation_rule": "week < target_week",
+      "as_of_cutoff": "kickoff of target week",
+      "notes": "Leakage-safe: shift(1) then 3-week rolling mean (prior weeks only)."
+    },
+    {
+      "feature": "snap_pct",
+      "passes": true,
+      "max_observation_rule": "season N complete before preseason projection for N+1",
+      "as_of_cutoff": "preseason",
+      "notes": "Preseason-safe at season grain."
+    },
+    {
+      "feature": "injury_durability_rate",
+      "passes": true,
+      "max_observation_rule": "season N only for projection of N+1",
+      "as_of_cutoff": "preseason",
+      "notes": ""
+    },
+    {
+      "feature": "opp_def_pass_epa_prior",
+      "passes": true,
+      "max_observation_rule": "season < target_season",
+      "as_of_cutoff": "preseason",
+      "notes": ""
+    },
+    {
+      "feature": "depth_chart_status",
+      "passes": true,
+      "max_observation_rule": "as_of_date <= projection_as_of",
+      "as_of_cutoff": "projection publish time",
+      "notes": ""
+    }
+  ],
+  "passes": true,
+  "failing_features": []
+}
