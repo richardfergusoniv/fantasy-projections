@@ -1,13 +1,15 @@
 name: Keep API warm
 
-# The production PWA's first request is GET /api/v1/me against a single Python
-# serverless function. A cold isolate was measured at ~10s TTFB; a warm one is
-# ~60ms. Ping /health/live (JSON, no storage probe) so the isolate stays hot.
-# Do not use /health/ready — that route probes artifact storage (~5s when warm).
+# Hourly warm ping to conserve Vercel Hobby Fluid Active CPU. The production
+# PWA's first request is GET /api/v1/me against a single Python serverless
+# function. A cold isolate was measured at ~10s TTFB; a warm one is ~60ms.
+# Ping /health/live (JSON, no storage probe). After a long idle the first
+# open may be cold again. Do not use /health/ready — that route probes
+# artifact storage (~5s when warm).
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 jobs:
