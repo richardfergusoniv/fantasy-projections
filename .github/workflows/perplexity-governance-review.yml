@@ -1,0 +1,62 @@
+# Perplexity governance review (Phase 1 — informational)
+#
+# Parallel to .github/workflows/claude-code-review.yml, but a DIFFERENT job:
+#   Claude  = code quality (readability, tests, obvious bugs)
+#   This    = independent model / systems governance
+#
+# Question: does this PR preserve the mathematical, calibration, artifact,
+# and release-control contract?
+#
+# Phase 1 rules:
+#   - Post a PR comment. Do not fail the merge gate.
+#   - REQUEST CHANGES / ESCALATE are severity in the comment, not a red check.
+#   - Do not add this workflow as a required status check.
+#   - Missing PERPLEXITY_API_KEY is a soft skip (green job + skip comment).
+#
+# Cursor Cloud Agent pushes arrive as cursor[bot]. We do not skip bot PRs —
+# same reason Claude's workflow sets allowed_bots: cursor.
+#
+# Secret: repository Actions secret PERPLEXITY_API_KEY
+#   Create a key at https://www.perplexity.ai/account/api
+#   Then: repo Settings → Secrets and variables → Actions → New repository secret
+#
+# Details: docs/decisions/REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md
+# Ops note: docs/ops/PERPLEXITY_GOVERNANCE_REVIEW.md
+
+name: Perplexity Governance Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+# New commits replace an in-flight review so we update one comment, not many.
+concurrency:
+  group: perplexity-governance-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  perplexity-governance-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Need enough history for base..head when gh falls back to local git.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # The helper always exits 0. A red X here would be a runner/checkout
+      # problem, not a governance verdict.
+      - name: Collect packet, call Perplexity, post PR comment
+        env:
+          # Empty when the secret is missing — the script posts a skip comment.
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: python3 .github/scripts/perplexity_governance_review.py
