@@ -36,6 +36,12 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
+          # Cursor Cloud Agent comments arrive as cursor[bot]; without this the
+          # action allows no bots and an agent's @claude mention is ignored.
+          # Unlike claude-code-review.yml, this workflow sets no fixed prompt, so
+          # the body of the triggering comment is the instruction Claude follows.
+          allowed_bots: cursor
+
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
@@ -43,8 +49,18 @@ jobs:
           # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
           # prompt: 'Update the pull request description to include a summary of changes.'
 
-          # Optional: Add claude_args to customize behavior and configuration
+          # Read-only tool allowlist. The action does not use the GITHUB_TOKEN this
+          # job declares permissions for -- it exchanges OIDC for a GitHub App
+          # installation token, and that App holds Contents and Pull Requests at
+          # Read & Write. The `permissions:` block above therefore does not bound
+          # what Claude can do here; this allowlist is what does.
+          #
+          # Granted: reply to the thread, read CI results (see additional_permissions
+          # above), and read/search the repo. Bash, Write and Edit are withheld, so
+          # there is no path to push a commit or call the merge API.
+          #
+          # This workflow sets no `prompt:`, so the triggering comment is the
+          # instruction. Keep the allowlist minimal for that reason.
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://code.claude.com/docs/en/cli-reference for available options
-          # claude_args: '--allowed-tools Bash(gh pr *)'
+          claude_args: '--allowedTools "mcp__github_comment__update_claude_comment,mcp__github_ci,Read,Grep,Glob"'
 
