@@ -94,10 +94,9 @@ Three defect classes follow, all reviewable from a diff:
   or preserve the ordering.
 - **Distributional adequacy.** Fantasy outcomes are skewed, zero-inflated for
   marginal players, and touchdown-driven. A normal interval with a fixed
-  coefficient of variation is not a credible generative distribution. Expect
-  overdispersed counts (negative binomial, Conway–Maxwell–Poisson), conversions
-  as binomial/beta-binomial, yardage as Gamma/lognormal/Tweedie, touchdowns as
-  hurdle or NB conditioned on red-zone opportunity.
+  coefficient of variation is not a credible generative distribution. Counts
+  need an overdispersed family, not Poisson or Gaussian — the review's layer
+  table names a fit for each component.
 - **Pooling.** Partial pooling across player / team / opponent / play-caller
   matters most exactly where the board is weakest: early season, rookies,
   backups, traded players, new coaching staffs. A short trailing window discards
@@ -172,11 +171,10 @@ This is what replaces the freeze. The freeze said "do not touch." The gate says
 that cutoff. A random train/test split on player-weeks is a finding on its own,
 regardless of the numbers it produces.
 
-**Beating a naive baseline is the floor, not the achievement.** A candidate
-should be measured against last-game and trailing-3-game means, season-to-date
-per-game rate, an exponentially weighted mean, a position/team hierarchical
-mean, public expected-opportunity data, and the weekly prop consensus. "Better
-than the old board" is not evidence.
+**Beating a naive baseline is the floor, not the achievement.** "Better than the
+old board" is not evidence. A candidate must clear trailing-mean and
+expected-opportunity baselines *and* be compared against the weekly prop
+consensus; the review lists the full baseline set.
 
 **Do not select on fantasy-point RMSE alone.** The system ships distributions,
 so evaluate them: pinball loss at P10/P50/P90, CRPS over the simulated
