@@ -596,3 +596,4 @@ Read from `draft_assistant/data/players_2026.json` · `meta` when the pointer is
 - [`DRAW_COUNT_ROLLOUT_2026-08-28.md`](decisions/DRAW_COUNT_ROLLOUT_2026-08-28.md) and the two dated human-decision records — how 10k became the production draw count
 - [`V1_PRODUCTION_ROLE_2026-08-29.md`](decisions/V1_PRODUCTION_ROLE_2026-08-29.md) — v1 structural role and closed RB/WR shadow repair track
 - [`ACCURACY_FIRST_ENSEMBLE_2026-08-27.md`](decisions/ACCURACY_FIRST_ENSEMBLE_2026-08-27.md) — selected RB/WR weights and holdout evidence
+- [`REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md`](decisions/REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md) — PR contract checklist and Cursor / Claude / Perplexity / human review roles
