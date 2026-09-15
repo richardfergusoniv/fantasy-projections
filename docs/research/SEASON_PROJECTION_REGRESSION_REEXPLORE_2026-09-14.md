@@ -3,6 +3,11 @@
 **Status:** research only. Nothing in this note changes the live sealed board,
 freeze knobs, or production defaults.
 
+> **Follow-up (2026-09-15):** per-position miss brief Richard can use for
+> design decisions:
+> [`SEASON_PROJECTION_POSITION_MISS_BRIEF_2026-09-15.md`](SEASON_PROJECTION_POSITION_MISS_BRIEF_2026-09-15.md).
+> Same freeze. Same artifacts. Structured by QB / RB / WR / TE.
+
 | Live constraint | Value |
 |---|---|
 | Sealed browser board | `v2_baseline_20260830` (accuracy-first ensemble) |
@@ -536,7 +541,8 @@ RB/WR weights, 10k draws) **is** current.
 All from repo root. None of these write production defaults.
 
 ```bash
-# Tables in this note (stdlib; no DB, no models fit).
+# Tables in this note and in the 2026-09-15 per-position brief
+# (stdlib; no DB, no models fit).
 # Requires the committed output/ and models/ artifacts listed in the script;
 # missing files exit with a relative-path list, not a traceback.
 python3 scripts/research/dump_season_projection_regression_tables.py
@@ -618,6 +624,7 @@ invoked.
 - `docs/QB_PROJECTION_FINAL_REPAIR_REPORT.md`
 - `docs/PIPELINE_MAP.md` (useful for features; compose-stage list not current)
 - `src/projection/{train,predict,veterans,composition,team_reconcile,contracts,fantasy_points,fantasy_evaluation,evaluation/accuracy_first}.py`
+- Follow-up brief: `docs/research/SEASON_PROJECTION_POSITION_MISS_BRIEF_2026-09-15.md`
 - Artifacts: `output/fantasy_evaluation_summary_202{3,4,5}.json`,
   `output/fantasy_evaluation_2025.csv`,
   `output/backtest/veteran_holdout_2025.csv`,
