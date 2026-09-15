@@ -12,6 +12,11 @@ ADP and season-long Vegas are **sanity checks only**, not targets.
 **Vegas weekly props is the product benchmark and what the app serves today.**
 The new weekly model stays in **shadow** until it is good enough to promote.
 
+The modeling north star is
+`docs/research/ACADEMIC_REVIEW_WEEKLY_PROJECTION_STACK_2026-09-15.md`. Several
+rules below are distilled from it; read it before reviewing substantive
+modeling work.
+
 ### The freeze is over — do not re-derive it from older docs
 
 `STATE_OF_BUILD.md`, `PIPELINE_MAP`, `docs/research/*` and several PR bodies
@@ -50,6 +55,18 @@ Sanctioned pre-kickoff features: lagged rolls (`_l3`, `_l5`, `_roll3`),
 `_prior` / prior-season means, and pregame schedule (spread, total, rest,
 as-of depth snapshots).
 
+**Every feature needs a cutoff, not just a lag.** The target state is one row
+per player-game keyed `(season, week, game_id, player_id, position)`, with each
+feature carrying an `available_at` / snapshot timestamp, and a training row
+containing only what was observable at that cutoff. Forecast *vintage* matters
+(Tuesday vs Friday vs 90 minutes pre-kickoff) — a feature that is legitimate at
+one vintage can be leakage at an earlier one. A PR adding features without a
+cutoff concept is incurring the debt even when nothing leaks today.
+
+**Snapshot-dated market data.** Using final or later-season ADP / season-market
+values in earlier historical rows is leakage, and it is easy to do accidentally
+because those sources are usually distributed as a single current value.
+
 Two rolling recipes exist and are **not interchangeable at week 1**:
 
 | Builder | Grain | Week 1 behaviour |
@@ -61,7 +78,36 @@ Two rolling recipes exist and are **not interchangeable at week 1**:
 these checks on synthetic fixtures without a database, and adds live checks
 when `projections.db` exists.
 
-### 2. Shadow until promoted
+### 2. Model shape — generate box scores, do not regress fantasy points
+
+The intended object is a **multistage generative model**: availability → team
+volume → player role shares → conversions → yardage → touchdowns, with fantasy
+points obtained by Monte Carlo over the component distributions. A PR that
+regresses fantasy points directly on season-level inputs is off-plan, however
+good its metrics look.
+
+Three defect classes follow, all reviewable from a diff:
+
+- **Internal consistency.** Independently projected components can violate
+  hard constraints — receptions cannot exceed targets, completions cannot
+  exceed attempts. If components are drawn separately, something must enforce
+  or preserve the ordering.
+- **Distributional adequacy.** Fantasy outcomes are skewed, zero-inflated for
+  marginal players, and touchdown-driven. A normal interval with a fixed
+  coefficient of variation is not a credible generative distribution. Expect
+  overdispersed counts (negative binomial, Conway–Maxwell–Poisson), conversions
+  as binomial/beta-binomial, yardage as Gamma/lognormal/Tweedie, touchdowns as
+  hurdle or NB conditioned on red-zone opportunity.
+- **Pooling.** Partial pooling across player / team / opponent / play-caller
+  matters most exactly where the board is weakest: early season, rookies,
+  backups, traded players, new coaching staffs. A short trailing window discards
+  priors that shrinkage would keep.
+
+Prefer regularized GLM/GAM or gradient boosting with well-encoded lagged
+features over deep architectures. Sample size is modest and the regime shifts
+each season; complexity is not the bottleneck.
+
+### 3. Shadow until promoted
 
 The app serves Vegas weekly props. The weekly model is shadow-only. A PR that
 moves the app onto the new model — flipping a default, swapping a pointer,
@@ -87,7 +133,7 @@ gates right, and is the promoted line fresh?"* — not *"is a shadow flag set?"*
 Because promotion is automatic, a weakened gate ships straight to the live
 board. Gate changes deserve more scrutiny than the flag ever did.
 
-### 3. Conservation in the weekly allocator
+### 4. Conservation in the weekly allocator
 
 `src/projection/weekly_latent/` (PR #71, **not yet merged**) allocates season
 volume across weeks. Matchup multipliers reshape the weekly path and must never
@@ -109,19 +155,57 @@ belongs to a later one is scope creep, not an improvement.
 | | Scope | Explicitly not yet |
 |---|---|---|
 | **M1** | Deterministic weekly schedule allocation. Matchup multipliers reshape the week; renormalization conserves season totals. No new ML. | Training, same-week realized volume features, replacing Vegas, League Value promote, PWA wiring, ADP/season-Vegas blending |
+| | *M1 being deterministic is deliberate scaffolding, not a shortfall. Do not fault it for lacking the learned components rule 2 describes — those arrive in M2/M3.* | |
 | **M2** | Team-week latent that *may* move season totals, once M1 conservation is proven. Opponent priors must be lagged or preseason. | ADP or season Vegas as drivers |
 | **M3** | Weekly availability and conversion rates. Compare against Vegas, do not replace it. | — |
 
 Across all three: Vegas weekly props is the **benchmark**, not the target to
 copy, and ADP / season-long Vegas are market-sanity guardrails at most.
 
-### 4. Vegas props correctness is user-facing
+### 5. Validation and the promotion gate
+
+This is what replaces the freeze. The freeze said "do not touch." The gate says
+"change what you like, clear this bar before it reaches anyone."
+
+**Backtests must be rolling-origin, never random splits.** Train through week
+`t-1`, predict week `t`, rebuilding every feature as it would have appeared at
+that cutoff. A random train/test split on player-weeks is a finding on its own,
+regardless of the numbers it produces.
+
+**Beating a naive baseline is the floor, not the achievement.** A candidate
+should be measured against last-game and trailing-3-game means, season-to-date
+per-game rate, an exponentially weighted mean, a position/team hierarchical
+mean, public expected-opportunity data, and the weekly prop consensus. "Better
+than the old board" is not evidence.
+
+**Do not select on fantasy-point RMSE alone.** The system ships distributions,
+so evaluate them: pinball loss at P10/P50/P90, CRPS over the simulated
+distribution, interval coverage and width, PIT / reliability plots, and Brier
+or log loss for prop over/under probabilities. A PR claiming improvement from a
+single point-error metric has not shown its intervals are still honest.
+
+**Promotion of the weekly model onto the product requires, at minimum:**
+
+- 6–8 live shadow weeks (a full season for broad claims)
+- no leakage or missingness regression
+- beats naive and expected-opportunity baselines across most positions
+- credible improvement or parity against the weekly-prop benchmark
+- calibrated 50 / 80 / 90% intervals within stated tolerance
+- no severe subgroup failure — backups, questionable tags, low-volume positions
+- stable across forecast vintages and books
+
+One or two weeks of 2026 results is an update, never a promotion argument.
+
+Note this gate is about promoting the **weekly model**. The Vegas props board
+has its own scrape gates (rule 3) and is a separate mechanism.
+
+### 6. Vegas props correctness is user-facing
 
 It is the live board, not an experiment. Promotion paths need a freshness
 bound and must record staleness in provenance — a days-old closing line served
 as current is a user-visible defect.
 
-### 5. ADP and season-long Vegas are checks, not objectives
+### 7. ADP and season-long Vegas are checks, not objectives
 
 Flag anything that optimizes *toward* ADP as a target metric, or that treats
 agreement with a season-long market as evidence of weekly accuracy.
@@ -146,6 +230,12 @@ change under review.
 
 **`web/`**: `npm run lint` is only `tsc -b --noEmit` — no formatter in CI, so
 style drift is not caught automatically.
+
+**Training belongs in batch, not in request handlers.** Fit in GitHub Actions
+or another batch runner, write artifacts and results to the database, and let
+the API serve completed runs. A model fit inside a Vercel request handler is a
+finding — it is also the same serverless function whose cold start PR #65 was
+about.
 
 ## Do not
 
