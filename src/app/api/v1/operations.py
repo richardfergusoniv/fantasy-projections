@@ -159,7 +159,7 @@ def _weekly_props_status(db: Session, season: int, week: int | None) -> dict:
     )
     meta = (last_job.metadata_json or {}) if last_job is not None else {}
     return {
-        "canonical_env": "WEEKLY_PROPS_SHADOW_ONLY",
+        "canonical_env": "WEEKLY_PROPS_FORCE_SHADOW",
         "shadow_only": weekly_props_shadow_only(),
         "alias_env_keys": weekly_props_shadow_env_aliases_in_use(),
         "promoted": bool(run is not None and getattr(run, "status", None) == "active"),
@@ -273,7 +273,7 @@ def operations_status(user: AppUser = Depends(get_current_user), db: Session = D
         weekly_props = _weekly_props_status(db, season, week)
     except Exception as exc:  # noqa: BLE001 — status endpoints must not throw
         weekly_props = {
-            "canonical_env": "WEEKLY_PROPS_SHADOW_ONLY",
+            "canonical_env": "WEEKLY_PROPS_FORCE_SHADOW",
             "shadow_only": None,
             "error": type(exc).__name__,
         }

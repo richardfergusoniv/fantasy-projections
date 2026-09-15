@@ -676,7 +676,7 @@ def _public_decision_error(exc: Exception) -> tuple[str, str]:
         (
             "missing_weekly_props_pointer",
             "weekly_props_unavailable",
-            "Weekly Vegas props are not promoted for this week. Switch to League Value. To promote: set WEEKLY_PROPS_SHADOW_ONLY=false in Vercel and in GitHub PRODUCTION_JOB_ENV, then run weekly-props-market-close (Operations or: uv run python -m src.app.jobs.scheduler run-once weekly-props-market-close).",
+            "Vegas lines aren't ready for this week yet. Switch to League Value.",
         ),
         (
             "league_or_rules_not_found",

@@ -41,18 +41,21 @@ describe("ApiClient error parsing", () => {
     expect(recoveryActionForError(err)).toContain("Run sync");
   });
 
-  it("steers weekly_props gaps toward League Value", () => {
+  it("explains weekly_props gaps without operator homework", () => {
     const err = new ApiClientError(
-      "Weekly Vegas props are not promoted (weekly_props_unavailable)",
+      "Vegas lines aren't ready for this week yet. Switch to League Value.",
       422,
       {
         detail: {
           code: "weekly_props_unavailable",
-          message: "Weekly Vegas props are not promoted for this week.",
+          message: "Vegas lines aren't ready for this week yet. Switch to League Value.",
         },
       },
     );
-    expect(recoveryActionForError(err)).toContain("League Value");
+    const recovery = recoveryActionForError(err);
+    expect(err.message).toMatch(/Switch to League Value/i);
+    expect(recovery).toMatch(/next good scrape/i);
+    expect(recovery).not.toMatch(/WEEKLY_PROPS_SHADOW_ONLY|Operations|uv run/i);
   });
 
   it("rewrites Workbox no-response fetch failures", async () => {

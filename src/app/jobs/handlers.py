@@ -501,8 +501,9 @@ def run_weekly_props(session: Session, *, automatic: bool = True) -> dict:
 
     Production uses live DraftKings + FanDuel fetch (``WEEKLY_PROPS_MODE=live``).
     Provider failures are isolated: remaining successful sources may still clear
-    coverage gates. Publication failures never swap the active weekly pointer
-    while ``WEEKLY_PROPS_SHADOW_ONLY`` remains true.
+    coverage gates. Passing quality gates auto-promotes the weekly_props pointer.
+    ``WEEKLY_PROPS_FORCE_SHADOW=true`` is an advanced escape hatch that
+    persists candidates without swapping the pointer.
     """
     import json
     from pathlib import Path

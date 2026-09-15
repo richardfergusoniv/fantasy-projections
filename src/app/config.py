@@ -139,16 +139,20 @@ class Settings(BaseSettings):
     app_projection_source: str = "sealed_release"
     #: Explicit opt-in for weekly-v2 R&D source (never selected by default).
     weekly_rnd_enabled: bool = False
-    #: When true, weekly_props jobs build/gate candidates but never swap pointers.
-    #: Canonical env: WEEKLY_PROPS_SHADOW_ONLY. Common dashboard typos are
-    #: accepted so a mistyped weekly_prop_shadow line still takes effect.
+    #: Legacy settings field. Production jobs auto-promote when quality gates
+    #: pass. Advanced escape hatch is WEEKLY_PROPS_FORCE_SHADOW (see
+    #: ``weekly_props_shadow_only()``). Leftover WEEKLY_PROPS_SHADOW_ONLY=true
+    #: from older env examples does not block promotion.
     weekly_props_shadow_only: bool = Field(
-        default=True,
+        default=False,
         validation_alias=AliasChoices(
             "weekly_props_shadow_only",
             *WEEKLY_PROPS_SHADOW_ENV_KEYS,
         ),
     )
+    #: Advanced escape hatch: persist weekly_props candidates without swapping
+    #: the promoted pointer. Normal production leaves this false.
+    weekly_props_force_shadow: bool = False
     #: Enable automatic status-overlay publication after gate passes.
     status_overlay_auto_publish: bool = True
     #: live (default prod path) | fixture (offline / tests).

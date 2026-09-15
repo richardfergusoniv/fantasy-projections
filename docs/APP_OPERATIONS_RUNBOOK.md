@@ -103,28 +103,20 @@ the same job also writes season-long O/U closing lines into
 `data/props/season_consensus/` (sealed `vegas_consensus_{season}.json` is only
 overwritten when `SEASON_VEGAS_WRITE_SEALED=true`).
 
-Keep `WEEKLY_PROPS_SHADOW_ONLY=true` until gates look stable. Setting it false
-**only on Vercel does not promote** — scheduled jobs use GitHub
-`PRODUCTION_JOB_ENV`. Use the exact name `WEEKLY_PROPS_SHADOW_ONLY` (not
-`weekly_prop_shadow`). Then run a weekly-props job so a passing candidate is
-published onto the dedicated `weekly_props` pointer.
+Weekly-props jobs **auto-promote** a passing candidate onto the dedicated
+`weekly_props` pointer. Quality gates still apply (minimum players, freshness
+bounds). Thin or stale books are not promoted; Matchup/Home fail fast with a
+short “Vegas lines aren’t ready” note. Switch to League Value until the next
+good scrape.
 
-Promote in production:
+No Vercel or GitHub `WEEKLY_PROPS_SHADOW_ONLY` flip is required. Leftover
+`WEEKLY_PROPS_SHADOW_ONLY=true` in older secrets is ignored. Advanced escape
+hatch only: set `WEEKLY_PROPS_FORCE_SHADOW=true` if you need to evaluate
+candidates without swapping the pointer.
 
-1. In **Vercel → Environment Variables** (Production) set
-   `WEEKLY_PROPS_SHADOW_ONLY=false`. Redeploy is not required for Python env on
-   the next invocation, but do it if the dashboard still shows the old value.
-2. Copy `.env.production.jobs.example` → `.env.production.jobs`, fill secrets,
-   then set `WEEKLY_PROPS_SHADOW_ONLY=false` (the example ships `true` so a
-   copy-paste cannot live-promote). Run
-   `pwsh scripts/set_production_job_env_secret.ps1` so GitHub Actions sees it.
-3. Either wait for the next `weekly-props-*` slot, or run now:
-   - GitHub Actions → **Production Jobs** → Run workflow
-   - Operations → **Run weekly Vegas props**
-   - or `uv run python -m src.app.jobs.scheduler run-once weekly-props-market-close`
-     with production job env loaded
-4. Confirm Operations shows a promoted weekly_props pointer, then reload Matchup
-   → Vegas Props.
+After the next `weekly-props-*` slot (or a manual Production Jobs / scheduler
+run), a passing scrape becomes the live Vegas board. Reload Matchup → Vegas
+Props to confirm.
 
 Passing shadow candidates are now persisted (player rows, no pointer swap). If
 a later live scrape is too thin (books pull lines after kickoff), the job

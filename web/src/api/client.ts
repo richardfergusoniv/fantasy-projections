@@ -82,6 +82,9 @@ function formatApiErrorDetail(detail: ApiError["detail"] | undefined): string | 
     const code = typeof detail.code === "string" ? detail.code : undefined;
     const message = typeof detail.message === "string" ? detail.message : undefined;
     if (message && code) {
+      if (code === "weekly_props_unavailable") {
+        return message;
+      }
       return `${message} (${code})`;
     }
     if (message) {
@@ -142,7 +145,7 @@ export function recoveryActionForError(error: unknown): string | null {
     case "identity_resolution_incomplete":
       return "Run sync from Operations so roster players can link to the projection release.";
     case "weekly_props_unavailable":
-      return "Switch the board to League Value until weekly Vegas props are promoted.";
+      return "They'll appear after the next good scrape.";
     case "authentication_required":
       return "Sign in again to continue.";
     case "service_temporarily_unavailable":

@@ -21,10 +21,52 @@ def test_resolve_effective_weekly_props():
     )
 
 
+def test_leftover_shadow_only_is_reported_as_alias(monkeypatch):
+    from src.app.projections.source import weekly_props_shadow_env_aliases_in_use
+
+    monkeypatch.setenv("WEEKLY_PROPS_SHADOW_ONLY", "true")
+    monkeypatch.delenv("WEEKLY_PROPS_FORCE_SHADOW", raising=False)
+    assert "WEEKLY_PROPS_SHADOW_ONLY" in weekly_props_shadow_env_aliases_in_use()
+
+
+def test_weekly_props_auto_promote_by_default(monkeypatch):
+    from src.app.config import get_settings
+    from src.app.projections.source import weekly_props_shadow_only
+
+    monkeypatch.delenv("WEEKLY_PROPS_FORCE_SHADOW", raising=False)
+    monkeypatch.delenv("WEEKLY_PROPS_SHADOW_ONLY", raising=False)
+    get_settings.cache_clear()
+    assert weekly_props_shadow_only() is False
+    get_settings.cache_clear()
+
+
+def test_legacy_shadow_only_true_does_not_block_promote(monkeypatch):
+    """Leftover WEEKLY_PROPS_SHADOW_ONLY=true from older examples is ignored."""
+    from src.app.config import get_settings
+    from src.app.projections.source import weekly_props_shadow_only
+
+    monkeypatch.delenv("WEEKLY_PROPS_FORCE_SHADOW", raising=False)
+    monkeypatch.setenv("WEEKLY_PROPS_SHADOW_ONLY", "true")
+    get_settings.cache_clear()
+    assert weekly_props_shadow_only() is False
+    get_settings.cache_clear()
+
+
+def test_force_shadow_escape_hatch(monkeypatch):
+    from src.app.config import get_settings
+    from src.app.projections.source import weekly_props_shadow_only
+
+    monkeypatch.setenv("WEEKLY_PROPS_FORCE_SHADOW", "true")
+    get_settings.cache_clear()
+    assert weekly_props_shadow_only() is True
+    get_settings.cache_clear()
+
+
 def test_weekly_prop_shadow_alias_is_honored(monkeypatch):
     from src.app.config import get_settings
     from src.app.projections.source import weekly_props_shadow_only
 
+    monkeypatch.delenv("WEEKLY_PROPS_FORCE_SHADOW", raising=False)
     monkeypatch.delenv("WEEKLY_PROPS_SHADOW_ONLY", raising=False)
     monkeypatch.setenv("WEEKLY_PROP_SHADOW_ONLY", "false")
     get_settings.cache_clear()
