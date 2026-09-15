@@ -40,11 +40,11 @@ The gate is `src/projection/weekly/draws/feature_outcome_split.py`:
 deny-then-allow, so anything not enumerated passes by default — absence from
 the list is not evidence a column is safe.
 
-Known holes as of 2026-09-15 (see PR #70): `team_attempts` and `team_air_yards`
-are same-week team aggregates built in `panel.py:_add_team_shares`, are **not**
-on the denylist, and are therefore routed to the prediction frame. Their
-player-level equivalents (`attempts`, `air_yards`) are already denied. Fix by
-adding them; the lagged suffixes below keep the useful versions available.
+`team_attempts` and `team_air_yards` are same-week team aggregates built in
+`panel.py:_add_team_shares` whose player-level equivalents (`attempts`,
+`air_yards`) were already denied. They were missing from the denylist and so
+reached the prediction frame. **PR #70 adds both.** Until #70 merges the hole is
+open on `master`; once it lands this is closed — do not re-raise it.
 
 Sanctioned pre-kickoff features: lagged rolls (`_l3`, `_l5`, `_roll3`),
 `_prior` / prior-season means, and pregame schedule (spread, total, rest,
@@ -68,13 +68,24 @@ moves the app onto the new model — flipping a default, swapping a pointer,
 changing `APP_PROJECTION_SOURCE` — is a promotion and needs to be called out as
 one, whatever else the PR is nominally about.
 
-Relevant machinery:
+**Vegas props promotion is gate-based, not flag-based** (since PR #67).
+`run_weekly_props` auto-promotes the `weekly_props` pointer when the scrape
+clears its quality and coverage gates; provider failures are isolated, so the
+surviving sources can still pass. The review question is therefore *"are the
+gates right, and is the promoted line fresh?"* — not *"is a shadow flag set?"*
 
-- `WEEKLY_PROPS_SHADOW_ONLY` (canonical name; typo aliases are accepted)
+- `weekly_props_shadow_only()` reads **`WEEKLY_PROPS_FORCE_SHADOW`** and
+  defaults to `False`. It is an advanced escape hatch, not the normal path.
+- The historical `WEEKLY_PROPS_SHADOW_ONLY` (and its dashboard typo aliases) is
+  now **deliberately ignored**, so a leftover secret cannot silently block
+  promotion. Do not treat that variable as live config.
 - Scheduled jobs read the GitHub secret `PRODUCTION_JOB_ENV`, **not** Vercel env
 - `weekly_props` is a **dedicated pointer mode**, distinct from `weekly`
   (which carries weekly-v2 R&D). Conflating them is the bug PR #63 fixed.
 - `publish(..., activate=False)` persists a candidate without swapping pointers
+
+Because promotion is automatic, a weakened gate ships straight to the live
+board. Gate changes deserve more scrutiny than the flag ever did.
 
 ### 3. Conservation in the weekly allocator
 
@@ -87,6 +98,22 @@ exits 1 when it fails. Treat a change that weakens either as a finding.
 
 This is the spine of the new weekly model, so the invariant is worth holding
 structurally rather than only detecting after the fact.
+
+### Milestones — judge weekly-model PRs against these, not as loose research
+
+The weekly model has a locked roadmap
+(`docs/research/WEEKLY_LATENT_MODEL_DESIGN_2026-09-15.md`). A PR landing inside
+one milestone should be reviewed against that milestone's scope; work that
+belongs to a later one is scope creep, not an improvement.
+
+| | Scope | Explicitly not yet |
+|---|---|---|
+| **M1** | Deterministic weekly schedule allocation. Matchup multipliers reshape the week; renormalization conserves season totals. No new ML. | Training, same-week realized volume features, replacing Vegas, League Value promote, PWA wiring, ADP/season-Vegas blending |
+| **M2** | Team-week latent that *may* move season totals, once M1 conservation is proven. Opponent priors must be lagged or preseason. | ADP or season Vegas as drivers |
+| **M3** | Weekly availability and conversion rates. Compare against Vegas, do not replace it. | — |
+
+Across all three: Vegas weekly props is the **benchmark**, not the target to
+copy, and ADP / season-long Vegas are market-sanity guardrails at most.
 
 ### 4. Vegas props correctness is user-facing
 
