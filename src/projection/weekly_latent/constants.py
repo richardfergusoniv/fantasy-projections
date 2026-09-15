@@ -23,6 +23,11 @@ HOME_MULT = 1.03
 AWAY_MULT = 0.97
 NEUTRAL_MULT = 1.00
 
+# Optional opponent priors are centered at 1.0. Clip to this band so a
+# non-positive factor cannot drive raw weekly weights negative (λ_w=1).
+OPPONENT_FACTOR_MIN = 0.5
+OPPONENT_FACTOR_MAX = 1.5
+
 # Preseason opponent-strength shrinkage toward 1.0. Early weeks keep more of
 # the prior; weeks 15–18 are heavily shrunk because that far-out opponent
 # form is not knowable in August.

@@ -13,6 +13,8 @@ import pandas as pd
 
 from src.projection.weekly_latent.constants import (
     GAMES_PER_SEASON,
+    OPPONENT_FACTOR_MAX,
+    OPPONENT_FACTOR_MIN,
     REG_WEEKS,
     TEAM_DIVISIONS,
     normalize_team_abbr,
@@ -186,6 +188,14 @@ def attach_opponent_priors(
     )
     out = out.drop(columns=["opp_pass_factor", "opp_rush_factor"])
     out = out.merge(slim, on="opponent", how="left")
-    out["opp_pass_factor"] = out["opp_pass_factor"].fillna(1.0)
-    out["opp_rush_factor"] = out["opp_rush_factor"].fillna(1.0)
+    out["opp_pass_factor"] = (
+        pd.to_numeric(out["opp_pass_factor"], errors="coerce")
+        .fillna(1.0)
+        .clip(OPPONENT_FACTOR_MIN, OPPONENT_FACTOR_MAX)
+    )
+    out["opp_rush_factor"] = (
+        pd.to_numeric(out["opp_rush_factor"], errors="coerce")
+        .fillna(1.0)
+        .clip(OPPONENT_FACTOR_MIN, OPPONENT_FACTOR_MAX)
+    )
     return out

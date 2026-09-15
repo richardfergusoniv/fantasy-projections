@@ -51,12 +51,18 @@ def shrunk_opponent_mult(raw_factor: float, lam: float) -> float:
 
 
 def _renormalize(raw: pd.Series, team: pd.Series) -> pd.Series:
-    totals = raw.groupby(team).transform("sum")
-    out = raw.copy()
+    """Non-negative weights that sum to 1 within each team (or 0 if all mass is gone).
+
+    Clip before summing. Zeroing negatives *after* dividing by a total that
+    still includes them lets survivors sum to more than 1 (e.g. [2, -1, 1]
+    → [1, 0, 0.5]). Opponent factor ≤ 0 with early-season λ=1 can reach that.
+    """
+    clipped = raw.clip(lower=0.0)
+    totals = clipped.groupby(team).transform("sum")
+    out = clipped.copy()
     positive = totals > 1e-12
-    out.loc[positive] = raw.loc[positive] / totals.loc[positive]
+    out.loc[positive] = clipped.loc[positive] / totals.loc[positive]
     out.loc[~positive] = 0.0
-    out.loc[raw <= 0] = 0.0
     return out
 
 

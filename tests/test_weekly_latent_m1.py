@@ -11,7 +11,11 @@ import pytest
 
 from src.projection.contracts import REPO_ROOT
 from src.projection.shadow.forbidden import local_import_graph
-from src.projection.weekly_latent.allocate import allocate_team_weeks, shrunk_opponent_mult
+from src.projection.weekly_latent.allocate import (
+    _renormalize,
+    allocate_team_weeks,
+    shrunk_opponent_mult,
+)
 from src.projection.weekly_latent.constants import (
     AWAY_MULT,
     FORBIDDEN_SAME_WEEK_TRAINING_FEATURES,
@@ -48,6 +52,27 @@ def _manual_team_weeks(rows: list[dict]) -> pd.DataFrame:
         if col not in frame.columns:
             frame[col] = None
     return frame
+
+
+def test_renormalize_clips_negative_raw_weights_to_unit_sum():
+    """Negatives must be dropped before the team sum, not after divide.
+
+    Claude's counterexample: raw [2, -1, 1] must not become [1, 0, 0.5].
+    """
+    team = pd.Series(["AAA", "AAA", "AAA"])
+    raw = pd.Series([2.0, -1.0, 1.0])
+    out = _renormalize(raw, team)
+    assert (out >= 0.0).all()
+    assert abs(float(out.sum()) - 1.0) < 1e-12
+    assert abs(float(out.iloc[0]) - (2.0 / 3.0)) < 1e-12
+    assert abs(float(out.iloc[1]) - 0.0) < 1e-12
+    assert abs(float(out.iloc[2]) - (1.0 / 3.0)) < 1e-12
+
+    two = pd.Series(["AAA", "AAA", "BBB", "BBB"])
+    raw2 = pd.Series([2.0, -1.0, -4.0, 1.0])
+    out2 = _renormalize(raw2, two)
+    assert abs(float(out2[two.eq("AAA")].sum()) - 1.0) < 1e-12
+    assert abs(float(out2[two.eq("BBB")].sum()) - 1.0) < 1e-12
 
 
 def test_horizon_shrinkage_week1_stronger_than_week16():
