@@ -37,7 +37,7 @@ Artifacts: `output/weekly_audit/audit_report.json`, `output/weekly_audit/feature
 | `src/projection/weekly/features/rolling.py` | `shift(1)` then rolling mean | groupby **gsis_id + season** (week 1 `_l3` is null; prior season is a separate column) |
 | `src/projection/weekly/features/leakage.py` | `filter_as_of` drops the target season-week | used by tests / as-of filters |
 | `src/projection/weekly/models/volume.py` | `VOLUME_FEATURE_CANDIDATES` uses `_l3` / `_l5` / prior / pregame | same-week `targets` / `target_share` are labels, not features |
-| `src/projection/weekly/draws/feature_outcome_split.py` | denylist blocks raw same-week box and shares at inference | panel still **stores** labels on the same row |
+| `src/projection/weekly/draws/feature_outcome_split.py` | denylist blocks raw same-week box, shares, and team aggregates (`team_attempts`, `team_carries`, `team_targets`, `team_air_yards`) at inference | panel still **stores** labels on the same row; lagged `_l3` forms remain allowed |
 
 2025 regular-season weeks in the v3 usage loader are inferred as `week <= 18` (POST dropped). That is hardcoded for 2025 only, because the pbp-fallback `weekly` rows ship with null `season_type`.
 
@@ -55,6 +55,7 @@ Ran `scripts/audit_weekly_integrity_extension.py` on in-memory fixtures.
 - Poisoning week 3's target share does **not** change week 3 `targets_share_roll3`
 - v2 `_l3` ignores the current week and does not cross seasons
 - Volume-model feature list has no raw same-week box/share columns
+- Inference denylist blocks same-week `team_attempts` / `team_carries` / `team_targets` / `team_air_yards` (`is_allowed_prediction_column`)
 - Canonicalize repairs pbp-fallback name-alias duplicates
 
 **Failed (real defects; see below)**
@@ -100,9 +101,11 @@ These are code-contract issues, not live-table measurements.
 
 2. **Pbp fallback can split one player-week into two rows** when passer/rusher/receiver names differ for the same GSIS id (`aggregate_weekly_stats_from_pbp` groups by `player_id` **and** `player_name`). Downstream canonicalize fixes this for v3 usage. Anyone reading the raw `weekly` table, or skipping canonicalize, can double-count.
 
-3. **v2 team-week panel can see same-week team volume.** `add_team_pass_rate` correctly lags `team_pass_rate_l5`, then also left-joins current-week `team_attempts` and `team_carries`. Those columns are not in the volume-model feature list and are on the inference denylist, but they sit on the feature panel. A new per-game model must not train on them as predictors.
+3. **v2 team-week panel can see same-week team volume.** `add_team_pass_rate` correctly lags `team_pass_rate_l5`, then also left-joins current-week `team_attempts` and `team_carries`. Those columns are not in the volume-model feature list, but they sit on the feature panel. Sitting on the panel is not the same as being blocked at inference.
 
-4. **Two weekly recipes disagree at week 1.** v3 roll3 can include last season's games. v2 `_l3` is null at week 1 and uses `*_prior_season` instead. Fine if intentional; not interchangeable.
+4. **Inference denylist hole for `team_attempts` / `team_air_yards` (enforceable, now closed).** `SAME_WEEK_OUTCOME_DENYLIST` had `team_targets` and `team_carries` but not `team_attempts` or `team_air_yards`. `is_allowed_prediction_column` therefore allowed same-week `team_attempts` into the prediction frame. That is not an advisory “don’t use these” note — it is the gate that inference uses. Both names are now on the denylist, and the integrity extension plus `test_inference_denylist_blocks_same_week_team_aggregates` assert the block.
+
+5. **Two weekly recipes disagree at week 1.** v3 roll3 can include last season's games. v2 `_l3` is null at week 1 and uses `*_prior_season` instead. Fine if intentional; not interchangeable.
 
 None of these are "roll3 leaks the target week's own share." That specific claim in PIPELINE_MAP holds in the builders.
 

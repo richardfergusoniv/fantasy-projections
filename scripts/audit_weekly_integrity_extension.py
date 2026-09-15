@@ -27,6 +27,7 @@ from src.paths import DB_PATH
 from src.projection.contracts import OUTPUT_DIR
 from src.projection.data.features_weekly import build_player_week_features
 from src.projection.data_prep import STAT_COLS, _canonicalize_player_weeks, load_weekly_usage
+from src.projection.weekly.draws.feature_outcome_split import is_allowed_prediction_column
 from src.projection.weekly.features.leakage import filter_as_of
 from src.projection.weekly.features.rolling import add_rolling_means
 from src.projection.weekly.features.team_context import add_team_pass_rate
@@ -322,6 +323,9 @@ def model_feature_denylist_check() -> list[dict]:
         "team_carries",
     }
     leaked = sorted(raw_outcomes.intersection(VOLUME_FEATURE_CANDIDATES))
+    team_aggregates = ("team_attempts", "team_carries", "team_targets", "team_air_yards")
+    allowed = [c for c in team_aggregates if is_allowed_prediction_column(c)]
+    lagged_ok = all(is_allowed_prediction_column(f"{c}_l3") for c in team_aggregates)
     return [
         _check(
             "volume_model_features_are_lagged_or_pregame",
@@ -329,7 +333,15 @@ def model_feature_denylist_check() -> list[dict]:
             "no raw same-week box/share columns in VOLUME_FEATURE_CANDIDATES"
             if not leaked
             else f"same-week columns in volume features: {leaked}",
-        )
+        ),
+        _check(
+            "inference_denylist_blocks_same_week_team_aggregates",
+            allowed == [] and lagged_ok,
+            "is_allowed_prediction_column blocks team_attempts/team_carries/team_targets/"
+            "team_air_yards and still allows lagged _l3 forms"
+            if allowed == [] and lagged_ok
+            else f"same-week team aggregates still allowed as prediction columns: {allowed}",
+        ),
     ]
 
 
@@ -484,6 +496,7 @@ def main() -> int:
             "Official scripts/audit_weekly_features.py is a static notes/contract registry, not a live-data scan.",
             "v3 features_weekly.py groups roll3 by player_id (cross-season). v2 rolling.py groups by gsis_id+season.",
             "Player-week panels keep same-week box scores as labels; volume model features are lagged/pregame.",
+            "SAME_WEEK_OUTCOME_DENYLIST must block team_attempts/team_carries/team_targets/team_air_yards (not advisory).",
             "output/weekly_audit/ is gitignored; this file is force-added so the research PR has evidence.",
         ],
     }

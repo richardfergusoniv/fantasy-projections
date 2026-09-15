@@ -22,6 +22,7 @@ from src.projection.weekly.draws.event_models import (
 )
 from src.projection.weekly.draws.feature_outcome_split import (
     assert_no_outcome_columns,
+    is_allowed_prediction_column,
     split_prediction_outcome_frames,
 )
 from src.projection.weekly.draws.prediction_inputs import build_team_game_input_from_predictions
@@ -159,6 +160,30 @@ def test_feature_outcome_split_poison_safe():
     feats, outcomes, _ = split_prediction_outcome_frames(df)
     assert "fantasy_points" in outcomes.columns
     assert "fantasy_points" not in feats.columns
+    assert_no_outcome_columns(feats.columns)
+
+
+def test_inference_denylist_blocks_same_week_team_aggregates():
+    blocked = ("team_attempts", "team_carries", "team_targets", "team_air_yards")
+    assert all(not is_allowed_prediction_column(col) for col in blocked)
+    assert all(is_allowed_prediction_column(f"{col}_l3") for col in blocked)
+    frame = pl.DataFrame(
+        {
+            "gsis_id": ["p1"],
+            "season": [2024],
+            "week": [2],
+            "team_attempts": [40.0],
+            "team_carries": [25.0],
+            "team_targets": [30.0],
+            "team_air_yards": [250.0],
+            "team_pass_rate_l5": [0.6],
+        }
+    )
+    feats, outcomes, _ = split_prediction_outcome_frames(frame)
+    for col in blocked:
+        assert col not in feats.columns
+        assert col in outcomes.columns
+    assert "team_pass_rate_l5" in feats.columns
     assert_no_outcome_columns(feats.columns)
 
 
