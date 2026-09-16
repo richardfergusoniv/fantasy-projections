@@ -57,6 +57,7 @@ Ran `scripts/audit_weekly_integrity_extension.py` on in-memory fixtures.
 - Volume-model feature list has no raw same-week box/share columns
 - Inference denylist blocks same-week `team_attempts` / `team_carries` / `team_targets` / `team_air_yards` (`is_allowed_prediction_column`)
 - Canonicalize repairs pbp-fallback name-alias duplicates
+- Cutoff/vintage and market-snapshot families are **stubbed** (skipped: helpers/columns not yet in tree). This is not a live-data seal.
 
 **Failed (real defects; see below)**
 
@@ -93,6 +94,8 @@ uv run python scripts/audit_weekly_integrity_extension.py
 
 The extension will add live uniqueness, share-range, roll3-vs-current-share, and box-vs-pbp coverage checks when the DB is present.
 
+Cutoff/vintage (`available_at`) and snapshot-dated ADP / season-market checks are now in the same script (`as_of_cutoff_checks`, `market_snapshot_checks`). They skip until those helpers/columns exist. Lag-only `filter_as_of` and depth `dt <= kickoff` are **not** that contract. Skipping is not a seal.
+
 ## Real defects found
 
 These are code-contract issues, not live-table measurements.
@@ -124,3 +127,5 @@ Do not start from:
 - Assuming v3 `features_weekly.py` and v2 `rolling.py` are the same week-1 feature
 
 **Next cheap check, when a DB is available:** run the integrity extension on real rows before any training.
+
+**Next extension (now stubbed in the audit, not a seal):** when injury/practice/depth/inactives gain `available_at` (or equivalent) and a vintage filter, and when historical ADP / season-market rows gain a snapshot date and a filter, the integrity extension will assert those Rule 1 contracts instead of skipping.

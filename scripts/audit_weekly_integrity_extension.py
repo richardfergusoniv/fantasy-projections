@@ -9,11 +9,14 @@ Otherwise those live checks are recorded as skipped.
 """
 from __future__ import annotations
 
+import importlib
 import json
 import sqlite3
 import sys
+from collections.abc import Callable, Iterable
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import polars as pl
@@ -32,6 +35,31 @@ from src.projection.weekly.features.leakage import filter_as_of
 from src.projection.weekly.features.rolling import add_rolling_means
 from src.projection.weekly.features.team_context import add_team_pass_rate
 from src.projection.weekly.models.volume import VOLUME_FEATURE_CANDIDATES
+
+# Rule 1 (CLAUDE.md): lag is not enough. Injury/practice/depth/inactives need a
+# forecast vintage; ADP / season-market rows need a snapshot date. These names
+# are probed, not invented — if they are absent the checks skip.
+AS_OF_TIMESTAMP_COLUMNS = ("available_at", "observed_at", "snapshot_at", "vintage_at")
+AS_OF_CUTOFF_HELPERS = (
+    ("src.projection.weekly.features.cutoff", "filter_available_at"),
+    ("src.projection.weekly.features.cutoff", "filter_by_vintage"),
+    ("src.projection.weekly.features.vintage", "filter_by_vintage"),
+    ("src.projection.weekly.features.leakage", "filter_available_at"),
+    ("src.projection.weekly.features.leakage", "filter_by_vintage"),
+    ("src.projection.weekly.features.injuries", "filter_available_at"),
+    ("src.projection.weekly.features.injuries", "filter_by_vintage"),
+    ("src.projection.weekly.features.depth", "filter_available_at"),
+    ("src.projection.weekly.features.depth", "filter_by_vintage"),
+)
+MARKET_SNAPSHOT_COLUMNS = ("snapshot_date", "market_as_of", "adp_as_of", "as_of")
+MARKET_SNAPSHOT_HELPERS = (
+    ("src.projection.weekly.features.market", "filter_market_snapshot"),
+    ("src.projection.weekly.features.market", "filter_adp_as_of"),
+    ("src.projection.weekly.data.adp", "filter_market_snapshot"),
+    ("src.projection.weekly.data.adp", "filter_adp_as_of"),
+    ("src.projection.weekly.data.market", "filter_market_snapshot"),
+    ("src.projection.evaluation.accuracy_first", "filter_market_snapshot"),
+)
 
 
 def _check(name: str, passed: bool, detail: str, *, skipped: bool = False) -> dict:
@@ -345,6 +373,340 @@ def model_feature_denylist_check() -> list[dict]:
     ]
 
 
+def _import_attr(module_name: str, attr: str) -> Any | None:
+    try:
+        mod = importlib.import_module(module_name)
+    except ImportError:
+        return None
+    return getattr(mod, attr, None)
+
+
+def _first_helper(candidates: Iterable[tuple[str, str]]) -> tuple[str | None, Callable | None]:
+    for module_name, attr in candidates:
+        fn = _import_attr(module_name, attr)
+        if callable(fn):
+            return f"{module_name}.{attr}", fn
+    return None, None
+
+
+def _as_polars(frame: Any) -> pl.DataFrame:
+    if isinstance(frame, pl.DataFrame):
+        return frame
+    if isinstance(frame, pd.DataFrame):
+        return pl.from_pandas(frame)
+    raise TypeError(f"cutoff/snapshot filter returned {type(frame)!r}, expected DataFrame")
+
+
+def _invoke_cutoff_filter(fn: Callable, df: pl.DataFrame, cutoff: Any) -> pl.DataFrame:
+    """Call a discovered vintage/snapshot filter with common keyword names."""
+    attempts: list[dict[str, Any]] = [
+        {"cutoff": cutoff},
+        {"as_of": cutoff},
+        {"vintage": cutoff},
+        {"available_at": cutoff},
+        {"snapshot_date": cutoff},
+    ]
+    last_type_error: TypeError | None = None
+    for kwargs in attempts:
+        try:
+            return _as_polars(fn(df, **kwargs))
+        except TypeError as exc:
+            last_type_error = exc
+            continue
+    try:
+        return _as_polars(fn(df, cutoff))
+    except TypeError as exc:
+        last_type_error = exc
+    raise TypeError(
+        "vintage/snapshot filter did not accept cutoff/as_of/vintage/available_at/"
+        f"snapshot_date kwargs or a positional cutoff: {last_type_error}"
+    )
+
+
+def _timestamp_columns_on(columns: Iterable[str], names: tuple[str, ...]) -> list[str]:
+    colset = set(columns)
+    return [c for c in names if c in colset]
+
+
+def _injury_depth_timestamp_columns() -> list[str]:
+    """Probe existing weekly injury/depth/inactives builders for a vintage stamp."""
+    found: list[str] = []
+    try:
+        from src.projection.weekly.features.injuries import (
+            INJURY_FLAG_COLS,
+            prepare_espn_injury_features,
+            prepare_nflverse_injury_features,
+        )
+
+        nfl_cols = prepare_nflverse_injury_features(pl.DataFrame()).columns
+        espn_cols = prepare_espn_injury_features(pl.DataFrame(), pl.DataFrame()).columns
+        found.extend(
+            _timestamp_columns_on(
+                list(nfl_cols) + list(espn_cols) + list(INJURY_FLAG_COLS),
+                AS_OF_TIMESTAMP_COLUMNS,
+            )
+        )
+    except Exception:
+        pass
+    try:
+        from src.projection.weekly.features.depth import attach_depth_features
+
+        empty_panel = pl.DataFrame(
+            {
+                "gsis_id": pl.Series([], dtype=pl.Utf8),
+                "season": pl.Series([], dtype=pl.Int64),
+                "week": pl.Series([], dtype=pl.Int64),
+            }
+        )
+        attached = attach_depth_features(empty_panel, pl.DataFrame())
+        found.extend(_timestamp_columns_on(attached.columns, AS_OF_TIMESTAMP_COLUMNS))
+    except Exception:
+        pass
+    try:
+        from src.projection.weekly.features.sleeper import SLEEPER_OVERLAY_COLS
+
+        found.extend(_timestamp_columns_on(SLEEPER_OVERLAY_COLS, AS_OF_TIMESTAMP_COLUMNS))
+    except Exception:
+        pass
+    return list(dict.fromkeys(found))
+
+
+def _evaluate_vintage_filter(fn: Callable, timestamp_col: str) -> tuple[bool, str]:
+    """Rule 1: a Tuesday vintage must drop a Friday-arriving designation."""
+    tuesday = datetime(2026, 9, 8, 18, 0, tzinfo=timezone.utc)
+    friday = datetime(2026, 9, 11, 18, 0, tzinfo=timezone.utc)
+    df = pl.DataFrame(
+        {
+            "player_id": ["p1", "p1"],
+            "season": [2026, 2026],
+            "week": [1, 1],
+            timestamp_col: [tuesday, friday],
+            "injury_status": ["Questionable", "Out"],
+        }
+    )
+    out = _invoke_cutoff_filter(fn, df, tuesday)
+    if timestamp_col not in out.columns:
+        return False, f"filter dropped {timestamp_col!r}; vintage rows cannot be audited"
+    later = out.filter(pl.col(timestamp_col) > tuesday)
+    kept = out.filter(pl.col(timestamp_col) <= tuesday)
+    ok = later.height == 0 and kept.height >= 1
+    return (
+        ok,
+        f"Tuesday vintage kept {kept.height} row(s) and later-arriving={later.height} "
+        f"(expect keep>=1, later=0) on {timestamp_col}",
+    )
+
+
+def _evaluate_market_snapshot_filter(fn: Callable, date_col: str) -> tuple[bool, str]:
+    """Rule 1: historical week-1 rows must not receive later-season / final ADP."""
+    df = pl.DataFrame(
+        {
+            "player_id": ["p1", "p1"],
+            "season": [2025, 2025],
+            "week": [1, 1],
+            date_col: ["2025-08-15", "2026-01-10"],
+            "adp": [48.0, 12.0],
+        }
+    )
+    as_of = "2025-09-04"
+    out = _invoke_cutoff_filter(fn, df, as_of)
+    if date_col not in out.columns:
+        return False, f"filter dropped {date_col!r}; snapshot dates cannot be audited"
+    leaked = out.filter(pl.col(date_col) > as_of)
+    kept = out.filter(pl.col(date_col) <= as_of)
+    ok = leaked.height == 0 and kept.height >= 1
+    if ok and "adp" in out.columns:
+        adp_kept = float(kept["adp"][0])
+        ok = abs(adp_kept - 48.0) < 1e-9
+    return (
+        ok,
+        f"as-of {as_of} kept {kept.height} row(s) snapshot>{as_of}={leaked.height} "
+        f"(expect keep preseason ADP 48, drop final/later-season 12) on {date_col}",
+    )
+
+
+def as_of_cutoff_checks(
+    *,
+    filter_fn: Callable | None = None,
+    timestamp_col: str | None = None,
+) -> list[dict]:
+    """Rule 1: every feature needs a cutoff/vintage, not just a lag.
+
+    Injury/practice reports, depth charts, and inactives can be legitimate at a
+    Friday vintage and leakage at a Tuesday one. Week-lag (`filter_as_of`,
+    shift-then-roll) does not catch that. Existing 2025+ depth `dt <= kickoff`
+    is kickoff as-of, not forecast vintage.
+
+    When a helper is not in the tree, these checks skip with that reason.
+    Optional filter_fn/timestamp_col let tests assert the contract without
+    adding a production pipeline.
+    """
+    if timestamp_col:
+        discovered_cols = [timestamp_col]
+    elif filter_fn is not None:
+        discovered_cols = ["available_at"]
+    else:
+        discovered_cols = _injury_depth_timestamp_columns()
+    if filter_fn is not None:
+        helper_name = getattr(filter_fn, "__name__", "injected_filter")
+        helper = filter_fn
+    else:
+        helper_name, helper = _first_helper(AS_OF_CUTOFF_HELPERS)
+
+    col_detail_skip = (
+        "Rule 1: injury/practice/depth/inactives values must carry available_at "
+        "(or observed_at/snapshot_at/vintage_at). Not yet in tree — weekly injury "
+        "builders join on season/week, ESPN/Sleeper overlays have no vintage stamp, "
+        "and depth uses dt as kickoff as-of rather than forecast vintage. "
+        "Lag-only filter_as_of is a different check."
+    )
+    filter_detail_skip = (
+        "Rule 1: a vintage/cutoff filter must drop values with available_at after "
+        "the forecast vintage (Friday designation at a Tuesday cutoff is leakage). "
+        "Not yet in tree — no filter_available_at / filter_by_vintage helper. "
+        "Existing depth dt<=kickoff and week-lag filter_as_of do not satisfy this."
+    )
+
+    if helper is None and not discovered_cols:
+        return [
+            _check("as_of_cutoff_values_carry_available_at", False, col_detail_skip, skipped=True),
+            _check(
+                "as_of_cutoff_vintage_filter_drops_later_arriving_values",
+                False,
+                filter_detail_skip,
+                skipped=True,
+            ),
+        ]
+
+    col_name = discovered_cols[0] if discovered_cols else "available_at"
+    checks = [
+        _check(
+            "as_of_cutoff_values_carry_available_at",
+            bool(discovered_cols),
+            (
+                f"Rule 1: found vintage timestamp column(s) {discovered_cols} "
+                f"(helper={helper_name})"
+                if discovered_cols
+                else (
+                    f"Rule 1: helper {helper_name} is present but injury/practice/"
+                    "depth/inactives builders still lack available_at (or equivalent)"
+                )
+            ),
+        )
+    ]
+    if helper is None:
+        checks.append(
+            _check(
+                "as_of_cutoff_vintage_filter_drops_later_arriving_values",
+                False,
+                "Rule 1: timestamp column(s) exist but no filter_available_at / "
+                f"filter_by_vintage helper to drop later-arriving values: {discovered_cols}",
+            )
+        )
+        return checks
+
+    try:
+        passed, detail = _evaluate_vintage_filter(helper, col_name)
+    except Exception as exc:
+        passed, detail = False, f"Rule 1 vintage filter {helper_name} raised {type(exc).__name__}: {exc}"
+    checks.append(
+        _check(
+            "as_of_cutoff_vintage_filter_drops_later_arriving_values",
+            passed,
+            f"Rule 1: {helper_name} {detail}",
+        )
+    )
+    return checks
+
+
+def market_snapshot_checks(
+    *,
+    filter_fn: Callable | None = None,
+    snapshot_col: str | None = None,
+) -> list[dict]:
+    """Rule 1: ADP / season-market rows need a snapshot date and a filter.
+
+    Using a final or later-season ADP on an earlier historical player-week is
+    leakage. Season-grain preseason consensus (`load_consensus_snapshot`) and
+    live Sleeper `snapshot_date` overlays are different contracts.
+
+    When a helper is not in the tree, these checks skip with that reason.
+    """
+    if filter_fn is not None:
+        helper_name = getattr(filter_fn, "__name__", "injected_filter")
+        helper = filter_fn
+    else:
+        helper_name, helper = _first_helper(MARKET_SNAPSHOT_HELPERS)
+
+    if snapshot_col:
+        discovered_cols = [snapshot_col]
+    elif filter_fn is not None:
+        discovered_cols = [MARKET_SNAPSHOT_COLUMNS[0]]
+    else:
+        discovered_cols = []
+    col_detail_skip = (
+        "Rule 1: ADP / season-market historical rows must carry snapshot_date "
+        "(or market_as_of/adp_as_of). Not yet in tree — no weekly-historical "
+        "market snapshot table/column. Season-grain consensus as_of and Sleeper "
+        "live snapshot_date are not this contract."
+    )
+    filter_detail_skip = (
+        "Rule 1: market rows must be filtered by snapshot date so earlier "
+        "historical weeks do not receive final/later-season ADP. Not yet in "
+        "tree — no filter_market_snapshot / filter_adp_as_of helper."
+    )
+
+    if helper is None and not discovered_cols:
+        return [
+            _check("market_snapshot_rows_carry_snapshot_date", False, col_detail_skip, skipped=True),
+            _check(
+                "market_snapshot_filter_excludes_later_season_values",
+                False,
+                filter_detail_skip,
+                skipped=True,
+            ),
+        ]
+
+    date_col = discovered_cols[0] if discovered_cols else MARKET_SNAPSHOT_COLUMNS[0]
+    checks = [
+        _check(
+            "market_snapshot_rows_carry_snapshot_date",
+            bool(discovered_cols),
+            (
+                f"Rule 1: using snapshot column {discovered_cols} (helper={helper_name})"
+                if discovered_cols
+                else (
+                    f"Rule 1: helper {helper_name} is present but weekly-historical "
+                    "ADP / season-market rows still lack snapshot_date"
+                )
+            ),
+        )
+    ]
+    if helper is None:
+        checks.append(
+            _check(
+                "market_snapshot_filter_excludes_later_season_values",
+                False,
+                "Rule 1: snapshot column(s) exist but no filter_market_snapshot / "
+                f"filter_adp_as_of helper: {discovered_cols}",
+            )
+        )
+        return checks
+
+    try:
+        passed, detail = _evaluate_market_snapshot_filter(helper, date_col)
+    except Exception as exc:
+        passed, detail = False, f"Rule 1 market snapshot filter {helper_name} raised {type(exc).__name__}: {exc}"
+    checks.append(
+        _check(
+            "market_snapshot_filter_excludes_later_season_values",
+            passed,
+            f"Rule 1: {helper_name} {detail}",
+        )
+    )
+    return checks
+
+
 def live_db_checks() -> tuple[list[dict], dict]:
     db_path = Path(DB_PATH)
     meta = {"db_path": str(db_path), "exists": db_path.exists()}
@@ -477,6 +839,8 @@ def main() -> int:
     checks.extend(synthetic_pbp_fallback_aliases())
     checks.extend(synthetic_team_pass_rate_same_week_join())
     checks.extend(model_feature_denylist_check())
+    checks.extend(as_of_cutoff_checks())
+    checks.extend(market_snapshot_checks())
     live_checks, live_meta = live_db_checks()
     checks.extend(live_checks)
 
@@ -497,6 +861,7 @@ def main() -> int:
             "v3 features_weekly.py groups roll3 by player_id (cross-season). v2 rolling.py groups by gsis_id+season.",
             "Player-week panels keep same-week box scores as labels; volume model features are lagged/pregame.",
             "SAME_WEEK_OUTCOME_DENYLIST must block team_attempts/team_carries/team_targets/team_air_yards (not advisory).",
+            "Rule 1 cutoff/vintage and market-snapshot checks are stubbed: skip until available_at / snapshot_date helpers exist; not a live-data seal.",
             "output/weekly_audit/ is gitignored; this file is force-added so the research PR has evidence.",
         ],
     }
