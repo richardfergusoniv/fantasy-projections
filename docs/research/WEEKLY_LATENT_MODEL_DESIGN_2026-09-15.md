@@ -141,7 +141,7 @@ Player-season points reconcile to the sealed `pred_season` when named volume did
 
 After M1 conservation is proven, allow opponent/environment to change \(V_{t,k}^{\mathrm{season}}\) instead of only reshaping weeks. Opponent defense priors must be **lagged / preseason**. Still no ADP or season Vegas as drivers. Vegas weekly props remain the benchmark, not the target to copy.
 
-**Implemented (2026-09-16, research/shadow, not a promotion):** [`WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md`](WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md). Same package (`src/projection/weekly_latent/`), CLI `scripts/run_weekly_schedule_m2.py`. M2 does **not** renormalize matchup multipliers. `available_at` is overwritten when a later prior is attached.
+**Implemented (2026-09-16, research/shadow, not a promotion):** [`WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md`](WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md). Same package (`src/projection/weekly_latent/`), CLI `scripts/run_weekly_schedule_m2.py`. M2 does **not** renormalize matchup multipliers. `available_at` is advanced via max of board, schedule-env, and per-row prior vintages (never moved earlier).
 
 ### Milestone 3 — Weekly availability + conversions; compare, don’t replace, Vegas
 

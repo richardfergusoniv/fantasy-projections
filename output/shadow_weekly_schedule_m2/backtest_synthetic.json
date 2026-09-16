@@ -6,7 +6,7 @@
   "mae_m2": 1.5583150000000003,
   "mae_naive_even_split": 3.0,
   "beats_naive": true,
-  "later_weeks_overwrite_available_at": true,
+  "later_weeks_advance_available_at": true,
   "weeks": [
     {
       "week": 1,

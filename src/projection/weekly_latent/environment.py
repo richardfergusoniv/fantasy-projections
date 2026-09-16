@@ -167,10 +167,10 @@ def stamp_available_at(
     *cutoffs: str | None,
     prior_column: str = "prior_available_at",
 ) -> pd.DataFrame:
-    """Overwrite ``available_at`` with the latest attached feature vintage.
+    """Advance ``available_at`` to the latest attached feature vintage.
 
-    Design lock §6: do not keep the M1 preseason stamp when a later prior
-    is on the row. Board + schedule-env + per-row prior are all eligible.
+    Takes the max across board, schedule-env and per-row prior: a row is
+    knowable only once its last input is. Never moves a stamp earlier.
     """
     out = frame.copy()
     row_priors = (

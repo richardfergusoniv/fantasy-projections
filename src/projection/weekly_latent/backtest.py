@@ -194,7 +194,7 @@ def run_synthetic_rolling_origin() -> dict[str, Any]:
         "mae_m2": mae_m2,
         "mae_naive_even_split": mae_naive,
         "beats_naive": mae_m2 < mae_naive,
-        "later_weeks_overwrite_available_at": all(later_cutoffs) if later_cutoffs else False,
+        "later_weeks_advance_available_at": all(later_cutoffs) if later_cutoffs else False,
         "weeks": rows,
         "holdout": "synthetic rolling-origin; no random split; no 2026 live outcomes",
         "not_a_promotion": True,

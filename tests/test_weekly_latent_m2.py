@@ -241,7 +241,7 @@ def test_synthetic_rolling_origin_fails_closed_and_beats_naive():
     assert result["poison_same_week_raised"] is True
     assert result["forbidden_columns_on_schedule"] == []
     assert result["passes"] is True
-    assert result["later_weeks_overwrite_available_at"] is True
+    assert result["later_weeks_advance_available_at"] is True
     assert result["not_a_promotion"] is True
 
 
@@ -256,6 +256,8 @@ def test_dry_run_m2_shares_and_production_untouched(tmp_path):
     assert result.summary["production_hash_drift"] == {}
     assert result.summary["still_shadow"] is True
     assert result.summary["gate_verdict"] == "not promoting"
+    for col in ("prior_available_at", "available_at_board", "env_available_at"):
+        assert col in result.tables.player_weeks.columns
     forbidden = FORBIDDEN_SAME_WEEK_TRAINING_FEATURES.intersection(
         result.tables.team_weeks.columns
     )

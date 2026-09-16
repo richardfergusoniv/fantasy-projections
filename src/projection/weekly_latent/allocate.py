@@ -323,6 +323,8 @@ def allocate_players(
         "pass_matchup_mult",
         "rush_matchup_mult",
         "prior_available_at",
+        "available_at_board",
+        "env_available_at",
         *TEAM_VOLUME_PG_COLUMNS.keys(),
     ]
     team_cols = [c for c in team_cols if c in team_weeks.columns]
