@@ -154,6 +154,8 @@ else:
     print(f"Deleted {deleted}; failed {failed}")
 
 if SET_RETENTION:
+    # Hobby/team APIs reject some update shapes; deletions above are the
+    # storage win. Treat retention PATCH as best-effort.
     body = {
         "deploymentExpiration": {
             "expirationDays": int(os.environ["PREVIEW_RETENTION_DAYS"]),
@@ -167,8 +169,13 @@ if SET_RETENTION:
     if DRY_RUN:
         print("DRY_RUN=1 — skipping retention PATCH")
     else:
-        request("PATCH", f"/v9/projects/{PROJECT_ID}?teamId={TEAM_ID}", body)
-        print("Retention policy updated")
+        try:
+            request("PATCH", f"/v9/projects/{PROJECT_ID}?teamId={TEAM_ID}", body)
+            print("Retention policy updated")
+        except SystemExit as e:
+            print(f"Retention PATCH skipped (non-fatal): {e}", file=sys.stderr)
+            current = request("GET", f"/v9/projects/{PROJECT_ID}?teamId={TEAM_ID}")
+            print(f"Current deploymentExpiration: {current.get('deploymentExpiration')}")
 
 print("Done.")
 PY
