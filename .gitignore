@@ -130,6 +130,11 @@ config/phone_access.secrets.json
 # Live shadow sync working state (isolated DB, artifacts, reports).
 output/live_shadow/
 
+# Role 2 Vegas weekly props comparator working set.
+# summary.json and README.md stay tracked.
+output/shadow_vegas_props_compare/*.csv
+output/shadow_vegas_props_compare/*.parquet
+
 # Milestone 1 weekly latent shadow working set (full player-week tables).
 # summary.json, conservation.json, sample_player_weeks.csv, and README.md stay tracked.
 output/shadow_weekly_schedule_m1/*.parquet

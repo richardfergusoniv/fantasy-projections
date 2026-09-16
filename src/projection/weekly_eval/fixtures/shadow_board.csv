@@ -1,0 +1,5 @@
+player_id,player_name,season,week,market,model_mean,model_std,model_p_over,position,team
+p_chase,Ja'Marr Chase,2026,1,rec_yards,78.0,22.0,0.55,WR,CIN
+p_bijan,Bijan Robinson,2026,1,rush_yards,84.0,25.0,0.45,RB,ATL
+p_allen,Josh Allen,2026,1,pass_yards,268.0,48.0,0.60,QB,BUF
+p_ceedee,CeeDee Lamb,2026,1,receptions,6.8,2.2,0.55,WR,DAL

@@ -1,0 +1,5 @@
+player_id,player_name,season,week,market,line,implied_p_over,implied_mean,as_of,kickoff_at,source
+p_chase,Ja'Marr Chase,2026,1,rec_yards,75.5,0.52,76.2,2026-09-09T12:00:00+00:00,2026-09-11T17:00:00+00:00,synthetic
+p_bijan,Bijan Robinson,2026,1,rush_yards,87.5,0.48,86.4,2026-09-09T12:00:00+00:00,2026-09-11T17:00:00+00:00,synthetic
+p_allen,Josh Allen,2026,1,pass_yards,255.5,0.54,258.0,2026-09-09T12:00:00+00:00,2026-09-11T00:20:00+00:00,synthetic
+p_ceedee,CeeDee Lamb,2026,1,receptions,6.5,0.50,6.5,2026-09-09T12:00:00+00:00,2026-09-11T17:00:00+00:00,synthetic
