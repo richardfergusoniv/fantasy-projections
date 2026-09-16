@@ -17,6 +17,16 @@ The modeling north star is
 rules below are distilled from it; read it before reviewing substantive
 modeling work.
 
+### Related — promotion and props roles
+
+Promotion discipline and the three Vegas weekly-props roles are locked in
+[PR #76](https://github.com/richardfergusoniv/fantasy-projections/pull/76)
+(lands at `docs/decisions/WEEKLY_MODEL_PROMOTION_AND_PROPS_ROLES_2026-09-15.md`;
+the file is not on `master` yet). That note owns the formal promotion gate,
+the three-role table, the ADP allowed/not-allowed list, and the M1–M3 ladder
+aligned to [PR #71](https://github.com/richardfergusoniv/fantasy-projections/pull/71).
+This file owns what to flag on a PR.
+
 ### The freeze is over — do not re-derive it from older docs
 
 `STATE_OF_BUILD.md`, `PIPELINE_MAP`, `docs/research/*` and several PR bodies
@@ -26,7 +36,7 @@ is historical.** Those documents were accurate when written and have not all
 been updated.
 
 Do not treat a change to those knobs as a defect on that basis alone. Judge it
-on evidence and on the promotion discipline below.
+on evidence and on the promotion discipline in the decision note.
 
 ## Review rules
 
@@ -48,8 +58,9 @@ the list is not evidence a column is safe.
 `team_attempts` and `team_air_yards` are same-week team aggregates built in
 `panel.py:_add_team_shares` whose player-level equivalents (`attempts`,
 `air_yards`) were already denied. They were missing from the denylist and so
-reached the prediction frame. **PR #70 adds both.** Until #70 merges the hole is
-open on `master`; once it lands this is closed — do not re-raise it.
+reached the prediction frame. **#70 closes `team_attempts` / `team_air_yards`.**
+Until it merges, treat the hole as open on `master`; once it lands this is
+closed — do not re-raise it.
 
 Sanctioned pre-kickoff features: lagged rolls (`_l3`, `_l5`, `_roll3`),
 `_prior` / prior-season means, and pregame schedule (spread, total, rest,
@@ -113,11 +124,10 @@ moves the app onto the new model — flipping a default, swapping a pointer,
 changing `APP_PROJECTION_SOURCE` — is a promotion and needs to be called out as
 one, whatever else the PR is nominally about.
 
-**Vegas props promotion is gate-based, not flag-based** (since PR #67).
-`run_weekly_props` auto-promotes the `weekly_props` pointer when the scrape
-clears its quality and coverage gates; provider failures are isolated, so the
-surviving sources can still pass. The review question is therefore *"are the
-gates right, and is the promoted line fresh?"* — not *"is a shadow flag set?"*
+**Vegas props auto-promote when scrape gates pass** (PR #67): `run_weekly_props`
+swaps the `weekly_props` pointer after quality and coverage gates; provider
+failures are isolated so surviving sources can still pass. Review the gates and
+freshness, not a leftover shadow flag.
 
 - `weekly_props_shadow_only()` reads **`WEEKLY_PROPS_FORCE_SHADOW`** and
   defaults to `False`. It is an advanced escape hatch, not the normal path.
@@ -144,58 +154,36 @@ exits 1 when it fails. Treat a change that weakens either as a finding.
 This is the spine of the new weekly model, so the invariant is worth holding
 structurally rather than only detecting after the fact.
 
-### Milestones — judge weekly-model PRs against these, not as loose research
+### Milestones
 
-The weekly model has a locked roadmap
-(`docs/research/WEEKLY_LATENT_MODEL_DESIGN_2026-09-15.md`). A PR landing inside
-one milestone should be reviewed against that milestone's scope; work that
-belongs to a later one is scope creep, not an improvement.
+Judge weekly-model PRs against the locked M1–M3 milestone they land in, not as
+loose research. Work that belongs to a later milestone is scope creep. The
+ladder itself — and the formal bar for leaving shadow — is in
+[PR #76](https://github.com/richardfergusoniv/fantasy-projections/pull/76),
+aligned to [PR #71](https://github.com/richardfergusoniv/fantasy-projections/pull/71).
 
-| | Scope | Explicitly not yet |
-|---|---|---|
-| **M1** | Deterministic weekly schedule allocation. Matchup multipliers reshape the week; renormalization conserves season totals. No new ML. | Training, same-week realized volume features, replacing Vegas, League Value promote, PWA wiring, ADP/season-Vegas blending |
-| | *M1 being deterministic is deliberate scaffolding, not a shortfall. Do not fault it for lacking the learned components rule 2 describes — those arrive in M2/M3.* | |
-| **M2** | Team-week latent that *may* move season totals, once M1 conservation is proven. Opponent priors must be lagged or preseason. | ADP or season Vegas as drivers |
-| **M3** | Weekly availability and conversion rates. Compare against Vegas, do not replace it. | — |
+M1 being deterministic is deliberate scaffolding. Do not fault it for lacking
+the learned components rule 2 describes — those arrive in M2/M3.
 
-Across all three: Vegas weekly props is the **benchmark**, not the target to
-copy, and ADP / season-long Vegas are market-sanity guardrails at most.
+### 5. Validation — findings, not a second gate copy
 
-### 5. Validation and the promotion gate
-
-This is what replaces the freeze. The freeze said "do not touch." The gate says
-"change what you like, clear this bar before it reaches anyone."
+This is what replaces the freeze. The freeze said "do not touch." The gate
+says "change what you like, clear this bar before it reaches anyone." Sample
+sizes, baseline set, and pinball/CRPS/coverage bars live in
+[PR #76](https://github.com/richardfergusoniv/fantasy-projections/pull/76).
 
 **Backtests must be rolling-origin, never random splits.** Train through week
 `t-1`, predict week `t`, rebuilding every feature as it would have appeared at
 that cutoff. A random train/test split on player-weeks is a finding on its own,
 regardless of the numbers it produces.
 
-**Beating a naive baseline is the floor, not the achievement.** "Better than the
-old board" is not evidence. A candidate must clear trailing-mean and
-expected-opportunity baselines *and* be compared against the weekly prop
-consensus; the review lists the full baseline set.
+Beating a naive baseline is the floor, not the achievement. A PR that claims
+improvement from fantasy-point RMSE alone has not shown its intervals are
+still honest. One or two weeks of 2026 results is an update, never a promotion
+argument.
 
-**Do not select on fantasy-point RMSE alone.** The system ships distributions,
-so evaluate them: pinball loss at P10/P50/P90, CRPS over the simulated
-distribution, interval coverage and width, PIT / reliability plots, and Brier
-or log loss for prop over/under probabilities. A PR claiming improvement from a
-single point-error metric has not shown its intervals are still honest.
-
-**Promotion of the weekly model onto the product requires, at minimum:**
-
-- 6–8 live shadow weeks (a full season for broad claims)
-- no leakage or missingness regression
-- beats naive and expected-opportunity baselines across most positions
-- credible improvement or parity against the weekly-prop benchmark
-- calibrated 50 / 80 / 90% intervals within stated tolerance
-- no severe subgroup failure — backups, questionable tags, low-volume positions
-- stable across forecast vintages and books
-
-One or two weeks of 2026 results is an update, never a promotion argument.
-
-Note this gate is about promoting the **weekly model**. The Vegas props board
-has its own scrape gates (rule 3) and is a separate mechanism.
+This gate is about promoting the **weekly model**. The Vegas props board has
+its own scrape gates (rule 3) and is a separate mechanism.
 
 ### 6. Vegas props correctness is user-facing
 
@@ -206,7 +194,8 @@ as current is a user-visible defect.
 ### 7. ADP and season-long Vegas are checks, not objectives
 
 Flag anything that optimizes *toward* ADP as a target metric, or that treats
-agreement with a season-long market as evidence of weekly accuracy.
+agreement with a season-long market as evidence of weekly accuracy. Allowed
+uses and the not-allowed list are in the decision note.
 
 ## Repo conventions
 
