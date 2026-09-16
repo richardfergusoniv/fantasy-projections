@@ -42,13 +42,16 @@ Grain: one row per `(player_id, season, week, market)`.
    Required: `player_id`, `season`, `week`, `market`, `model_mean`.
    Optional: `model_std`, `model_p_over`, identity fields.
    Same-week outcome columns (`targets`, `attempts`, `team_attempts`,
-   `fantasy_points`, …) on this frame **fail closed**. Lagged `_l3` / `_l5`
-   / `_prior` forms remain allowed.
+   `fantasy_points`, `actual`, …) on this frame **fail closed**. Lagged `_l3`
+   / `_l5` / `_prior` forms remain allowed.
+   The board schema has no model-as-of timestamp; only the Vegas snapshot
+   side (`as_of` ≤ `kickoff_at`) proves pre-kickoff timing.
 
 3. **Realized outcomes** (optional)
 
    Required: `player_id`, `season`, `week`, `market`, `actual`.
-   Labels only — not joined back as features.
+   Labels only — not joined back as features. `actual` is never a
+   prediction-frame passthrough.
 
 Committed synthetic fixture:
 `src/projection/weekly_eval/fixtures/` (four player-week rows).
@@ -80,7 +83,7 @@ optional std, a line, implied P(over), and actuals — enough for:
 |---|---|
 | **MAE / RMSE** (model vs actual, market vs actual) | Point loss vs realized box. Floor, not the achievement. |
 | **MAE model vs market** | Diagnostic only. Agreement with the market is **not** a target. |
-| **Brier** on over/under vs the snapshot line | Proper score for the binary event implied by a prop. |
+| **Brier** on over/under vs the snapshot line | Proper score for the binary event implied by a prop. When a snapshot has a `line` but no `implied_p_over`, market Brier uses `0.5` as an uninformative placeholder — not a derived market probability. |
 | **Gaussian CRPS** | Proper score for a predictive distribution when we have (mean, std). Std comes from `model_std` or a documented CV fallback (`0.25`, min 1.0). Market std is inverted from `(mean, line, P(over))` when identified. |
 | **Pinball at q=0.5** | Quantile / calibration-friendly; equals half of MAE when the quoted median is the mean. |
 | **Coverage of Gaussian p10–p90** | Interval honesty check on the same Gaussian used for CRPS. |
@@ -102,7 +105,9 @@ snapshots and model draws exist.
   `SAME_WEEK_OUTCOME_DENYLIST` / `is_allowed_prediction_column` from
   `src/projection/weekly/draws/feature_outcome_split.py` (read-only import).
   That is the existing inference denylist, including `team_attempts` /
-  `team_air_yards`. Outcomes may appear only on the label frame.
+  `team_air_yards`. The eval package also denies `actual` explicitly:
+  `is_allowed_prediction_column` is deny-then-allow and does not list it.
+  Outcomes may appear only on the label frame.
 - **No Role 3 blend.** Non-empty `blend_weights` raise
   `Role3BlendForbiddenError`.
 
@@ -115,6 +120,8 @@ snapshots and model draws exist.
 - `src/projection/weekly_latent/` allocation, conservation, M3 availability
 - Claiming the weekly model beats Vegas from this synthetic dry-run
 - Live `projections.db` or provider scrapes (this PR is fixture-only)
+- A model-as-of / prediction vintage on the board frame (only the Vegas
+  snapshot side currently proves pre-kickoff timing)
 
 ## How to run
 

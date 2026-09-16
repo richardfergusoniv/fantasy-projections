@@ -69,6 +69,13 @@ def test_denylist_covers_known_same_week_aggregates():
             assert_prediction_frame_has_no_outcomes(["player_id", name])
 
 
+def test_smuggled_actual_label_column_fails_closed():
+    with pytest.raises(OutcomeFeatureLeakageError, match="actual"):
+        assert_prediction_frame_has_no_outcomes(
+            ["player_id", "season", "week", "market", "model_mean", "actual"]
+        )
+
+
 def test_role3_blend_is_forbidden():
     with pytest.raises(Role3BlendForbiddenError, match="Role 3"):
         assert_no_role3_blend({"model": 0.7, "vegas": 0.3})

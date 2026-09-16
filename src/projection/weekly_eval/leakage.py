@@ -20,6 +20,9 @@ from src.projection.weekly_eval.errors import (
 JOIN_KEYS: tuple[str, ...] = ("player_id", "season", "week", "market")
 
 # Columns that may appear on a shadow board or snapshot without being outcomes.
+# Realized labels such as ``actual`` are not passthrough: they belong only on
+# the outcomes frame. ``is_allowed_prediction_column`` is deny-then-allow and
+# does not list ``actual``, so this package denies it explicitly.
 EVAL_PASSTHROUGH_COLUMNS: frozenset[str] = frozenset(
     {
         *JOIN_KEYS,
@@ -36,21 +39,28 @@ EVAL_PASSTHROUGH_COLUMNS: frozenset[str] = frozenset(
         "as_of",
         "kickoff_at",
         "source",
-        "actual",
     }
 )
+
+# Label columns that must never appear on a prediction/board frame.
+EVAL_OUTCOME_COLUMNS: frozenset[str] = frozenset({"actual"})
 
 
 def assert_prediction_frame_has_no_outcomes(columns: Sequence[str]) -> None:
     """Fail closed if same-week outcome columns appear on a prediction frame.
 
     Join keys, shadow-board means, and snapshot fields are passthrough. Lagged
-    suffixes remain allowed via ``is_allowed_prediction_column``.
+    suffixes remain allowed via ``is_allowed_prediction_column``. Realized
+    labels such as ``actual`` are never passthrough.
     """
     blocked = [
         str(c)
         for c in columns
-        if str(c) not in EVAL_PASSTHROUGH_COLUMNS and not is_allowed_prediction_column(str(c))
+        if str(c) in EVAL_OUTCOME_COLUMNS
+        or (
+            str(c) not in EVAL_PASSTHROUGH_COLUMNS
+            and not is_allowed_prediction_column(str(c))
+        )
     ]
     if blocked:
         raise OutcomeFeatureLeakageError(

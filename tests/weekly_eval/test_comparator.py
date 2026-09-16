@@ -70,6 +70,17 @@ def test_compare_rejects_smuggled_outcome_columns_on_board():
         )
 
 
+def test_compare_rejects_smuggled_actual_column_on_board():
+    board = load_shadow_board(FIXTURE_DIR / "shadow_board.csv")
+    board = board.copy()
+    board["actual"] = 20.0
+    with pytest.raises(OutcomeFeatureLeakageError, match="actual"):
+        compare_shadow_to_vegas(
+            board=board,
+            snapshots=load_prop_snapshots(FIXTURE_DIR / "prop_snapshots.csv"),
+        )
+
+
 def test_compare_rejects_missing_as_of_in_snapshot_frame():
     snaps = pd.DataFrame(
         [
