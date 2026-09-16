@@ -694,16 +694,36 @@ def test_job_error_debug_message_redacts_email():
         assert get_settings.__wrapped__ is original
 
 
-def test_missing_projection_is_labeled_unavailable_not_fabricated(client: TestClient):
-    """A player with no promoted projection must not get invented points."""
+def test_missing_projection_is_labeled_unavailable_not_fabricated(client: TestClient, monkeypatch):
+    """A player with no promoted projection must not get invented points.
+
+    ``data_as_of`` is ``datetime.now(UTC).isoformat()``. A raw-text check for
+    ``"12.5"`` false-positives when seconds.microseconds contain that
+    substring (Windows CI: ``...T20:27:12.507944+00:00``). Assert JSON
+    projection fields, and freeze the stamp so the collision stays covered.
+    """
+    frozen = datetime(2026, 9, 16, 20, 27, 12, 507944, tzinfo=UTC)
+
+    class _FrozenDateTime:
+        @staticmethod
+        def now(tz=None):
+            return frozen
+
+    monkeypatch.setattr("src.app.api.v1.projections.datetime", _FrozenDateTime)
+
     _login(client)
     response = client.get("/api/v1/projections/players/does-not-exist-9999")
     assert response.status_code == 200
     body = response.json()
     assert body["mode"] == "unavailable"
     assert body["mean"] is None
+    assert body["quantiles"] is None
+    assert body["availability_probability"] is None
     assert body["projection_run_id"] is None
-    assert "12.5" not in response.text
+    assert body["reason"] == "no_promoted_projection_for_player"
+    assert body["data_as_of"] == frozen.isoformat()
+    # The frozen stamp contains "12.5"; numeric projection fields stay null.
+    assert "12.5" in body["data_as_of"]
 
 
 # --------------------------------------------------------------------------

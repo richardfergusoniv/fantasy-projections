@@ -1,0 +1,85 @@
+{
+  "schema_version": "weekly_latent_m2_v1",
+  "generated_at": "2026-09-16T20:18:32.407039+00:00",
+  "milestone": 2,
+  "season": 2026,
+  "dry_run": false,
+  "source": "sealed_board_plus_schedule_fixture_plus_lagged_epa",
+  "projections_path": "/workspace/draft_assistant/data/releases/v2_baseline_20260830/projections_2026.csv",
+  "schedule_path": "/workspace/src/projection/weekly_latent/fixtures/nfl_schedules_2026_reg.csv",
+  "sealed_namespace_read": "v2_baseline_20260830",
+  "n_teams": 32,
+  "n_team_weeks": 576,
+  "n_players": 778,
+  "n_player_weeks": 14004,
+  "n_bye_team_weeks": 32,
+  "conservation_passes": true,
+  "failing_checks": [],
+  "m1_comparison_conservation_passes": true,
+  "season_mass_delta_vs_m1_and_sealed": {
+    "team_pass_attempts": {
+      "max_abs_vs_sealed": 10.298910870233954,
+      "max_abs_vs_m1": 10.298910870233954,
+      "ratio_vs_sealed_minmax": [
+        0.9879137449808129,
+        1.018466456176408
+      ]
+    },
+    "team_rush_attempts": {
+      "max_abs_vs_sealed": 9.118239906139365,
+      "max_abs_vs_m1": 9.118239906139365,
+      "ratio_vs_sealed_minmax": [
+        0.9834300104079066,
+        1.0194814012299733
+      ]
+    },
+    "team_passing_yards": {
+      "max_abs_vs_sealed": 68.39369282628923,
+      "max_abs_vs_m1": 68.39369282628968,
+      "ratio_vs_sealed_minmax": [
+        0.987913744980813,
+        1.018466456176408
+      ]
+    },
+    "team_rushing_yards": {
+      "max_abs_vs_sealed": 39.41692986620137,
+      "max_abs_vs_m1": 39.41692986620137,
+      "ratio_vs_sealed_minmax": [
+        0.9834300104079065,
+        1.0194814012299733
+      ]
+    }
+  },
+  "share_overflow_team_stats": {
+    "attempts": 9,
+    "carries": 12,
+    "passing_yards": 11,
+    "receiving_yards": 11,
+    "rushing_yards": 14,
+    "targets": 3
+  },
+  "product_split": {
+    "vegas": "external_weekly_benchmark",
+    "league_value": "season_scaffolding_prior",
+    "adp_and_season_vegas": "later_empirical_bands_only"
+  },
+  "does_not": [
+    "replace Vegas weekly props",
+    "promote or reseal League Value / v2_baseline_20260830",
+    "change freeze knobs or production defaults",
+    "train a hierarchical Monte Carlo / M3 availability+conversion layer",
+    "use ADP or season-long Vegas as drivers",
+    "join same-week team_attempts/team_carries/team_targets/team_air_yards",
+    "wire into the PWA",
+    "flip APP_PROJECTION_SOURCE"
+  ],
+  "identity": "V_w = A_w * (V_sealed / n_active) * m_HA * m_opp * m_env (no renormalize). Shares + other = 1. Bye = 0.",
+  "db": "FANTASY_PROJECTIONS_DB_PATH / default = /workspace/data/projections.db",
+  "opponent_priors": "no projections.db at /workspace/data/projections.db; fixture /workspace/src/projection/weekly_latent/fixtures/opp_def_epa_prior_2025.csv",
+  "production_hash_drift": {},
+  "games_per_season": 17,
+  "m1_schema_version": "weekly_latent_m1_v1",
+  "gate_verdict": "not promoting",
+  "still_shadow": true,
+  "backtest_passes": true
+}

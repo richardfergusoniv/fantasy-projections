@@ -163,7 +163,10 @@ ladder itself — and the formal bar for leaving shadow — is in
 aligned to [PR #71](https://github.com/richardfergusoniv/fantasy-projections/pull/71).
 
 M1 being deterministic is deliberate scaffolding. Do not fault it for lacking
-the learned components rule 2 describes — those arrive in M2/M3.
+the learned components rule 2 describes — those arrive in M2/M3. M2 (shadow
+only, not a promotion) lives in `src/projection/weekly_latent/` and may move
+season team volume with lagged opponent/environment; see
+`docs/research/WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md`.
 
 ### 5. Validation — findings, not a second gate copy
 

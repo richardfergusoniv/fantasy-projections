@@ -1,7 +1,7 @@
 # Weekly latent model design (locked 2026-09-15)
 
 **Date:** 2026-09-15  
-**Status:** locked design + Milestone 1 research/shadow implementation  
+**Status:** locked design + Milestone 1 research/shadow implementation + Milestone 2 research/shadow (see `WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md`)  
 **Does not:** replace Vegas weekly props, promote/reseal League Value, change freeze knobs or production defaults, train a model, or wire into the PWA.
 
 Sealed League Value stays `v2_baseline_20260830`. This track reads it as **scaffolding + prior**, not as a board to defend as “correct.”
@@ -140,6 +140,8 @@ Player-season points reconcile to the sealed `pred_season` when named volume did
 ### Milestone 2 — Team-week latent that may move season totals
 
 After M1 conservation is proven, allow opponent/environment to change \(V_{t,k}^{\mathrm{season}}\) instead of only reshaping weeks. Opponent defense priors must be **lagged / preseason**. Still no ADP or season Vegas as drivers. Vegas weekly props remain the benchmark, not the target to copy.
+
+**Implemented (2026-09-16, research/shadow, not a promotion):** [`WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md`](WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md). Same package (`src/projection/weekly_latent/`), CLI `scripts/run_weekly_schedule_m2.py`. M2 does **not** renormalize matchup multipliers. `available_at` is advanced via max of board, schedule-env, and per-row prior vintages (never moved earlier). Backtests inside M2: synthetic rolling-origin plus a 2025-shaped historical schedule with prior-only opponent features. Still not 6–8 live weeks, still not a promotion.
 
 ### Milestone 3 — Weekly availability + conversions; compare, don’t replace, Vegas
 

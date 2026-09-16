@@ -19,24 +19,32 @@ from src.projection.weekly_latent.allocate import (
     AllocationTables,
     allocate_players,
     allocate_team_weeks,
+    allocate_team_weeks_m2,
     season_box_from_players,
 )
 from src.projection.weekly_latent.artifacts import write_shadow_outputs
-from src.projection.weekly_latent.conservation import evaluate_conservation
+from src.projection.weekly_latent.backtest import run_m2_backtests
+from src.projection.weekly_latent.conservation import evaluate_conservation, evaluate_m2
 from src.projection.weekly_latent.constants import (
+    DEFAULT_OPP_EPA_PRIOR_REL,
     DEFAULT_OUTPUT_REL,
+    DEFAULT_OUTPUT_REL_M2,
     DEFAULT_SCHEDULE_FIXTURE_REL,
     DEFAULT_SEALED_NAMESPACE,
     DEFAULT_SEALED_PROJECTIONS_REL,
     GAMES_PER_SEASON,
     LEAGUE_VALUE_ROLE,
+    M1_AVAILABLE_AT,
     MARKET_SANITY_ROLE,
     MILESTONE,
+    MILESTONE_M2,
     PRODUCTION_HASH_PATHS,
     SCHEMA_VERSION,
+    SCHEMA_VERSION_M2,
     SEASON_DEFAULT,
     VEGAS_ROLE,
 )
+from src.projection.weekly_latent.priors import load_m2_opponent_priors
 from src.projection.weekly_latent.schedule import explode_team_weeks, load_schedule_csv
 from src.projection.weekly_latent.season_board import (
     load_long_projections,
@@ -51,6 +59,16 @@ class Milestone1Run:
     tables: AllocationTables
     conservation: dict[str, Any]
     summary: dict[str, Any]
+    output_paths: dict[str, str]
+
+
+@dataclass
+class Milestone2Run:
+    tables: AllocationTables
+    m1_tables: AllocationTables
+    conservation: dict[str, Any]
+    summary: dict[str, Any]
+    backtest: dict[str, Any]
     output_paths: dict[str, str]
 
 
@@ -375,3 +393,211 @@ def _overflow_counts(shares: pd.DataFrame) -> dict[str, int]:
         str(stat): int((grp["share_mode"] == "rescaled_overflow").sum())
         for stat, grp in modes.groupby("stat")
     }
+
+
+def _season_mass_delta(
+    m2_weeks: pd.DataFrame,
+    m1_weeks: pd.DataFrame,
+    team_volume: pd.DataFrame,
+) -> dict[str, Any]:
+    from src.projection.weekly_latent.constants import TEAM_VOLUME_PG_COLUMNS
+
+    m2_sum = m2_weeks.groupby("team")[list(TEAM_VOLUME_PG_COLUMNS)].sum()
+    m1_sum = m1_weeks.groupby("team")[list(TEAM_VOLUME_PG_COLUMNS)].sum()
+    sealed = team_volume.set_index("team")[list(TEAM_VOLUME_PG_COLUMNS)]
+    out: dict[str, Any] = {}
+    for name in TEAM_VOLUME_PG_COLUMNS:
+        vs_sealed = (m2_sum[name] - sealed[name]).abs()
+        vs_m1 = (m2_sum[name] - m1_sum[name]).abs()
+        ratio = m2_sum[name] / sealed[name].replace(0.0, pd.NA)
+        out[name] = {
+            "max_abs_vs_sealed": float(vs_sealed.max()),
+            "max_abs_vs_m1": float(vs_m1.max()),
+            "ratio_vs_sealed_minmax": [float(ratio.min()), float(ratio.max())],
+        }
+    return out
+
+
+def run_milestone2(
+    *,
+    season: int = SEASON_DEFAULT,
+    projections_path: str | Path | None = None,
+    schedule_path: str | Path | None = None,
+    output_dir: str | Path | None = None,
+    opponent_priors: pd.DataFrame | None = None,
+    opp_epa_priors_path: str | Path | None = None,
+    dry_run: bool = False,
+    repo_root: str | Path | None = None,
+    run_backtest: bool = True,
+) -> Milestone2Run:
+    """Shadow Milestone 2: environment may move season mass. Not a promotion."""
+    root = Path(repo_root or REPO_ROOT)
+    before = production_fingerprint(root)
+    db_note = f"FANTASY_PROJECTIONS_DB_PATH / default = {DB_PATH}"
+
+    if dry_run:
+        schedule, long_board, priors = synthetic_dry_run_inputs()
+        if opponent_priors is None:
+            opponent_priors = priors.copy()
+            if "available_at" not in opponent_priors.columns:
+                opponent_priors["available_at"] = "2026-01-05T00:00:00+00:00"
+        source = "synthetic_dry_run"
+        proj_used = None
+        sched_used = "synthetic"
+        prior_note = "synthetic dry-run opponent factors"
+    else:
+        proj_used = Path(projections_path or (root / DEFAULT_SEALED_PROJECTIONS_REL))
+        sched_used = Path(schedule_path or (root / DEFAULT_SCHEDULE_FIXTURE_REL))
+        if not proj_used.is_file():
+            raise FileNotFoundError(
+                f"sealed projections not found at {proj_used}. "
+                "Pass --projections or run --dry-run. On Windows the usual "
+                "board CSV is next to the DB under D:\\fantasy-projections-data "
+                "or the repo path "
+                "draft_assistant\\data\\releases\\v2_baseline_20260830\\projections_2026.csv"
+            )
+        if not sched_used.is_file():
+            raise FileNotFoundError(
+                f"schedule fixture not found at {sched_used}. "
+                "Pass --schedule or use the committed "
+                "src/projection/weekly_latent/fixtures/nfl_schedules_2026_reg.csv"
+            )
+        long_board = load_long_projections(proj_used)
+        schedule = load_schedule_csv(sched_used)
+        schedule = schedule[schedule["season"].eq(season)].copy()
+        source = "sealed_board_plus_schedule_fixture_plus_lagged_epa"
+        if opponent_priors is None:
+            opponent_priors, prior_note = load_m2_opponent_priors(
+                repo_root=root,
+                db_path=Path(DB_PATH),
+                fixture_path=opp_epa_priors_path or (root / DEFAULT_OPP_EPA_PRIOR_REL),
+                season=season,
+            )
+        else:
+            prior_note = "caller-supplied opponent priors"
+
+    team_weeks = explode_team_weeks(schedule, require_full_season=not dry_run)
+    if dry_run:
+        team_weeks = team_weeks[team_weeks["week"].isin([1, 2, 3])].copy()
+    players = player_season_table(long_board)
+    team_volume = team_season_volume(long_board)
+    shares = role_shares(players, team_volume)
+    m1_teams = allocate_team_weeks(
+        team_weeks, team_volume, opponent_priors=opponent_priors
+    )
+    m2_teams = allocate_team_weeks_m2(
+        team_weeks,
+        team_volume,
+        opponent_priors=opponent_priors,
+        board_available_at=M1_AVAILABLE_AT,
+    )
+    player_weeks = allocate_players(m2_teams, players, shares)
+    players = season_box_from_players(players)
+    conservation = evaluate_m2(
+        m2_teams,
+        team_volume,
+        shares,
+        player_weeks,
+        players,
+        m1_team_weeks=m1_teams,
+    )
+    m1_conservation = evaluate_conservation(
+        m1_teams, team_volume, shares, allocate_players(m1_teams, players, shares), players
+    )
+    backtest = run_m2_backtests() if run_backtest else {"skipped": True}
+    after = production_fingerprint(root)
+    drift = {
+        rel: {"before": before[rel], "after": after[rel]}
+        for rel in before
+        if before[rel] != after[rel]
+    }
+    summary = {
+        "milestone": MILESTONE_M2,
+        "schema_version": SCHEMA_VERSION_M2,
+        "season": season,
+        "dry_run": dry_run,
+        "source": source,
+        "projections_path": None if proj_used is None else str(proj_used).replace("\\", "/"),
+        "schedule_path": None if sched_used is None else str(sched_used).replace("\\", "/"),
+        "sealed_namespace_read": None if dry_run else DEFAULT_SEALED_NAMESPACE,
+        "n_teams": int(m2_teams["team"].nunique()),
+        "n_team_weeks": int(len(m2_teams)),
+        "n_players": int(player_weeks["player_id"].nunique()) if len(player_weeks) else 0,
+        "n_player_weeks": int(len(player_weeks)),
+        "n_bye_team_weeks": int(m2_teams["is_bye"].sum()),
+        "conservation_passes": conservation["passes"],
+        "failing_checks": conservation["failing_checks"],
+        "m1_comparison_conservation_passes": m1_conservation["passes"],
+        "season_mass_delta_vs_m1_and_sealed": _season_mass_delta(
+            m2_teams, m1_teams, team_volume
+        ),
+        "share_overflow_team_stats": _overflow_counts(shares),
+        "product_split": {
+            "vegas": VEGAS_ROLE,
+            "league_value": LEAGUE_VALUE_ROLE,
+            "adp_and_season_vegas": MARKET_SANITY_ROLE,
+        },
+        "does_not": [
+            "replace Vegas weekly props",
+            "promote or reseal League Value / v2_baseline_20260830",
+            "change freeze knobs or production defaults",
+            "train a hierarchical Monte Carlo / M3 availability+conversion layer",
+            "use ADP or season-long Vegas as drivers",
+            "join same-week team_attempts/team_carries/team_targets/team_air_yards",
+            "wire into the PWA",
+            "flip APP_PROJECTION_SOURCE",
+        ],
+        "identity": (
+            "V_w = A_w * (V_sealed / n_active) * m_HA * m_opp * m_env "
+            "(no renormalize). Shares + other = 1. Bye = 0."
+        ),
+        "db": db_note,
+        "opponent_priors": prior_note,
+        "production_hash_drift": drift,
+        "games_per_season": GAMES_PER_SEASON,
+        "m1_schema_version": SCHEMA_VERSION,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "gate_verdict": "not promoting",
+        "still_shadow": True,
+        "backtest_passes": backtest.get("passes"),
+    }
+    if drift:
+        raise RuntimeError(
+            "Milestone 2 is research/shadow only but production files changed: "
+            + json.dumps(drift)
+        )
+    out_dir = Path(output_dir or (root / DEFAULT_OUTPUT_REL_M2))
+    paths = write_shadow_outputs(
+        out_dir,
+        team_weeks=m2_teams,
+        player_weeks=player_weeks,
+        shares=shares,
+        conservation=conservation,
+        summary=summary,
+        readme_title="Shadow weekly schedule allocation (Milestone 2)",
+        extra_json={
+            "backtest_synthetic.json": backtest.get("synthetic", backtest),
+            "backtest_historical.json": backtest.get("historical", {}),
+        },
+        cli_name="scripts/run_weekly_schedule_m2.py",
+    )
+    return Milestone2Run(
+        tables=AllocationTables(
+            team_weeks=m2_teams,
+            player_weeks=player_weeks,
+            shares=shares,
+            players=players,
+            team_volume=team_volume,
+        ),
+        m1_tables=AllocationTables(
+            team_weeks=m1_teams,
+            player_weeks=allocate_players(m1_teams, players, shares),
+            shares=shares,
+            players=players,
+            team_volume=team_volume,
+        ),
+        conservation=conservation,
+        summary=summary,
+        backtest=backtest,
+        output_paths=paths,
+    )
