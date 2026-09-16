@@ -17,17 +17,19 @@ This note locks two things that later PRs keep conflating:
    a tighter rule for ADP / season-long Vegas.
 
 It is distilled from an independent Perplexity governance review (2026-09-15)
-and the prior locked weekly-latent design (milestones M1–M3). It is a
-**checklist**. It does **not** redefine those milestones or supersede the
-design lock. It does not authorize skipping Milestone 1 (deterministic
-schedule allocation / conservation) or jumping straight to hierarchical
-Monte Carlo.
+and the prior locked weekly-latent design (milestones M1–M3). The Perplexity
+pass was a manual subscription-chat review; it is not yet committed under
+`docs/research/`. It is a **checklist**. It does **not** redefine those
+milestones or supersede the design lock. It does not authorize skipping
+Milestone 1 (deterministic schedule allocation / conservation) or jumping
+straight to hierarchical Monte Carlo.
 
 ## Decision
 
 Serve Vegas weekly props until the independent weekly model clears the
 promotion gate below. Do not blend market into the model until a market-free
-challenger has been reported. Do not treat M1–M2 research merges as promotions.
+challenger has been reported. Research merges and M1–M3 shadow work are not
+promotions until the gate below clears.
 
 ## 1. Vegas weekly props — three roles (do not conflate)
 
@@ -124,8 +126,8 @@ those two disagree). Still no promote/reseal of League Value from this
 track.
 
 The promotion gate applies to **serving** the independent model in the app.
-M1–M2 research merges are not promotions. M3 remains shadow until the gate
-above clears.
+Research merges and M1–M3 shadow work are not promotions until that gate
+clears.
 
 ## Related
 
