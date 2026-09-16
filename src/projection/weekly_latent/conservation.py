@@ -224,3 +224,153 @@ def evaluate_conservation(
             "overflow the team pool."
         ),
     }
+
+
+def m2_multiplicative_identity(team_weeks: pd.DataFrame) -> list[dict[str, Any]]:
+    """V_w = A * (V_sealed / n_active) * m_HA * m_opp * m_env on each row."""
+    checks = []
+    pass_stats = ("team_pass_attempts", "team_passing_yards")
+    rush_stats = ("team_rush_attempts", "team_rushing_yards")
+    for name, matchup_col in (
+        *((s, "pass_matchup_mult") for s in pass_stats),
+        *((s, "rush_matchup_mult") for s in rush_stats),
+    ):
+        need = {name, f"season_{name}", "A_team_w", "n_active_weeks", matchup_col}
+        if not need.issubset(team_weeks.columns):
+            checks.append(
+                _check(
+                    f"{name}_m2_identity",
+                    False,
+                    f"missing columns {sorted(need - set(team_weeks.columns))}",
+                )
+            )
+            continue
+        n_active = team_weeks["n_active_weeks"].astype(float)
+        sealed = team_weeks[f"season_{name}"].astype(float)
+        baseline = pd.Series(0.0, index=team_weeks.index)
+        ok = n_active > 1e-12
+        baseline.loc[ok] = sealed.loc[ok] / n_active.loc[ok]
+        intended = (
+            team_weeks["A_team_w"].astype(float)
+            * baseline
+            * team_weeks[matchup_col].astype(float)
+        )
+        bye = team_weeks["is_bye"].eq(1)
+        intended.loc[bye] = 0.0
+        delta = (team_weeks[name].astype(float) - intended).abs()
+        worst = float(delta.max()) if len(delta) else 0.0
+        checks.append(
+            _check(
+                f"{name}_m2_identity",
+                bool((delta <= CONSERVATION_ATOL + CONSERVATION_RTOL * intended.abs()).all()),
+                f"max_abs_delta={worst:.8f}",
+            )
+        )
+    return checks
+
+
+def season_mass_vs_sealed(
+    team_weeks: pd.DataFrame,
+    team_volume: pd.DataFrame,
+) -> list[dict[str, Any]]:
+    """Measure (do not require) season-total movement vs the sealed prior."""
+    checks = []
+    summed = team_weeks.groupby("team", as_index=False)[list(TEAM_VOLUME_PG_COLUMNS)].sum()
+    merged = summed.merge(team_volume, on="team", suffixes=("_weekly_sum", "_season"))
+    moved = False
+    details = []
+    for name in TEAM_VOLUME_PG_COLUMNS:
+        left = merged[f"{name}_weekly_sum"].astype(float)
+        right = merged[f"{name}_season"].astype(float)
+        ratio = left / right.replace(0.0, pd.NA)
+        delta = (left - right).abs()
+        worst = float(delta.max()) if len(delta) else 0.0
+        if (delta > (CONSERVATION_ATOL + CONSERVATION_RTOL * right.abs())).any():
+            moved = True
+        details.append(
+            f"{name} max_abs_delta={worst:.6f} "
+            f"ratio_minmax=({float(ratio.min()):.4f},{float(ratio.max()):.4f})"
+        )
+    checks.append(
+        _check(
+            "season_mass_may_differ_from_sealed",
+            True,
+            ("moved_vs_sealed=yes; " if moved else "moved_vs_sealed=no (all m≈1); ")
+            + "; ".join(details),
+        )
+    )
+    return checks
+
+
+def m1_still_conserves_with_same_priors(
+    m1_team_weeks: pd.DataFrame | None,
+    team_volume: pd.DataFrame,
+) -> list[dict[str, Any]]:
+    if m1_team_weeks is None:
+        return [
+            _check(
+                "m1_comparison_still_conserves",
+                True,
+                "skipped; no M1 comparison tables",
+                skipped=True,
+            )
+        ]
+    nested = team_volume_conservation(m1_team_weeks, team_volume)
+    all_pass = all(c["passed"] is not False for c in nested)
+    failing = [c["name"] for c in nested if c["passed"] is False]
+    return [
+        _check(
+            "m1_comparison_still_conserves",
+            all_pass,
+            "M1 with the same priors still sums to sealed"
+            if all_pass
+            else f"M1 comparison failed: {failing}",
+        )
+    ]
+
+
+def evaluate_m2(
+    team_weeks: pd.DataFrame,
+    team_volume: pd.DataFrame,
+    shares: pd.DataFrame,
+    player_weeks: pd.DataFrame,
+    players: pd.DataFrame,
+    *,
+    m1_team_weeks: pd.DataFrame | None = None,
+) -> dict[str, Any]:
+    checks: list[dict[str, Any]] = []
+    checks.extend(m2_multiplicative_identity(team_weeks))
+    checks.extend(season_mass_vs_sealed(team_weeks, team_volume))
+    checks.extend(m1_still_conserves_with_same_priors(m1_team_weeks, team_volume))
+    checks.extend(share_conservation(shares, player_weeks))
+    checks.extend(player_inactive_on_bye(player_weeks))
+    checks.extend(no_forbidden_training_features(team_weeks, player_weeks))
+    from src.projection.weekly_latent.constants import FORBIDDEN_MARKET_DRIVERS
+
+    market = sorted(
+        (set(team_weeks.columns) | set(player_weeks.columns)) & FORBIDDEN_MARKET_DRIVERS
+    )
+    checks.append(
+        _check(
+            "no_adp_or_vegas_driver_columns",
+            market == [],
+            "market driver columns absent" if not market else f"present={market}",
+        )
+    )
+    failing = [c["name"] for c in checks if c["passed"] is False]
+    return {
+        "schema_version": "weekly_latent_m2_identities_v1",
+        "passes": len(failing) == 0,
+        "failing_checks": failing,
+        "n_checks": len(checks),
+        "checks": checks,
+        "invariant": (
+            "M2 does NOT conserve sealed season team volume. Identity: "
+            "V_w = A_w * (V_sealed / n_active) * m_HA * m_opp * m_env "
+            "(no renormalize). Named shares + other = 1 still holds. "
+            "Bye volume is 0. Same-week team_attempts/carries/targets/"
+            "air_yards and ADP/season Vegas are forbidden drivers. "
+            "Season totals may differ from the sealed prior; that delta "
+            "is measured, not a failure."
+        ),
+    }

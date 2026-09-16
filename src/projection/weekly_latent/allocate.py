@@ -27,6 +27,11 @@ from src.projection.weekly_latent.constants import (
     PLAYER_SHARE_POOLS,
     TEAM_VOLUME_PG_COLUMNS,
 )
+from src.projection.weekly_latent.environment import (
+    attach_environment,
+    refuse_forbidden_m2_columns,
+    stamp_available_at,
+)
 from src.projection.weekly_latent.schedule import attach_opponent_priors
 
 # Half-PPR, 4-pt passing TD. Same numbers as
@@ -116,6 +121,100 @@ def allocate_team_weeks(
     bye = frame["is_bye"].eq(1)
     for name in TEAM_VOLUME_PG_COLUMNS:
         frame.loc[bye, name] = 0.0
+    return frame
+
+
+def allocate_team_weeks_m2(
+    team_weeks: pd.DataFrame,
+    team_volume: pd.DataFrame,
+    *,
+    opponent_priors: pd.DataFrame | None = None,
+    board_available_at: str = M1_AVAILABLE_AT,
+    n_active_override: float | None = None,
+) -> pd.DataFrame:
+    """Team-week latent that may move season mass vs the sealed prior.
+
+    Identity (M2, not M1)::
+
+        V_{t,k,w} = A_{t,w} * (V_{t,k}^{sealed} / sum_{w'} A_{t,w'})
+                    * m^{HA}_{t,w} * m^{opp}_{t,k,w} * m^{env}_{t,w}
+
+    Multipliers are **not** renormalized, so
+    ``sum_w V_{t,k,w} = V^{sealed} * mean_{active}(m_HA * m_opp * m_env)``
+    and may differ from the sealed season total. Bye weeks stay 0.
+
+    ``available_at`` is the latest attached vintage (board, schedule-env,
+    opponent prior), not blindly the M1 preseason stamp.
+    """
+    frame = attach_opponent_priors(team_weeks, opponent_priors)
+    refuse_forbidden_m2_columns(frame, where="M2 allocate_team_weeks")
+    if opponent_priors is not None and not opponent_priors.empty:
+        refuse_forbidden_m2_columns(opponent_priors, where="M2 opponent_priors")
+    frame = attach_environment(frame)
+    frame["home_away_mult"] = frame.apply(_home_away_mult, axis=1)
+    frame["opp_pass_mult"] = [
+        shrunk_opponent_mult(f, lam)
+        for f, lam in zip(frame["opp_pass_factor"], frame["shrinkage_lambda"])
+    ]
+    frame["opp_rush_mult"] = [
+        shrunk_opponent_mult(f, lam)
+        for f, lam in zip(frame["opp_rush_factor"], frame["shrinkage_lambda"])
+    ]
+    active = frame["A_team_w"].astype(float)
+    frame["pass_matchup_mult"] = (
+        frame["home_away_mult"].astype(float)
+        * frame["opp_pass_mult"].astype(float)
+        * frame["env_mult"].astype(float)
+    )
+    frame["rush_matchup_mult"] = (
+        frame["home_away_mult"].astype(float)
+        * frame["opp_rush_mult"].astype(float)
+        * frame["env_mult"].astype(float)
+    )
+    # Un-normalized path: raw weight is A * matchup. M1 would divide by
+    # the team sum here; M2 does not.
+    frame["raw_pass_weight"] = active * frame["pass_matchup_mult"]
+    frame["raw_rush_weight"] = active * frame["rush_matchup_mult"]
+    if n_active_override is not None:
+        n_active = pd.Series(float(n_active_override), index=frame.index)
+    else:
+        n_active = active.groupby(frame["team"]).transform("sum")
+    frame["n_active_weeks"] = n_active
+    vol = team_volume.rename(
+        columns={name: f"season_{name}" for name in TEAM_VOLUME_PG_COLUMNS}
+    )
+    frame = frame.merge(vol, on="team", how="left")
+    pass_stats = ("team_pass_attempts", "team_passing_yards")
+    rush_stats = ("team_rush_attempts", "team_rushing_yards")
+    for name in pass_stats:
+        sealed = frame[f"season_{name}"].fillna(0.0)
+        per_active = pd.Series(0.0, index=frame.index)
+        ok = n_active > 1e-12
+        per_active.loc[ok] = sealed.loc[ok] / n_active.loc[ok]
+        frame[f"baseline_{name}"] = per_active
+        frame[name] = active * per_active * frame["pass_matchup_mult"]
+    for name in rush_stats:
+        sealed = frame[f"season_{name}"].fillna(0.0)
+        per_active = pd.Series(0.0, index=frame.index)
+        ok = n_active > 1e-12
+        per_active.loc[ok] = sealed.loc[ok] / n_active.loc[ok]
+        frame[f"baseline_{name}"] = per_active
+        frame[name] = active * per_active * frame["rush_matchup_mult"]
+    bye = frame["is_bye"].eq(1)
+    for name in TEAM_VOLUME_PG_COLUMNS:
+        frame.loc[bye, name] = 0.0
+    if opponent_priors is not None and not opponent_priors.empty and "available_at" in opponent_priors.columns:
+        prior_stamp = opponent_priors.rename(
+            columns={"team": "opponent"} if "team" in opponent_priors.columns else {}
+        )
+        slim = prior_stamp[["opponent", "available_at"]].drop_duplicates("opponent")
+        slim = slim.rename(columns={"available_at": "prior_available_at"})
+        if "prior_available_at" in frame.columns:
+            frame = frame.drop(columns=["prior_available_at"])
+        frame = frame.merge(slim, on="opponent", how="left")
+    else:
+        frame["prior_available_at"] = pd.NA
+    frame = stamp_available_at(frame, board_available_at)
     return frame
 
 
@@ -218,6 +317,12 @@ def allocate_players(
         "home_away_mult",
         "pass_week_weight",
         "rush_week_weight",
+        "env_mult",
+        "rest_mult",
+        "travel_mult",
+        "pass_matchup_mult",
+        "rush_matchup_mult",
+        "prior_available_at",
         *TEAM_VOLUME_PG_COLUMNS.keys(),
     ]
     team_cols = [c for c in team_cols if c in team_weeks.columns]

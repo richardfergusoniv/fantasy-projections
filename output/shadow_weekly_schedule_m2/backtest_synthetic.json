@@ -1,0 +1,58 @@
+{
+  "schema_version": "weekly_latent_m2_backtest_synthetic_v1",
+  "passes": true,
+  "poison_same_week_raised": true,
+  "forbidden_columns_on_schedule": [],
+  "mae_m2": 1.5583150000000003,
+  "mae_naive_even_split": 3.0,
+  "beats_naive": true,
+  "later_weeks_overwrite_available_at": true,
+  "weeks": [
+    {
+      "week": 1,
+      "pred_m2": 32.9188,
+      "pred_m1_one_row": 136.0,
+      "naive": 34.0,
+      "realized": 31.0,
+      "abs_err_m2": 1.9187999999999974,
+      "abs_err_naive": 3.0,
+      "available_at": "2026-08-30T00:00:00+00:00",
+      "prior_source": "prior_season_fallback"
+    },
+    {
+      "week": 2,
+      "pred_m2": 34.9588,
+      "pred_m1_one_row": 136.0,
+      "naive": 34.0,
+      "realized": 36.0,
+      "abs_err_m2": 1.0412000000000035,
+      "abs_err_naive": 2.0,
+      "available_at": "2026-09-10T00:00:00+00:00",
+      "prior_source": "lagged_weeks_before_as_of"
+    },
+    {
+      "week": 3,
+      "pred_m2": 31.931236,
+      "pred_m1_one_row": 136.0,
+      "naive": 34.0,
+      "realized": 30.0,
+      "abs_err_m2": 1.9312359999999984,
+      "abs_err_naive": 4.0,
+      "available_at": "2026-09-17T00:00:00+00:00",
+      "prior_source": "lagged_weeks_before_as_of"
+    },
+    {
+      "week": 4,
+      "pred_m2": 35.657976,
+      "pred_m1_one_row": 136.0,
+      "naive": 34.0,
+      "realized": 37.0,
+      "abs_err_m2": 1.342024000000002,
+      "abs_err_naive": 3.0,
+      "available_at": "2026-09-24T00:00:00+00:00",
+      "prior_source": "lagged_weeks_before_as_of"
+    }
+  ],
+  "holdout": "synthetic rolling-origin; no random split; no 2026 live outcomes",
+  "not_a_promotion": true
+}

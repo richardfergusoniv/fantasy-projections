@@ -137,6 +137,13 @@ output/shadow_weekly_schedule_m1/player_weeks.csv
 output/shadow_weekly_schedule_m1/team_weeks.csv
 output/shadow_weekly_schedule_m1/shares.csv
 
+# Milestone 2 weekly latent shadow working set (full player-week tables).
+# summary.json, conservation.json, sample_player_weeks.csv, backtest_synthetic.json, and README.md stay tracked.
+output/shadow_weekly_schedule_m2/*.parquet
+output/shadow_weekly_schedule_m2/player_weeks.csv
+output/shadow_weekly_schedule_m2/team_weeks.csv
+output/shadow_weekly_schedule_m2/shares.csv
+
 # Local shadow sync / eval scratch output
 _eval_*.txt
 _pytest_*.txt

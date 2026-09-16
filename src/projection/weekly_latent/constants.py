@@ -4,10 +4,13 @@ Research/shadow only. Not a production default, freeze knob, or sealed-board inp
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Mapping
 
 SCHEMA_VERSION = "weekly_latent_m1_v1"
+SCHEMA_VERSION_M2 = "weekly_latent_m2_v1"
 MILESTONE = 1
+MILESTONE_M2 = 2
 SEASON_DEFAULT = 2026
 REG_WEEKS = tuple(range(1, 19))
 GAMES_PER_SEASON = 17
@@ -144,6 +147,46 @@ FORBIDDEN_SAME_WEEK_TRAINING_FEATURES = frozenset(
 # are different vintages; M1 does not distinguish them).
 M1_AVAILABLE_AT = "2026-08-30T00:00:00+00:00"
 
+# 2025 REG week 18 finished 2026-01-04/05. Prior-season defensive EPA from
+# that slate is knowable then — earlier than the sealed board, not later.
+# In-season lagged EPA must stamp a later cutoff; never reuse M1_AVAILABLE_AT
+# blindly once a later prior is attached (design lock §6).
+PRIOR_SEASON_EPA_AVAILABLE_AT = "2026-01-05T00:00:00+00:00"
+
+# Schedule rest / international / home-away are on the 2026 REG fixture
+# before kickoff. Treat them as the same preseason vintage as the sealed board.
+M2_SCHEDULE_ENV_AVAILABLE_AT = M1_AVAILABLE_AT
+
+# Game-level nflverse passing_epa / rushing_epa (team-week totals, not per
+# play). z-score × kappa → volume factor. ±1 SD ≈ ±6% team volume.
+EPA_VOLUME_KAPPA = 0.06
+ENV_FACTOR_MIN = 0.85
+ENV_FACTOR_MAX = 1.15
+
+# Rest and international are small environment tilts, not Vegas lines.
+REST_SHORT_DAYS = 6
+REST_LONG_DAYS = 10
+REST_SHORT_MULT = 0.97
+REST_NORMAL_MULT = 1.00
+REST_LONG_MULT = 1.02
+INTL_TRAVEL_MULT = 0.98
+
+# Columns that must never drive M2 volume. Same-week box is in
+# FORBIDDEN_SAME_WEEK_TRAINING_FEATURES; this set is market / ADP.
+FORBIDDEN_MARKET_DRIVERS = frozenset(
+    {
+        "adp",
+        "adp_points",
+        "consensus_adp",
+        "vegas_total",
+        "season_win_total",
+        "implied_team_total",
+        "implied_opp_total",
+        "spread_line",
+        "total_line",
+    }
+)
+
 DEFAULT_SEALED_NAMESPACE = "v2_baseline_20260830"
 DEFAULT_SEALED_PROJECTIONS_REL = (
     "draft_assistant/data/releases/v2_baseline_20260830/projections_2026.csv"
@@ -151,7 +194,11 @@ DEFAULT_SEALED_PROJECTIONS_REL = (
 DEFAULT_SCHEDULE_FIXTURE_REL = (
     "src/projection/weekly_latent/fixtures/nfl_schedules_2026_reg.csv"
 )
+DEFAULT_OPP_EPA_PRIOR_REL = (
+    "src/projection/weekly_latent/fixtures/opp_def_epa_prior_2025.csv"
+)
 DEFAULT_OUTPUT_REL = "output/shadow_weekly_schedule_m1"
+DEFAULT_OUTPUT_REL_M2 = "output/shadow_weekly_schedule_m2"
 
 PRODUCTION_HASH_PATHS = (
     "draft_assistant/data/active_release_2026.json",
@@ -169,6 +216,28 @@ def opponent_shrinkage_lambda(week: int) -> float:
         if w <= max_week:
             return float(lam)
     return 0.10
+
+
+def parse_available_at(stamp: str) -> datetime:
+    """Parse an ISO-8601 cutoff; naive stamps are treated as UTC."""
+    text = str(stamp).strip().replace("Z", "+00:00")
+    parsed = datetime.fromisoformat(text)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def format_available_at(stamp: datetime) -> str:
+    utc = stamp.astimezone(timezone.utc)
+    return utc.strftime("%Y-%m-%dT%H:%M:%S+00:00")
+
+
+def max_available_at(*stamps: str | None) -> str:
+    """Latest cutoff among feature vintages. Fails if nothing was provided."""
+    present = [parse_available_at(s) for s in stamps if s]
+    if not present:
+        raise ValueError("max_available_at requires at least one cutoff")
+    return format_available_at(max(present))
 
 
 def normalize_team_abbr(team: str | None) -> str | None:
