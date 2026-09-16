@@ -128,7 +128,11 @@ def factors_from_def_epa(priors: pd.DataFrame) -> pd.DataFrame:
     ].drop_duplicates("opponent")
 
 
-def attach_environment(team_weeks: pd.DataFrame) -> pd.DataFrame:
+def attach_environment(
+    team_weeks: pd.DataFrame,
+    *,
+    env_available_at: str = M2_SCHEDULE_ENV_AVAILABLE_AT,
+) -> pd.DataFrame:
     """Add rest × international environment multipliers. Not Vegas, not box scores."""
     refuse_forbidden_m2_columns(team_weeks, where="M2 team-weeks before env attach")
     out = team_weeks.copy()
@@ -144,7 +148,7 @@ def attach_environment(team_weeks: pd.DataFrame) -> pd.DataFrame:
     out.loc[bye, "rest_mult"] = 0.0
     out.loc[bye, "travel_mult"] = 0.0
     out["env_mult"] = out["rest_mult"].astype(float) * out["travel_mult"].astype(float)
-    out["env_available_at"] = M2_SCHEDULE_ENV_AVAILABLE_AT
+    out["env_available_at"] = env_available_at
     return out
 
 

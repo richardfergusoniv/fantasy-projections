@@ -12,7 +12,15 @@ import pytest
 from src.projection.contracts import REPO_ROOT
 from src.projection.shadow.forbidden import local_import_graph
 from src.projection.weekly_latent.allocate import allocate_team_weeks, allocate_team_weeks_m2
-from src.projection.weekly_latent.backtest import run_synthetic_rolling_origin
+from src.projection.weekly_latent.backtest import (
+    HISTORICAL_BOARD_AVAILABLE_AT,
+    historical_features_for_week,
+    historical_schedule_history,
+    poison_same_week_volume,
+    run_historical_schedule_backtest,
+    run_m2_backtests,
+    run_synthetic_rolling_origin,
+)
 from src.projection.weekly_latent.constants import (
     FORBIDDEN_MARKET_DRIVERS,
     FORBIDDEN_SAME_WEEK_TRAINING_FEATURES,
@@ -245,10 +253,74 @@ def test_synthetic_rolling_origin_fails_closed_and_beats_naive():
     assert result["not_a_promotion"] is True
 
 
+def test_historical_schedule_backtest_fails_closed_on_denylist_siblings():
+    history = historical_schedule_history()
+    team_week, _priors = historical_features_for_week(history, as_of_week=2)
+    leaked = FORBIDDEN_SAME_WEEK_TRAINING_FEATURES.intersection(team_week.columns)
+    assert leaked == set()
+    leaked_outcomes = FORBIDDEN_SAME_WEEK_TRAINING_FEATURES.intersection(
+        history["schedule"].columns
+    )
+    assert leaked_outcomes == set()
+    for col in ("team_attempts", "team_carries", "team_targets", "team_air_yards"):
+        poisoned = team_week.copy()
+        poisoned[col] = 999.0
+        with pytest.raises(ValueError, match="same-week"):
+            refuse_forbidden_m2_columns(poisoned, where=f"historical {col}")
+        with pytest.raises(ValueError, match="same-week"):
+            refuse_forbidden_m2_columns(
+                poison_same_week_volume(team_week, column=col),
+                where=f"poison helper {col}",
+            )
+    result = run_historical_schedule_backtest()
+    assert result["poison_same_week_raised"] is True
+    assert set(result["poisoned_columns"]) == set(FORBIDDEN_SAME_WEEK_TRAINING_FEATURES)
+    assert result["forbidden_columns_on_features"] == []
+
+
+def test_historical_schedule_backtest_is_rolling_origin_as_of():
+    result = run_historical_schedule_backtest()
+    assert result["schema_version"] == "weekly_latent_m2_backtest_historical_v1"
+    assert result["object_evaluated"] == "allocate_team_weeks_m2"
+    assert result["passes"] is True
+    assert result["not_a_promotion"] is True
+    assert result["week1_prior_source"] == "prior_season_fallback"
+    assert result["later_prior_source"] == "lagged_weeks_before_as_of"
+    assert result["week1_available_at"] == HISTORICAL_BOARD_AVAILABLE_AT
+    assert result["week1_available_at"] != M1_AVAILABLE_AT
+    assert result["later_weeks_advance_available_at"] is True
+    assert result["season_mass_moved_vs_sealed"] is True
+    assert "6-8" in result["holdout"] or "not 6" in result["holdout"].lower()
+    assert "promotion" in result["holdout"].lower()
+    weeks = {row["week"] for row in result["weeks"]}
+    assert weeks == {1, 2, 3, 4, 5}
+    # Same-week EPA of 99 must not enter week-3 features.
+    history = historical_schedule_history()
+    weekly = history["weekly_epa"].copy()
+    weekly.loc[weekly["week"].eq(3), "pass_epa"] = 99.0
+    _team_week, priors = historical_features_for_week(
+        {**history, "weekly_epa": weekly}, as_of_week=3
+    )
+    assert "week" not in priors.columns or (priors["week"] < 3).all()
+    assert float(priors["def_pass_epa_allowed"].max()) < 50.0
+
+
+def test_historical_and_synthetic_backtests_run_together():
+    combined = run_m2_backtests()
+    assert combined["passes"] is True
+    assert combined["not_a_promotion"] is True
+    assert combined["synthetic"]["passes"] is True
+    assert combined["historical"]["passes"] is True
+    assert combined["synthetic"]["schema_version"] == "weekly_latent_m2_backtest_synthetic_v1"
+    assert combined["historical"]["schema_version"] == "weekly_latent_m2_backtest_historical_v1"
+
+
 def test_dry_run_m2_shares_and_production_untouched(tmp_path):
     result = run_milestone2(dry_run=True, output_dir=tmp_path)
     assert result.conservation["passes"] is True
     assert result.backtest["passes"] is True
+    assert result.backtest["historical"]["passes"] is True
+    assert result.backtest["synthetic"]["passes"] is True
     shares = result.tables.shares
     named = shares[shares["stat"].eq("attempts")].groupby("team")["share"].sum()
     other = shares[shares["stat"].eq("attempts")].groupby("team")["other_share"].first()

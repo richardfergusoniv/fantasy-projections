@@ -23,7 +23,7 @@ from src.projection.weekly_latent.allocate import (
     season_box_from_players,
 )
 from src.projection.weekly_latent.artifacts import write_shadow_outputs
-from src.projection.weekly_latent.backtest import run_synthetic_rolling_origin
+from src.projection.weekly_latent.backtest import run_m2_backtests
 from src.projection.weekly_latent.conservation import evaluate_conservation, evaluate_m2
 from src.projection.weekly_latent.constants import (
     DEFAULT_OPP_EPA_PRIOR_REL,
@@ -504,7 +504,7 @@ def run_milestone2(
     m1_conservation = evaluate_conservation(
         m1_teams, team_volume, shares, allocate_players(m1_teams, players, shares), players
     )
-    backtest = run_synthetic_rolling_origin() if run_backtest else {"skipped": True}
+    backtest = run_m2_backtests() if run_backtest else {"skipped": True}
     after = production_fingerprint(root)
     drift = {
         rel: {"before": before[rel], "after": after[rel]}
@@ -575,7 +575,10 @@ def run_milestone2(
         conservation=conservation,
         summary=summary,
         readme_title="Shadow weekly schedule allocation (Milestone 2)",
-        extra_json={"backtest_synthetic.json": backtest},
+        extra_json={
+            "backtest_synthetic.json": backtest.get("synthetic", backtest),
+            "backtest_historical.json": backtest.get("historical", {}),
+        },
         cli_name="scripts/run_weekly_schedule_m2.py",
     )
     return Milestone2Run(

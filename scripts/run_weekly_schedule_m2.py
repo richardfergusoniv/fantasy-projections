@@ -64,7 +64,7 @@ def main() -> int:
     parser.add_argument(
         "--skip-backtest",
         action="store_true",
-        help="Skip the synthetic rolling-origin leakage harness.",
+        help="Skip the synthetic + historical rolling-origin leakage harness.",
     )
     args = parser.parse_args()
     result = run_milestone2(

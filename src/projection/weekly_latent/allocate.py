@@ -23,6 +23,7 @@ from src.projection.weekly_latent.constants import (
     FORBIDDEN_SAME_WEEK_TRAINING_FEATURES,
     HOME_MULT,
     M1_AVAILABLE_AT,
+    M2_SCHEDULE_ENV_AVAILABLE_AT,
     NEUTRAL_MULT,
     PLAYER_SHARE_POOLS,
     TEAM_VOLUME_PG_COLUMNS,
@@ -131,6 +132,7 @@ def allocate_team_weeks_m2(
     opponent_priors: pd.DataFrame | None = None,
     board_available_at: str = M1_AVAILABLE_AT,
     n_active_override: float | None = None,
+    schedule_env_available_at: str | None = None,
 ) -> pd.DataFrame:
     """Team-week latent that may move season mass vs the sealed prior.
 
@@ -150,7 +152,8 @@ def allocate_team_weeks_m2(
     refuse_forbidden_m2_columns(frame, where="M2 allocate_team_weeks")
     if opponent_priors is not None and not opponent_priors.empty:
         refuse_forbidden_m2_columns(opponent_priors, where="M2 opponent_priors")
-    frame = attach_environment(frame)
+    env_stamp = schedule_env_available_at or M2_SCHEDULE_ENV_AVAILABLE_AT
+    frame = attach_environment(frame, env_available_at=env_stamp)
     frame["home_away_mult"] = frame.apply(_home_away_mult, axis=1)
     frame["opp_pass_mult"] = [
         shrunk_opponent_mult(f, lam)
