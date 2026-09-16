@@ -20,8 +20,17 @@ Weekly, shadow, and other research PRs still use this template.
 - Still fill **Evaluation** (what was measured, holdout, leakage evidence) and **Risk and rollback**.
 - Weekly / hierarchical / opportunity-first work stays shadow until it beats the accuracy-first incumbent under leakage-safe evaluation. See [`docs/PIPELINE_MAP.md`](../PIPELINE_MAP.md) §9 and [`docs/decisions/REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md`](../decisions/REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md).
 
+## Review after you open the PR
+
+Template fill remains required. Review roles are in [`docs/decisions/REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md`](../decisions/REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md).
+
+- Claude Code Review runs automatically via the existing GitHub Action (subscription OAuth).
+- Do **not** wait for a Perplexity GitHub Action — there is none. Perplexity is optional, **manual**, and **informational**: the human pastes a PR prompt into Perplexity subscription chat with the GitHub connector.
+- Do not add `PERPLEXITY_API_KEY`, a Perplexity workflow, or a hard merge check.
+
 ## Do not
 
 - Do not invent a shorter description because the PR is “docs only” or “research only.”
 - Do not leave production contract boxes unchecked without `N/A`.
 - Do not change sealed boards, release pointers, or curated `starters_YYYY.csv` unless the PR is explicitly about that work and the contracts above are filled as in-scope.
+- Do not wait on Perplexity Actions or treat Perplexity as a required check.

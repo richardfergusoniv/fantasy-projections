@@ -1,6 +1,7 @@
 # Review pipeline — Cursor / Claude / Perplexity — 2026-09-15
 
 **Date:** 2026-09-15
+**Updated:** 2026-09-16 — Perplexity locked to manual subscription chat + GitHub connector; Actions / API-credits path rejected (PR #74 closed, unmerged).
 **Scope:** pull-request process and model-governance review. No change to production projection code, sealed boards, or release pointers.
 **PR template:** [`.github/PULL_REQUEST_TEMPLATE.md`](../../.github/PULL_REQUEST_TEMPLATE.md)
 **Cursor agent snippet:** [`docs/ops/CURSOR_PR_CONTRACT.md`](../ops/CURSOR_PR_CONTRACT.md)
@@ -9,7 +10,9 @@
 
 Every PR uses the contract checklist in the GitHub PR template. Review is four roles, in order: **Cursor implements**, **Claude reviews code quality**, **Perplexity reviews systems / model governance**, **a human merges and promotes**.
 
-Perplexity is an independent governance pass. It is **not** a second Claude review and must not merely echo Claude's comments.
+Perplexity is an independent governance pass (leakage, provenance, release). It is **manual and informational**: paste a PR prompt into the user's Perplexity **subscription chat** with the GitHub **connector**. It is **not** a second Claude review, **not** a GitHub Action, and **not** a hard merge check. Do not add `PERPLEXITY_API_KEY` or a Perplexity Actions job.
+
+Claude Code Review stays as the existing GitHub Action (subscription OAuth path: `.github/workflows/claude-code-review.yml`).
 
 The contract language below is summarized from existing pipeline docs, not a new mathematical design. Authoritative behavior remains [`docs/PIPELINE_MAP.md`](../PIPELINE_MAP.md) and the dated records under `docs/decisions/` and `docs/history/`.
 
@@ -18,8 +21,8 @@ The contract language below is summarized from existing pipeline docs, not a new
 | Role | Actor | Job |
 |---|---|---|
 | Implementation | Cursor (and any human author) | Branch, tests, filled PR template, no silent contract skips |
-| Code quality | Claude Code | Diff readability, tests, obvious bugs, workflow/CI issues. Already runs on PRs via `.github/workflows/claude-code-review.yml` |
-| Systems / model governance | Perplexity | Leakage, provenance, release gates, statistical validity. Answers whether the PR preserves the mathematical, calibration, artifact, and release-control contract |
+| Code quality | Claude Code | Diff readability, tests, obvious bugs, workflow/CI issues. Runs on PRs via `.github/workflows/claude-code-review.yml` (subscription OAuth) |
+| Systems / model governance | Perplexity | Leakage, provenance, release gates, statistical validity. **Manual / informational** via Perplexity subscription chat + GitHub connector (paste the PR prompt). Not an Actions job, API-key path, or required check |
 | Final merge / promotion | Human | Merge the PR. Separate human step for pointer promotion / rollback (`promote_release`) |
 
 Claude may catch a broken test or an unclear rename. Perplexity must still ask whether hashes, holdouts, gates, and fail-closed paths still mean what [`PIPELINE_MAP.md`](../PIPELINE_MAP.md) says they mean.
@@ -27,11 +30,11 @@ Claude may catch a broken test or an unclear rename. Perplexity must still ask w
 ## Ordered workflow
 
 1. **Cursor** opens a branch and PR, runs the relevant tests, and fills `.github/PULL_REQUEST_TEMPLATE.md` (see [`docs/ops/CURSOR_PR_CONTRACT.md`](../ops/CURSOR_PR_CONTRACT.md)).
-2. **Claude Code** reviews the diff for code quality (existing PR Action).
-3. **Perplexity** does governance review after Claude, using the prompt in this document. Verdict is informational in Phase 1.
+2. **Claude Code** reviews the diff for code quality (existing PR Action; subscription OAuth).
+3. **Perplexity** (optional, after Claude): the human pastes the prompt in this document into Perplexity subscription chat with the GitHub connector pointed at the PR. Verdict is **informational only** — no Actions job, no API key, no hard merge check.
 4. **Human** merges. Promotion of a sealed namespace remains a separate fail-closed command, not a GitHub merge.
 
-Do not skip Perplexity because Claude was green. Do not treat a Perplexity “looks good” that restates Claude's bullet list as a completed governance review.
+Claude-green is not a completed governance review. If a Perplexity pass is done, do not treat a “looks good” that restates Claude's bullet list as complete. Perplexity remains optional and does not block merge.
 
 ## The question Perplexity must answer
 
@@ -104,9 +107,9 @@ Use when the PR changes weekly features, weekly-v2, hierarchical weekly ROS, or 
 - Stay shadow until the candidate beats the accuracy-first incumbent on leakage-safe top-120 (or the documented weekly promotion gate). Do not wire into compose / publish / auto-publish on a green unit test alone. PIPELINE_MAP §9.
 - Mark production board/simulation/release contracts `N/A` when they are truly untouched, and still fill Evaluation and Risk.
 
-## Suggested Perplexity merge-gate prompt
+## Suggested Perplexity governance-review prompt
 
-Copy and fill the bracketed paths. Use after Claude has commented.
+Manual only. Copy this into Perplexity **subscription chat** with the GitHub **connector** enabled, and include the PR URL. Use after Claude has commented. This is informational — not a required check and not an Actions job.
 
 ```text
 You are the independent model-governance reviewer for Fantasy Decisions
@@ -151,15 +154,16 @@ pinned artifacts — or if the PR is explicitly docs/ops with production
 contracts marked N/A.
 ```
 
-## Phase plan
+## Adopted process (locked 2026-09-16)
 
-| Phase | What happens | Merge blocker? |
-|---|---|---|
-| **1 — now** | Manual Perplexity review after Claude, using the prompt above. Informational comment on the PR | No |
-| **2 — later** | Optional GitHub Action that posts the same prompt / checklist as an informational check | No |
-| **3 — not yet** | Hard required status check | Do not enable |
+| Path | Status |
+|---|---|
+| Claude Code Review GitHub Action (subscription OAuth) | **Stays** — `.github/workflows/claude-code-review.yml` |
+| Perplexity subscription chat + GitHub connector | **Adopted** — manual / informational governance review |
+| Perplexity GitHub Action / API credits (`PERPLEXITY_API_KEY`) | **Rejected** — PR #74 closed, unmerged |
+| Perplexity as a required merge check | **Not adopted** |
 
-Phase 1 is the adopted process. Phase 2 may be added later as a non-blocking check. Do not make Perplexity a required merge gate until a human records that decision in a follow-up document.
+A future Actions path would need separate Perplexity API credits and is explicitly out of scope unless product revisits.
 
 ## Cursor agents, when opening a PR
 
@@ -170,6 +174,7 @@ Short form:
 - Always fill `.github/PULL_REQUEST_TEMPLATE.md`. Do not substitute a shorter description.
 - For weekly / research PRs, mark production contracts `N/A` and still fill Evaluation and Risk.
 - Do not change production projection code, sealed boards, or release pointers unless the task says so and the in-scope contracts are checked with evidence.
+- Do not wait for a Perplexity GitHub Action, add `PERPLEXITY_API_KEY`, or treat Perplexity as a merge check. Perplexity review is a human paste into subscription chat + connector.
 
 ## Related
 
@@ -182,3 +187,4 @@ Short form:
 - [`SIMULATION_MODE_2026-08-26.md`](SIMULATION_MODE_2026-08-26.md)
 - [`DRAW_COUNT_ROLLOUT_2026-08-28.md`](DRAW_COUNT_ROLLOUT_2026-08-28.md)
 - [`V3_PROBABILISTIC_PIPELINE.md`](V3_PROBABILISTIC_PIPELINE.md)
+- Related / incoming (not on this branch or `master`): weekly-model promotion gate and Vegas props roles — `docs/decisions/WEEKLY_MODEL_PROMOTION_AND_PROPS_ROLES_2026-09-15.md` on open [PR #76](https://github.com/richardfergusoniv/fantasy-projections/pull/76)
