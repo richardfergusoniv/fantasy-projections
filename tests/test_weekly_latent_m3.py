@@ -16,7 +16,10 @@ from src.projection.weekly_latent.allocate import (
     allocate_players,
     allocate_players_m3,
     allocate_team_weeks_m2,
+    season_box_from_player_weeks,
+    season_box_from_players,
 )
+from src.projection.weekly_latent.conservation import m3_season_is_sum_of_weeks
 from src.projection.weekly_latent.backtest_m3 import (
     run_historical_m3_backtest,
     run_m3_backtests,
@@ -66,9 +69,15 @@ def _manual_team_weeks(rows: list[dict]) -> pd.DataFrame:
         (frame["is_home"] == 1) & (frame["is_neutral"] == 0) & (frame["is_bye"] == 0)
     ).astype(int)
     frame["shrinkage_lambda"] = frame["week"].map(opponent_shrinkage_lambda)
-    for col in ("roof", "surface", "stadium", "gameday"):
+    for col in ("roof", "surface", "stadium"):
         if col not in frame.columns:
             frame[col] = None
+    if "gameday" not in frame.columns:
+        # Week 1 = 2026-09-10 so override vintages can be checked vs kickoff.
+        frame["gameday"] = [
+            (pd.Timestamp("2026-09-10") + pd.Timedelta(days=7 * (int(w) - 1))).strftime("%Y-%m-%d")
+            for w in frame["week"]
+        ]
     return frame
 
 
@@ -282,13 +291,161 @@ def test_season_equals_sum_of_weeks():
         ],
         players,
     )
-    weekly_sum = m3.groupby("player_id")["fantasy_points"].sum()
-    # Season identity is the sum of weeks (bye contributes 0), not pred_season × 17.
+    # Season identity is the sum of weeks scored independently from the box.
     assert (m3.loc[m3["is_bye"].eq(1), "fantasy_points"] == 0).all()
+    season_from_weeks = season_box_from_player_weeks(m3)
+    checks = m3_season_is_sum_of_weeks(m3, season_from_weeks)
+    assert checks[0]["passed"] is True
+    weekly_sum = m3.groupby("player_id")["fantasy_points"].sum()
+    board = season_from_weeks.set_index("player_id")["fantasy_points_board"]
     for pid, total in weekly_sum.items():
-        rebuilt = float(m3.loc[m3["player_id"].eq(pid), "fantasy_points"].sum())
-        assert rebuilt == pytest.approx(float(total))
-        assert rebuilt >= 0.0
+        assert float(board.loc[pid]) == pytest.approx(float(total))
+        assert float(total) >= 0.0
+
+
+def test_season_sum_check_fails_when_fantasy_points_disagree_with_box():
+    players = _wr_player()
+    _m2, m3, _shares, _vol = _m3_tables(
+        [
+            {
+                "team": "AAA",
+                "week": 1,
+                "opponent": "BBB",
+                "is_home": 1,
+                "is_bye": 0,
+            }
+        ],
+        players,
+    )
+    season_from_weeks = season_box_from_player_weeks(m3)
+    broken = m3.copy()
+    broken["fantasy_points"] = broken["fantasy_points"] + 25.0
+    checks = m3_season_is_sum_of_weeks(broken, season_from_weeks)
+    assert checks[0]["passed"] is False
+
+
+def test_season_sum_check_fails_against_independent_sealed_board():
+    """Sealed pred_season board is an independent total; a short slate must fail."""
+    players = season_box_from_players(_wr_player())
+    _m2, m3, _shares, _vol = _m3_tables(
+        [
+            {
+                "team": "AAA",
+                "week": 1,
+                "opponent": "BBB",
+                "is_home": 1,
+                "is_bye": 0,
+            }
+        ],
+        _wr_player(),
+    )
+    checks = m3_season_is_sum_of_weeks(m3, players)
+    assert "fantasy_points_board" in players.columns
+    assert checks[0]["passed"] is False
+
+
+def test_availability_does_not_reapply_projected_games_exposure():
+    eight = _wr_player(projected_games=8.0)
+    full = _wr_player(projected_games=17.0)
+    team_rows = [
+        {
+            "team": "AAA",
+            "week": 1,
+            "opponent": "BBB",
+            "is_home": 1,
+            "is_bye": 0,
+            "rest_days": 7,
+        }
+    ]
+    _m2_8, m3_8, _s8, _v8 = _m3_tables(team_rows, eight)
+    _m2_17, m3_17, _s17, _v17 = _m3_tables(team_rows, full)
+    # Same pred_season targets → same share. A must not be 8/17 on the 8-game row.
+    assert float(m3_8["A_i_w"].iloc[0]) == pytest.approx(float(m3_17["A_i_w"].iloc[0]))
+    assert float(m3_8["A_base"].iloc[0]) == pytest.approx(1.0)
+    assert float(m3_8["A_i_w"].iloc[0]) == pytest.approx(1.0)
+    assert float(m3_8["targets"].iloc[0]) == pytest.approx(float(m3_17["targets"].iloc[0]))
+
+
+def test_availability_override_refuses_missing_available_at():
+    players = _wr_player()
+    _m2, _m3, shares, _vol = _m3_tables(
+        [
+            {
+                "team": "AAA",
+                "week": 1,
+                "opponent": "BBB",
+                "is_home": 1,
+                "is_bye": 0,
+            }
+        ],
+        players,
+    )
+    missing = pd.DataFrame({"player_id": ["p-wr"], "week": [1], "A_i_w": [0.0]})
+    with pytest.raises(ValueError, match="available_at"):
+        allocate_players_m3(_m2, players, shares, availability=missing)
+
+
+def test_availability_override_refuses_after_kickoff():
+    players = _wr_player()
+    _m2, _m3, shares, _vol = _m3_tables(
+        [
+            {
+                "team": "AAA",
+                "week": 1,
+                "opponent": "BBB",
+                "is_home": 1,
+                "is_bye": 0,
+                "gameday": "2026-09-10",
+            }
+        ],
+        players,
+    )
+    late = pd.DataFrame(
+        {
+            "player_id": ["p-wr"],
+            "week": [1],
+            "A_i_w": [0.0],
+            "available_at": ["2026-09-11T00:00:00+00:00"],
+        }
+    )
+    with pytest.raises(ValueError, match="kickoff"):
+        allocate_players_m3(_m2, players, shares, availability=late)
+
+
+def test_availability_override_merge_includes_season():
+    players = _wr_player()
+    team_weeks = _manual_team_weeks(
+        [
+            {
+                "team": "AAA",
+                "week": 1,
+                "opponent": "BBB",
+                "is_home": 1,
+                "is_bye": 0,
+                "gameday": "2026-09-10",
+            }
+        ]
+    )
+    other = team_weeks.copy()
+    other["season"] = 2025
+    other["gameday"] = "2025-09-07"
+    weekly = pd.concat([team_weeks, other], ignore_index=True)
+    volume = _volume()
+    shares = role_shares(players, volume)
+    m2 = allocate_team_weeks_m2(weekly, volume, opponent_priors=_priors())
+    override = pd.DataFrame(
+        {
+            "player_id": ["p-wr"],
+            "season": [2025],
+            "week": [1],
+            "A_i_w": [0.0],
+            "available_at": ["2025-09-06T00:00:00+00:00"],
+        }
+    )
+    m3 = allocate_players_m3(m2, players, shares, availability=override)
+    by_season = m3.set_index("season")
+    assert float(by_season.loc[2025, "A_i_w"]) == 0.0
+    assert float(by_season.loc[2026, "A_i_w"]) == pytest.approx(1.0)
 
 
 def test_conversions_week_vary_with_lagged_opponent_not_volume_matchup():
@@ -434,7 +591,7 @@ def test_m3_refuses_adp_and_vegas_drivers():
 
 def test_m3_available_at_is_max_and_keeps_vintage_columns():
     players = _wr_player()
-    later = "2026-10-14T00:00:00+00:00"
+    later = "2026-09-09T12:00:00+00:00"
     availability = pd.DataFrame(
         {
             "player_id": ["p-wr"],
@@ -672,7 +829,7 @@ def test_sealed_board_m3_shadow_only(tmp_path):
     assert len(bye) > 0
     assert float(bye["A_i_w"].abs().sum()) == 0.0
     assert float(bye["fantasy_points"].abs().sum()) == 0.0
-    # M3 availability is not uniformly 1 on active weeks (rest / projected_games).
+    # M3 availability is not uniformly 1 on active weeks (rest sit-risk).
     active = result.tables.player_weeks[result.tables.player_weeks["is_bye"].eq(0)]
     assert float(active["A_i_w"].min()) < 1.0
     assert result.vegas_compare["promoting"] is False

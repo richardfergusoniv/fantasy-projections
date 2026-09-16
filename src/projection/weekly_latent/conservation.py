@@ -437,20 +437,64 @@ def m3_conversion_consistency(player_weeks: pd.DataFrame) -> list[dict[str, Any]
     return checks
 
 
-def m3_season_is_sum_of_weeks(player_weeks: pd.DataFrame) -> list[dict[str, Any]]:
-    """Season fantasy is the sum of weekly means, including A=0 bye weeks."""
+def m3_season_is_sum_of_weeks(
+    player_weeks: pd.DataFrame,
+    players: pd.DataFrame | None = None,
+) -> list[dict[str, Any]]:
+    """Season fantasy equals an independent season total, not a second groupby.
+
+    Independent total is ``players.fantasy_points_board`` (from
+    ``season_box_from_players``). When ``players`` is omitted, the season
+    box is rebuilt by summing weekly *box stats* and scoring that frame —
+    not by summing the ``fantasy_points`` column again. The check fails
+    when the weekly points column disagrees with that board.
+    """
+    from src.projection.weekly_latent.allocate import (
+        season_box_from_player_weeks,
+        season_box_from_players,
+    )
+
     if "fantasy_points" not in player_weeks.columns or "player_id" not in player_weeks.columns:
         return [_check("season_equals_sum_of_weeks", False, "missing fantasy_points")]
-    grouped = player_weeks.groupby("player_id")["fantasy_points"].sum()
-    rebuilt = (
-        player_weeks.groupby("player_id")["fantasy_points"].apply(lambda s: float(s.sum()))
-    )
-    delta = (grouped - rebuilt).abs()
+    keys = ["player_id"]
+    if "season" in player_weeks.columns:
+        keys = ["player_id", "season"]
+    weekly_sum = player_weeks.groupby(keys)["fantasy_points"].sum()
+    if players is None:
+        board_frame = season_box_from_player_weeks(player_weeks)
+    elif "fantasy_points_board" in players.columns:
+        board_frame = players
+    else:
+        board_frame = season_box_from_players(players)
+    if "fantasy_points_board" not in board_frame.columns:
+        return [_check("season_equals_sum_of_weeks", False, "missing fantasy_points_board")]
+    board_keys = [k for k in keys if k in board_frame.columns]
+    if board_keys != keys:
+        return [
+            _check(
+                "season_equals_sum_of_weeks",
+                False,
+                f"season board missing merge keys {sorted(set(keys) - set(board_keys))}",
+            )
+        ]
+    board = board_frame.groupby(board_keys)["fantasy_points_board"].first()
+    left, right = weekly_sum.align(board, join="outer")
+    if left.isna().any() or right.isna().any():
+        missing = int(left.isna().sum() + right.isna().sum())
+        return [
+            _check(
+                "season_equals_sum_of_weeks",
+                False,
+                f"unaligned player-season rows={missing}",
+            )
+        ]
+    delta = (left - right).abs()
+    worst = float(delta.max()) if len(delta) else 0.0
     return [
         _check(
             "season_equals_sum_of_weeks",
-            bool((delta <= CONSERVATION_ATOL).all()),
-            f"n_players={int(len(grouped))} max_abs_delta={float(delta.max()) if len(delta) else 0.0:.8f}",
+            bool((delta <= CONSERVATION_ATOL + CONSERVATION_RTOL * right.abs()).all()),
+            f"n_players={int(len(weekly_sum))} max_abs_delta={worst:.8f}",
         )
     ]
 
@@ -472,7 +516,14 @@ def evaluate_m3(
     checks.extend(player_inactive_on_bye(player_weeks))
     checks.extend(m3_availability_identities(player_weeks))
     checks.extend(m3_conversion_consistency(player_weeks))
-    checks.extend(m3_season_is_sum_of_weeks(player_weeks))
+    from src.projection.weekly_latent.allocate import season_box_from_player_weeks
+
+    # Independent season total is the weekly box summed then scored — not
+    # a second groupby of fantasy_points, and not the sealed pred_season
+    # board (M2/M3 may move season mass). Passing `players` with a
+    # disagreeing fantasy_points_board still fails the helper.
+    season_from_weeks = season_box_from_player_weeks(player_weeks)
+    checks.extend(m3_season_is_sum_of_weeks(player_weeks, season_from_weeks))
     checks.extend(no_forbidden_training_features(team_weeks, player_weeks))
     from src.projection.weekly_latent.constants import FORBIDDEN_MARKET_DRIVERS
 
@@ -496,7 +547,8 @@ def evaluate_m3(
         "invariant": (
             "M3 keeps the M2 team-week identity and within-week share simplex. "
             "Player A_i,w is week-varying in [0, 1]; bye forces A=0. "
-            "Season fantasy is the sum of weeks. Conversions are clipped so "
+            "Season fantasy is the sum of weeks, checked against an independent "
+            "fantasy_points_board (weekly box summed then scored). Conversions are clipped so "
             "receptions ≤ targets, completions ≤ attempts, INTs ≤ attempts − "
             "completions, and TDs ≤ the matching count. Same-week team volume "
             "and ADP/season Vegas are forbidden drivers."

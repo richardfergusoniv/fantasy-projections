@@ -320,6 +320,8 @@ def _player_week_skeleton(
         "surface",
         "stadium",
         "gameday",
+        "gametime",
+        "kickoff_at",
         "available_at",
         "shrinkage_lambda",
         "home_away_mult",
@@ -431,6 +433,29 @@ def season_box_from_players(
     out = players.copy()
     out["fantasy_points_board"] = _fantasy_points(out, scoring)
     return out
+
+
+def season_box_from_player_weeks(
+    player_weeks: pd.DataFrame, scoring: dict[str, float] | None = None
+) -> pd.DataFrame:
+    """Independent season box: sum weekly box stats, then score.
+
+    This is not a second groupby of ``fantasy_points``. Scoring the
+    aggregated box can disagree with ``sum_w fantasy_points`` if the weekly
+    points column was set independently of the box.
+    """
+    keys = ["player_id"]
+    if "season" in player_weeks.columns:
+        keys = ["player_id", "season"]
+    stat_cols = [
+        c
+        for c in list(PLAYER_SHARE_POOLS) + list(CONVERSION_RATES)
+        if c in player_weeks.columns
+    ]
+    if "player_id" not in player_weeks.columns or not stat_cols:
+        return season_box_from_players(pd.DataFrame(columns=["player_id"]), scoring)
+    grouped = player_weeks.groupby(keys, as_index=False)[stat_cols].sum()
+    return season_box_from_players(grouped, scoring)
 
 
 @dataclass

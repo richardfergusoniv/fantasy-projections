@@ -22,7 +22,9 @@ from src.projection.weekly_latent.allocate import (
     allocate_players,
     allocate_players_m3,
     allocate_team_weeks_m2,
+    season_box_from_player_weeks,
 )
+from src.projection.weekly_latent.conservation import m3_season_is_sum_of_weeks
 from src.projection.weekly_latent.backtest import (
     FORBIDDEN_SAME_WEEK_TRAINING_FEATURES,
     HISTORICAL_BOARD_AVAILABLE_AT,
@@ -100,6 +102,7 @@ def _sit_override(week: int, *, as_of_week: int) -> pd.DataFrame | None:
     return pd.DataFrame(
         {
             "player_id": ["p-wr"],
+            "season": [2026],
             "week": [3],
             "A_i_w": [0.0],
             "available_at": [SIT_AVAILABLE_AT],
@@ -233,6 +236,7 @@ def _historical_sit(week: int, *, as_of_week: int) -> pd.DataFrame | None:
     return pd.DataFrame(
         {
             "player_id": [HISTORICAL_SIT_PLAYER],
+            "season": [2025],
             "week": [HISTORICAL_SIT_WEEK],
             "A_i_w": [0.0],
             "available_at": [HISTORICAL_SIT_AVAILABLE_AT],
@@ -316,9 +320,9 @@ def run_historical_m3_backtest() -> dict[str, Any]:
             )
     frame = pd.DataFrame(rows)
     all_m3 = pd.concat(allocated, ignore_index=True)
-    season_sum = all_m3.groupby("player_id")["fantasy_points"].sum()
-    rebuilt = all_m3.groupby("player_id")["fantasy_points"].sum()
-    season_eq = bool((season_sum - rebuilt).abs().max() <= 1e-9)
+    season_board = season_box_from_player_weeks(all_m3)
+    season_checks = m3_season_is_sum_of_weeks(all_m3, season_board)
+    season_eq = bool(season_checks and season_checks[0]["passed"] is True)
     bye_zero = bool((frame.loc[frame["is_bye"].eq(1), "A_i_w"] == 0).all())
     mae_m3 = float(frame["abs_err_m3"].mean())
     mae_naive = float(frame["abs_err_naive"].mean())

@@ -33,7 +33,9 @@ A_{i,w}=\operatorname{clip}\bigl(A_i^{\mathrm{base}}\cdot m_{i,w}^{\mathrm{rest}
 \quad\text{otherwise, unless a lagged sit override is attached.}
 \]
 
-\(A_i^{\mathrm{base}}=\operatorname{clip}(\texttt{projected\_games}/17,\,0,1)\) from the sealed board (missing → 1.0). Short rest (`< 6` days) is a sit-risk haircut (starters 0.97, backups 0.90). Extra rest does **not** create games. This is player-level availability, not a second copy of M2 `env_mult` (which already moves team volume).
+\(A_i^{\mathrm{base}}=1\). Season exposure is **not** applied again here. Role shares are built from sealed `pred_season` (`pred_pg × projected_games`), so `projected_games / 17` is already inside \(s_{i,k}\). Multiplying weekly \(A\) by that ratio would square the discount and smear an 8-game projection across all 17 weeks. Week-level \(A_{i,w}\) is only play/sit: rest haircut, lagged override, or bye. Short rest (`< 6` days) is a sit-risk haircut (starters 0.97, backups 0.90). Extra rest does **not** create games. This is player-level availability, not a second copy of M2 `env_mult` (which already moves team volume).
+
+A player projected for 8 games therefore keeps the smaller share and \(A=1\) on active weeks (unless sit/rest/bye), not \(A=8/17\) on every week. Expected games are the sum of weekly \(A\), not a second 17-game multiplier.
 
 Opportunity:
 
@@ -49,7 +51,7 @@ m_{i,w}^{\mathrm{pass\,conv}}=1+\kappa_{\mathrm{conv}}(m_{t,w}^{\mathrm{opp,pass
 
 clipped to \([0.90,1.10]\). Rush conversions use the rush opponent factor. INT rate uses the **inverse** pass factor (tougher pass D → more INTs). Completions cannot exceed attempts; receptions cannot exceed targets; INTs cannot exceed attempts − completions; TDs cannot exceed the matching count.
 
-**Season = sum of weeks**, including \(A_{i,w}=0\) byes.
+**Season = sum of weeks**, including \(A_{i,w}=0\) byes. Conservation compares \(\sum_w\) weekly fantasy to an independent `fantasy_points_board` from `season_box_from_players` on the **summed weekly box**, not a second groupby of the same `fantasy_points` column. That check can fail. It is not sealed-`pred_season` reconciliation: M2/M3 may move season mass.
 
 Unchanged from M2:
 
@@ -65,9 +67,9 @@ Unchanged from M2:
 | Feature | Role in M3 | `available_at` rule |
 |---|---|---|
 | M2 team-week volume | \(V^{\mathrm{M2}}\) prior for opportunity | max(board, schedule-env, opponent prior) as in M2 |
-| Sealed `projected_games` | \(A^{\mathrm{base}}\) | board vintage (`v2_baseline_20260830` / `M1_AVAILABLE_AT`) |
+| Sealed `projected_games` | already inside role share (`pred_season`); **not** a second \(A^{\mathrm{base}}\) scale | board vintage (`v2_baseline_20260830` / `M1_AVAILABLE_AT`) |
 | Rest sit-risk | \(m^{\mathrm{rest}}\) | schedule-env vintage |
-| Lagged sit override | replaces \(A_{i,w}\) on that player-week | override stamp; max still cannot move earlier than other attached vintages |
+| Lagged sit override | replaces \(A_{i,w}\) on that player-week | override `available_at` required and must be \(\le\) kickoff (`gameday`/`kickoff_at`); missing or post-kickoff refuses. Merge key is `(player_id, season, week)` when season is on the slate. Row `available_at` still advances via max of vintages and never moves earlier. |
 | Opponent pass/rush factor | conversion multipliers (not HA/env) | `conv_available_at` = prior vintage (or board if none) |
 | Bye | \(A_{i,w}=0\) | — |
 
