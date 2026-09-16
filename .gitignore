@@ -147,3 +147,7 @@ output/app_artifacts/
 
 .vercel
 .env.local
+
+# Compound Engineering machine-local overrides (never commit)
+.compound-engineering/*.local.yaml
+.compound-engineering/config.local.yaml

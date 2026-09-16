@@ -1,0 +1,20 @@
+# fantasy-projections team Compound Engineering defaults.
+# Uncomment only keys we intentionally set. Full key catalog:
+#   .compound-engineering/config.example.yaml
+# Machine-local overrides (never commit):
+#   .compound-engineering/config.local.yaml
+#
+# docs_root is left unset so CE keeps writing artifacts under docs/
+# (this repo already stores decisions, research, and ops there).
+
+# After a plan is locked, skip the ce-plan scoping confirmation gate.
+# Genuine blocking questions and the post-plan menu still appear.
+plan_skip_scoping_confirm: true
+
+# After a full-workflow PR is opened, watch CI + incoming review.
+# Default is already true; set here so the team intent is explicit.
+auto_babysit: true
+
+# Claude Code Review (GitHub Action) + optional manual Perplexity already
+# cover review. Do not auto-send diffs to a second provider.
+cross_model_review_mode: off
