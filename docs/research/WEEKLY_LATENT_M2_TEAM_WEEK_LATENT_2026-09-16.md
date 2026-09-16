@@ -107,7 +107,7 @@ Not a renamed M3. Not a random split.
 - Realized `team_pass_attempts` live in a separate outcomes table and are never joined onto the feature frame.
 - Injecting same-week `team_attempts` must raise (`refuse_forbidden_m2_columns`).
 - Score M2 weekly volume vs a naive even split of sealed season mass. Single-row M1 renormalize is *not* the baseline (it dumps the whole season into that week).
-- Weeks \(t>1\) must overwrite `available_at` to the lagged gameday, not keep `M1_AVAILABLE_AT`.
+- Weeks \(t>1\) must advance `available_at` to the lagged gameday (max of attached vintages), not keep `M1_AVAILABLE_AT`.
 
 This is the leakage-safe evaluation of the object M2 actually ships (deterministic team-week latent). It is not 2026 live shadow, not a Vegas-props comparison, and not a promotion argument. A historical schedule backtest of M1 does not replace it.
 
