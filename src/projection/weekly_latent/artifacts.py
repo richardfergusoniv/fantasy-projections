@@ -48,6 +48,7 @@ def write_shadow_outputs(
     sample_rows: int = 40,
     readme_title: str | None = None,
     extra_json: Mapping[str, Mapping[str, Any]] | None = None,
+    extra_csv: Mapping[str, pd.DataFrame] | None = None,
     cli_name: str | None = None,
 ) -> dict[str, str]:
     out = Path(output_dir)
@@ -67,6 +68,7 @@ def write_shadow_outputs(
             "is_home",
             "is_bye",
             "A_i_w",
+            "m_pass_conv",
             "available_at",
             "attempts",
             "targets",
@@ -101,6 +103,10 @@ def write_shadow_outputs(
         for name, body in extra_json.items():
             write_json(out / name, dict(body))
             paths[name] = str(out / name)
+    if extra_csv:
+        for name, frame in extra_csv.items():
+            frame.to_csv(out / name, index=False)
+            paths[name] = str(out / name)
     (out / README_NAME).write_text(
         _readme_text(
             payload,
@@ -123,7 +129,9 @@ def _readme_text(
     failing = conservation.get("failing_checks") or []
     heading = title or "Shadow weekly schedule allocation (Milestone 1)"
     script = cli_name or (
-        "scripts/run_weekly_schedule_m2.py"
+        "scripts/run_weekly_schedule_m3.py"
+        if int(summary.get("milestone") or 1) >= 3
+        else "scripts/run_weekly_schedule_m2.py"
         if int(summary.get("milestone") or 1) >= 2
         else "scripts/run_weekly_schedule_m1.py"
     )
@@ -140,7 +148,8 @@ def _readme_text(
         "Large `player_weeks.csv` / `team_weeks.csv` / `shares.csv` are gitignored. "
         "`summary.json`, `conservation.json`, and `sample_player_weeks.csv` are "
         "the committed evidence files. Milestone 2 also commits "
-        "`backtest_synthetic.json` and `backtest_historical.json`.\n\n"
+        "`backtest_synthetic.json` and `backtest_historical.json`. Milestone 3 "
+        "adds those plus `vegas_props_compare.json` and `market_sanity.json`.\n\n"
         "Local run (Windows DB):\n\n"
         "```bat\n"
         "set FANTASY_PROJECTIONS_DATA_DIR=D:\\fantasy-projections-data\n"

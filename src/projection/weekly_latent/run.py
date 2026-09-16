@@ -18,17 +18,20 @@ from src.paths import DB_PATH
 from src.projection.weekly_latent.allocate import (
     AllocationTables,
     allocate_players,
+    allocate_players_m3,
     allocate_team_weeks,
     allocate_team_weeks_m2,
     season_box_from_players,
 )
 from src.projection.weekly_latent.artifacts import write_shadow_outputs
 from src.projection.weekly_latent.backtest import run_m2_backtests
-from src.projection.weekly_latent.conservation import evaluate_conservation, evaluate_m2
+from src.projection.weekly_latent.backtest_m3 import run_m3_backtests
+from src.projection.weekly_latent.conservation import evaluate_conservation, evaluate_m2, evaluate_m3
 from src.projection.weekly_latent.constants import (
     DEFAULT_OPP_EPA_PRIOR_REL,
     DEFAULT_OUTPUT_REL,
     DEFAULT_OUTPUT_REL_M2,
+    DEFAULT_OUTPUT_REL_M3,
     DEFAULT_SCHEDULE_FIXTURE_REL,
     DEFAULT_SEALED_NAMESPACE,
     DEFAULT_SEALED_PROJECTIONS_REL,
@@ -38,9 +41,11 @@ from src.projection.weekly_latent.constants import (
     MARKET_SANITY_ROLE,
     MILESTONE,
     MILESTONE_M2,
+    MILESTONE_M3,
     PRODUCTION_HASH_PATHS,
     SCHEMA_VERSION,
     SCHEMA_VERSION_M2,
+    SCHEMA_VERSION_M3,
     SEASON_DEFAULT,
     VEGAS_ROLE,
 )
@@ -69,6 +74,18 @@ class Milestone2Run:
     conservation: dict[str, Any]
     summary: dict[str, Any]
     backtest: dict[str, Any]
+    output_paths: dict[str, str]
+
+
+@dataclass
+class Milestone3Run:
+    tables: AllocationTables
+    m1_tables: AllocationTables
+    conservation: dict[str, Any]
+    summary: dict[str, Any]
+    backtest: dict[str, Any]
+    vegas_compare: dict[str, Any]
+    market_sanity: dict[str, Any]
     output_paths: dict[str, str]
 
 
@@ -601,3 +618,200 @@ def run_milestone2(
         backtest=backtest,
         output_paths=paths,
     )
+
+
+def run_milestone3(
+    *,
+    season: int = SEASON_DEFAULT,
+    projections_path: str | Path | None = None,
+    schedule_path: str | Path | None = None,
+    output_dir: str | Path | None = None,
+    opponent_priors: pd.DataFrame | None = None,
+    opp_epa_priors_path: str | Path | None = None,
+    availability: pd.DataFrame | None = None,
+    dry_run: bool = False,
+    repo_root: str | Path | None = None,
+    run_backtest: bool = True,
+) -> Milestone3Run:
+    """Shadow Milestone 3: week-varying availability + conversions. Not a promotion."""
+    from src.projection.weekly_latent.vegas_hook import (
+        compare_m3_to_vegas_props,
+        export_role2_board,
+        market_sanity_bands,
+    )
+
+    root = Path(repo_root or REPO_ROOT)
+    before = production_fingerprint(root)
+    db_note = f"FANTASY_PROJECTIONS_DB_PATH / default = {DB_PATH}"
+
+    if dry_run:
+        schedule, long_board, priors = synthetic_dry_run_inputs()
+        if opponent_priors is None:
+            opponent_priors = priors.copy()
+            if "available_at" not in opponent_priors.columns:
+                opponent_priors["available_at"] = "2026-01-05T00:00:00+00:00"
+        source = "synthetic_dry_run"
+        proj_used = None
+        sched_used = "synthetic"
+        prior_note = "synthetic dry-run opponent factors"
+    else:
+        proj_used = Path(projections_path or (root / DEFAULT_SEALED_PROJECTIONS_REL))
+        sched_used = Path(schedule_path or (root / DEFAULT_SCHEDULE_FIXTURE_REL))
+        if not proj_used.is_file():
+            raise FileNotFoundError(
+                f"sealed projections not found at {proj_used}. "
+                "Pass --projections or run --dry-run."
+            )
+        if not sched_used.is_file():
+            raise FileNotFoundError(f"schedule fixture not found at {sched_used}.")
+        long_board = load_long_projections(proj_used)
+        schedule = load_schedule_csv(sched_used)
+        schedule = schedule[schedule["season"].eq(season)].copy()
+        source = "sealed_board_plus_schedule_fixture_plus_lagged_epa_m3"
+        if opponent_priors is None:
+            opponent_priors, prior_note = load_m2_opponent_priors(
+                repo_root=root,
+                db_path=Path(DB_PATH),
+                fixture_path=opp_epa_priors_path or (root / DEFAULT_OPP_EPA_PRIOR_REL),
+                season=season,
+            )
+        else:
+            prior_note = "caller-supplied opponent priors"
+
+    team_weeks = explode_team_weeks(schedule, require_full_season=not dry_run)
+    if dry_run:
+        team_weeks = team_weeks[team_weeks["week"].isin([1, 2, 3])].copy()
+    players = player_season_table(long_board)
+    team_volume = team_season_volume(long_board)
+    shares = role_shares(players, team_volume)
+    m1_teams = allocate_team_weeks(
+        team_weeks, team_volume, opponent_priors=opponent_priors
+    )
+    m2_teams = allocate_team_weeks_m2(
+        team_weeks,
+        team_volume,
+        opponent_priors=opponent_priors,
+        board_available_at=M1_AVAILABLE_AT,
+    )
+    player_weeks = allocate_players_m3(
+        m2_teams, players, shares, availability=availability
+    )
+    players = season_box_from_players(players)
+    conservation = evaluate_m3(
+        m2_teams,
+        team_volume,
+        shares,
+        player_weeks,
+        players,
+        m1_team_weeks=m1_teams,
+    )
+    backtest = run_m3_backtests() if run_backtest else {"skipped": True}
+    role2_board = export_role2_board(player_weeks)
+    vegas_compare = compare_m3_to_vegas_props(
+        board=role2_board,
+        dry_run=True,
+        repo_root=root,
+    )
+    sanity = market_sanity_bands()
+    after = production_fingerprint(root)
+    drift = {
+        rel: {"before": before[rel], "after": after[rel]}
+        for rel in before
+        if before[rel] != after[rel]
+    }
+    summary = {
+        "milestone": MILESTONE_M3,
+        "schema_version": SCHEMA_VERSION_M3,
+        "season": season,
+        "dry_run": dry_run,
+        "source": source,
+        "projections_path": None if proj_used is None else str(proj_used).replace("\\", "/"),
+        "schedule_path": None if sched_used is None else str(sched_used).replace("\\", "/"),
+        "sealed_namespace_read": None if dry_run else DEFAULT_SEALED_NAMESPACE,
+        "n_teams": int(m2_teams["team"].nunique()),
+        "n_team_weeks": int(len(m2_teams)),
+        "n_players": int(player_weeks["player_id"].nunique()) if len(player_weeks) else 0,
+        "n_player_weeks": int(len(player_weeks)),
+        "n_bye_team_weeks": int(m2_teams["is_bye"].sum()),
+        "conservation_passes": conservation["passes"],
+        "failing_checks": conservation["failing_checks"],
+        "share_overflow_team_stats": _overflow_counts(shares),
+        "product_split": {
+            "vegas": VEGAS_ROLE,
+            "league_value": LEAGUE_VALUE_ROLE,
+            "adp_and_season_vegas": MARKET_SANITY_ROLE,
+        },
+        "does_not": [
+            "replace Vegas weekly props",
+            "promote or reseal League Value / v2_baseline_20260830",
+            "change freeze knobs or production defaults",
+            "use ADP or season-long Vegas as drivers",
+            "join same-week team_attempts/team_carries/team_targets/team_air_yards",
+            "wire into the PWA",
+            "flip APP_PROJECTION_SOURCE",
+            "implement Role 3 market blend",
+        ],
+        "identity": (
+            "A_i,w week-varying (bye=0); opportunity = A * share * V_m2; "
+            "box = opportunity × season rates × opponent-only conversion "
+            "multipliers (clipped). Season = sum of weeks."
+        ),
+        "db": db_note,
+        "opponent_priors": prior_note,
+        "production_hash_drift": drift,
+        "games_per_season": GAMES_PER_SEASON,
+        "m1_schema_version": SCHEMA_VERSION,
+        "m2_schema_version": SCHEMA_VERSION_M2,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "gate_verdict": "not promoting",
+        "still_shadow": True,
+        "backtest_passes": backtest.get("passes"),
+        "vegas_compare_role": vegas_compare.get("role"),
+        "market_sanity_status": sanity.get("status"),
+    }
+    if drift:
+        raise RuntimeError(
+            "Milestone 3 is research/shadow only but production files changed: "
+            + json.dumps(drift)
+        )
+    out_dir = Path(output_dir or (root / DEFAULT_OUTPUT_REL_M3))
+    paths = write_shadow_outputs(
+        out_dir,
+        team_weeks=m2_teams,
+        player_weeks=player_weeks,
+        shares=shares,
+        conservation=conservation,
+        summary=summary,
+        readme_title="Shadow weekly schedule allocation (Milestone 3)",
+        extra_json={
+            "backtest_synthetic.json": backtest.get("synthetic", backtest),
+            "backtest_historical.json": backtest.get("historical", {}),
+            "vegas_props_compare.json": vegas_compare,
+            "market_sanity.json": sanity,
+        },
+        extra_csv={"shadow_board_role2.csv": role2_board},
+        cli_name="scripts/run_weekly_schedule_m3.py",
+    )
+    return Milestone3Run(
+        tables=AllocationTables(
+            team_weeks=m2_teams,
+            player_weeks=player_weeks,
+            shares=shares,
+            players=players,
+            team_volume=team_volume,
+        ),
+        m1_tables=AllocationTables(
+            team_weeks=m1_teams,
+            player_weeks=allocate_players(m1_teams, players, shares),
+            shares=shares,
+            players=players,
+            team_volume=team_volume,
+        ),
+        conservation=conservation,
+        summary=summary,
+        backtest=backtest,
+        vegas_compare=vegas_compare,
+        market_sanity=sanity,
+        output_paths=paths,
+    )
+

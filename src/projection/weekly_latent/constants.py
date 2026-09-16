@@ -9,8 +9,10 @@ from typing import Mapping
 
 SCHEMA_VERSION = "weekly_latent_m1_v1"
 SCHEMA_VERSION_M2 = "weekly_latent_m2_v1"
+SCHEMA_VERSION_M3 = "weekly_latent_m3_v1"
 MILESTONE = 1
 MILESTONE_M2 = 2
+MILESTONE_M3 = 3
 SEASON_DEFAULT = 2026
 REG_WEEKS = tuple(range(1, 19))
 GAMES_PER_SEASON = 17
@@ -199,6 +201,32 @@ DEFAULT_OPP_EPA_PRIOR_REL = (
 )
 DEFAULT_OUTPUT_REL = "output/shadow_weekly_schedule_m1"
 DEFAULT_OUTPUT_REL_M2 = "output/shadow_weekly_schedule_m2"
+DEFAULT_OUTPUT_REL_M3 = "output/shadow_weekly_schedule_m3"
+
+# M3 player-level sit risk on short rest. Distinct from M2 team-volume env_mult.
+# Extra rest does not create games (no multiplier above 1.0).
+AVAIL_REST_SHORT_STARTER = 0.97
+AVAIL_REST_SHORT_BACKUP = 0.90
+AVAIL_REST_NORMAL = 1.00
+AVAIL_BACKUP_MIN_DEPTH_RANK = 2
+
+# Conversion latents use opponent-only factors (not home/away × env) so M2
+# volume matchup is not double-counted into YPA / catch / TD rates.
+CONV_BLEND = 0.50
+CONV_FACTOR_MIN = 0.90
+CONV_FACTOR_MAX = 1.10
+
+# Opportunity → efficiency. Yards in M3 come from these rates × week-varying
+# conversion multipliers, not from a second draw on the team yardage pool.
+YARDAGE_PER_OPP: Mapping[str, str] = {
+    "passing_yards": "attempts",
+    "rushing_yards": "carries",
+    "receiving_yards": "targets",
+}
+
+DEFAULT_VEGAS_PROPS_M3_REL = (
+    "src/projection/weekly_latent/fixtures/vegas_props_m3_synthetic.csv"
+)
 
 PRODUCTION_HASH_PATHS = (
     "draft_assistant/data/active_release_2026.json",

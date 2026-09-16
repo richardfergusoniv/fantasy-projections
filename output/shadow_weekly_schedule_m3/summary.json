@@ -1,0 +1,53 @@
+{
+  "schema_version": "weekly_latent_m3_v1",
+  "generated_at": "2026-09-16T22:06:10.653958+00:00",
+  "milestone": 3,
+  "season": 2026,
+  "dry_run": false,
+  "source": "sealed_board_plus_schedule_fixture_plus_lagged_epa_m3",
+  "projections_path": "/workspace/draft_assistant/data/releases/v2_baseline_20260830/projections_2026.csv",
+  "schedule_path": "/workspace/src/projection/weekly_latent/fixtures/nfl_schedules_2026_reg.csv",
+  "sealed_namespace_read": "v2_baseline_20260830",
+  "n_teams": 32,
+  "n_team_weeks": 576,
+  "n_players": 778,
+  "n_player_weeks": 14004,
+  "n_bye_team_weeks": 32,
+  "conservation_passes": true,
+  "failing_checks": [],
+  "share_overflow_team_stats": {
+    "attempts": 9,
+    "carries": 12,
+    "passing_yards": 11,
+    "receiving_yards": 11,
+    "rushing_yards": 14,
+    "targets": 3
+  },
+  "product_split": {
+    "vegas": "external_weekly_benchmark",
+    "league_value": "season_scaffolding_prior",
+    "adp_and_season_vegas": "later_empirical_bands_only"
+  },
+  "does_not": [
+    "replace Vegas weekly props",
+    "promote or reseal League Value / v2_baseline_20260830",
+    "change freeze knobs or production defaults",
+    "use ADP or season-long Vegas as drivers",
+    "join same-week team_attempts/team_carries/team_targets/team_air_yards",
+    "wire into the PWA",
+    "flip APP_PROJECTION_SOURCE",
+    "implement Role 3 market blend"
+  ],
+  "identity": "A_i,w week-varying (bye=0); opportunity = A * share * V_m2; box = opportunity \u00d7 season rates \u00d7 opponent-only conversion multipliers (clipped). Season = sum of weeks.",
+  "db": "FANTASY_PROJECTIONS_DB_PATH / default = /workspace/data/projections.db",
+  "opponent_priors": "no projections.db at /workspace/data/projections.db; fixture /workspace/src/projection/weekly_latent/fixtures/opp_def_epa_prior_2025.csv",
+  "production_hash_drift": {},
+  "games_per_season": 17,
+  "m1_schema_version": "weekly_latent_m1_v1",
+  "m2_schema_version": "weekly_latent_m2_v1",
+  "gate_verdict": "not promoting",
+  "still_shadow": true,
+  "backtest_passes": true,
+  "vegas_compare_role": "evaluation_comparator",
+  "market_sanity_status": "deferred"
+}

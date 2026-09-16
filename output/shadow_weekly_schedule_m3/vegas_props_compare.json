@@ -1,0 +1,17 @@
+{
+  "schema_version": "weekly_latent_m3_vegas_compare_v1",
+  "role": "evaluation_comparator",
+  "role3_blend": false,
+  "promoting": false,
+  "gate_verdict": "not_promoting",
+  "harness": "local_fixture_until_weekly_eval",
+  "n_board": 168048,
+  "n_snapshots": 7,
+  "n_matched": 0,
+  "metrics": {
+    "n": 0,
+    "mae_model_vs_market": null
+  },
+  "caveat": "Role 2 measurement only. Compare, do not replace. Not a promotion. Do not optimize toward market agreement. Feed output/shadow_weekly_schedule_m3/shadow_board_role2.csv to scripts/compare_shadow_vegas_props.py --board once PR #83 merges.",
+  "pr83_hook": "src.projection.weekly_eval.compare_shadow_to_vegas(board=shadow_board_role2.csv, snapshots=..., outcomes=...)"
+}

@@ -1,0 +1,6 @@
+{
+  "status": "deferred",
+  "used_as_driver": false,
+  "role": "empirical_bands_only",
+  "note": "ADP and season-long Vegas may later form outside market-sanity bands (widen when those two disagree). They are not training targets, weekly drivers, or a promotion argument. Stubbed in M3."
+}

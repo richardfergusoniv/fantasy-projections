@@ -27,6 +27,7 @@ from src.projection.weekly_latent.constants import (
     NEUTRAL_MULT,
     PLAYER_SHARE_POOLS,
     TEAM_VOLUME_PG_COLUMNS,
+    YARDAGE_PER_OPP,
 )
 from src.projection.weekly_latent.environment import (
     attach_environment,
@@ -249,15 +250,12 @@ def _fantasy_points(stats: pd.DataFrame, scoring: dict[str, float] | None = None
     )
 
 
-def allocate_players(
+def _player_week_skeleton(
     team_weeks: pd.DataFrame,
     players: pd.DataFrame,
     shares: pd.DataFrame,
-    *,
-    scoring: dict[str, float] | None = None,
 ) -> pd.DataFrame:
-    """Weekly player means = (role share) × (weekly team pool), bye inactive."""
-    scoring = scoring or HALF_PPR
+    """Join team-weeks × role shares × season rates. No availability yet."""
     share_wide = shares.pivot_table(
         index=["player_id", "team"],
         columns="stat",
@@ -292,6 +290,13 @@ def allocate_players(
     rate_src = players[ident_cols].copy()
     for stat, (numer, denom) in CONVERSION_RATES.items():
         rate_src[f"{stat}_rate"] = _conversion_rate(players[numer], players[denom])
+    for yards_stat, opp_stat in YARDAGE_PER_OPP.items():
+        numer = players[yards_stat] if yards_stat in players.columns else 0.0
+        denom = players[opp_stat] if opp_stat in players.columns else 0.0
+        rate_src[f"{yards_stat}_per_opp"] = _conversion_rate(
+            numer if isinstance(numer, pd.Series) else pd.Series(0.0, index=players.index),
+            denom if isinstance(denom, pd.Series) else pd.Series(0.0, index=players.index),
+        )
     for player_stat in PLAYER_SHARE_POOLS:
         if player_stat in players.columns:
             rate_src[f"season_{player_stat}"] = players[player_stat]
@@ -315,6 +320,8 @@ def allocate_players(
         "surface",
         "stadium",
         "gameday",
+        "gametime",
+        "kickoff_at",
         "available_at",
         "shrinkage_lambda",
         "home_away_mult",
@@ -325,6 +332,9 @@ def allocate_players(
         "travel_mult",
         "pass_matchup_mult",
         "rush_matchup_mult",
+        "opp_pass_mult",
+        "opp_rush_mult",
+        "n_active_weeks",
         "prior_available_at",
         "available_at_board",
         "env_available_at",
@@ -335,13 +345,36 @@ def allocate_players(
     weekly = team_weeks[team_cols].merge(other, on="team", how="left").merge(
         base, on="team", how="left"
     )
-    weekly["A_i_w"] = weekly["A_team_w"].astype(float)
+    return weekly
+
+
+def _apply_opportunity(weekly: pd.DataFrame) -> pd.DataFrame:
+    """Player opportunity = A_i,w × role share × weekly team pool."""
+    out = weekly.copy()
     for player_stat, pool in PLAYER_SHARE_POOLS.items():
         share_col = f"{player_stat}_role_share"
-        if share_col not in weekly.columns:
-            weekly[share_col] = 0.0
-        weekly[share_col] = weekly[share_col].fillna(0.0)
-        weekly[player_stat] = weekly[share_col] * weekly[pool].astype(float) * weekly["A_i_w"]
+        if share_col not in out.columns:
+            out[share_col] = 0.0
+        out[share_col] = out[share_col].fillna(0.0)
+        pool_series = (
+            out[pool].astype(float) if pool in out.columns else pd.Series(0.0, index=out.index)
+        )
+        out[player_stat] = out[share_col] * pool_series * out["A_i_w"].astype(float)
+    return out
+
+
+def allocate_players(
+    team_weeks: pd.DataFrame,
+    players: pd.DataFrame,
+    shares: pd.DataFrame,
+    *,
+    scoring: dict[str, float] | None = None,
+) -> pd.DataFrame:
+    """Weekly player means = (role share) × (weekly team pool), bye inactive."""
+    scoring = scoring or HALF_PPR
+    weekly = _player_week_skeleton(team_weeks, players, shares)
+    weekly["A_i_w"] = weekly["A_team_w"].astype(float)
+    weekly = _apply_opportunity(weekly)
     for stat, (_numer, denom) in CONVERSION_RATES.items():
         weekly[stat] = weekly[f"{stat}_rate"].fillna(0.0) * weekly[denom].astype(float)
     bye = weekly["is_bye"].eq(1)
@@ -353,6 +386,46 @@ def allocate_players(
     return weekly
 
 
+def allocate_players_m3(
+    team_weeks: pd.DataFrame,
+    players: pd.DataFrame,
+    shares: pd.DataFrame,
+    *,
+    availability: pd.DataFrame | None = None,
+    scoring: dict[str, float] | None = None,
+) -> pd.DataFrame:
+    """M3 player-weeks: week-varying A_i,w and conversion latents.
+
+    Opportunity still uses M2 team pools × role shares × A_i,w. Yards and
+    count stats use season rates × opponent-only conversion multipliers.
+    Bye forces A=0. Season fantasy is the sum of weeks.
+    """
+    from src.projection.weekly_latent.availability import (
+        attach_player_availability,
+        stamp_player_available_at,
+    )
+    from src.projection.weekly_latent.conversions import apply_conversion_latents
+    from src.projection.weekly_latent.environment import refuse_forbidden_m2_columns
+
+    scoring = scoring or HALF_PPR
+    refuse_forbidden_m2_columns(team_weeks, where="M3 allocate_players team-weeks")
+    refuse_forbidden_m2_columns(players, where="M3 allocate_players players")
+    weekly = _player_week_skeleton(team_weeks, players, shares)
+    weekly = attach_player_availability(weekly, overrides=availability)
+    weekly = _apply_opportunity(weekly)
+    # M3 yards come from conversion latents, not the team yardage-pool share.
+    weekly = apply_conversion_latents(weekly)
+    bye = weekly["is_bye"].eq(1) if "is_bye" in weekly.columns else pd.Series(False, index=weekly.index)
+    zero_stats = list(PLAYER_SHARE_POOLS) + list(CONVERSION_RATES)
+    for col in zero_stats:
+        if col in weekly.columns:
+            weekly.loc[bye, col] = 0.0
+    weekly["fantasy_points"] = _fantasy_points(weekly, scoring)
+    weekly.loc[bye, "fantasy_points"] = 0.0
+    weekly = stamp_player_available_at(weekly)
+    return weekly
+
+
 def season_box_from_players(
     players: pd.DataFrame, scoring: dict[str, float] | None = None
 ) -> pd.DataFrame:
@@ -360,6 +433,29 @@ def season_box_from_players(
     out = players.copy()
     out["fantasy_points_board"] = _fantasy_points(out, scoring)
     return out
+
+
+def season_box_from_player_weeks(
+    player_weeks: pd.DataFrame, scoring: dict[str, float] | None = None
+) -> pd.DataFrame:
+    """Independent season box: sum weekly box stats, then score.
+
+    This is not a second groupby of ``fantasy_points``. Scoring the
+    aggregated box can disagree with ``sum_w fantasy_points`` if the weekly
+    points column was set independently of the box.
+    """
+    keys = ["player_id"]
+    if "season" in player_weeks.columns:
+        keys = ["player_id", "season"]
+    stat_cols = [
+        c
+        for c in list(PLAYER_SHARE_POOLS) + list(CONVERSION_RATES)
+        if c in player_weeks.columns
+    ]
+    if "player_id" not in player_weeks.columns or not stat_cols:
+        return season_box_from_players(pd.DataFrame(columns=["player_id"]), scoring)
+    grouped = player_weeks.groupby(keys, as_index=False)[stat_cols].sum()
+    return season_box_from_players(grouped, scoring)
 
 
 @dataclass
