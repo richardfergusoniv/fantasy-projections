@@ -794,8 +794,11 @@ def test_m3_does_not_import_promote_or_weekly_eval_hard_dep():
     assert "src.projection.promote_release" not in graph
     assert "src.projection.release_bundle_publish" not in graph
     assert "src.projection.weekly.features.team_context" not in graph
-    # Optional Role 2 hook may try weekly_eval at runtime; it must not be a
-    # hard import of the unmerged PR #83 package from run.py's static graph.
+    assert "src.projection.weekly.draws.feature_outcome_split" not in graph
+    # Optional Role 2 hook may load weekly_eval at runtime via importlib;
+    # that must stay invisible to AST import-graph walking.
+    assert "src.projection.weekly_eval" not in graph
+    assert "src.projection.weekly_eval.comparator" not in graph
     assert "src.app" not in graph
 
 

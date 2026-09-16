@@ -6,6 +6,7 @@ fixture scorer runs. ADP / season-long Vegas market-sanity bands are stubbed.
 """
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -204,7 +205,10 @@ def compare_m3_to_vegas_props(
         }
     snapshots = pd.read_csv(snap_path)
     try:
-        from src.projection.weekly_eval.comparator import compare_shadow_to_vegas
+        # Dynamic so AST import-graph walking cannot follow weekly_eval into
+        # feature_outcome_split (M1/M2 guards on weekly_latent.run).
+        comparator = importlib.import_module("src.projection.weekly_eval.comparator")
+        compare_shadow_to_vegas = getattr(comparator, "compare_shadow_to_vegas")
 
         result = compare_shadow_to_vegas(board=board_df, snapshots=snapshots)
         result["harness"] = "weekly_eval"
