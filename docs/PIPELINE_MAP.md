@@ -597,3 +597,4 @@ Read from `draft_assistant/data/players_2026.json` · `meta` when the pointer is
 - [`V1_PRODUCTION_ROLE_2026-08-29.md`](decisions/V1_PRODUCTION_ROLE_2026-08-29.md) — v1 structural role and closed RB/WR shadow repair track
 - [`ACCURACY_FIRST_ENSEMBLE_2026-08-27.md`](decisions/ACCURACY_FIRST_ENSEMBLE_2026-08-27.md) — selected RB/WR weights and holdout evidence
 - [`REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md`](decisions/REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md) — PR contract checklist; Cursor / Claude / Perplexity / human review roles (Perplexity is manual / informational)
+- [`WEEKLY_MODEL_PROMOTION_AND_PROPS_ROLES_2026-09-15.md`](decisions/WEEKLY_MODEL_PROMOTION_AND_PROPS_ROLES_2026-09-15.md) — weekly-model promotion gate and the three roles for Vegas weekly props
