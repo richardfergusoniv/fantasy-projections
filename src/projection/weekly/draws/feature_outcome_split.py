@@ -20,6 +20,8 @@ SAME_WEEK_OUTCOME_DENYLIST = frozenset(
         "racr",
         "team_targets",
         "team_carries",
+        "team_attempts",
+        "team_air_yards",
         "offense_snaps",
         "offense_pct",
         "passing_first_downs",

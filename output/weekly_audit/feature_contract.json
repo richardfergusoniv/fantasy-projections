@@ -1,0 +1,54 @@
+{
+  "schema_version": "weekly_feature_contract_v1",
+  "generated_at": "2026-09-15T21:56:53.589433+00:00",
+  "features": [
+    {
+      "name": "targets_share_roll3",
+      "source_table": "weekly",
+      "aggregation": "3-week rolling mean of target share",
+      "max_observation_rule": "week < target_week",
+      "as_of_cutoff": "kickoff of target week",
+      "notes": "Leakage-safe: shift(1) then 3-week rolling mean (prior weeks only)."
+    },
+    {
+      "name": "carries_share_roll3",
+      "source_table": "weekly",
+      "aggregation": "3-week rolling mean of carry share",
+      "max_observation_rule": "week < target_week",
+      "as_of_cutoff": "kickoff of target week",
+      "notes": "Leakage-safe: shift(1) then 3-week rolling mean (prior weeks only)."
+    },
+    {
+      "name": "snap_pct",
+      "source_table": "snap_counts",
+      "aggregation": "season aggregate offensive snap percentage",
+      "max_observation_rule": "season N complete before preseason projection for N+1",
+      "as_of_cutoff": "preseason",
+      "notes": "Preseason-safe at season grain."
+    },
+    {
+      "name": "injury_durability_rate",
+      "source_table": "injuries",
+      "aggregation": "trailing season injury report",
+      "max_observation_rule": "season N only for projection of N+1",
+      "as_of_cutoff": "preseason",
+      "notes": ""
+    },
+    {
+      "name": "opp_def_pass_epa_prior",
+      "source_table": "pbp",
+      "aggregation": "prior-season opponent defensive EPA",
+      "max_observation_rule": "season < target_season",
+      "as_of_cutoff": "preseason",
+      "notes": ""
+    },
+    {
+      "name": "depth_chart_status",
+      "source_table": "depth_chart",
+      "aggregation": "curated chart with dated overrides",
+      "max_observation_rule": "as_of_date <= projection_as_of",
+      "as_of_cutoff": "projection publish time",
+      "notes": ""
+    }
+  ]
+}
