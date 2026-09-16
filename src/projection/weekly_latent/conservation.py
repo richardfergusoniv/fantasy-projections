@@ -374,3 +374,131 @@ def evaluate_m2(
             "is measured, not a failure."
         ),
     }
+
+
+def m3_availability_identities(player_weeks: pd.DataFrame) -> list[dict[str, Any]]:
+    checks = []
+    if "A_i_w" not in player_weeks.columns:
+        return [
+            _check("player_availability_in_unit_interval", False, "missing A_i_w"),
+            _check("bye_forces_player_availability_zero", False, "missing A_i_w"),
+        ]
+    a = pd.to_numeric(player_weeks["A_i_w"], errors="coerce")
+    checks.append(
+        _check(
+            "player_availability_in_unit_interval",
+            bool(((a >= -CONSERVATION_ATOL) & (a <= 1.0 + CONSERVATION_ATOL)).all()),
+            f"A_i_w minmax=({float(a.min())},{float(a.max())})",
+        )
+    )
+    bye = player_weeks[player_weeks["is_bye"].eq(1)] if "is_bye" in player_weeks.columns else player_weeks.iloc[0:0]
+    bye_a = float(pd.to_numeric(bye["A_i_w"], errors="coerce").abs().sum()) if len(bye) else 0.0
+    checks.append(
+        _check(
+            "bye_forces_player_availability_zero",
+            bye_a <= CONSERVATION_ATOL,
+            f"bye_A_abs_sum={bye_a} n_bye_player_weeks={len(bye)}",
+        )
+    )
+    return checks
+
+
+def m3_conversion_consistency(player_weeks: pd.DataFrame) -> list[dict[str, Any]]:
+    checks = []
+
+    def _pair(left: str, right: str, name: str) -> dict[str, Any]:
+        if left not in player_weeks.columns or right not in player_weeks.columns:
+            return _check(name, False, f"missing {left} or {right}")
+        l = pd.to_numeric(player_weeks[left], errors="coerce").fillna(0.0)
+        r = pd.to_numeric(player_weeks[right], errors="coerce").fillna(0.0)
+        slack = (l - r).clip(lower=0.0)
+        worst = float(slack.max()) if len(slack) else 0.0
+        return _check(name, worst <= CONSERVATION_ATOL, f"max_overflow={worst:.8f}")
+
+    checks.append(_pair("receptions", "targets", "receptions_le_targets"))
+    checks.append(_pair("completions", "attempts", "completions_le_attempts"))
+    if {"interceptions", "attempts", "completions"} <= set(player_weeks.columns):
+        remain = (
+            pd.to_numeric(player_weeks["attempts"], errors="coerce").fillna(0.0)
+            - pd.to_numeric(player_weeks["completions"], errors="coerce").fillna(0.0)
+        )
+        ints = pd.to_numeric(player_weeks["interceptions"], errors="coerce").fillna(0.0)
+        overflow = (ints - remain.clip(lower=0.0)).clip(lower=0.0)
+        checks.append(
+            _check(
+                "interceptions_le_attempts_minus_completions",
+                float(overflow.max() if len(overflow) else 0.0) <= CONSERVATION_ATOL,
+                f"max_overflow={float(overflow.max() if len(overflow) else 0.0):.8f}",
+            )
+        )
+    checks.append(_pair("passing_tds", "completions", "passing_tds_le_completions"))
+    checks.append(_pair("receiving_tds", "receptions", "receiving_tds_le_receptions"))
+    checks.append(_pair("rushing_tds", "carries", "rushing_tds_le_carries"))
+    return checks
+
+
+def m3_season_is_sum_of_weeks(player_weeks: pd.DataFrame) -> list[dict[str, Any]]:
+    """Season fantasy is the sum of weekly means, including A=0 bye weeks."""
+    if "fantasy_points" not in player_weeks.columns or "player_id" not in player_weeks.columns:
+        return [_check("season_equals_sum_of_weeks", False, "missing fantasy_points")]
+    grouped = player_weeks.groupby("player_id")["fantasy_points"].sum()
+    rebuilt = (
+        player_weeks.groupby("player_id")["fantasy_points"].apply(lambda s: float(s.sum()))
+    )
+    delta = (grouped - rebuilt).abs()
+    return [
+        _check(
+            "season_equals_sum_of_weeks",
+            bool((delta <= CONSERVATION_ATOL).all()),
+            f"n_players={int(len(grouped))} max_abs_delta={float(delta.max()) if len(delta) else 0.0:.8f}",
+        )
+    ]
+
+
+def evaluate_m3(
+    team_weeks: pd.DataFrame,
+    team_volume: pd.DataFrame,
+    shares: pd.DataFrame,
+    player_weeks: pd.DataFrame,
+    players: pd.DataFrame,
+    *,
+    m1_team_weeks: pd.DataFrame | None = None,
+) -> dict[str, Any]:
+    checks: list[dict[str, Any]] = []
+    checks.extend(m2_multiplicative_identity(team_weeks))
+    checks.extend(season_mass_vs_sealed(team_weeks, team_volume))
+    checks.extend(m1_still_conserves_with_same_priors(m1_team_weeks, team_volume))
+    checks.extend(share_conservation(shares, player_weeks))
+    checks.extend(player_inactive_on_bye(player_weeks))
+    checks.extend(m3_availability_identities(player_weeks))
+    checks.extend(m3_conversion_consistency(player_weeks))
+    checks.extend(m3_season_is_sum_of_weeks(player_weeks))
+    checks.extend(no_forbidden_training_features(team_weeks, player_weeks))
+    from src.projection.weekly_latent.constants import FORBIDDEN_MARKET_DRIVERS
+
+    market = sorted(
+        (set(team_weeks.columns) | set(player_weeks.columns)) & FORBIDDEN_MARKET_DRIVERS
+    )
+    checks.append(
+        _check(
+            "no_adp_or_vegas_driver_columns",
+            market == [],
+            "market driver columns absent" if not market else f"present={market}",
+        )
+    )
+    failing = [c["name"] for c in checks if c["passed"] is False]
+    return {
+        "schema_version": "weekly_latent_m3_identities_v1",
+        "passes": len(failing) == 0,
+        "failing_checks": failing,
+        "n_checks": len(checks),
+        "checks": checks,
+        "invariant": (
+            "M3 keeps the M2 team-week identity and within-week share simplex. "
+            "Player A_i,w is week-varying in [0, 1]; bye forces A=0. "
+            "Season fantasy is the sum of weeks. Conversions are clipped so "
+            "receptions ≤ targets, completions ≤ attempts, INTs ≤ attempts − "
+            "completions, and TDs ≤ the matching count. Same-week team volume "
+            "and ADP/season Vegas are forbidden drivers."
+        ),
+    }

@@ -1,0 +1,56 @@
+{
+  "schema_version": "weekly_latent_m3_backtest_synthetic_v1",
+  "object_evaluated": "allocate_players_m3",
+  "passes": true,
+  "poison_same_week_raised": true,
+  "forbidden_columns_on_features": [],
+  "mae_m3": 5.524494219999999,
+  "mae_naive_m2_players": 8.695113,
+  "beats_naive": true,
+  "later_weeks_advance_available_at": true,
+  "week3_availability_zero": true,
+  "weeks": [
+    {
+      "week": 1,
+      "pred_m3": 13.148156,
+      "pred_naive": 13.5548,
+      "realized": 4.0,
+      "abs_err_m3": 9.148156,
+      "abs_err_naive": 9.5548,
+      "A_i_w": 1.0,
+      "available_at": "2026-08-30T00:00:00+00:00"
+    },
+    {
+      "week": 2,
+      "pred_m3": 14.826643999999998,
+      "pred_naive": 14.394799999999998,
+      "realized": 8.0,
+      "abs_err_m3": 6.826643999999998,
+      "abs_err_naive": 6.394799999999998,
+      "A_i_w": 1.0,
+      "available_at": "2026-09-10T00:00:00+00:00"
+    },
+    {
+      "week": 3,
+      "pred_m3": 0.0,
+      "pred_naive": 13.148155999999998,
+      "realized": 0.0,
+      "abs_err_m3": 0.0,
+      "abs_err_naive": 13.148155999999998,
+      "A_i_w": 0.0,
+      "available_at": "2026-09-18T00:00:00+00:00"
+    },
+    {
+      "week": 4,
+      "pred_m3": 15.123176879999999,
+      "pred_naive": 14.682695999999998,
+      "realized": 9.0,
+      "abs_err_m3": 6.123176879999999,
+      "abs_err_naive": 5.682695999999998,
+      "A_i_w": 1.0,
+      "available_at": "2026-09-24T00:00:00+00:00"
+    }
+  ],
+  "holdout": "synthetic rolling-origin; sit as-of week 3 only; no 2026 live outcomes",
+  "not_a_promotion": true
+}

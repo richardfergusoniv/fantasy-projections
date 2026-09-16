@@ -1,7 +1,7 @@
 # Weekly latent model design (locked 2026-09-15)
 
 **Date:** 2026-09-15  
-**Status:** locked design + Milestone 1 research/shadow implementation + Milestone 2 research/shadow (see `WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md`)  
+**Status:** locked design + Milestone 1 research/shadow implementation + Milestone 2 research/shadow (see `WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md`) + Milestone 3 research/shadow (see `WEEKLY_LATENT_M3_AVAILABILITY_CONVERSIONS_2026-09-16.md`)  
 **Does not:** replace Vegas weekly props, promote/reseal League Value, change freeze knobs or production defaults, train a model, or wire into the PWA.
 
 Sealed League Value stays `v2_baseline_20260830`. This track reads it as **scaffolding + prior**, not as a board to defend as “correct.”
@@ -146,6 +146,8 @@ After M1 conservation is proven, allow opponent/environment to change \(V_{t,k}^
 ### Milestone 3 — Weekly availability + conversions; compare, don’t replace, Vegas
 
 Week-varying \(A_{i,w}\) and conversion latents. Publish a shadow weekly board. Score it against **Vegas weekly props** as the external benchmark. Optional empirical market-sanity bands vs ADP / season Vegas (widen when those two disagree). Still no promote/reseal of League Value from this track.
+
+**Implemented (2026-09-16, research/shadow, not a promotion):** [`WEEKLY_LATENT_M3_AVAILABILITY_CONVERSIONS_2026-09-16.md`](WEEKLY_LATENT_M3_AVAILABILITY_CONVERSIONS_2026-09-16.md). Same package (`src/projection/weekly_latent/`), CLI `scripts/run_weekly_schedule_m3.py`. Week-varying \(A_{i,w}\) (bye = 0) and opponent-only conversion latents on top of the M2 team-week latent. Rolling-origin backtests of `allocate_players_m3`. Role 2 Vegas-props compare hook (no Role 3 blend). Market-sanity bands vs ADP/season Vegas are stubbed. Still not 6–8 live weeks, still not a promotion.
 
 ---
 

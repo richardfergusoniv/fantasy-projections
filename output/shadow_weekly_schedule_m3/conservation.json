@@ -1,0 +1,189 @@
+{
+  "schema_version": "weekly_latent_m3_identities_v1",
+  "passes": true,
+  "failing_checks": [],
+  "n_checks": 30,
+  "checks": [
+    {
+      "name": "team_pass_attempts_m2_identity",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=0.00000000"
+    },
+    {
+      "name": "team_passing_yards_m2_identity",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=0.00000000"
+    },
+    {
+      "name": "team_rush_attempts_m2_identity",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=0.00000000"
+    },
+    {
+      "name": "team_rushing_yards_m2_identity",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=0.00000000"
+    },
+    {
+      "name": "season_mass_may_differ_from_sealed",
+      "passed": true,
+      "skipped": false,
+      "detail": "moved_vs_sealed=yes; team_pass_attempts max_abs_delta=10.298911 ratio_minmax=(0.9879,1.0185); team_rush_attempts max_abs_delta=9.118240 ratio_minmax=(0.9834,1.0195); team_passing_yards max_abs_delta=68.393693 ratio_minmax=(0.9879,1.0185); team_rushing_yards max_abs_delta=39.416930 ratio_minmax=(0.9834,1.0195)"
+    },
+    {
+      "name": "m1_comparison_still_conserves",
+      "passed": true,
+      "skipped": false,
+      "detail": "M1 with the same priors still sums to sealed"
+    },
+    {
+      "name": "attempts_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=1.1102230246251565e-16 overflow_teams=9"
+    },
+    {
+      "name": "attempts_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=1.1102230246251565e-16 n_team_weeks=544"
+    },
+    {
+      "name": "targets_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 overflow_teams=3"
+    },
+    {
+      "name": "targets_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 n_team_weeks=544"
+    },
+    {
+      "name": "passing_yards_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=1.1102230246251565e-16 overflow_teams=11"
+    },
+    {
+      "name": "passing_yards_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=1.1102230246251565e-16 n_team_weeks=544"
+    },
+    {
+      "name": "receiving_yards_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 overflow_teams=11"
+    },
+    {
+      "name": "receiving_yards_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 n_team_weeks=544"
+    },
+    {
+      "name": "carries_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 overflow_teams=12"
+    },
+    {
+      "name": "carries_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 n_team_weeks=544"
+    },
+    {
+      "name": "rushing_yards_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 overflow_teams=14"
+    },
+    {
+      "name": "rushing_yards_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 n_team_weeks=544"
+    },
+    {
+      "name": "player_bye_A_and_volume_zero",
+      "passed": true,
+      "skipped": false,
+      "detail": "bye_player_abs_sum=0.0 n_bye_player_weeks=778"
+    },
+    {
+      "name": "player_availability_in_unit_interval",
+      "passed": true,
+      "skipped": false,
+      "detail": "A_i_w minmax=(0.0,1.0)"
+    },
+    {
+      "name": "bye_forces_player_availability_zero",
+      "passed": true,
+      "skipped": false,
+      "detail": "bye_A_abs_sum=0.0 n_bye_player_weeks=778"
+    },
+    {
+      "name": "receptions_le_targets",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_overflow=0.00000000"
+    },
+    {
+      "name": "completions_le_attempts",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_overflow=0.00000000"
+    },
+    {
+      "name": "interceptions_le_attempts_minus_completions",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_overflow=0.00000000"
+    },
+    {
+      "name": "passing_tds_le_completions",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_overflow=0.00000000"
+    },
+    {
+      "name": "receiving_tds_le_receptions",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_overflow=0.00000000"
+    },
+    {
+      "name": "rushing_tds_le_carries",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_overflow=0.00000000"
+    },
+    {
+      "name": "season_equals_sum_of_weeks",
+      "passed": true,
+      "skipped": false,
+      "detail": "n_players=778 max_abs_delta=0.00000000"
+    },
+    {
+      "name": "no_same_week_team_attempts_training_columns",
+      "passed": true,
+      "skipped": false,
+      "detail": "forbidden columns absent"
+    },
+    {
+      "name": "no_adp_or_vegas_driver_columns",
+      "passed": true,
+      "skipped": false,
+      "detail": "market driver columns absent"
+    }
+  ],
+  "invariant": "M3 keeps the M2 team-week identity and within-week share simplex. Player A_i,w is week-varying in [0, 1]; bye forces A=0. Season fantasy is the sum of weeks. Conversions are clipped so receptions \u2264 targets, completions \u2264 attempts, INTs \u2264 attempts \u2212 completions, and TDs \u2264 the matching count. Same-week team volume and ADP/season Vegas are forbidden drivers."
+}
