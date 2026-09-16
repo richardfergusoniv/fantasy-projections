@@ -1,0 +1,135 @@
+{
+  "schema_version": "weekly_latent_m1_conservation_v1",
+  "passes": true,
+  "failing_checks": [],
+  "n_checks": 21,
+  "checks": [
+    {
+      "name": "team_pass_attempts_sum_weeks_eq_season",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=0.00000000 team=BUF n_teams=32"
+    },
+    {
+      "name": "team_rush_attempts_sum_weeks_eq_season",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=0.00000000 team=BAL n_teams=32"
+    },
+    {
+      "name": "team_passing_yards_sum_weeks_eq_season",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=0.00000000 team=DAL n_teams=32"
+    },
+    {
+      "name": "team_rushing_yards_sum_weeks_eq_season",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=0.00000000 team=ARI n_teams=32"
+    },
+    {
+      "name": "bye_weeks_zero_team_volume",
+      "passed": true,
+      "skipped": false,
+      "detail": "bye_abs_volume_sum=0.0 n_bye_rows=32"
+    },
+    {
+      "name": "each_team_has_17_active_weeks",
+      "passed": true,
+      "skipped": false,
+      "detail": "active_weeks_by_team_minmax=(17.0,17.0)"
+    },
+    {
+      "name": "attempts_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=1.1102230246251565e-16 overflow_teams=9"
+    },
+    {
+      "name": "attempts_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=1.1102230246251565e-16 n_team_weeks=544"
+    },
+    {
+      "name": "targets_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 overflow_teams=3"
+    },
+    {
+      "name": "targets_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 n_team_weeks=544"
+    },
+    {
+      "name": "passing_yards_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=1.1102230246251565e-16 overflow_teams=11"
+    },
+    {
+      "name": "passing_yards_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=1.1102230246251565e-16 n_team_weeks=544"
+    },
+    {
+      "name": "receiving_yards_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 overflow_teams=11"
+    },
+    {
+      "name": "receiving_yards_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 n_team_weeks=544"
+    },
+    {
+      "name": "carries_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 overflow_teams=12"
+    },
+    {
+      "name": "carries_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 n_team_weeks=544"
+    },
+    {
+      "name": "rushing_yards_share_plus_other_eq_1",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 overflow_teams=14"
+    },
+    {
+      "name": "rushing_yards_within_week_share_simplex",
+      "passed": true,
+      "skipped": false,
+      "detail": "max_abs_delta=2.220446049250313e-16 n_team_weeks=544"
+    },
+    {
+      "name": "player_bye_A_and_volume_zero",
+      "passed": true,
+      "skipped": false,
+      "detail": "bye_player_abs_sum=0.0 n_bye_player_weeks=778"
+    },
+    {
+      "name": "player_weekly_sum_matches_board_when_shares_unscaled",
+      "passed": true,
+      "skipped": false,
+      "detail": "exact_plus_other player-stats reconcile to sealed pred_season"
+    },
+    {
+      "name": "no_same_week_team_attempts_training_columns",
+      "passed": true,
+      "skipped": false,
+      "detail": "forbidden columns absent"
+    }
+  ],
+  "invariant": "M1 locks team-volume conservation (sum_w V_t,k,w = V_t,k_season) and within-week share conservation (named + other = 1) before any matchup effect is allowed to change season totals. Player-season points reconcile to the sealed board when named volume did not overflow the team pool."
+}

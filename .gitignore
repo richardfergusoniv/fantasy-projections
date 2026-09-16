@@ -130,6 +130,13 @@ config/phone_access.secrets.json
 # Live shadow sync working state (isolated DB, artifacts, reports).
 output/live_shadow/
 
+# Milestone 1 weekly latent shadow working set (full player-week tables).
+# summary.json, conservation.json, sample_player_weeks.csv, and README.md stay tracked.
+output/shadow_weekly_schedule_m1/*.parquet
+output/shadow_weekly_schedule_m1/player_weeks.csv
+output/shadow_weekly_schedule_m1/team_weeks.csv
+output/shadow_weekly_schedule_m1/shares.csv
+
 # Local shadow sync / eval scratch output
 _eval_*.txt
 _pytest_*.txt
