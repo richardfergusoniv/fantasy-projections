@@ -165,6 +165,10 @@ M1 **attaches** these features to every team-week. Only **opponent, home/away, a
 | Spread / total | In-season update | **Not a M1 driver.** Vegas stays the weekly benchmark, not an input to blend. |
 | Starting QB / injuries | In-season update | Future \(A_{i,w}\) / role; not M1. |
 
+**Cutoff / `available_at`.** Every M1 team-week and player-week row carries `available_at`. For M1 this is the sealed preseason snapshot (`2026-08-30T00:00:00+00:00`, `v2_baseline_20260830`), **not kickoff**. M1 features are schedule / home-away / bye / opponent scaffolding plus allocated season volume — no same-week realized volume. A Tuesday vintage and a 90-minute-pre-kickoff vintage are different cutoffs; M1 does not distinguish them because it has no in-season features.
+
+**M2 must overwrite `available_at`** when it attaches opponent priors or in-season updates, because those are knowable later than the preseason snapshot. Adding the column now (one writer: `allocate_team_weeks`) is cheaper than retrofitting it across M2 inputs.
+
 ---
 
 ## 7. Explicit correction: as-of shares vs same-week team volume
@@ -173,7 +177,7 @@ Source: PR #70 / `docs/research/WEEKLY_FEATURE_CLEANLINESS_2026-09-15.md` (local
 
 **Weekly roll3 shares are passed as-of.** `targets_share_roll3` / `carries_share_roll3` and v2 `*_l3` are `shift(1)` then rolling. A target week’s roll3 does **not** contain that week’s own box. That recipe is safe to build on **as a lagged feature**, when we get there.
 
-**Do not train on same-week `team_attempts` / `team_carries` attached by `add_team_pass_rate`.** That helper correctly lags `team_pass_rate_l5`, then also left-joins **current-week** `team_attempts` and `team_carries` onto the panel. Lagged pass-rate is OK. The same-week volume columns are not. M1 does not call `add_team_pass_rate` and does not put those column names on its tables.
+**Do not train on same-week `team_attempts` / `team_carries` attached by `add_team_pass_rate`.** That helper correctly lags `team_pass_rate_l5`, then also left-joins **current-week** `team_attempts` and `team_carries` onto the panel. Lagged pass-rate is OK. The same-week volume columns are not. M1 does not call `add_team_pass_rate` and does not put those column names on its tables. `FORBIDDEN_SAME_WEEK_TRAINING_FEATURES` is a literal copy of the team-prefixed `SAME_WEEK_OUTCOME_DENYLIST` names (`team_targets`, `team_carries`, `team_attempts`, `team_air_yards`) so `allocate.py` does not import the polars pipeline; `tests/test_weekly_latent_m1.py` is the drift alarm.
 
 M1 role shares come from the **sealed season board**, not from in-season roll3. Roll3 becomes relevant in M2/M3 as a lagged in-season updater, still as-of.
 

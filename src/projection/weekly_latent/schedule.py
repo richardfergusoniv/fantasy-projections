@@ -4,6 +4,11 @@ Pandas analogue of ``explode_schedules_to_team_weeks`` that does **not**
 require Vegas spread/total and does **not** join same-week ``team_attempts`` /
 ``team_carries``. Those realized columns are the PR #70 defect in
 ``add_team_pass_rate``; M1 never calls that helper.
+
+Schedule scaffolding here has no cutoff column yet. ``allocate_team_weeks``
+is the single M1 writer that stamps ``available_at`` (preseason snapshot).
+M2 must overwrite that cutoff when it attaches lagged opponent priors or
+in-season updates.
 """
 from __future__ import annotations
 

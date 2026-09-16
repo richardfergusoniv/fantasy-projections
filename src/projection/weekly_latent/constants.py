@@ -121,10 +121,28 @@ TEAM_DIVISIONS: Mapping[str, tuple[str, str]] = {
     "WAS": ("NFC", "East"),
 }
 
-# Same-week realized volume attached by add_team_pass_rate (PR #70).
+# Hand-maintained copy of team-prefixed SAME_WEEK_OUTCOME_DENYLIST names.
+# Kept as a literal so this shadow module does not import
+# feature_outcome_split (polars). tests/test_weekly_latent_m1.py asserts
+# this set matches those canonical team aggregates (plus the PR #70 hole
+# columns if that denylist has not landed on the branch yet).
 # Lagged team_pass_rate_l5 is a different, safe column. M1 outputs use
-# team_pass_attempts / team_carries as allocated projections, not these names.
-FORBIDDEN_SAME_WEEK_TRAINING_FEATURES = frozenset({"team_attempts", "team_carries"})
+# team_pass_attempts as allocated projections, not these realized names.
+FORBIDDEN_SAME_WEEK_TRAINING_FEATURES = frozenset(
+    {
+        "team_targets",
+        "team_carries",
+        "team_attempts",
+        "team_air_yards",
+    }
+)
+
+# M1 rows only carry schedule / home-away / bye / opponent scaffolding plus
+# allocated season volume. That package is knowable at the sealed preseason
+# board snapshot, not at kickoff. M2 must overwrite `available_at` when it
+# attaches opponent priors or in-season updates (Tuesday vs 90-min-pre-kickoff
+# are different vintages; M1 does not distinguish them).
+M1_AVAILABLE_AT = "2026-08-30T00:00:00+00:00"
 
 DEFAULT_SEALED_NAMESPACE = "v2_baseline_20260830"
 DEFAULT_SEALED_PROJECTIONS_REL = (

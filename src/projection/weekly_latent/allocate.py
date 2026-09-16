@@ -4,6 +4,12 @@ Matchup multipliers (home/away + shrunk opponent) only reshape the weekly
 path. After renormalization they cannot change team season totals. That is
 the M1 contract: conservation first, before any later milestone is allowed
 to let matchups move season mass.
+
+Every team-week and player-week row carries ``available_at``. For M1 this is
+the sealed preseason snapshot (``M1_AVAILABLE_AT`` / ``v2_baseline_20260830``),
+not kickoff: the only features on the row are schedule scaffolding and
+allocated season volume. M2 must overwrite that cutoff when opponent priors
+or in-season updates arrive.
 """
 from __future__ import annotations
 
@@ -16,6 +22,7 @@ from src.projection.weekly_latent.constants import (
     CONVERSION_RATES,
     FORBIDDEN_SAME_WEEK_TRAINING_FEATURES,
     HOME_MULT,
+    M1_AVAILABLE_AT,
     NEUTRAL_MULT,
     PLAYER_SHARE_POOLS,
     TEAM_VOLUME_PG_COLUMNS,
@@ -93,6 +100,8 @@ def allocate_team_weeks(
     frame["raw_rush_weight"] = active * frame["home_away_mult"] * frame["opp_rush_mult"]
     frame["pass_week_weight"] = _renormalize(frame["raw_pass_weight"], frame["team"])
     frame["rush_week_weight"] = _renormalize(frame["raw_rush_weight"], frame["team"])
+    # One writer for the M1 cutoff. Preseason snapshot, not gameday/kickoff.
+    frame["available_at"] = M1_AVAILABLE_AT
     vol = team_volume.rename(
         columns={name: f"season_{name}" for name in TEAM_VOLUME_PG_COLUMNS}
     )
@@ -204,6 +213,7 @@ def allocate_players(
         "surface",
         "stadium",
         "gameday",
+        "available_at",
         "shrinkage_lambda",
         "home_away_mult",
         "pass_week_weight",

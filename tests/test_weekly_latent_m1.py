@@ -20,6 +20,7 @@ from src.projection.weekly_latent.constants import (
     AWAY_MULT,
     FORBIDDEN_SAME_WEEK_TRAINING_FEATURES,
     HOME_MULT,
+    M1_AVAILABLE_AT,
     NEUTRAL_MULT,
     opponent_shrinkage_lambda,
 )
@@ -125,6 +126,7 @@ def test_matchup_weights_renormalize_and_home_gets_more_than_away():
     assert home > away
     expected_home = 170.0 * HOME_MULT / (HOME_MULT + AWAY_MULT)
     assert abs(home - expected_home) < 1e-9
+    assert (out["available_at"] == M1_AVAILABLE_AT).all()
 
 
 def test_bye_week_is_zero_and_neutral_skips_home_boost():
@@ -231,6 +233,43 @@ def test_dry_run_conservation_and_share_simplex(tmp_path):
         result.tables.team_weeks.columns
     )
     assert forbidden == set()
+    assert (result.tables.team_weeks["available_at"] == M1_AVAILABLE_AT).all()
+    assert (result.tables.player_weeks["available_at"] == M1_AVAILABLE_AT).all()
+    # Honest M1 cutoff is the preseason snapshot, not gameday/kickoff.
+    played = result.tables.team_weeks["gameday"].notna()
+    assert played.any()
+    assert not (
+        result.tables.team_weeks.loc[played, "available_at"]
+        == result.tables.team_weeks.loc[played, "gameday"].astype(str)
+    ).any()
+
+
+def test_forbidden_same_week_features_match_canonical_team_denylist():
+    """Local literal must track team-prefixed SAME_WEEK_OUTCOME_DENYLIST names.
+
+    weekly_latent keeps the frozenset as a literal so allocate.py does not
+    import feature_outcome_split (polars). This test is the drift alarm.
+
+    PR #70 adds team_attempts / team_air_yards to the canonical denylist and
+    is not necessarily merged on this branch. The local list includes those
+    hole columns now; extra names beyond (canonical ∪ #70) are also drift.
+    """
+    from src.projection.weekly.draws.feature_outcome_split import SAME_WEEK_OUTCOME_DENYLIST
+
+    canonical_team = frozenset(
+        name for name in SAME_WEEK_OUTCOME_DENYLIST if name.startswith("team_")
+    )
+    # PR #70 hole: these two were missing from the canonical denylist.
+    pr70_team_aggregates = frozenset({"team_attempts", "team_air_yards"})
+    expected = canonical_team | pr70_team_aggregates
+    assert FORBIDDEN_SAME_WEEK_TRAINING_FEATURES == expected, (
+        "FORBIDDEN_SAME_WEEK_TRAINING_FEATURES drifted from the team-prefixed "
+        "SAME_WEEK_OUTCOME_DENYLIST entries. Update the literal in "
+        "weekly_latent/constants.py (do not import feature_outcome_split there). "
+        f"local={sorted(FORBIDDEN_SAME_WEEK_TRAINING_FEATURES)} "
+        f"canonical_team={sorted(canonical_team)} "
+        f"expected={sorted(expected)}"
+    )
 
 
 def test_m1_does_not_import_promote_or_team_pass_rate_join():
@@ -238,6 +277,7 @@ def test_m1_does_not_import_promote_or_team_pass_rate_join():
     assert "src.projection.promote_release" not in graph
     assert "src.projection.release_bundle_publish" not in graph
     assert "src.projection.weekly.features.team_context" not in graph
+    assert "src.projection.weekly.draws.feature_outcome_split" not in graph
 
 
 def test_2026_fixture_has_32_teams_and_byes():
@@ -266,3 +306,5 @@ def test_sealed_board_m1_conservation(tmp_path):
     assert before == after
     assert result.summary["product_split"]["vegas"] == "external_weekly_benchmark"
     assert "replace Vegas weekly props" in result.summary["does_not"]
+    assert (result.tables.team_weeks["available_at"] == M1_AVAILABLE_AT).all()
+    assert (result.tables.player_weeks["available_at"] == M1_AVAILABLE_AT).all()

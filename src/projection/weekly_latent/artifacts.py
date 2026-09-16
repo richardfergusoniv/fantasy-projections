@@ -64,6 +64,7 @@ def write_shadow_outputs(
             "is_home",
             "is_bye",
             "A_i_w",
+            "available_at",
             "attempts",
             "targets",
             "carries",
