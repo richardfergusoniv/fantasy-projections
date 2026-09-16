@@ -131,11 +131,9 @@ clears.
 
 ## Related
 
-These design/process notes are **not yet on `master`**. Until they land,
-cite the open PRs rather than relative paths that 404 from this file.
-
 - Weekly latent design lock — [PR #71](https://github.com/richardfergusoniv/fantasy-projections/pull/71)
-  (lands at `docs/research/WEEKLY_LATENT_MODEL_DESIGN_2026-09-15.md`)
-- Review pipeline note — [PR #73](https://github.com/richardfergusoniv/fantasy-projections/pull/73)
-  (lands at `docs/decisions/REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md`)
+  (lands at `docs/research/WEEKLY_LATENT_MODEL_DESIGN_2026-09-15.md`; not yet on `master`)
+- [`REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md`](REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md)
+  — PR contract checklist; Cursor / Claude / Perplexity / human review roles
+  (Perplexity is manual / informational; landed via [PR #73](https://github.com/richardfergusoniv/fantasy-projections/pull/73))
 - [`docs/PIPELINE_MAP.md`](../PIPELINE_MAP.md) — related-decisions list
