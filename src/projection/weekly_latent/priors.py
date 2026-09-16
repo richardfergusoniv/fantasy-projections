@@ -197,6 +197,14 @@ def build_as_of_priors(
     out = factors_from_def_epa(collapsed)
     out["as_of_week"] = int(as_of_week)
     out["prior_source"] = "lagged_weeks_before_as_of"
+    if prior_season is not None and not prior_season.empty:
+        fallback = factors_from_def_epa(prior_season)
+        fallback["as_of_week"] = int(as_of_week)
+        fallback["prior_source"] = "prior_season_fallback"
+        have = set(out["opponent"].dropna().astype(str))
+        extra = fallback[~fallback["opponent"].astype(str).isin(have)].copy()
+        if not extra.empty:
+            out = pd.concat([out, extra], ignore_index=True)
     return out
 
 

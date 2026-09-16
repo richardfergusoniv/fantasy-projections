@@ -8,7 +8,7 @@ Research/shadow only. This directory is **not** a sealed League Value board, not
 - Dry run: `False`
 - Still shadow: `True`
 
-Large `player_weeks.csv` / `team_weeks.csv` / `shares.csv` are gitignored. `summary.json`, `conservation.json`, and `sample_player_weeks.csv` are the committed evidence files.
+Large `player_weeks.csv` / `team_weeks.csv` / `shares.csv` are gitignored. `summary.json`, `conservation.json`, and `sample_player_weeks.csv` are the committed evidence files. Milestone 2 also commits `backtest_synthetic.json` and `backtest_historical.json`.
 
 Local run (Windows DB):
 

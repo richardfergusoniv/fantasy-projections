@@ -422,16 +422,26 @@ def run_historical_schedule_backtest() -> dict[str, Any]:
         allocated.append(m2)
         scored = m2.merge(outcomes, on=["team", "week"], how="left")
         refuse_forbidden_m2_columns(m2, where=f"historical M2 allocation week {week}")
+        src_by_opp: dict[str, str] = {}
+        if "prior_source" in priors.columns and "opponent" in priors.columns:
+            src_by_opp = {
+                str(opp): str(src)
+                for opp, src in zip(priors["opponent"], priors["prior_source"])
+                if pd.notna(opp)
+            }
         for _, rec in scored.iterrows():
             pred = float(rec["team_pass_attempts"])
             realized = float(rec["realized_pass_attempts"])
             naive = 0.0 if int(rec["is_bye"]) == 1 else float(
                 volume.loc[volume["team"].eq(rec["team"]), "team_pass_attempts"].iloc[0]
             ) / n_active
+            opp = rec["opponent"] if "opponent" in rec.index else None
+            prior_source = None if (opp is None or (isinstance(opp, float) and pd.isna(opp))) else src_by_opp.get(str(opp))
             rows.append(
                 {
                     "week": int(rec["week"]),
                     "team": rec["team"],
+                    "opponent": None if opp is None or (isinstance(opp, float) and pd.isna(opp)) else str(opp),
                     "is_bye": int(rec["is_bye"]),
                     "pred_m2": pred,
                     "naive": naive,
@@ -439,11 +449,7 @@ def run_historical_schedule_backtest() -> dict[str, Any]:
                     "abs_err_m2": abs(pred - realized),
                     "abs_err_naive": abs(naive - realized),
                     "available_at": str(rec["available_at"]),
-                    "prior_source": (
-                        str(priors["prior_source"].iloc[0])
-                        if "prior_source" in priors.columns
-                        else None
-                    ),
+                    "prior_source": prior_source,
                 }
             )
     frame = pd.DataFrame(rows)
@@ -455,19 +461,25 @@ def run_historical_schedule_backtest() -> dict[str, Any]:
     mae_naive = float(frame["abs_err_naive"].mean())
     week1 = frame[frame["week"].eq(1) & frame["is_bye"].eq(0)]
     later_active = frame[frame["week"].gt(1) & frame["is_bye"].eq(0)]
-    later_cutoffs = [
-        parse_ok(a) > parse_ok(board_at) for a in later_active["available_at"]
-    ]
+    lagged_later = later_active[later_active["prior_source"].eq("lagged_weeks_before_as_of")]
+    none_earlier = all(
+        parse_ok(a) >= parse_ok(board_at) for a in later_active["available_at"]
+    ) if len(later_active) else False
+    lagged_advanced = all(
+        parse_ok(a) > parse_ok(board_at) for a in lagged_later["available_at"]
+    ) if len(lagged_later) else False
+    later_ok = bool(none_earlier and lagged_advanced and len(lagged_later) > 0)
     week1_at = str(week1["available_at"].iloc[0]) if len(week1) else None
     week1_src = str(week1["prior_source"].iloc[0]) if len(week1) else None
     later_src = (
-        str(later_active["prior_source"].iloc[0]) if len(later_active) else None
+        "lagged_weeks_before_as_of"
+        if len(lagged_later)
+        else (str(later_active["prior_source"].iloc[0]) if len(later_active) else None)
     )
     leaked_features = FORBIDDEN_SAME_WEEK_TRAINING_FEATURES.intersection(
         history["schedule"].columns
     )
     poison_ok = set(poisoned_columns) == set(FORBIDDEN_SAME_WEEK_TRAINING_FEATURES)
-    later_ok = all(later_cutoffs) if later_cutoffs else False
     passes = (
         poison_ok
         and leaked_features == set()

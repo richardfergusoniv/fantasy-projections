@@ -68,7 +68,7 @@ Unchanged from M1:
 
 **Not M2 drivers:** spread, total, implied team total, ADP, season-long Vegas, weather, injuries, same-week `team_attempts` / `team_carries` / `team_targets` / `team_air_yards`. Those names fail closed if they appear on the M2 graph.
 
-Opponent shrinkage \(\lambda_w\) is the M1 preseason schedule (weeks 1–4 keep the prior; 15–18 shrink hard). The 2026 shadow run is an August-vintage board: far-out 2026 opponent *form* is not knowable yet, even though 2025 EPA is. The synthetic rolling-origin harness uses \(\lambda_w=1\) because that vintage is as-of week \(t\).
+Opponent shrinkage \(\lambda_w\) is the M1 preseason schedule (weeks 1–4 keep the prior; 15–18 shrink hard). The 2026 shadow run is an August-vintage board: far-out 2026 opponent *form* is not knowable yet, even though 2025 EPA is. Both rolling-origin harnesses use \(\lambda_w=1\) because that vintage is as-of week \(t\). The historical harness passes `schedule_env_available_at` as the 2025 preseason stamp so 2025 rows are not branded with `M1_AVAILABLE_AT` (2026-08-30).
 
 ---
 
@@ -99,17 +99,30 @@ Higher EPA allowed = worse defense = more offense volume for the team facing the
 
 ## 4. Backtest reported *inside* M2
 
-Not a renamed M3. Not a random split.
+Not a renamed M3. Not a random split. Two leakage-safe rolling-origin
+evaluations of the object M2 actually ships (`allocate_team_weeks_m2`,
+deterministic volume that may move season mass):
 
-`src/projection/weekly_latent/backtest.py` is a **synthetic rolling-origin** harness:
+| Harness | What it is | What it is not |
+|---|---|---|
+| **Synthetic** (`backtest_synthetic.json`) | 2-team, weeks \(t=1..4\). Same-week `team_attempts` poison must raise. MAE vs even-split naive of the season prior. Later weeks advance `available_at` (max of attached vintages). | A model result. Demonstrates the harness. |
+| **Historical schedule** (`backtest_historical.json`) | 2025-shaped 5-team / 5-week slate (home/away, rest, byes). Opponent EPA for week \(t\) uses weeks \(< t\), or prior-season if that opponent has no lagged game. Season volume is a **prior-season analogue**, not the sum of the realized weeks (that would leak weeks \(t+1..\) into week 1). Outcomes live in a separate table (`realized_pass_attempts`, never `team_attempts` / `team_carries` / `team_targets` / `team_air_yards` on the feature frame). `available_at` is max(board, schedule-env, prior); schedule-env is the 2025 preseason stamp so 2025 rows are not branded with the 2026 M1 cutoff. | 32-team nflverse box scores. 6–8 live 2026 weeks. A promotion argument. |
 
-- Walk weeks \(t = 1..4\). Features for week \(t\) use opponent EPA from weeks \(< t\), or prior-season if \(t=1\).
-- Realized `team_pass_attempts` live in a separate outcomes table and are never joined onto the feature frame.
-- Injecting same-week `team_attempts` must raise (`refuse_forbidden_m2_columns`).
-- Score M2 weekly volume vs a naive even split of sealed season mass. Single-row M1 renormalize is *not* the baseline (it dumps the whole season into that week).
-- Weeks \(t>1\) must advance `available_at` to the lagged gameday (max of attached vintages), not keep `M1_AVAILABLE_AT`.
+Shared fail-closed rule: injecting same-week `team_attempts` / `team_carries` / `team_targets` / `team_air_yards` onto the prediction frame raises (`refuse_forbidden_m2_columns`). Both harnesses must pass for `run_milestone2` to report `backtest_passes`.
 
-This is the leakage-safe evaluation of the object M2 actually ships (deterministic team-week latent). It is not 2026 live shadow, not a Vegas-props comparison, and not a promotion argument. A historical schedule backtest of M1 does not replace it.
+On this compact historical slate, M2 weekly pass-attempt MAE is about 1.50 vs even-split naive 2.80. That shows the shipped multipliers use lagged opponent features. It is **not** evidence the 2026 board is ready to serve.
+
+**Still not claimed**
+
+- Not 6–8 live 2026 shadow weeks (promotion gate, decision note §3).
+- Not a Vegas weekly-props comparison (role 2). Not pinball / CRPS / coverage.
+- Not trailing-3 / EWM / hierarchical-mean / public expected-opportunity baselines — only even-split of the season prior.
+- Not a full historical season of realized nflverse team-week volume.
+- Not a real 2025 preseason projection board as \(V^{\mathrm{sealed}}\) — the volume table is a prior-season analogue constructed so week 1 cannot see weeks 2–5.
+- Not M3 availability, conversions, or probabilistic draws.
+- Reconstructing an earlier vintage of the same row (Tuesday vs Friday vs 90-min-pre-kickoff) is out of scope; a single scalar `available_at` is a max.
+
+A historical schedule backtest of M1 does not replace this. This does not replace the promotion gate.
 
 ---
 
@@ -123,6 +136,7 @@ Same package as M1: `src/projection/weekly_latent/` (no second stack).
 | Env / cutoff | `environment.py` |
 | Priors | `priors.py` + `fixtures/opp_def_epa_prior_2025.csv` |
 | Identities | `conservation.evaluate_m2` |
+| Backtest | `backtest.py` (synthetic + historical schedule) |
 | CLI | `scripts/run_weekly_schedule_m2.py` |
 | Tests | `tests/test_weekly_latent_m2.py` |
 | Shadow output | `output/shadow_weekly_schedule_m2/` (large CSVs gitignored) |
@@ -137,4 +151,6 @@ uv run pytest tests/test_weekly_latent_m1.py tests/test_weekly_latent_m2.py -q
 
 ## 6. Gate
 
-**Still shadow. Not a promotion.** One synthetic harness and a 2026 preseason allocation do not clear the 6–8 live-week bar. Vegas weekly props stay what the app serves.
+**Still shadow. Not a promotion.** A synthetic harness, a compact 2025-shaped
+schedule backtest, and a 2026 preseason allocation do not clear the 6–8
+live-week bar. Vegas weekly props stay what the app serves.

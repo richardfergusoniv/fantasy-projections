@@ -244,6 +244,32 @@ def test_as_of_priors_drop_current_week_and_fail_if_labeled_current():
         assert_priors_are_as_of(labeled, as_of_week=2)
 
 
+def test_as_of_priors_fill_unobserved_opponents_from_prior_season():
+    weekly = pd.DataFrame(
+        {
+            "team": ["BBB"],
+            "week": [1],
+            "pass_epa": [-4.0],
+            "rush_epa": [-1.0],
+            "gameday": ["2025-09-07"],
+        }
+    )
+    prior = pd.DataFrame(
+        {
+            "team": ["BBB", "CCC"],
+            "def_pass_epa_allowed": [-4.0, 5.0],
+            "def_rush_epa_allowed": [-1.0, 1.0],
+            "available_at": [PRIOR_SEASON_EPA_AVAILABLE_AT, PRIOR_SEASON_EPA_AVAILABLE_AT],
+        }
+    )
+    priors = build_as_of_priors(weekly, as_of_week=2, prior_season=prior)
+    by_opp = priors.set_index("opponent")
+    assert by_opp.loc["BBB", "prior_source"] == "lagged_weeks_before_as_of"
+    assert by_opp.loc["CCC", "prior_source"] == "prior_season_fallback"
+    assert float(by_opp.loc["BBB", "def_pass_epa_allowed"]) == pytest.approx(-4.0)
+    assert float(by_opp.loc["CCC", "def_pass_epa_allowed"]) == pytest.approx(5.0)
+
+
 def test_synthetic_rolling_origin_fails_closed_and_beats_naive():
     result = run_synthetic_rolling_origin()
     assert result["poison_same_week_raised"] is True
