@@ -53,9 +53,9 @@ jobs:
             Repo override for this GitHub Actions run (takes precedence over the skill's step-1 silent stop). Head commit: ${{ github.event.pull_request.head.sha }}
 
             - This job is a visible review check. GitHub Actions is one-shot / headless: do not launch background agents that wait on ScheduleWakeup; do the work inline.
-            - If the pull request is a draft, stop without posting.
-            - If the pull request is ready: you MUST leave a visible GitHub comment before exiting. Use `gh pr comment` for a summary (including tooling-only, docs, config, and "no issues" diffs) and/or `mcp__github_inline_comment__create_inline_comment` for line notes.
-            - Do not stop after the eligibility check without posting. Do not skip a ready PR as "trivial" or "already commented". If Claude already commented, post a short SHA-stamped follow-up for this head commit.
+            - Draft pull requests are reviewed here like any other. Cursor Cloud Agent opens nearly every PR as a draft, so skipping drafts silences most of the repo.
+            - You MUST leave a visible GitHub comment before exiting, draft or not. Use `gh pr comment` for a summary (including tooling-only, docs, config, and "no issues" diffs) and/or `mcp__github_inline_comment__create_inline_comment` for line notes.
+            - Do not stop after the eligibility check without posting. Do not skip a PR as "draft", "trivial" or "already commented". If Claude already commented, post a short SHA-stamped follow-up for this head commit.
           # Read/search plus the two posting channels the code-review plugin
           # actually uses. Unrestricted Bash, Write and Edit stay withheld:
           # no path to push a commit or call the merge API.
@@ -80,10 +80,14 @@ jobs:
           # ready PR #80 the plugin still exited success after 2 turns /
           # 0 denials / "No buffered inline comments" and posted nothing.
           # The code-review skill's step 1 stops when it judges the PR
-          # draft, already commented, or "trivial". Draft silence stays
-          # expected. Ready PRs must speak; the prompt override above
-          # asks Claude to post, and the step below fails the job if
-          # claude[bot] still left no visible comment or review.
+          # draft, already commented, or "trivial". The prompt override
+          # above countermands all three: every PR must speak, and the
+          # step below fails the job if claude[bot] left no visible
+          # comment or review.
+          #
+          # Drafts are NOT exempt. Cursor Cloud Agent opens nearly every
+          # PR as a draft (#64, #70, #71, #78), so exempting drafts
+          # silenced most of the repo while the check stayed green.
           #
           # github_ci is deliberately absent -- that server also needs a
           # workflow token this job does not grant. Agent/Task stay
@@ -98,9 +102,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # --draft is deliberately not passed (it defaults to false), so the
+        # gate enforces on drafts too. Passing the real draft flag made the
+        # script return skip_draft and let silent runs stay green on exactly
+        # the PRs Cursor opens.
         run: |
           python3 scripts/assert_claude_review_posted.py \
             --repo "${{ github.repository }}" \
             --pr "${{ github.event.pull_request.number }}" \
-            --since "${{ steps.gate.outputs.started_at }}" \
-            --draft "${{ github.event.pull_request.draft }}"
+            --since "${{ steps.gate.outputs.started_at }}"
