@@ -18,8 +18,10 @@ This note locks two things that later PRs keep conflating:
 
 It is distilled from an independent Perplexity governance review (2026-09-15)
 and the prior locked weekly-latent design (milestones M1–M3). It is a
-**checklist**, not a mandate to skip Milestone 1 (deterministic schedule
-allocation / conservation) or to jump straight to hierarchical Monte Carlo.
+**checklist**. It does **not** redefine those milestones or supersede the
+design lock. It does not authorize skipping Milestone 1 (deterministic
+schedule allocation / conservation) or jumping straight to hierarchical
+Monte Carlo.
 
 ## Decision
 
@@ -78,25 +80,60 @@ have their own scrape / freshness gates; those are a separate mechanism.
 
 ## 4. Milestone alignment
 
+This note **does not supersede** the locked weekly-latent design. Milestone
+meanings and wording below are those of
+[PR #71](https://github.com/richardfergusoniv/fantasy-projections/pull/71).
 Judge weekly-model PRs against the locked milestone they land in. This gate
 does not authorize skipping M1.
 
 | Milestone | Scope | Promotion? |
 |---|---|---|
-| **M1** | Deterministic schedule allocation + conservation (shadow). No new ML. | No |
-| **M2** | Historical schedule backtest with prior-only / leakage-safe features. | No |
-| **M3** | Probabilistic weekly simulation / learned distributions. | Still shadow until the gate above clears |
+| **M1** | Deterministic weekly schedule allocation, no new ML | No |
+| **M2** | Team-week latent that may move season totals | No |
+| **M3** | Weekly availability + conversions; compare, don't replace, Vegas | Still shadow until the gate above clears |
+
+**Backtesting is a requirement inside each milestone**, not a separate
+ladder rung. Each milestone must report leakage-safe, rolling-origin
+evaluation of the object it actually ships. A historical schedule backtest
+does not replace M2.
+
+### Milestone 1 — Deterministic weekly schedule allocation, no new ML
+
+Use the **2026 schedule** to turn **existing season team volume + player
+role shares** into weekly means, then aggregate back. Matchup multipliers
+**renormalize**; they reshape weeks and **do not** change season team
+totals.
+
+**Not in M1:** training, same-week realized volume features, Vegas
+replacement, League Value promote, PWA wiring, ADP/season-Vegas blending.
+
+### Milestone 2 — Team-week latent that may move season totals
+
+After M1 conservation is proven, allow opponent/environment to change
+\(V_{t,k}^{\mathrm{season}}\) instead of only reshaping weeks. Opponent
+defense priors must be **lagged / preseason**. Still no ADP or season
+Vegas as drivers. Vegas weekly props remain the benchmark, not the target
+to copy.
+
+### Milestone 3 — Weekly availability + conversions; compare, don't replace, Vegas
+
+Week-varying \(A_{i,w}\) and conversion latents. Publish a shadow weekly
+board. Score it against **Vegas weekly props** as the external benchmark.
+Optional empirical market-sanity bands vs ADP / season Vegas (widen when
+those two disagree). Still no promote/reseal of League Value from this
+track.
 
 The promotion gate applies to **serving** the independent model in the app.
-M1–M2 research merges are not promotions.
+M1–M2 research merges are not promotions. M3 remains shadow until the gate
+above clears.
 
 ## Related
 
-- Weekly latent design lock (not yet on `master`; expected via
-  [PR #71](https://github.com/richardfergusoniv/fantasy-projections/pull/71)):
-  [`docs/research/WEEKLY_LATENT_MODEL_DESIGN_2026-09-15.md`](../research/WEEKLY_LATENT_MODEL_DESIGN_2026-09-15.md)
-- Review pipeline — Cursor / Claude / Perplexity (not yet on `master`;
-  expected via
-  [PR #73](https://github.com/richardfergusoniv/fantasy-projections/pull/73)):
-  [`docs/decisions/REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md`](REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md)
+These design/process notes are **not yet on `master`**. Until they land,
+cite the open PRs rather than relative paths that 404 from this file.
+
+- Weekly latent design lock — [PR #71](https://github.com/richardfergusoniv/fantasy-projections/pull/71)
+  (lands at `docs/research/WEEKLY_LATENT_MODEL_DESIGN_2026-09-15.md`)
+- Review pipeline note — [PR #73](https://github.com/richardfergusoniv/fantasy-projections/pull/73)
+  (lands at `docs/decisions/REVIEW_PIPELINE_CURSOR_CLAUDE_PERPLEXITY_2026-09-15.md`)
 - [`docs/PIPELINE_MAP.md`](../PIPELINE_MAP.md) — related-decisions list
