@@ -151,7 +151,8 @@ output/shadow_weekly_schedule_m2/shares.csv
 
 # Milestone 3 weekly latent shadow working set (full player-week tables).
 # summary.json, conservation.json, sample_player_weeks.csv, backtest JSON,
-# vegas_props_compare.json, market_sanity.json, and README.md stay tracked.
+# vegas_props_compare.json, market_sanity.json, live_shadow_weeks.json,
+# and README.md stay tracked.
 output/shadow_weekly_schedule_m3/*.parquet
 output/shadow_weekly_schedule_m3/player_weeks.csv
 output/shadow_weekly_schedule_m3/team_weeks.csv

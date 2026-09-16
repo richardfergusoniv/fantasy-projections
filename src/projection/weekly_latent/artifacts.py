@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from collections.abc import Mapping
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import pandas as pd
 
@@ -88,7 +89,7 @@ def write_shadow_outputs(
     schema = summary.get("schema_version", SCHEMA_VERSION)
     payload = {
         "schema_version": schema,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         **{k: _jsonable(v) for k, v in summary.items()},
     }
     write_json(out / SUMMARY_NAME, payload)
@@ -149,7 +150,10 @@ def _readme_text(
         "`summary.json`, `conservation.json`, and `sample_player_weeks.csv` are "
         "the committed evidence files. Milestone 2 also commits "
         "`backtest_synthetic.json` and `backtest_historical.json`. Milestone 3 "
-        "adds those plus `vegas_props_compare.json` and `market_sanity.json`.\n\n"
+        "adds those plus `vegas_props_compare.json`, `market_sanity.json`, and "
+        "`live_shadow_weeks.json` (starts at 0; fixture weeks do not credit).\n\n"
+        "Role 2 measure: `uv run python scripts/compare_shadow_vegas_props.py --m3-dry-run` "
+        "and [`docs/ops/ROLE2_WEEKLY_MEASURE_RUNBOOK.md`](../../docs/ops/ROLE2_WEEKLY_MEASURE_RUNBOOK.md).\n\n"
         "Local run (Windows DB):\n\n"
         "```bat\n"
         "set FANTASY_PROJECTIONS_DATA_DIR=D:\\fantasy-projections-data\n"

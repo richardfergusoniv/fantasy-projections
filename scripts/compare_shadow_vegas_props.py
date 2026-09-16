@@ -5,6 +5,7 @@ Does not promote, reseal, train, blend Role 3, or change APP_PROJECTION_SOURCE.
 Examples:
 
   uv run python scripts/compare_shadow_vegas_props.py --dry-run
+  uv run python scripts/compare_shadow_vegas_props.py --m3-dry-run
   uv run python scripts/compare_shadow_vegas_props.py --props PATH --board PATH --outcomes PATH
 """
 from __future__ import annotations

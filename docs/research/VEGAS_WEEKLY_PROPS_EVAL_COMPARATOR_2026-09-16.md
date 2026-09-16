@@ -127,14 +127,24 @@ snapshots and model draws exist.
 
 ```bash
 uv run python scripts/compare_shadow_vegas_props.py --dry-run
-uv run pytest tests/weekly_eval -q
+uv run python scripts/compare_shadow_vegas_props.py --m3-dry-run
+uv run pytest tests/weekly_eval tests/test_weekly_latent_m3.py -q
 ```
 
-Dry-run reads the committed fixtures and writes
+`--dry-run` reads the committed weekly_eval fixtures.
+`--m3-dry-run` produces an M3 shadow Role 2 board and scores it against the
+timestamped M3 fixture (`as_of` ≤ `kickoff_at`). Both write
 `output/shadow_vegas_props_compare/summary.json`.
+
+Live weeks: [`docs/ops/ROLE2_WEEKLY_MEASURE_RUNBOOK.md`](../ops/ROLE2_WEEKLY_MEASURE_RUNBOOK.md).
+Tracker (starts at 0): [`WEEKLY_SHADOW_LIVE_WEEK_TRACKER_2026-09-16.md`](WEEKLY_SHADOW_LIVE_WEEK_TRACKER_2026-09-16.md).
+
+A sealed 2026 board is **not** compared to the dry-run fixture (`p-qb` vs
+`00-0034857`). Missing live snapshots return `harness=missing_live_snapshots`
+with an explicit `live_data_blocker`.
 
 ## Gate
 
 Not promoting. A green unit test and a research merge are not the 6–8 live
-shadow-week bar in the decision note. One synthetic fixture is a harness, not
-evidence of weekly accuracy.
+shadow-week bar in the decision note. Fixture / M3 dry-run compares are a
+harness, not evidence of weekly accuracy.

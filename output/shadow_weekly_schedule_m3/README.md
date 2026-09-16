@@ -8,7 +8,9 @@ Research/shadow only. This directory is **not** a sealed League Value board, not
 - Dry run: `False`
 - Still shadow: `True`
 
-Large `player_weeks.csv` / `team_weeks.csv` / `shares.csv` are gitignored. `summary.json`, `conservation.json`, and `sample_player_weeks.csv` are the committed evidence files. Milestone 2 also commits `backtest_synthetic.json` and `backtest_historical.json`. Milestone 3 adds those plus `vegas_props_compare.json` and `market_sanity.json`.
+Large `player_weeks.csv` / `team_weeks.csv` / `shares.csv` / `shadow_board_role2.csv` are gitignored. `summary.json`, `conservation.json`, and `sample_player_weeks.csv` are the committed evidence files. Milestone 3 also commits `backtest_synthetic.json`, `backtest_historical.json`, `vegas_props_compare.json` (2026 live-data blocker), `vegas_props_compare_m3_dry_run.json` (n_matched>0 harness), `market_sanity.json`, and `live_shadow_weeks.json` (starts at 0).
+
+Role 2 measure: `uv run python scripts/compare_shadow_vegas_props.py --m3-dry-run` and [`docs/ops/ROLE2_WEEKLY_MEASURE_RUNBOOK.md`](../../docs/ops/ROLE2_WEEKLY_MEASURE_RUNBOOK.md).
 
 Local run (Windows DB):
 

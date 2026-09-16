@@ -4,14 +4,40 @@
   "role3_blend": false,
   "promoting": false,
   "gate_verdict": "not_promoting",
-  "harness": "local_fixture_until_weekly_eval",
+  "harness": "missing_live_snapshots",
+  "snapshot_source": "missing_live_snapshots",
   "n_board": 168048,
-  "n_snapshots": 7,
+  "n_snapshots": 0,
   "n_matched": 0,
+  "match": {
+    "join_keys": [
+      "player_id",
+      "season",
+      "week",
+      "market"
+    ],
+    "n_board_unmatched": 1,
+    "n_snapshot_unmatched": 0,
+    "unmatched_board_ids_sample": [],
+    "unmatched_snapshot_ids_sample": []
+  },
   "metrics": {
     "n": 0,
     "mae_model_vs_market": null
   },
-  "caveat": "Role 2 measurement only. Compare, do not replace. Not a promotion. Do not optimize toward market agreement. Feed output/shadow_weekly_schedule_m3/shadow_board_role2.csv to scripts/compare_shadow_vegas_props.py --board once PR #83 merges.",
+  "live_data_blocker": {
+    "status": "blocked",
+    "n_board": 168048,
+    "must_supply": [
+      "CSV of timestamped Vegas weekly prop snapshots at WEEKLY_EVAL_PROPS_PATH or output/shadow_vegas_props_compare/live_snapshots.csv",
+      "player_id matching the M3 / sealed board (gsis-style ids such as 00-0034857), not dry-run names (p-qb / p-wr)",
+      "season, week, market using Role 2 names (pass_yards, rec_yards, receptions, ...)",
+      "as_of (ISO-8601 UTC) and kickoff_at with as_of <= kickoff_at",
+      "line or implied_mean; implied_p_over when de-vig is available",
+      "optional outcomes CSV after the week: player_id, season, week, market, actual"
+    ],
+    "note": "Role 1 weekly_props snapshots live in the DB / artifact store, not as committed as_of CSVs. Export a leakage-safe Role 2 frame before kickoff; do not reuse a later closing line as the historical as-of."
+  },
+  "caveat": "2026 sealed-board Role 2 export has no live timestamped Vegas snapshots in-repo. n_matched=0 is a live-data blocker, not a silent fixture mismatch. See vegas_props_compare_m3_dry_run.json for the matching harness (n_matched>0).",
   "pr83_hook": "src.projection.weekly_eval.compare_shadow_to_vegas(board=shadow_board_role2.csv, snapshots=..., outcomes=...)"
 }

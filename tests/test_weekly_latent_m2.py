@@ -11,7 +11,10 @@ import pytest
 
 from src.projection.contracts import REPO_ROOT
 from src.projection.shadow.forbidden import local_import_graph
-from src.projection.weekly_latent.allocate import allocate_team_weeks, allocate_team_weeks_m2
+from src.projection.weekly_latent.allocate import (
+    allocate_team_weeks,
+    allocate_team_weeks_m2,
+)
 from src.projection.weekly_latent.backtest import (
     HISTORICAL_BOARD_AVAILABLE_AT,
     historical_features_for_week,
@@ -29,7 +32,10 @@ from src.projection.weekly_latent.constants import (
     opponent_shrinkage_lambda,
 )
 from src.projection.weekly_latent.environment import refuse_forbidden_m2_columns
-from src.projection.weekly_latent.priors import assert_priors_are_as_of, build_as_of_priors
+from src.projection.weekly_latent.priors import (
+    assert_priors_are_as_of,
+    build_as_of_priors,
+)
 from src.projection.weekly_latent.run import production_fingerprint, run_milestone2
 
 ROOT = Path(REPO_ROOT)
@@ -370,7 +376,9 @@ def test_dry_run_m2_shares_and_production_untouched(tmp_path):
 
 
 def test_forbidden_same_week_features_match_canonical_team_denylist():
-    from src.projection.weekly.draws.feature_outcome_split import SAME_WEEK_OUTCOME_DENYLIST
+    from src.projection.weekly.draws.feature_outcome_split import (
+        SAME_WEEK_OUTCOME_DENYLIST,
+    )
 
     canonical_team = frozenset(
         name for name in SAME_WEEK_OUTCOME_DENYLIST if name.startswith("team_")
@@ -386,6 +394,10 @@ def test_m2_does_not_import_promote_or_team_pass_rate_join():
     assert "src.projection.release_bundle_publish" not in graph
     assert "src.projection.weekly.features.team_context" not in graph
     assert "src.projection.weekly.draws.feature_outcome_split" not in graph
+    assert "src.app" not in graph
+    # Role 2 may load weekly_eval at runtime via importlib (read-only denylist
+    # reuse of feature_outcome_split). That is measurement, not a training join,
+    # and must stay off the weekly_latent.run AST walk.
 
 
 def test_refuse_helper_lists_all_denylist_siblings():

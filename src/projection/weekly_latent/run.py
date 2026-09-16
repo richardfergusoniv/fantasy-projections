@@ -7,14 +7,14 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-from src.projection.contracts import REPO_ROOT
 from src.paths import DB_PATH
+from src.projection.contracts import REPO_ROOT
 from src.projection.weekly_latent.allocate import (
     AllocationTables,
     allocate_players,
@@ -26,7 +26,11 @@ from src.projection.weekly_latent.allocate import (
 from src.projection.weekly_latent.artifacts import write_shadow_outputs
 from src.projection.weekly_latent.backtest import run_m2_backtests
 from src.projection.weekly_latent.backtest_m3 import run_m3_backtests
-from src.projection.weekly_latent.conservation import evaluate_conservation, evaluate_m2, evaluate_m3
+from src.projection.weekly_latent.conservation import (
+    evaluate_conservation,
+    evaluate_m2,
+    evaluate_m3,
+)
 from src.projection.weekly_latent.constants import (
     DEFAULT_OPP_EPA_PRIOR_REL,
     DEFAULT_OUTPUT_REL,
@@ -349,9 +353,9 @@ def run_milestone1(
         "schedule_path": None if sched_used is None else str(sched_used).replace("\\", "/"),
         "sealed_namespace_read": None if dry_run else DEFAULT_SEALED_NAMESPACE,
         "n_teams": int(allocated_teams["team"].nunique()),
-        "n_team_weeks": int(len(allocated_teams)),
+        "n_team_weeks": len(allocated_teams),
         "n_players": int(player_weeks["player_id"].nunique()) if len(player_weeks) else 0,
-        "n_player_weeks": int(len(player_weeks)),
+        "n_player_weeks": len(player_weeks),
         "n_bye_team_weeks": int(allocated_teams["is_bye"].sum()),
         "conservation_passes": conservation["passes"],
         "failing_checks": conservation["failing_checks"],
@@ -374,7 +378,7 @@ def run_milestone1(
         "db_opponent_priors": db_priors_note,
         "production_hash_drift": drift,
         "games_per_season": GAMES_PER_SEASON,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
     }
     if drift:
         raise RuntimeError(
@@ -538,9 +542,9 @@ def run_milestone2(
         "schedule_path": None if sched_used is None else str(sched_used).replace("\\", "/"),
         "sealed_namespace_read": None if dry_run else DEFAULT_SEALED_NAMESPACE,
         "n_teams": int(m2_teams["team"].nunique()),
-        "n_team_weeks": int(len(m2_teams)),
+        "n_team_weeks": len(m2_teams),
         "n_players": int(player_weeks["player_id"].nunique()) if len(player_weeks) else 0,
-        "n_player_weeks": int(len(player_weeks)),
+        "n_player_weeks": len(player_weeks),
         "n_bye_team_weeks": int(m2_teams["is_bye"].sum()),
         "conservation_passes": conservation["passes"],
         "failing_checks": conservation["failing_checks"],
@@ -573,7 +577,7 @@ def run_milestone2(
         "production_hash_drift": drift,
         "games_per_season": GAMES_PER_SEASON,
         "m1_schema_version": SCHEMA_VERSION,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "gate_verdict": "not promoting",
         "still_shadow": True,
         "backtest_passes": backtest.get("passes"),
@@ -709,7 +713,7 @@ def run_milestone3(
     role2_board = export_role2_board(player_weeks)
     vegas_compare = compare_m3_to_vegas_props(
         board=role2_board,
-        dry_run=True,
+        dry_run=dry_run,
         repo_root=root,
     )
     sanity = market_sanity_bands()
@@ -729,9 +733,9 @@ def run_milestone3(
         "schedule_path": None if sched_used is None else str(sched_used).replace("\\", "/"),
         "sealed_namespace_read": None if dry_run else DEFAULT_SEALED_NAMESPACE,
         "n_teams": int(m2_teams["team"].nunique()),
-        "n_team_weeks": int(len(m2_teams)),
+        "n_team_weeks": len(m2_teams),
         "n_players": int(player_weeks["player_id"].nunique()) if len(player_weeks) else 0,
-        "n_player_weeks": int(len(player_weeks)),
+        "n_player_weeks": len(player_weeks),
         "n_bye_team_weeks": int(m2_teams["is_bye"].sum()),
         "conservation_passes": conservation["passes"],
         "failing_checks": conservation["failing_checks"],
@@ -762,7 +766,7 @@ def run_milestone3(
         "games_per_season": GAMES_PER_SEASON,
         "m1_schema_version": SCHEMA_VERSION,
         "m2_schema_version": SCHEMA_VERSION_M2,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "gate_verdict": "not promoting",
         "still_shadow": True,
         "backtest_passes": backtest.get("passes"),

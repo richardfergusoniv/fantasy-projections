@@ -1,0 +1,109 @@
+{
+  "schema_version": "vegas_weekly_props_eval_v1",
+  "role": "evaluation_comparator",
+  "role3_blend": false,
+  "promoting": false,
+  "gate_verdict": "not_promoting",
+  "n_board": 108,
+  "n_snapshots": 7,
+  "n_matched": 4,
+  "n_with_actuals": 0,
+  "match": {
+    "join_keys": [
+      "player_id",
+      "season",
+      "week",
+      "market"
+    ],
+    "n_board_unmatched": 104,
+    "n_snapshot_unmatched": 3,
+    "unmatched_board_ids_sample": [
+      "p-qb",
+      "p-rb",
+      "q-qb"
+    ],
+    "unmatched_snapshot_ids_sample": [
+      "p-wr"
+    ]
+  },
+  "metrics": {
+    "n": 4,
+    "mae_model_vs_market": 977.1756250000001,
+    "mae_model": null,
+    "mae_market": null,
+    "rmse_model": null,
+    "rmse_market": null,
+    "brier_model": null,
+    "brier_market": null,
+    "crps_gaussian_model": null,
+    "crps_gaussian_market": null,
+    "pinball_q50_model": null,
+    "pinball_q50_market": null,
+    "coverage_80_model": null
+  },
+  "by_market": {
+    "pass_attempts": {
+      "n": 1,
+      "mae_model_vs_market": 257.0,
+      "mae_model": null,
+      "mae_market": null,
+      "rmse_model": null,
+      "rmse_market": null,
+      "brier_model": null,
+      "brier_market": null,
+      "crps_gaussian_model": null,
+      "crps_gaussian_market": null,
+      "pinball_q50_model": null,
+      "pinball_q50_market": null,
+      "coverage_80_model": null
+    },
+    "pass_yards": {
+      "n": 2,
+      "mae_model_vs_market": 1630.7800000000002,
+      "mae_model": null,
+      "mae_market": null,
+      "rmse_model": null,
+      "rmse_market": null,
+      "brier_model": null,
+      "brier_market": null,
+      "crps_gaussian_model": null,
+      "crps_gaussian_market": null,
+      "pinball_q50_model": null,
+      "pinball_q50_market": null,
+      "coverage_80_model": null
+    },
+    "rush_yards": {
+      "n": 1,
+      "mae_model_vs_market": 390.1425,
+      "mae_model": null,
+      "mae_market": null,
+      "rmse_model": null,
+      "rmse_market": null,
+      "brier_model": null,
+      "brier_market": null,
+      "crps_gaussian_model": null,
+      "crps_gaussian_market": null,
+      "pinball_q50_model": null,
+      "pinball_q50_market": null,
+      "coverage_80_model": null
+    }
+  },
+  "leakage": {
+    "as_of_required": true,
+    "kickoff_at_required": true,
+    "post_kickoff_rejected": true,
+    "same_week_outcome_columns_rejected": true,
+    "role3_blend_rejected": true
+  },
+  "metrics_notes": {
+    "mae_rmse": "Point losses vs realized actuals (and model vs market as a diagnostic, not a target).",
+    "brier": "Proper score for the binary over/under relative to the snapshot line.",
+    "crps_gaussian": "Proper score for a Gaussian with mean + std (std from column or CV fallback).",
+    "pinball_q50": "Quantile loss at the median; calibration-friendly; equals half of MAE when the median is the mean.",
+    "coverage_80": "Share of actuals inside the Gaussian p10-p90 interval."
+  },
+  "caveat": "Harness only. Not a promotion sample. Do not optimize toward market agreement or treat this output as weekly accuracy evidence.",
+  "harness": "weekly_eval",
+  "snapshot_source": "m3_synthetic_fixture",
+  "pr83_hook": "src.projection.weekly_eval.compare_shadow_to_vegas"
+}

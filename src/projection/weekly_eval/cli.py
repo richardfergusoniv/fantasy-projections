@@ -59,7 +59,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Use committed synthetic fixtures (no live scrape, no production pointer).",
+        help="Use committed weekly_eval synthetic fixtures (no live scrape, no production pointer).",
+    )
+    parser.add_argument(
+        "--m3-dry-run",
+        action="store_true",
+        help=(
+            "Produce an M3 dry-run Role 2 board and score it against the "
+            "timestamped M3 props fixture (as_of <= kickoff). Still not promoting."
+        ),
     )
     parser.add_argument("--props", default=None, help="Prop snapshot CSV.")
     parser.add_argument("--board", default=None, help="Shadow weekly board CSV (player-week means).")
@@ -71,13 +79,28 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     args = parser.parse_args(list(argv) if argv is not None else None)
 
-    if args.dry_run:
+    if args.dry_run and args.m3_dry_run:
+        parser.error("choose one of --dry-run or --m3-dry-run")
+
+    source = "supplied"
+    if args.m3_dry_run:
+        from src.projection.weekly_latent.constants import DEFAULT_VEGAS_PROPS_M3_REL
+        from src.projection.weekly_latent.run import run_milestone3
+
+        m3_dir = Path(args.output).resolve().parent / "_m3_dry_run_board"
+        m3 = run_milestone3(dry_run=True, output_dir=m3_dir, run_backtest=False)
+        board = Path(m3.output_paths.get("shadow_board_role2.csv") or (m3_dir / "shadow_board_role2.csv"))
+        props = Path(REPO_ROOT) / DEFAULT_VEGAS_PROPS_M3_REL
+        outcomes = Path(args.outcomes) if args.outcomes else None
+        source = "m3_dry_run"
+    elif args.dry_run:
         props = DEFAULT_FIXTURE_DIR / "prop_snapshots.csv"
         board = DEFAULT_FIXTURE_DIR / "shadow_board.csv"
         outcomes = DEFAULT_FIXTURE_DIR / "outcomes.csv"
+        source = "weekly_eval_fixture"
     else:
         if not args.props or not args.board:
-            parser.error("--props and --board are required unless --dry-run")
+            parser.error("--props and --board are required unless --dry-run or --m3-dry-run")
         props = Path(args.props)
         board = Path(args.board)
         outcomes = Path(args.outcomes) if args.outcomes else None
@@ -88,6 +111,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         outcomes=outcomes,
     )
     summary["dry_run"] = bool(args.dry_run)
+    summary["source"] = source
+    if args.m3_dry_run:
+        summary["harness"] = "weekly_eval"
+        summary["snapshot_source"] = "m3_synthetic_fixture"
     summary["inputs"] = {
         "props": _repo_relative(props),
         "board": _repo_relative(board),
@@ -101,6 +128,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "promoting",
         "gate_verdict",
         "dry_run",
+        "source",
         "n_matched",
         "n_with_actuals",
         "metrics",
