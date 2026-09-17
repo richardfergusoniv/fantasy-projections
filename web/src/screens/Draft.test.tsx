@@ -375,6 +375,7 @@ describe("DraftScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "WR Player 1" }));
     const dialog = screen.getByRole("dialog", { name: "WR Player 1" });
     expect(dialog).toBeInTheDocument();
+    expect(dialog.closest(".player-card-backdrop")?.parentElement).toBe(document.body);
     expect(within(dialog).getByText("Rec Yds")).toBeInTheDocument();
     expect(within(dialog).getByText("900.5")).toBeInTheDocument();
     expect(within(dialog).getAllByText("book").length).toBeGreaterThan(0);

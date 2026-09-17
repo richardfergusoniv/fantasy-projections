@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { AsyncStateBanner } from "../components/AsyncState";
 import { AsOfChrome } from "../components/AsOfChrome";
@@ -1046,73 +1047,76 @@ export function DraftScreen() {
         ) : null}
       </Panel>
 
-      {selectedPlayer ? (
-        <div
-          className="player-card-backdrop"
-          role="presentation"
-          onClick={() => setSelectedPlayerId(null)}
-        >
-          <div
-            ref={dialogRef}
-            className="player-card-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="player-card-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="player-card-header">
-              <div>
-                <h2 id="player-card-title">{selectedPlayer.name}</h2>
-                <p className="muted">
-                  <span className={`pos-badge ${selectedPlayer.position}`}>
-                    {selectedPlayer.position}
-                  </span>
-                  {selectedPlayer.team ? ` · ${selectedPlayer.team}` : ""}
-                  {selectedPlayer.adp != null ? ` · ADP ${selectedPlayer.adp}` : ""}
-                  {selectedPlayer.vegas_fp != null
-                    ? ` · Vegas FP ${selectedPlayer.vegas_fp.toFixed(1)}`
-                    : " · Vegas FP —"}
-                </p>
-              </div>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                aria-label="Close player card"
-                onClick={() => setSelectedPlayerId(null)}
+      {selectedPlayer
+        ? createPortal(
+            <div
+              className="player-card-backdrop"
+              role="presentation"
+              onClick={() => setSelectedPlayerId(null)}
+            >
+              <div
+                ref={dialogRef}
+                className="player-card-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="player-card-title"
+                onClick={(event) => event.stopPropagation()}
               >
-                Close
-              </button>
-            </div>
-            <p className="muted player-card-coverage">{coverageCopy(cardRows)}</p>
-            {cardRows.length ? (
-              <>
-                <dl className="player-card-markets">
-                  {cardRows.map((row) => (
-                    <div key={row.key} className="player-card-market-row">
-                      <dt>
-                        {row.label}
-                        <span
-                          className={`player-card-kind is-${row.kind}`}
-                          title={MARKET_KIND_TITLES[row.kind] ?? "Source unknown"}
-                        >
-                          {MARKET_KIND_LABELS[row.kind] ?? "—"}
-                        </span>
-                      </dt>
-                      <dd>{row.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <p className="muted player-card-footnote">
-                  These rows are exactly what Vegas FP adds up: half-PPR scoring, 4-point
-                  passing TDs, no interceptions or fumbles.
-                </p>
-              </>
-            ) : (
-              <p className="muted">No season prop lines available for this player.</p>
-            )}
-          </div>
-        </div>
-      ) : null}
+                <div className="player-card-header">
+                  <div>
+                    <h2 id="player-card-title">{selectedPlayer.name}</h2>
+                    <p className="muted">
+                      <span className={`pos-badge ${selectedPlayer.position}`}>
+                        {selectedPlayer.position}
+                      </span>
+                      {selectedPlayer.team ? ` · ${selectedPlayer.team}` : ""}
+                      {selectedPlayer.adp != null ? ` · ADP ${selectedPlayer.adp}` : ""}
+                      {selectedPlayer.vegas_fp != null
+                        ? ` · Vegas FP ${selectedPlayer.vegas_fp.toFixed(1)}`
+                        : " · Vegas FP —"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    aria-label="Close player card"
+                    onClick={() => setSelectedPlayerId(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+                <p className="muted player-card-coverage">{coverageCopy(cardRows)}</p>
+                {cardRows.length ? (
+                  <>
+                    <dl className="player-card-markets">
+                      {cardRows.map((row) => (
+                        <div key={row.key} className="player-card-market-row">
+                          <dt>
+                            {row.label}
+                            <span
+                              className={`player-card-kind is-${row.kind}`}
+                              title={MARKET_KIND_TITLES[row.kind] ?? "Source unknown"}
+                            >
+                              {MARKET_KIND_LABELS[row.kind] ?? "—"}
+                            </span>
+                          </dt>
+                          <dd>{row.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    <p className="muted player-card-footnote">
+                      These rows are exactly what Vegas FP adds up: half-PPR scoring, 4-point
+                      passing TDs, no interceptions or fumbles.
+                    </p>
+                  </>
+                ) : (
+                  <p className="muted">No season prop lines available for this player.</p>
+                )}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

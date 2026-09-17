@@ -76,8 +76,40 @@ describe("HTTP cache headers at the edge", () => {
     expect(bySource.get("/sw.js")).toMatch(/max-age=0/);
     expect(bySource.get("/sw.js")).not.toMatch(/no-store/);
     expect(bySource.get("/manifest.webmanifest")).toMatch(/max-age=0/);
-    expect(bySource.get("/(.*)")).toMatch(/max-age=0/);
-    expect(bySource.get("/(.*)")).not.toMatch(/no-store/);
+    expect(bySource.get("/((?!assets/).*)")).toMatch(/max-age=0/);
+    expect(bySource.get("/((?!assets/).*)")).not.toMatch(/no-store/);
+    expect(bySource.get("/(.*)")).toBeUndefined();
+  });
+
+  it("applies later matching header rules last, without stripping /assets immutable", () => {
+    const vercel = JSON.parse(readFileSync(path.join(repoRoot, "vercel.json"), "utf8")) as {
+      headers?: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
+    };
+    const rules = vercel.headers ?? [];
+
+    function sourceMatches(source: string, pathname: string): boolean {
+      return new RegExp(`^${source}$`).test(pathname);
+    }
+
+    function effectiveCacheControl(pathname: string): string | undefined {
+      let value: string | undefined;
+      for (const rule of rules) {
+        if (!sourceMatches(rule.source, pathname)) continue;
+        const cacheControl = rule.headers.find((header) => header.key === "Cache-Control");
+        if (cacheControl) value = cacheControl.value;
+      }
+      return value;
+    }
+
+    expect(effectiveCacheControl("/assets/index-abc123.js")).toBe(
+      "public, max-age=31536000, immutable",
+    );
+    expect(effectiveCacheControl("/assets/index-abc123.css")).toMatch(/immutable/);
+    expect(effectiveCacheControl("/")).toMatch(/max-age=0/);
+    expect(effectiveCacheControl("/")).not.toMatch(/no-store/);
+    expect(effectiveCacheControl("/login")).toMatch(/max-age=0/);
+    expect(effectiveCacheControl("/sw.js")).toMatch(/max-age=0/);
+    expect(effectiveCacheControl("/manifest.webmanifest")).toMatch(/max-age=0/);
   });
 });
 
@@ -98,6 +130,7 @@ describe("responsive shell uses container queries, not only viewport breakpoints
     expect(css).toMatch(/container-type:\s*inline-size/);
     expect(css).toMatch(/container-name:\s*app-shell/);
     expect(css).toMatch(/@container\s+app-shell/);
+    expect(css).toMatch(/@media\s*\(min-width:\s*640px\)[\s\S]{0,180}\.stack \.btn-primary/);
     expect(css).toMatch(/--text-md:\s*clamp\(/);
     expect(css).not.toMatch(/will-change:\s*transform/);
   });

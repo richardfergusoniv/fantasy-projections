@@ -2377,6 +2377,13 @@ a {
   width: 100%;
 }
 
+@media (min-width: 640px) {
+  .stack .btn-primary,
+  .stack .btn-ghost {
+    width: auto;
+  }
+}
+
 @container app-shell (min-width: 640px) {
   .stack .btn-primary,
   .stack .btn-ghost {
@@ -2512,6 +2519,12 @@ a {
 .player-card-footnote {
   margin: 0.75rem 0 0;
   font-size: 0.8rem;
+}
+
+@media (min-width: 640px) {
+  .player-card-backdrop {
+    place-items: center;
+  }
 }
 
 @container app-shell (min-width: 640px) {
