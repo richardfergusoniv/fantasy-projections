@@ -10,12 +10,26 @@ import pandas as pd
 from src.projection.weekly_eval.leakage import JOIN_KEYS
 
 
-def _key_tuples(frame: pd.DataFrame) -> set[tuple[str, int, int, str]]:
+def _missing_join_keys(frame: pd.DataFrame) -> list[str]:
+    return [k for k in JOIN_KEYS if k not in frame.columns]
+
+
+def _require_join_keys(frame: pd.DataFrame, *, label: str) -> None:
+    if frame is None or frame.empty:
+        return
+    missing = _missing_join_keys(frame)
+    if missing:
+        raise ValueError(f"{label} missing join keys: {missing}")
+
+
+def _key_tuples(
+    frame: pd.DataFrame | None,
+    *,
+    label: str,
+) -> set[tuple[str, int, int, str]]:
     if frame is None or frame.empty:
         return set()
-    missing = [k for k in JOIN_KEYS if k not in frame.columns]
-    if missing:
-        return set()
+    _require_join_keys(frame, label=label)
     return set(
         zip(
             frame["player_id"].astype(str),
@@ -32,9 +46,12 @@ def describe_match(
     joined: pd.DataFrame,
 ) -> dict[str, object]:
     """Report unmatched keys so a silent n_matched=0 is diagnosable."""
-    board_keys = _key_tuples(board)
-    snap_keys = _key_tuples(snapshots if snapshots is not None else pd.DataFrame())
-    joined_keys = _key_tuples(joined)
+    board_keys = _key_tuples(board, label="board")
+    snap_keys = _key_tuples(
+        snapshots if snapshots is not None else pd.DataFrame(),
+        label="snapshots",
+    )
+    joined_keys = _key_tuples(joined, label="joined")
     unmatched_board = board_keys - joined_keys
     unmatched_snap = snap_keys - joined_keys
     return {
@@ -46,11 +63,20 @@ def describe_match(
     }
 
 
-def empty_match(*, board_n: int = 0, snapshot_n: int = 0) -> dict[str, object]:
+def empty_match(
+    board: pd.DataFrame | None = None,
+    snapshots: pd.DataFrame | None = None,
+) -> dict[str, object]:
+    """Unmatched counts are distinct join-key tuples, same as ``describe_match``."""
+    board_keys = _key_tuples(board if board is not None else pd.DataFrame(), label="board")
+    snap_keys = _key_tuples(
+        snapshots if snapshots is not None else pd.DataFrame(),
+        label="snapshots",
+    )
     return {
         "join_keys": list(JOIN_KEYS),
-        "n_board_unmatched": int(board_n),
-        "n_snapshot_unmatched": int(snapshot_n),
-        "unmatched_board_ids_sample": [],
-        "unmatched_snapshot_ids_sample": [],
+        "n_board_unmatched": len(board_keys),
+        "n_snapshot_unmatched": len(snap_keys),
+        "unmatched_board_ids_sample": sorted({row[0] for row in board_keys})[:8],
+        "unmatched_snapshot_ids_sample": sorted({row[0] for row in snap_keys})[:8],
     }

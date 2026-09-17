@@ -254,7 +254,7 @@ def compare_shadow_to_vegas(
     match = (
         describe_match(board_df, snap_df, joined)
         if not snap_df.empty
-        else empty_match(board_n=len(board_df), snapshot_n=0)
+        else empty_match(board=board_df, snapshots=snap_df)
     )
     metrics = _metric_block(joined) if not joined.empty else {
         "n": 0,

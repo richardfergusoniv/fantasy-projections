@@ -22,7 +22,12 @@ from src.projection.weekly_latent.environment import refuse_forbidden_m2_columns
 LIVE_PROPS_ENV = "WEEKLY_EVAL_PROPS_PATH"
 DEFAULT_LIVE_PROPS_REL = "output/shadow_vegas_props_compare/live_snapshots.csv"
 _JOIN_KEYS = ("player_id", "season", "week", "market")
-
+M3_DRY_RUN_METRICS_CAVEAT = (
+    "Harness / scale-mismatch dry-run check, not weekly accuracy. "
+    "M3 dry-run keeps full-season mass across weeks 1–3, so MAE compares "
+    "season-scale model means to weekly lines. n_matched>0 proves the join; "
+    "it is not a promotion argument."
+)
 ROLE2_MARKET_MAP: dict[str, str] = {
     "passing_yards": "pass_yards",
     "passing_tds": "pass_tds",
@@ -105,8 +110,12 @@ def _resolve_snapshots_path(
     env = os.environ.get(LIVE_PROPS_ENV, "").strip()
     if env:
         env_path = Path(env)
-        if env_path.is_file():
-            return env_path, "live_timestamped"
+        if not env_path.is_file():
+            raise FileNotFoundError(
+                f"{LIVE_PROPS_ENV} is set to {env_path} but that path is not a "
+                "file; refusing to fall back to live_snapshots.csv (fail closed)"
+            )
+        return env_path, "live_timestamped"
     live = repo_root / DEFAULT_LIVE_PROPS_REL
     if live.is_file():
         return live, "live_timestamped"
@@ -139,13 +148,44 @@ def _live_data_blocker(*, n_board: int) -> dict[str, Any]:
     }
 
 
-def _empty_match(*, board_n: int = 0, snapshot_n: int = 0) -> dict[str, Any]:
+def _require_join_keys(frame: pd.DataFrame, *, label: str) -> None:
+    if frame is None or frame.empty:
+        return
+    missing = [k for k in _JOIN_KEYS if k not in frame.columns]
+    if missing:
+        raise ValueError(f"{label} missing join keys: {missing}")
+
+
+def _match_keys(
+    frame: pd.DataFrame | None,
+    *,
+    label: str,
+) -> set[tuple[str, int, int, str]]:
+    if frame is None or frame.empty:
+        return set()
+    _require_join_keys(frame, label=label)
+    return set(
+        zip(
+            frame["player_id"].astype(str),
+            pd.to_numeric(frame["season"], errors="coerce").fillna(0).astype(int),
+            pd.to_numeric(frame["week"], errors="coerce").fillna(0).astype(int),
+            frame["market"].astype(str),
+        )
+    )
+
+
+def _empty_match(
+    board: pd.DataFrame | None = None,
+    snapshots: pd.DataFrame | None = None,
+) -> dict[str, Any]:
+    board_keys = _match_keys(board, label="board")
+    snap_keys = _match_keys(snapshots, label="snapshots")
     return {
         "join_keys": list(_JOIN_KEYS),
-        "n_board_unmatched": int(board_n),
-        "n_snapshot_unmatched": int(snapshot_n),
-        "unmatched_board_ids_sample": [],
-        "unmatched_snapshot_ids_sample": [],
+        "n_board_unmatched": len(board_keys),
+        "n_snapshot_unmatched": len(snap_keys),
+        "unmatched_board_ids_sample": sorted({row[0] for row in board_keys})[:8],
+        "unmatched_snapshot_ids_sample": sorted({row[0] for row in snap_keys})[:8],
     }
 
 
@@ -154,21 +194,9 @@ def _describe_match(
     snapshots: pd.DataFrame,
     joined: pd.DataFrame,
 ) -> dict[str, Any]:
-    def _keys(frame: pd.DataFrame) -> set[tuple[str, int, int, str]]:
-        if frame is None or frame.empty or not set(_JOIN_KEYS) <= set(frame.columns):
-            return set()
-        return set(
-            zip(
-                frame["player_id"].astype(str),
-                pd.to_numeric(frame["season"], errors="coerce").fillna(0).astype(int),
-                pd.to_numeric(frame["week"], errors="coerce").fillna(0).astype(int),
-                frame["market"].astype(str),
-            )
-        )
-
-    board_keys = _keys(board)
-    snap_keys = _keys(snapshots)
-    joined_keys = _keys(joined)
+    board_keys = _match_keys(board, label="board")
+    snap_keys = _match_keys(snapshots, label="snapshots")
+    joined_keys = _match_keys(joined, label="joined")
     unmatched_board = board_keys - joined_keys
     unmatched_snap = snap_keys - joined_keys
     return {
@@ -301,7 +329,7 @@ def compare_m3_to_vegas_props(
             "n_board": int(len(board_df)),
             "n_snapshots": 0,
             "n_matched": 0,
-            "match": _empty_match(board_n=len(board_df), snapshot_n=0),
+            "match": _empty_match(board=board_df),
             "metrics": {"n": 0, "mae_model_vs_market": None},
             "live_data_blocker": blocker,
             "caveat": (
@@ -322,6 +350,8 @@ def compare_m3_to_vegas_props(
         if compare_shadow_to_vegas is None:
             local = _local_compare(board_df, snapshots)
             local["snapshot_source"] = snap_source
+            if snap_source == "m3_synthetic_fixture":
+                local["metrics_caveat"] = M3_DRY_RUN_METRICS_CAVEAT
             return local
 
         result = compare_shadow_to_vegas(board=board_df, snapshots=snapshots)
@@ -332,8 +362,12 @@ def compare_m3_to_vegas_props(
         result.setdefault("promoting", False)
         result.setdefault("gate_verdict", "not_promoting")
         result.setdefault("role", "evaluation_comparator")
+        if snap_source == "m3_synthetic_fixture":
+            result["metrics_caveat"] = M3_DRY_RUN_METRICS_CAVEAT
         return result
     except ImportError:
         local = _local_compare(board_df, snapshots)
         local["snapshot_source"] = snap_source
+        if snap_source == "m3_synthetic_fixture":
+            local["metrics_caveat"] = M3_DRY_RUN_METRICS_CAVEAT
         return local

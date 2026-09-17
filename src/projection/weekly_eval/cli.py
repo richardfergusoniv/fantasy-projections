@@ -42,9 +42,21 @@ def _repo_relative(path: Path | None) -> str | None:
         return resolved.as_posix()
 
 
-def write_summary(summary: dict[str, Any], output_dir: Path) -> Path:
+M3_DRY_RUN_METRICS_CAVEAT = (
+    "Harness / scale-mismatch dry-run check, not weekly accuracy. "
+    "M3 dry-run keeps full-season mass across weeks 1–3, so MAE compares "
+    "season-scale model means to weekly lines. n_matched>0 proves the join; "
+    "it is not a promotion argument."
+)
+
+
+def write_summary(
+    summary: dict[str, Any],
+    output_dir: Path,
+    filename: str = "summary.json",
+) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / "summary.json"
+    path = output_dir / filename
     path.write_text(json.dumps(_json_ready(summary), indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -83,16 +95,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.error("choose one of --dry-run or --m3-dry-run")
 
     source = "supplied"
+    out_dir = Path(args.output)
+    summary_name = "summary.json"
     if args.m3_dry_run:
         from src.projection.weekly_latent.constants import DEFAULT_VEGAS_PROPS_M3_REL
         from src.projection.weekly_latent.run import run_milestone3
 
-        m3_dir = Path(args.output).resolve().parent / "_m3_dry_run_board"
+        m3_dir = out_dir.resolve() / "_m3_dry_run_board"
         m3 = run_milestone3(dry_run=True, output_dir=m3_dir, run_backtest=False)
         board = Path(m3.output_paths.get("shadow_board_role2.csv") or (m3_dir / "shadow_board_role2.csv"))
         props = Path(REPO_ROOT) / DEFAULT_VEGAS_PROPS_M3_REL
         outcomes = Path(args.outcomes) if args.outcomes else None
         source = "m3_dry_run"
+        summary_name = "m3_dry_run_summary.json"
     elif args.dry_run:
         props = DEFAULT_FIXTURE_DIR / "prop_snapshots.csv"
         board = DEFAULT_FIXTURE_DIR / "shadow_board.csv"
@@ -110,19 +125,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         snapshots=props,
         outcomes=outcomes,
     )
-    summary["dry_run"] = bool(args.dry_run)
+    summary["dry_run"] = bool(args.dry_run or args.m3_dry_run)
     summary["source"] = source
     if args.m3_dry_run:
         summary["harness"] = "weekly_eval"
         summary["snapshot_source"] = "m3_synthetic_fixture"
+        summary["metrics_caveat"] = M3_DRY_RUN_METRICS_CAVEAT
     summary["inputs"] = {
         "props": _repo_relative(props),
         "board": _repo_relative(board),
         "outcomes": _repo_relative(outcomes) if outcomes is not None else None,
     }
-    out_dir = Path(args.output)
-    summary["output"] = _repo_relative(out_dir / "summary.json")
-    write_summary(summary, out_dir)
+    summary["output"] = _repo_relative(out_dir / summary_name)
+    write_summary(summary, out_dir, filename=summary_name)
     print(json.dumps(_json_ready({k: summary[k] for k in (
         "role",
         "promoting",

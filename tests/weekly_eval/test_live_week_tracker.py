@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pandas as pd
+
 from src.projection.weekly_eval.live_weeks import (
     TRACKER_REL,
     credit_live_week,
@@ -28,6 +30,22 @@ def test_committed_tracker_starts_at_zero():
     assert "n_matched" in payload["credit_rule"].lower()
 
 
+def _live_snaps(*, as_of: str = "2026-09-09T18:00:00+00:00") -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "player_id": "00-0034857",
+                "season": 2026,
+                "week": 1,
+                "market": "pass_yards",
+                "as_of": as_of,
+                "kickoff_at": "2026-09-10T20:20:00+00:00",
+                "line": 265.5,
+            }
+        ]
+    )
+
+
 def test_credit_rejects_fixture_and_unmatched_weeks():
     tracker = load_tracker(COMMITTED)
     rejected, reason = credit_live_week(
@@ -36,10 +54,10 @@ def test_credit_rejects_fixture_and_unmatched_weeks():
         week=1,
         n_matched=4,
         source="m3_synthetic_fixture",
-        as_of_ok=True,
+        snapshots=_live_snaps(),
     )
     assert rejected is False
-    assert "fixture" in reason.lower() or "synthetic" in reason.lower()
+    assert "live" in reason.lower() or "fixture" in reason.lower() or "synthetic" in reason.lower()
     assert tracker["credited_weeks"] == 0
 
     rejected, reason = credit_live_week(
@@ -48,10 +66,42 @@ def test_credit_rejects_fixture_and_unmatched_weeks():
         week=1,
         n_matched=0,
         source="live_timestamped",
-        as_of_ok=True,
+        snapshots=_live_snaps(),
     )
     assert rejected is False
     assert "n_matched" in reason.lower()
+    assert tracker["credited_weeks"] == 0
+
+
+def test_credit_rejects_supplied_source_even_with_as_of_ok():
+    tracker = load_tracker(COMMITTED)
+    rejected, reason = credit_live_week(
+        tracker,
+        season=2026,
+        week=1,
+        n_matched=12,
+        source="supplied",
+        as_of_ok=True,
+        snapshots=_live_snaps(),
+    )
+    assert rejected is False
+    assert tracker["credited_weeks"] == 0
+    assert "live_timestamped" in reason.lower() or "allow" in reason.lower()
+
+
+def test_credit_rejects_caller_as_of_ok_when_rows_are_post_kickoff():
+    tracker = load_tracker(COMMITTED)
+    rejected, reason = credit_live_week(
+        tracker,
+        season=2026,
+        week=1,
+        n_matched=12,
+        source="live_timestamped",
+        as_of_ok=True,
+        snapshots=_live_snaps(as_of="2026-09-11T18:00:00+00:00"),
+    )
+    assert rejected is False
+    assert "as_of" in reason.lower()
     assert tracker["credited_weeks"] == 0
 
 
@@ -63,7 +113,7 @@ def test_credit_accepts_live_pre_kickoff_matched_week(tmp_path: Path):
         week=1,
         n_matched=12,
         source="live_timestamped",
-        as_of_ok=True,
+        snapshots=_live_snaps(),
     )
     assert accepted is True
     assert tracker["credited_weeks"] == 1

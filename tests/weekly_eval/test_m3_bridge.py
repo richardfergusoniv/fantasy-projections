@@ -34,6 +34,9 @@ def test_m3_dry_run_role2_compare_matches_timestamped_fixture(tmp_path: Path):
     assert compare["harness"] == "weekly_eval"
     assert int(compare["n_matched"]) > 0
     assert compare["metrics"]["mae_model_vs_market"] is not None
+    caveat = str(compare.get("metrics_caveat") or "")
+    assert "scale-mismatch" in caveat.lower() or "season-scale" in caveat.lower()
+    assert "weekly accuracy" in caveat.lower()
     assert compare["leakage"]["post_kickoff_rejected"] is True
     assert compare["leakage"]["as_of_required"] is True
     match = compare["match"]
@@ -87,7 +90,10 @@ def test_m3_compare_rejects_role3_blend_and_outcome_columns(tmp_path: Path):
         )
 
 
-def test_full_board_without_live_props_is_explicit_blocker_not_silent_zero():
+def test_full_board_without_live_props_is_explicit_blocker_not_silent_zero(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.delenv("WEEKLY_EVAL_PROPS_PATH", raising=False)
     board = pd.DataFrame(
         [
             {
@@ -115,6 +121,45 @@ def test_full_board_without_live_props_is_explicit_blocker_not_silent_zero():
     assert "as_of" in str(blocker["must_supply"]).lower()
     assert "kickoff_at" in str(blocker["must_supply"]).lower()
     assert compare.get("snapshot_source") != "m3_synthetic_fixture"
+    assert int(compare["match"]["n_board_unmatched"]) == 1
+
+
+def test_blocker_match_counts_distinct_board_keys_not_rows(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("WEEKLY_EVAL_PROPS_PATH", raising=False)
+    board = pd.DataFrame(
+        [
+            {
+                "player_id": "00-1",
+                "season": 2026,
+                "week": 1,
+                "market": "pass_yards",
+                "model_mean": 1.0,
+            },
+            {
+                "player_id": "00-1",
+                "season": 2026,
+                "week": 1,
+                "market": "pass_yards",
+                "model_mean": 1.0,
+            },
+            {
+                "player_id": "00-2",
+                "season": 2026,
+                "week": 1,
+                "market": "rec_yards",
+                "model_mean": 2.0,
+            },
+        ]
+    )
+    compare = compare_m3_to_vegas_props(
+        board=board,
+        snapshots_path=None,
+        dry_run=False,
+        repo_root=ROOT,
+    )
+    assert compare["n_board"] == 3
+    assert int(compare["match"]["n_board_unmatched"]) == 2
+    assert set(compare["match"]["unmatched_board_ids_sample"]) == {"00-1", "00-2"}
 
 
 def test_mismatched_ids_report_unmatched_sample():
@@ -148,11 +193,70 @@ def test_cli_m3_dry_run_writes_matched_role2_summary(tmp_path: Path, monkeypatch
     monkeypatch.delenv("APP_PROJECTION_SOURCE", raising=False)
     code = main(["--m3-dry-run", "--output", str(out_dir)])
     assert code == 0
-    payload = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+    summary_path = out_dir / "m3_dry_run_summary.json"
+    assert summary_path.is_file()
+    assert not (out_dir / "summary.json").exists()
+    payload = json.loads(summary_path.read_text(encoding="utf-8"))
     assert payload["role"] == "evaluation_comparator"
     assert payload["promoting"] is False
     assert payload["gate_verdict"] == "not_promoting"
     assert payload["source"] == "m3_dry_run"
+    assert payload["dry_run"] is True
     assert int(payload["n_matched"]) > 0
     assert payload["harness"] == "weekly_eval"
     assert "APP_PROJECTION_SOURCE" not in payload
+    assert (out_dir / "_m3_dry_run_board").is_dir()
+    caveat = str(payload.get("metrics_caveat") or "")
+    assert "scale-mismatch" in caveat.lower() or "season-scale" in caveat.lower()
+    assert "weekly accuracy" in caveat.lower()
+
+
+def test_typo_env_props_path_fails_closed_instead_of_silent_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setenv("WEEKLY_EVAL_PROPS_PATH", str(tmp_path / "typo_live_snapshots.csv"))
+    board = pd.DataFrame(
+        [
+            {
+                "player_id": "00-0034857",
+                "season": 2026,
+                "week": 1,
+                "market": "pass_yards",
+                "model_mean": 268.0,
+            }
+        ]
+    )
+    with pytest.raises(FileNotFoundError, match="WEEKLY_EVAL_PROPS_PATH"):
+        compare_m3_to_vegas_props(
+            board=board,
+            snapshots_path=None,
+            dry_run=False,
+            repo_root=ROOT,
+        )
+
+
+def test_committed_blocker_match_uses_distinct_keys():
+    payload = json.loads(
+        (ROOT / "output" / "shadow_weekly_schedule_m3" / "vegas_props_compare.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert payload["harness"] == "missing_live_snapshots"
+    assert payload["n_matched"] == 0
+    assert payload["n_snapshots"] == 0
+    assert int(payload["match"]["n_board_unmatched"]) == int(payload["n_board"])
+    assert int(payload["match"]["n_snapshot_unmatched"]) == 0
+
+
+def test_committed_m3_dry_run_metrics_caveat_names_scale_mismatch():
+    payload = json.loads(
+        (
+            ROOT
+            / "output"
+            / "shadow_weekly_schedule_m3"
+            / "vegas_props_compare_m3_dry_run.json"
+        ).read_text(encoding="utf-8")
+    )
+    caveat = str(payload.get("metrics_caveat") or "")
+    assert "scale-mismatch" in caveat.lower() or "season-scale" in caveat.lower()
+    assert "weekly accuracy" in caveat.lower()
