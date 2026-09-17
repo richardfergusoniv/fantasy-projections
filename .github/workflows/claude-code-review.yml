@@ -90,10 +90,32 @@ jobs:
           # silenced most of the repo while the check stayed green.
           #
           # github_ci is deliberately absent -- that server also needs a
-          # workflow token this job does not grant. Agent/Task stay
-          # withheld so the skill cannot stall on ScheduleWakeup in
-          # headless mode.
-          claude_args: '--allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Read,Grep,Glob"'
+          # workflow token this job does not grant.
+          #
+          # Task is granted (PR silent-green v3). It was withheld so the
+          # skill could not stall on ScheduleWakeup in headless mode, but
+          # withholding it does not make the skill run inline -- it makes the
+          # skill fail. commands/code-review.md drives steps 1-5 entirely
+          # through subagents ("Launch a haiku agent...", "Launch 4 agents in
+          # parallel...", one validation subagent per candidate issue), so
+          # with Task denied the run burns the whole job on refusals: run 47
+          # on PR #83 ended is_error after 531s with
+          # permission_denials_count: 32 and posted nothing. The stall risk is
+          # covered by the prompt override above, which forbids background
+          # agents waiting on ScheduleWakeup; the plugin's subagents are
+          # synchronous. Subagents inherit this allowlist, so Task widens who
+          # calls these tools, not which tools exist.
+          #
+          # The gh read verbs match commands/code-review.md's own
+          # `allowed-tools:` frontmatter (gh issue view/list, gh search,
+          # gh pr comment/diff/view/list). Step 1 checks prior Claude comments
+          # via `gh pr view <PR> --comments`; the issue and search verbs back
+          # the citation links steps 7-9 require.
+          #
+          # Still withheld: unrestricted Bash, Write, Edit, WebFetch and
+          # WebSearch. There remains no path to push a commit or call the
+          # merge API.
+          claude_args: '--allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh search:*),Task,Read,Grep,Glob"'
           # Cursor Cloud Agent pushes trigger this workflow as cursor[bot].
           # Without this, claude-code-action fails the check on those updates.
           allowed_bots: cursor
