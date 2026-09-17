@@ -23,12 +23,13 @@ export function pickAsOfStamp(
   return null;
 }
 
-export type AsOfKind = "ok" | "stale" | "unknown";
+export type AsOfKind = "ok" | "stale" | "unknown" | "pending";
 
 export interface AsOfDescription {
   kind: AsOfKind;
   label: string;
   iso: string | null;
+  display: string | null;
 }
 
 export function describeAsOf(
@@ -37,14 +38,14 @@ export function describeAsOf(
 ): AsOfDescription {
   const published = readPublishedAsOf(value);
   if (!published) {
-    return { kind: "unknown", label: "As-of unknown", iso: null };
+    return { kind: "unknown", label: "As-of unknown", iso: null, display: null };
   }
   const date = new Date(published);
   const iso = date.toISOString();
-  const formatted = date.toLocaleString();
+  const display = date.toLocaleString();
   const age = nowMs - date.getTime();
   if (Number.isFinite(age) && age > STALE_AFTER_MS) {
-    return { kind: "stale", label: `As of ${formatted} · stale`, iso };
+    return { kind: "stale", label: `As of ${display} · stale`, iso, display };
   }
-  return { kind: "ok", label: `As of ${formatted}`, iso };
+  return { kind: "ok", label: `As of ${display}`, iso, display };
 }

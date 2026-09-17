@@ -134,7 +134,8 @@ describe("HomeScreen urgent decisions", () => {
     renderHome();
     expect(await screen.findByTestId("projection-skeleton")).toBeInTheDocument();
     expect(screen.getByTestId("projection-skeleton")).toHaveClass("matchup-chip");
-    expect(screen.getByTestId("as-of-chrome")).toHaveTextContent(/As-of unknown/i);
+    expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-pending/);
+    expect(screen.getByTestId("as-of-chrome")).not.toHaveTextContent(/As-of unknown/i);
   });
 
   it("shows as-of unknown when the snapshot omitted a vintage", async () => {

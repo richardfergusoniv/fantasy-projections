@@ -2526,6 +2526,9 @@ a {
   position: sticky;
   top: 0;
   z-index: 3;
+  display: flex;
+  align-items: center;
+  min-height: 2.15rem;
   margin: 0 0 var(--space-3);
   padding: 0.35rem 0.55rem;
   border: 1px solid var(--border);
@@ -2536,6 +2539,7 @@ a {
   letter-spacing: 0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
+  contain: layout;
 }
 
 .as-of-chrome.is-stale,
@@ -2543,6 +2547,15 @@ a {
   color: var(--warning);
   border-color: color-mix(in srgb, var(--warning) 45%, var(--border));
   background: color-mix(in srgb, var(--warning) 10%, var(--bg-panel));
+}
+
+.as-of-chrome.is-pending {
+  pointer-events: none;
+}
+
+.as-of-chrome .skel-as-of {
+  width: 11.5rem;
+  min-height: 0.75rem;
 }
 
 .as-of-chrome time {
@@ -2580,14 +2593,31 @@ a {
 }
 
 .projection-skeleton .matchup-board-row,
-.projection-skeleton .draft-player-card {
+.projection-skeleton .draft-player-card,
+.projection-skeleton .draft-checklist-row,
+.projection-skeleton .waiver-item {
   pointer-events: none;
+  animation: none;
 }
 
 /* Compact projection rows: default ≤8 columns, color only for injury/sit/stale. */
 .projection-table .matchup-board-row,
 .lineup-list .lineup-row {
   padding-block: 0.4rem;
+  min-height: 2.75rem;
+}
+
+.projection-table .lineup-proj-range,
+.lineup-list .lineup-proj-range {
+  display: none;
+}
+
+.matchup-board-row,
+.draft-player-card,
+.draft-checklist-row,
+.waiver-list.projection-table .waiver-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 2.85rem;
 }
 
 .draft-player-grid.projection-table,
@@ -2686,12 +2716,42 @@ a {
 .waiver-list.projection-table .waiver-item,
 .waiver-list.projection-skeleton .waiver-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 5.5rem;
-  align-items: start;
-  gap: 0.45rem 0.75rem;
+  grid-template-columns: minmax(0, 1fr) 2.4rem 3.5rem 4.75rem;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
   padding-block: 0.4rem;
   margin-bottom: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.waiver-list.projection-table .waiver-name,
+.waiver-list.projection-skeleton .waiver-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+}
+
+.waiver-list.projection-table .waiver-util,
+.waiver-list.projection-table .faab-range {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.waiver-injury {
+  grid-column: 1 / -1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matchup-board-row,
+  .lineup-row {
+    animation: none;
+  }
 }
 
 .matchup-chip.projection-skeleton {

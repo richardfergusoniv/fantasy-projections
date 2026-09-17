@@ -286,7 +286,7 @@ export function DraftScreen() {
   const [maxAvgRank, setMaxAvgRank] = useState(0);
   const [dataAsOf, setDataAsOf] = useState<string | undefined>();
   const [runId, setRunId] = useState<string | undefined>();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(() => Boolean(selectedLeagueId));
   const [error, setError] = useState<string | null>(null);
   // Store the id, not a snapshot: a league switch or refetch while the card is
   // open must move the card to the new data (or close it), never leave a
@@ -597,6 +597,7 @@ export function DraftScreen() {
           dataAsOf={dataAsOf}
           availableAt={market?.as_of ?? market?.comparison_generated_at}
           runId={runId}
+          pending={loading}
         />
 
         <AsyncStateBanner

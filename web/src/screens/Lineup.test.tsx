@@ -196,7 +196,8 @@ describe("Matchup board", () => {
   it("shows as-of unknown when the payload has no vintage", async () => {
     getLineup.mockResolvedValue(lineup({ meta: { data_as_of: "", projection_run_id: "weekly-2026-w01-hashy" } }));
     renderLineup();
-    expect(await screen.findByTestId("as-of-chrome")).toHaveTextContent(/As-of unknown/i);
+    expect(await screen.findByText(/As-of unknown/i)).toBeInTheDocument();
+    expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-unknown/);
   });
 
   it("swaps a bench player into a starter slot locally", async () => {

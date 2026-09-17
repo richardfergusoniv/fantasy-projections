@@ -416,6 +416,7 @@ export function LineupScreen() {
           <AsOfChrome
             dataAsOf={lineup.data?.meta.data_as_of}
             runId={lineup.data?.meta.projection_run_id}
+            pending={!lineup.data}
           />
         )}
 

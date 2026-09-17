@@ -11,27 +11,34 @@ export function ProjectionRowSkeleton({
 }) {
   if (variant === "matchup") {
     return (
-      <ul
-        className="matchup-board projection-skeleton"
+      <div
+        className="projection-skeleton"
         data-testid="projection-skeleton"
         aria-hidden="true"
       >
-        {Array.from({ length: rows }, (_, index) => (
-          <li key={index} className="matchup-board-row">
-            <div className="matchup-board-you">
-              <span className="skel skel-name" />
-              <span className="skel skel-proj" />
-            </div>
-            <span className="matchup-board-slot">
-              <span className="skel skel-slot" />
-            </span>
-            <div className="matchup-board-opp">
-              <span className="skel skel-proj" />
-              <span className="skel skel-name" />
-            </div>
-          </li>
-        ))}
-      </ul>
+        <div className="matchup-board-head">
+          <div className="matchup-side-label">You</div>
+          <div className="matchup-side-label matchup-side-label-center">Slot</div>
+          <div className="matchup-side-label matchup-side-label-opp">Opponent</div>
+        </div>
+        <ul className="matchup-board">
+          {Array.from({ length: rows }, (_, index) => (
+            <li key={index} className="matchup-board-row">
+              <div className="matchup-board-you">
+                <span className="skel skel-name" />
+                <span className="skel skel-proj" />
+              </div>
+              <span className="matchup-board-slot">
+                <span className="skel skel-slot" />
+              </span>
+              <div className="matchup-board-opp">
+                <span className="skel skel-proj" />
+                <span className="skel skel-name" />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     );
   }
 
@@ -70,6 +77,8 @@ export function ProjectionRowSkeleton({
         {Array.from({ length: rows }, (_, index) => (
           <li key={index} className="waiver-item">
             <span className="skel skel-name" />
+            <span className="skel skel-slot" />
+            <span className="skel skel-stat" />
             <span className="skel skel-stat" />
           </li>
         ))}

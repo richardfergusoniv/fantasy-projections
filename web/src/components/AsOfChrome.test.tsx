@@ -22,6 +22,15 @@ describe("AsOfChrome", () => {
     expect(chrome.querySelector("time")).toBeNull();
   });
 
+  it("reserves height while pending instead of flashing unknown", () => {
+    render(<AsOfChrome pending dataAsOf="" />);
+    const chrome = screen.getByTestId("as-of-chrome");
+    expect(chrome).toHaveAttribute("aria-busy", "true");
+    expect(chrome.className).toMatch(/is-pending/);
+    expect(chrome).not.toHaveTextContent(/As-of unknown/i);
+    expect(chrome.querySelector("time")).toBeNull();
+  });
+
   it("marks an old published stamp as stale", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-17T12:00:00Z"));

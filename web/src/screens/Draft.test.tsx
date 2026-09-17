@@ -231,7 +231,18 @@ describe("DraftScreen", () => {
     renderDraft();
     expect(await screen.findByTestId("projection-skeleton")).toBeInTheDocument();
     expect(screen.getByTestId("projection-skeleton").querySelector(".draft-player-card")).not.toBeNull();
-    expect(screen.getByTestId("as-of-chrome")).toHaveTextContent(/As-of unknown/i);
+    expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-pending/);
+    expect(screen.getByTestId("as-of-chrome")).not.toHaveTextContent(/As-of unknown/i);
+  });
+
+  it("shows checklist-shaped skeletons on the Vegas Props pane while loading", async () => {
+    getDraftBoard.mockReturnValue(new Promise(() => {}));
+    getDraftChecklist.mockReturnValue(new Promise(() => {}));
+    renderDraft("/draft?pane=checklist");
+    expect(await screen.findByTestId("projection-skeleton")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("projection-skeleton").querySelector(".draft-checklist-row"),
+    ).not.toBeNull();
   });
 
   it("opens Vegas Props from the pane query", async () => {

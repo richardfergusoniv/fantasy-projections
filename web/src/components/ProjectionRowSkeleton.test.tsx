@@ -8,6 +8,7 @@ describe("ProjectionRowSkeleton", () => {
     const region = screen.getByTestId("projection-skeleton");
     expect(region).toHaveAttribute("aria-hidden", "true");
     expect(region.querySelectorAll(".matchup-board-row")).toHaveLength(8);
+    expect(region.querySelector(".matchup-board-head")).not.toBeNull();
     expect(region.querySelector(".matchup-board-you")).not.toBeNull();
     expect(region.querySelector(".matchup-board-opp")).not.toBeNull();
   });
