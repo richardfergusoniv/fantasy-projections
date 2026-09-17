@@ -752,6 +752,34 @@ def test_role2_board_export_and_vegas_compare_hook_no_blend(tmp_path):
         )
 
 
+def test_vegas_compare_falls_back_when_comparator_name_missing(tmp_path, monkeypatch):
+    """If comparator imports but lacks compare_shadow_to_vegas, use _local_compare."""
+    import src.projection.weekly_eval.comparator as comparator
+
+    monkeypatch.delattr(comparator, "compare_shadow_to_vegas")
+    board = pd.DataFrame(
+        [
+            {
+                "player_id": "p-wr",
+                "season": 2026,
+                "week": 1,
+                "market": "receptions",
+                "model_mean": 4.8,
+            }
+        ]
+    )
+    snaps = tmp_path / "snaps.csv"
+    snaps.write_text(
+        "player_id,season,week,market,as_of,kickoff_at,implied_mean\n"
+        "p-wr,2026,1,receptions,2026-09-09T18:00:00+00:00,2026-09-10T20:20:00+00:00,4.6\n"
+    )
+    result = compare_m3_to_vegas_props(board=board, snapshots_path=snaps)
+    assert result["harness"] == "local_fixture_until_weekly_eval"
+    assert result["promoting"] is False
+    assert result["role3_blend"] is False
+    assert result["n_matched"] == 1
+
+
 def test_market_sanity_bands_are_stubbed_not_drivers():
     stub = market_sanity_bands()
     assert stub["used_as_driver"] is False

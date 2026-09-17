@@ -208,7 +208,9 @@ def compare_m3_to_vegas_props(
         # Dynamic so AST import-graph walking cannot follow weekly_eval into
         # feature_outcome_split (M1/M2 guards on weekly_latent.run).
         comparator = importlib.import_module("src.projection.weekly_eval.comparator")
-        compare_shadow_to_vegas = getattr(comparator, "compare_shadow_to_vegas")
+        compare_shadow_to_vegas = getattr(comparator, "compare_shadow_to_vegas", None)
+        if compare_shadow_to_vegas is None:
+            return _local_compare(board_df, snapshots)
 
         result = compare_shadow_to_vegas(board=board_df, snapshots=snapshots)
         result["harness"] = "weekly_eval"
