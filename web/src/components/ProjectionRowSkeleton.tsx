@@ -80,6 +80,7 @@ export function ProjectionRowSkeleton({
             <span className="skel skel-slot" />
             <span className="skel skel-stat" />
             <span className="skel skel-stat" />
+            <span className="skel skel-rationale" />
           </li>
         ))}
       </ul>

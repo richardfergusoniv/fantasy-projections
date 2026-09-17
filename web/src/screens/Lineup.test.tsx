@@ -128,6 +128,7 @@ const getLineup = vi.fn();
 const getInjuryEvidence = vi.fn();
 
 vi.mock("../api/client", () => ({
+  recoveryActionForError: () => null,
   api: {
     getLeagues: (...args: unknown[]) => getLeagues(...args),
     getRosters: (...args: unknown[]) => getRosters(...args),
@@ -198,6 +199,14 @@ describe("Matchup board", () => {
     renderLineup();
     expect(await screen.findByText(/As-of unknown/i)).toBeInTheDocument();
     expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-unknown/);
+  });
+
+  it("shows as-of unknown after an error instead of staying pending", async () => {
+    getLineup.mockRejectedValue(new Error("lineup unavailable"));
+    renderLineup();
+    expect(await screen.findByText(/As-of unknown/i)).toBeInTheDocument();
+    expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-unknown/);
+    expect(screen.getByTestId("as-of-chrome").className).not.toMatch(/is-pending/);
   });
 
   it("swaps a bench player into a starter slot locally", async () => {

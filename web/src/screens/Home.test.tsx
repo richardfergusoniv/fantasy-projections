@@ -74,6 +74,7 @@ const getWaivers = vi.fn();
 const getOperationsStatus = vi.fn();
 
 vi.mock("../api/client", () => ({
+  recoveryActionForError: () => null,
   api: {
     getLeagues: (...args: unknown[]) => getLeagues(...args),
     getRosters: (...args: unknown[]) => getRosters(...args),
@@ -146,6 +147,14 @@ describe("HomeScreen urgent decisions", () => {
     expect(await screen.findByTestId("matchup-snapshot-chip")).toBeInTheDocument();
     expect(screen.getByTestId("as-of-chrome")).toHaveTextContent(/As-of unknown/i);
     expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-unknown/);
+  });
+
+  it("shows as-of unknown after an error instead of staying pending", async () => {
+    getLineup.mockRejectedValue(new Error("lineup unavailable"));
+    renderHome();
+    expect(await screen.findByText(/As-of unknown/i)).toBeInTheDocument();
+    expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-unknown/);
+    expect(screen.getByTestId("as-of-chrome").className).not.toMatch(/is-pending/);
   });
 
   it("persists Vegas / League Value as the app projection preference", async () => {

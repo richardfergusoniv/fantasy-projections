@@ -2627,10 +2627,14 @@ a {
 
 .matchup-board-row,
 .draft-player-card,
-.draft-checklist-row,
-.waiver-list.projection-table .waiver-item {
+.draft-checklist-row {
   content-visibility: auto;
   contain-intrinsic-size: auto 2.85rem;
+}
+
+.waiver-list.projection-table .waiver-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 3.6rem;
 }
 
 .draft-player-grid.projection-table,
@@ -2729,7 +2733,7 @@ a {
 .waiver-list.projection-table .waiver-item,
 .waiver-list.projection-skeleton .waiver-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 2.4rem 3.5rem 4.75rem;
+  grid-template-columns: minmax(0, 1fr) 2.4rem 3.5rem 6.25rem;
   align-items: center;
   gap: 0.35rem 0.55rem;
   padding-block: 0.4rem;
@@ -2756,8 +2760,23 @@ a {
   text-align: right;
 }
 
-.waiver-injury {
+.waiver-list.projection-table .rationale-list,
+.waiver-list.projection-table .waiver-rationale-empty,
+.waiver-injury,
+.waiver-list.projection-skeleton .skel-rationale {
   grid-column: 1 / -1;
+}
+
+.waiver-list.projection-table .rationale-list {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+
+.waiver-list.projection-skeleton .skel-rationale {
+  height: 0.55rem;
+  width: 72%;
 }
 
 @media (prefers-reduced-motion: reduce) {

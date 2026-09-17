@@ -73,7 +73,7 @@ export function WaiversScreen() {
             <AsOfChrome
               dataAsOf={waivers.data?.meta.data_as_of}
               runId={waivers.data?.meta.projection_run_id}
-              pending={!waivers.data}
+              pending={!waivers.data && !waivers.error}
             />
             <AsyncStateBanner
               label="Waiver recommendations"
@@ -131,8 +131,19 @@ export function WaiversScreen() {
                         <MaybeNumber value={add.incremental_utility} digits={1} suffix=" u" />
                       </span>
                       <span className="faab-range">
-                        ${add.faab_min}–${add.faab_max}
+                        FAAB ${add.faab_min}–${add.faab_max}
                       </span>
+                      {add.rationale.length ? (
+                        <ul className="rationale-list">
+                          {add.rationale.map((line) => (
+                            <li key={line}>{line}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="muted waiver-rationale-empty">
+                          No rationale published for this target.
+                        </p>
+                      )}
                       {injury ? (
                         <div className="evidence waiver-injury">
                           <p className="muted">

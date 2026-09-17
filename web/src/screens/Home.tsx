@@ -194,7 +194,7 @@ export function HomeScreen() {
         <AsOfChrome
           dataAsOf={lineup.data?.meta.data_as_of}
           runId={lineup.data?.meta.projection_run_id}
-          pending={!lineup.data}
+          pending={!lineup.data && !lineup.error}
         />
         {lineup.loading && !lineup.data ? (
           <ProjectionRowSkeleton variant="snapshot" rows={1} />
