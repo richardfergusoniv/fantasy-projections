@@ -27,6 +27,16 @@ WORKFLOW_VALIDATION_SKIP_PATHS = frozenset(
     {".github/workflows/claude-code-review.yml"}
 )
 DEFAULT_CLOCK_SLACK = timedelta(seconds=90)
+
+# claude-code-action writes every SDK message here, unsanitized, and leaves it
+# on the runner for the rest of the job. The job log only ever shows the
+# sanitized init and result lines (base-action's sanitizeSdkOutput drops the
+# result's own `result` field), and the file is never uploaded as an artifact,
+# so a silent run's evidence dies with the runner unless this gate reads it.
+EXECUTION_LOG_FILENAME = "claude-execution-output.json"
+MAX_DIAGNOSTIC_CHARS = 240
+MAX_DIAGNOSTIC_DENIALS = 25
+MAX_DIAGNOSTIC_TOOLS = 15
 GITHUB_API = "https://api.github.com"
 
 GateStatus = Literal["pass", "fail", "skip_draft", "skip_workflow_validation"]
@@ -309,6 +319,157 @@ def fetch_artifacts(owner: str, repo: str, pr_number: int, token: str) -> list[R
     ]
 
 
+def execution_log_path() -> str | None:
+    """Where claude-code-action drops its SDK transcript, or None off-runner."""
+    runner_temp = os.environ.get("RUNNER_TEMP")
+    if not runner_temp:
+        return None
+    return os.path.join(runner_temp, EXECUTION_LOG_FILENAME)
+
+
+def clip(value: Any, limit: int = MAX_DIAGNOSTIC_CHARS) -> str:
+    text = " ".join(str(value).split())
+    if len(text) <= limit:
+        return text
+    return f"{text[:limit]}... (+{len(text) - limit} more chars)"
+
+
+def message_text(message: Mapping[str, Any]) -> str:
+    """Concatenated text blocks of an assistant message, tool calls excluded."""
+    inner = message.get("message")
+    if not isinstance(inner, Mapping):
+        return ""
+    content = inner.get("content")
+    if isinstance(content, str):
+        return content
+    if not isinstance(content, list):
+        return ""
+    parts = [
+        block.get("text", "")
+        for block in content
+        if isinstance(block, Mapping) and block.get("type") == "text"
+    ]
+    return " ".join(part for part in parts if part)
+
+
+def tool_calls(message: Mapping[str, Any]) -> list[str]:
+    inner = message.get("message")
+    if not isinstance(inner, Mapping):
+        return []
+    content = inner.get("content")
+    if not isinstance(content, list):
+        return []
+    return [
+        str(block.get("name", "unknown"))
+        for block in content
+        if isinstance(block, Mapping) and block.get("type") == "tool_use"
+    ]
+
+
+def describe_denial(denial: Mapping[str, Any]) -> str:
+    tool = denial.get("tool_name") or denial.get("tool") or "unknown tool"
+    tool_input = denial.get("tool_input")
+    detail = ""
+    if isinstance(tool_input, Mapping):
+        # Only echo inputs that name the denied action. Never echo file
+        # contents or diffs: this prints into a public Actions log.
+        for key in ("command", "subagent_type", "description", "pattern"):
+            value = tool_input.get(key)
+            if value:
+                detail = f"{key}={clip(value, 160)}"
+                break
+    return f"{tool}" + (f" ({detail})" if detail else "")
+
+
+def summarize_execution_messages(messages: Sequence[Any]) -> list[str]:
+    """Explain a silent run: what it was denied, and how it signed off."""
+    lines: list[str] = []
+    result = next(
+        (
+            item
+            for item in reversed(messages)
+            if isinstance(item, Mapping) and item.get("type") == "result"
+        ),
+        None,
+    )
+
+    if isinstance(result, Mapping):
+        lines.append(
+            "  outcome: subtype={subtype} is_error={is_error} turns={turns} "
+            "cost_usd={cost}".format(
+                subtype=result.get("subtype"),
+                is_error=result.get("is_error"),
+                turns=result.get("num_turns"),
+                cost=result.get("total_cost_usd"),
+            )
+        )
+        final = result.get("result")
+        if final:
+            lines.append(f"  final result text: {clip(final)}")
+
+        denials = result.get("permission_denials")
+        if isinstance(denials, list) and denials:
+            lines.append(f"  permission denials ({len(denials)}):")
+            for denial in denials[:MAX_DIAGNOSTIC_DENIALS]:
+                if isinstance(denial, Mapping):
+                    lines.append(f"    - {describe_denial(denial)}")
+            if len(denials) > MAX_DIAGNOSTIC_DENIALS:
+                lines.append(
+                    f"    ... and {len(denials) - MAX_DIAGNOSTIC_DENIALS} more"
+                )
+        else:
+            lines.append("  permission denials: none recorded")
+
+    assistants = [
+        item
+        for item in messages
+        if isinstance(item, Mapping) and item.get("type") == "assistant"
+    ]
+    called: list[str] = []
+    for message in assistants:
+        called.extend(tool_calls(message))
+    if called:
+        shown = called[-MAX_DIAGNOSTIC_TOOLS:]
+        prefix = "  tools called"
+        if len(called) > MAX_DIAGNOSTIC_TOOLS:
+            prefix = f"  tools called (last {MAX_DIAGNOSTIC_TOOLS} of {len(called)})"
+        lines.append(f"{prefix}: {', '.join(shown)}")
+    else:
+        lines.append("  tools called: none")
+
+    last_text = next(
+        (text for text in (message_text(m) for m in reversed(assistants)) if text),
+        "",
+    )
+    if last_text:
+        lines.append(f"  last assistant message: {clip(last_text)}")
+
+    return lines
+
+
+def explain_silent_run() -> list[str]:
+    """Best-effort forensics. Never raises: the gate verdict is what matters."""
+    path = execution_log_path()
+    if not path:
+        return ["  (no RUNNER_TEMP; not running on a GitHub runner)"]
+    try:
+        with open(path, encoding="utf-8") as handle:
+            messages = json.load(handle)
+    except FileNotFoundError:
+        return [f"  (no execution log at {path}; Claude may not have started)"]
+    except (OSError, ValueError) as exc:
+        return [f"  (could not read execution log at {path}: {exc})"]
+
+    if not isinstance(messages, list):
+        return [f"  (unexpected execution log shape: {type(messages).__name__})"]
+    try:
+        return summarize_execution_messages(messages)
+    except Exception as exc:  # noqa: BLE001 - see below; pragma: no cover
+        # Deliberately blind: an unfamiliar transcript shape must not change
+        # the gate's verdict or mask the fail-closed message above it.
+        return [f"  (could not summarize execution log: {exc!r})"]
+
+
 def split_repo(repo: str) -> tuple[str, str]:
     owner, _, name = repo.partition("/")
     if not owner or not name or "/" in name:
@@ -363,6 +524,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     stream = sys.stderr if result.exit_code else sys.stdout
     print(result.message, file=stream)
+    if result.status == "fail":
+        # Only on a silent run. A passing run prints nothing extra, so the
+        # common case adds no noise to a public log.
+        print("Why Claude stayed silent (from the SDK transcript):", file=stream)
+        for line in explain_silent_run():
+            print(line, file=stream)
     return result.exit_code
 
 
