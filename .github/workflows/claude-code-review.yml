@@ -10,6 +10,25 @@ on:
     #   - "src/**/*.js"
     #   - "src/**/*.jsx"
 
+# One review per PR at a time; a new push cancels the review of the commit it
+# replaced. `synchronize` fires on every push and Cursor Cloud Agent pushes
+# follow-up commits minutes apart, so without this a single PR runs several
+# full multi-agent reviews at once and only the last one describes the head.
+#
+# This is the quota fix. Auth is CLAUDE_CODE_OAUTH_TOKEN, so runs are not
+# billed -- they draw on the subscription's usage window, shared with
+# interactive use. On 2026-09-17, #86 and #88 ran five reviews in 46 minutes
+# (08:04, 08:22, 08:31, 08:36, 08:50); three were superseded before they
+# finished, and from 08:31 every run died instantly with is_error, zero cost
+# and empty modelUsage -- the window was spent. Cancelling superseded work is
+# what stops that, not retries.
+#
+# The head commit still gets a full review, so the fail-closed gate below
+# keeps its meaning: every PR still has to speak for its final state.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   claude-review:
     # Optional: Filter by PR author
@@ -99,6 +118,14 @@ jobs:
           allowed_bots: cursor
 
       - name: Fail closed if Claude posted nothing
+        # Runs even when the step above failed. Without this the gate inherits
+        # the default `success()` and is skipped on exactly the failures worth
+        # explaining: both of 2026-09-17's failure shapes were is_error from
+        # the action step, so the gate -- and its transcript summary -- never
+        # ran. `!cancelled()` rather than `always()`, because the concurrency
+        # group above cancels superseded runs and a cancelled run has no
+        # review to be missing.
+        if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
