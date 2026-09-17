@@ -1,8 +1,10 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AsyncStateBanner } from "../components/AsyncState";
+import { AsOfChrome } from "../components/AsOfChrome";
 import { FreshnessBadge } from "../components/FreshnessBadge";
 import { Panel } from "../components/Panel";
+import { ProjectionRowSkeleton } from "../components/ProjectionRowSkeleton";
 import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
 import { api } from "../api/client";
@@ -12,6 +14,7 @@ import type {
   DraftChecklist,
   DraftChecklistEntry,
 } from "../api/types";
+import { pickAsOfStamp } from "../components/asOfVintage";
 import { readLocal, writeLocal } from "../storage/safeStorage";
 
 const DRAFTED_STORAGE_PREFIX = "fantasy-decisions:drafted";
@@ -410,7 +413,9 @@ export function DraftScreen() {
         setProfile(board?.profile);
         setSearch("");
         setVisibleCount(25);
-        setDataAsOf(checklistPayload?.meta.data_as_of ?? board?.meta.data_as_of);
+        setDataAsOf(
+          pickAsOfStamp(checklistPayload?.meta.data_as_of, board?.meta.data_as_of) ?? undefined,
+        );
         setRunId(
           checklistPayload?.meta.projection_run_id ?? board?.meta.projection_run_id,
         );
@@ -588,6 +593,12 @@ export function DraftScreen() {
           ))}
         </div>
 
+        <AsOfChrome
+          dataAsOf={dataAsOf}
+          availableAt={market?.as_of ?? market?.comparison_generated_at}
+          runId={runId}
+        />
+
         <AsyncStateBanner
           label="Draft board"
           loading={loading}
@@ -616,6 +627,15 @@ export function DraftScreen() {
                 }. Promote a release to populate it.`
           }
         />
+
+        {loading &&
+        ((pane === "checklist" && !checklist?.entries.length) ||
+          (pane !== "checklist" && entries.length === 0)) ? (
+          <ProjectionRowSkeleton
+            variant={pane === "checklist" ? "checklist" : "draft"}
+            rows={6}
+          />
+        ) : null}
 
         <div className={`draft-board-controls${pane === "checklist" ? " is-checklist" : ""}`}>
           <div className="field draft-search-field">
@@ -756,7 +776,7 @@ export function DraftScreen() {
                 ) : null}
               </span>
             </div>
-            <div className="draft-checklist-list" role="list">
+            <div className="draft-checklist-list projection-table" role="list">
               {checklistVisible.map((entry: DraftChecklistEntry, index: number) => {
                 const drafted = draftedPlayerSet.has(entry.player_id);
                 const keys = criteriaForEntry(checklist, entry);
@@ -830,7 +850,7 @@ export function DraftScreen() {
                           </span>
                         </div>
                         <div className="draft-rank-pills" aria-label={`${entry.name} ranks`}>
-                          {keys.map((key) => {
+                          {keys.slice(0, 4).map((key) => {
                             const rank = entry.ranks[key];
                             const label = shortCheckLabel(key, criteriaLabels);
                             const display =
@@ -941,7 +961,7 @@ export function DraftScreen() {
                 ) : null}
               </div>
             ) : null}
-            <div className="draft-player-grid" role="list">
+            <div className="draft-player-grid projection-table" role="list">
               {visibleEntries.map((entry, index) => {
                 const drafted = draftedPlayerSet.has(entry.player_id);
                 const prevTier = index > 0 ? visibleEntries[index - 1]?.tier : undefined;

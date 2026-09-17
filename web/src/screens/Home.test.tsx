@@ -126,6 +126,25 @@ describe("HomeScreen urgent decisions", () => {
     expect(screen.getByRole("tab", { name: "League Value" })).toBeInTheDocument();
     expect(screen.getByTestId("app-build-stamp")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeInTheDocument();
+    expect(screen.getByTestId("as-of-chrome")).toHaveTextContent(/As of /);
+  });
+
+  it("shows a chip-shaped skeleton while the snapshot is loading", async () => {
+    getLineup.mockReturnValue(new Promise(() => {}));
+    renderHome();
+    expect(await screen.findByTestId("projection-skeleton")).toBeInTheDocument();
+    expect(screen.getByTestId("projection-skeleton")).toHaveClass("matchup-chip");
+    expect(screen.getByTestId("as-of-chrome")).toHaveTextContent(/As-of unknown/i);
+  });
+
+  it("shows as-of unknown when the snapshot omitted a vintage", async () => {
+    getLineup.mockResolvedValue(
+      lineup({ meta: { data_as_of: "", projection_run_id: "weekly-2026-w01" } }),
+    );
+    renderHome();
+    expect(await screen.findByTestId("matchup-snapshot-chip")).toBeInTheDocument();
+    expect(screen.getByTestId("as-of-chrome")).toHaveTextContent(/As-of unknown/i);
+    expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-unknown/);
   });
 
   it("persists Vegas / League Value as the app projection preference", async () => {

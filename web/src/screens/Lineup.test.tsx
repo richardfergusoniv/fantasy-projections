@@ -182,6 +182,21 @@ describe("Matchup board", () => {
     expect(screen.queryByText(/Release/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/should-not-appear-on-screen/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Status unknown/i)).not.toBeInTheDocument();
+    expect(screen.getByTestId("as-of-chrome")).toHaveTextContent(/As of /);
+  });
+
+  it("shows matchup-shaped skeletons while the board is loading", async () => {
+    getLineup.mockReturnValue(new Promise(() => {}));
+    renderLineup();
+    expect(await screen.findByTestId("projection-skeleton")).toBeInTheDocument();
+    const skeleton = screen.getByTestId("projection-skeleton");
+    expect(skeleton.querySelector(".matchup-board-row")).not.toBeNull();
+  });
+
+  it("shows as-of unknown when the payload has no vintage", async () => {
+    getLineup.mockResolvedValue(lineup({ meta: { data_as_of: "", projection_run_id: "weekly-2026-w01-hashy" } }));
+    renderLineup();
+    expect(await screen.findByTestId("as-of-chrome")).toHaveTextContent(/As-of unknown/i);
   });
 
   it("swaps a bench player into a starter slot locally", async () => {

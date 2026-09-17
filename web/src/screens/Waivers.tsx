@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import { AsyncStateBanner } from "../components/AsyncState";
+import { AsOfChrome } from "../components/AsOfChrome";
 import { CitationList } from "../components/CitationList";
 import { FreshnessBadge } from "../components/FreshnessBadge";
 import { Panel } from "../components/Panel";
+import { ProjectionRowSkeleton } from "../components/ProjectionRowSkeleton";
 import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
 import { useInjuryEvidence } from "../hooks/useInjuryEvidence";
@@ -66,23 +68,33 @@ export function WaiversScreen() {
             </span>
           </p>
         ) : (
-          <AsyncStateBanner
-            label="Waiver recommendations"
-            loading={waivers.loading}
-            offline={waivers.offline}
-            error={waivers.error}
-            fromCache={waivers.fromCache}
-            cachedAt={waivers.cachedAt}
-            dataAsOf={waivers.data?.meta.data_as_of}
-            hasData={Boolean(waivers.data)}
-            isEmpty={Boolean(waivers.data && waivers.data.adds.length === 0)}
-            missing={missing}
-            emptyMessage={`No waiver targets published for week ${week ?? "?"} of ${
-              selectedLeague?.name ?? "this league"
-            }. Available weeks: ${availableWeeks.join(", ") || "none"}.`}
-            onRetry={() => void waivers.refresh()}
-          />
+          <>
+            <AsOfChrome
+              dataAsOf={waivers.data?.meta.data_as_of}
+              runId={waivers.data?.meta.projection_run_id}
+            />
+            <AsyncStateBanner
+              label="Waiver recommendations"
+              loading={waivers.loading}
+              offline={waivers.offline}
+              error={waivers.error}
+              fromCache={waivers.fromCache}
+              cachedAt={waivers.cachedAt}
+              dataAsOf={waivers.data?.meta.data_as_of}
+              hasData={Boolean(waivers.data)}
+              isEmpty={Boolean(waivers.data && waivers.data.adds.length === 0)}
+              missing={missing}
+              emptyMessage={`No waiver targets published for week ${week ?? "?"} of ${
+                selectedLeague?.name ?? "this league"
+              }. Available weeks: ${availableWeeks.join(", ") || "none"}.`}
+              onRetry={() => void waivers.refresh()}
+            />
+          </>
         )}
+
+        {waivers.loading && !waivers.data && !noLeague && !noWeek ? (
+          <ProjectionRowSkeleton variant="waiver" rows={5} />
+        ) : null}
 
         {waivers.data ? (
           <>
@@ -90,7 +102,7 @@ export function WaiversScreen() {
               Release <code>{waivers.data.meta.projection_run_id}</code> · week {waivers.data.week}
             </p>
             {waivers.data.adds.length ? (
-              <ul className="waiver-list">
+              <ul className="waiver-list projection-table">
                 {waivers.data.adds.map((add) => {
                   const playerEvidence = evidence.byPlayerId[add.player_id];
                   return (

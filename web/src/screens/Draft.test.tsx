@@ -205,6 +205,7 @@ describe("DraftScreen", () => {
     const vegasProps = screen.getByRole("tab", { name: "Vegas Props" });
     expect(leagueValue).toHaveAttribute("aria-selected", "true");
     expect(vegasProps).toHaveAttribute("aria-selected", "false");
+    expect(await screen.findByTestId("as-of-chrome")).toHaveTextContent(/As of /);
 
     fireEvent.click(vegasProps);
     expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
@@ -222,6 +223,15 @@ describe("DraftScreen", () => {
       "aria-selected",
       "true",
     );
+  });
+
+  it("shows draft-shaped skeletons while the board is loading", async () => {
+    getDraftBoard.mockReturnValue(new Promise(() => {}));
+    getDraftChecklist.mockReturnValue(new Promise(() => {}));
+    renderDraft();
+    expect(await screen.findByTestId("projection-skeleton")).toBeInTheDocument();
+    expect(screen.getByTestId("projection-skeleton").querySelector(".draft-player-card")).not.toBeNull();
+    expect(screen.getByTestId("as-of-chrome")).toHaveTextContent(/As-of unknown/i);
   });
 
   it("opens Vegas Props from the pane query", async () => {
