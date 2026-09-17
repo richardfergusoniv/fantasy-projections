@@ -92,25 +92,29 @@ jobs:
           # github_ci is deliberately absent -- that server also needs a
           # workflow token this job does not grant.
           #
-          # Task is granted (PR silent-green v3). It was withheld so the
-          # skill could not stall on ScheduleWakeup in headless mode, but
-          # withholding it does not make the skill run inline -- it makes the
-          # skill fail. commands/code-review.md drives steps 1-5 entirely
-          # through subagents ("Launch a haiku agent...", "Launch 4 agents in
-          # parallel...", one validation subagent per candidate issue), so
-          # with Task denied the run burns the whole job on refusals: run 47
-          # on PR #83 ended is_error after 531s with
-          # permission_denials_count: 32 and posted nothing. The stall risk is
-          # covered by the prompt override above, which forbids background
-          # agents waiting on ScheduleWakeup; the plugin's subagents are
+          # Task is listed (PR silent-green v3), but it was NOT the cause of
+          # the denials and listing it is close to a no-op: run 53 attempt 2
+          # recorded claude-haiku-4-5 and claude-opus-5 in modelUsage under the
+          # old narrow allowlist, and subagents only draw those models if they
+          # actually started. Task is granted here so a future CLI that does
+          # gate it cannot silently break steps 1-5 of the skill, which run
+          # entirely through subagents. The ScheduleWakeup stall it was
+          # originally withheld against is covered by the prompt override
+          # above, which forbids background agents; the plugin's subagents are
           # synchronous. Subagents inherit this allowlist, so Task widens who
           # calls these tools, not which tools exist.
           #
-          # The gh read verbs match commands/code-review.md's own
-          # `allowed-tools:` frontmatter (gh issue view/list, gh search,
-          # gh pr comment/diff/view/list). Step 1 checks prior Claude comments
-          # via `gh pr view <PR> --comments`; the issue and search verbs back
-          # the citation links steps 7-9 require.
+          # The gh read verbs are the substantive part: they match
+          # commands/code-review.md's own `allowed-tools:` frontmatter
+          # (gh issue view/list, gh search, gh pr comment/diff/view/list), of
+          # which the old list carried four of eight. Step 1 checks prior
+          # Claude comments via `gh pr view <PR> --comments`; the issue and
+          # search verbs back the citation links steps 7-9 require.
+          #
+          # Which of the 17 denials in run 53 attempt 2 this actually clears
+          # is still unverified -- the SDK messages naming them are sanitized
+          # out of the job log unless show_full_output is on. Revisit once a
+          # run with it enabled has been read.
           #
           # Still withheld: unrestricted Bash, Write, Edit, WebFetch and
           # WebSearch. There remains no path to push a commit or call the
