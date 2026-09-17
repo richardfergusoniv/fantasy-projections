@@ -14,16 +14,27 @@ Live-week count toward 6–8:
 
 These prove matching and fail-closed leakage. They do **not** credit a live week.
 
+**Do not write harness output into `output/shadow_weekly_schedule_m3/`.** That
+directory holds committed evidence, including the 2026 live-data blocker in
+`vegas_props_compare.json`. A dry-run against that path rewrites those
+artifacts (flipping the blocker to a synthetic `n_matched>0` pass). If you do
+it by mistake, discard the diff.
+
 ```bash
-# Weekly-eval synthetic four-row fixture (n_matched=4, with actuals)
+# Weekly-eval synthetic four-row fixture (n_matched=4, with actuals).
+# Writes output/shadow_vegas_props_compare/summary.json (the --dry-run fixture).
 uv run python scripts/compare_shadow_vegas_props.py --dry-run
 
 # Real M3 dry-run board (p-qb / p-rb / q-qb) vs timestamped M3 fixture
-# as_of 2026-09-09T18:00Z <= kickoff 2026-09-10T20:20Z
-uv run python scripts/compare_shadow_vegas_props.py --m3-dry-run
+# as_of 2026-09-09T18:00Z <= kickoff 2026-09-10T20:20Z.
+# Writes m3_dry_run_summary.json under --output; does not clobber summary.json.
+# Scratch board lands under --output/_m3_dry_run_board.
+uv run python scripts/compare_shadow_vegas_props.py --m3-dry-run \
+  --output output/shadow_vegas_props_compare
 
-# Same path from the M3 CLI
-uv run python scripts/run_weekly_schedule_m3.py --dry-run --skip-backtest
+# Same path from the M3 CLI — write *outside* the tracked evidence dir.
+uv run python scripts/run_weekly_schedule_m3.py --dry-run --skip-backtest \
+  --output /tmp/shadow_weekly_schedule_m3_harness
 ```
 
 Expect `n_matched > 0`, `role=evaluation_comparator`, `gate_verdict=not_promoting`.

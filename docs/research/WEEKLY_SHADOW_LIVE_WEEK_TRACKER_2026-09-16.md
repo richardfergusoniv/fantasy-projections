@@ -14,7 +14,7 @@ A `(season, week)` is credited **only** when all of the following are true:
 1. An M3 shadow Role 2 board exists for that week (player-week means; no same-week outcome columns).
 2. Timestamped Vegas weekly-prop snapshots exist for that week with **`as_of` ≤ `kickoff_at`**.
 3. `scripts/compare_shadow_vegas_props.py` (or `compare_m3_to_vegas_props`) runs with **`n_matched > 0`**.
-4. The snapshot source is **live**, not `m3_synthetic_fixture` / `--dry-run` / `--m3-dry-run`.
+4. The snapshot source is **`live_timestamped`** (allow-listed). `supplied`, fixture, synthetic, and dry-run labels never credit.
 
 Fixture and M3 dry-run compares prove the harness (matching + fail-closed leakage). They **do not** increment `credited_weeks`.
 
