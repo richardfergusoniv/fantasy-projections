@@ -97,6 +97,19 @@ jobs:
           # Cursor Cloud Agent pushes trigger this workflow as cursor[bot].
           # Without this, claude-code-action fails the check on those updates.
           allowed_bots: cursor
+          # TEMPORARY DIAGNOSTIC -- remove once the current failures are
+          # explained. Every run since 2026-09-16T23:18Z ends in
+          # `is_error: true` after ~420ms with `num_turns: 1`,
+          # `total_cost_usd: 0` and an empty `modelUsage` -- the SDK aborts
+          # before a single model request. The same happens in claude.yml,
+          # which shares nothing with this workflow but the
+          # CLAUDE_CODE_OAUTH_TOKEN secret, so the cause is that credential
+          # (exhausted quota or an expired/revoked token), not this config.
+          # The action masks the SDK's message behind "full output hidden for
+          # security", so the reason is unreadable. This surfaces it.
+          # Turning this on prints prompt and tool output into the job log:
+          # revert it as soon as one failing run has been read.
+          show_full_output: true
 
       - name: Fail closed if Claude posted nothing
         env:

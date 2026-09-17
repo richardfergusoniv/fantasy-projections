@@ -64,3 +64,11 @@ jobs:
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           claude_args: '--allowedTools "mcp__github_comment__update_claude_comment,mcp__github_ci,Read,Grep,Glob"'
 
+          # TEMPORARY DIAGNOSTIC -- see the matching note in
+          # claude-code-review.yml. This workflow fails the same way (instant
+          # `is_error: true`, zero cost, empty `modelUsage`), which is what
+          # points at the shared CLAUDE_CODE_OAUTH_TOKEN rather than either
+          # workflow's config. Remove once the failure is explained; it prints
+          # prompt and tool output into the job log.
+          show_full_output: true
+
