@@ -26,6 +26,31 @@ def test_build_providers_live_mode_constructs_live_adapters():
     assert providers[1].__class__.__name__ == "LiveFanDuelProvider"
 
 
+def test_phase0b_dk_weekly_boards_omit_rush_rec_tds_fd_includes():
+    """Document the live DK weekly TD hole that keeps min_books at 1.
+
+    DK weekly O/U boards scrape yards / receptions / pass TDs only; rush_tds
+    and rec_tds live on season futures. FanDuel weekly maps include both TD
+    markets — so Role 1 TD "consensus" is often FD-only today.
+    """
+    from src.ingest.props.providers.draftkings_live import (
+        SEASON_FUTURE_BOARDS,
+        WEEKLY_OU_BOARDS,
+    )
+    from src.ingest.props.providers.fanduel_live import WEEKLY_MARKET_TYPE_MAP
+
+    weekly_dk = {market for _, _, market in WEEKLY_OU_BOARDS}
+    season_dk = {market for _, market in SEASON_FUTURE_BOARDS}
+    weekly_fd = {market for _, market in WEEKLY_MARKET_TYPE_MAP}
+
+    assert "rush_tds" not in weekly_dk
+    assert "rec_tds" not in weekly_dk
+    assert "rush_tds" in season_dk
+    assert "rec_tds" in season_dk
+    assert "rush_tds" in weekly_fd
+    assert "rec_tds" in weekly_fd
+
+
 def test_draftkings_weekly_parser():
     payload = {
         "events": [

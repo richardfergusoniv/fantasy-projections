@@ -128,3 +128,49 @@ def test_compare_without_outcomes_still_reports_model_vs_market():
     assert summary["metrics"]["mae_model_vs_market"] >= 0.0
     assert summary["metrics"]["mae_model"] is None
     assert summary["promoting"] is False
+
+
+def test_compare_medians_multi_book_duplicates_not_pick_latest():
+    """Per-book rows stay in the CSV; join grain uses robust_median (no book-shop)."""
+    board = pd.DataFrame(
+        [
+            {
+                "player_id": "00-0034857",
+                "season": 2026,
+                "week": 2,
+                "market": "pass_yards",
+                "model_mean": 266.0,
+            }
+        ]
+    )
+    # Later as_of is the worse book (270.5). Pick-latest would book-shop; median = 266.5.
+    snaps = pd.DataFrame(
+        [
+            {
+                "player_id": "00-0034857",
+                "season": 2026,
+                "week": 2,
+                "market": "pass_yards",
+                "line": 262.5,
+                "implied_mean": 262.5,
+                "as_of": "2026-09-16T12:00:00+00:00",
+                "kickoff_at": "2026-09-17T20:15:00+00:00",
+                "source": "draftkings",
+            },
+            {
+                "player_id": "00-0034857",
+                "season": 2026,
+                "week": 2,
+                "market": "pass_yards",
+                "line": 270.5,
+                "implied_mean": 270.5,
+                "as_of": "2026-09-16T18:00:00+00:00",
+                "kickoff_at": "2026-09-17T20:15:00+00:00",
+                "source": "fanduel",
+            },
+        ]
+    )
+    summary = compare_shadow_to_vegas(board=board, snapshots=snaps, outcomes=None)
+    assert summary["n_matched"] == 1
+    assert summary["n_snapshots"] == 2
+    assert summary["metrics"]["mae_model_vs_market"] == pytest.approx(0.5)

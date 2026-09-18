@@ -63,7 +63,11 @@ Export them into the Role 2 CSV (gsis ids, schedule `kickoff_at`, snapshot
 
 ```bash
 # Requires DATABASE_URL + ARTIFACT_BACKEND=s3 + S3_* (see .env.production.example).
+# Default --mode single keeps one row per book (Role 2 persistence; no MAE book-shop).
 uv run python scripts/export_role2_live_props.py --season 2026 --week 2
+
+# Role-1-shaped grain (robust_median across books) when you want one row per market:
+uv run python scripts/export_role2_live_props.py --season 2026 --week 2 --mode consensus
 
 # Offline / CI (fixture providers; does not credit a live week):
 uv run python scripts/export_role2_live_props.py --from-fixtures --season 2026 --week 1
@@ -131,6 +135,11 @@ A week credits toward 6–8 only when that live run has `n_matched > 0` and
   UTC). Quotes whose team/opponent miss the schedule map are dropped — book
   `event_start` is not a fallback. Never use a later closing line as kickoff.
 - Outcomes are absent until the week is final.
+- **DK weekly TD hole (Phase 0b):** live DraftKings often omits `rush_tds` /
+  `rec_tds` while FanDuel has them, so those Role 1 lines can be FD-only
+  under `min_distinct_books_per_market=1`. Do not raise min books globally
+  until a third source. See
+  [`WEEKLY_PROPS_DK_TD_COVERAGE_PHASE0B.md`](WEEKLY_PROPS_DK_TD_COVERAGE_PHASE0B.md).
 
 ## 5. Still forbidden
 

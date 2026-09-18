@@ -23,6 +23,8 @@ MarketName = Literal[
 ]
 
 MarketCoverageKind = Literal["books", "projection", "none"]
+#: How the Role 1 display line was formed from accepted book quotes.
+LineBasis = Literal["robust_median", "single_book"]
 PlayerScoringClass = Literal[
     "market_complete",
     "market_partial",
@@ -215,6 +217,10 @@ class MarketCoverage:
     accepted_quote_count: int
     rejected_quote_count: int
     reject_reasons: tuple[str, ...] = ()
+    #: Distinct sportsbook names that contributed to the Role 1 line.
+    accepted_books: tuple[str, ...] = ()
+    #: ``robust_median`` when 2+ books; ``single_book`` when only one remains.
+    line_basis: LineBasis | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -223,6 +229,8 @@ class MarketCoverage:
             "accepted_quote_count": self.accepted_quote_count,
             "rejected_quote_count": self.rejected_quote_count,
             "reject_reasons": list(self.reject_reasons),
+            "accepted_books": list(self.accepted_books),
+            "line_basis": self.line_basis,
         }
 
 

@@ -404,7 +404,8 @@ def export_role2_snapshot_rows(
     """Turn provider snapshots into Role 2 CSV rows.
 
     ``consensus`` merges books with a robust median (source=``consensus``).
-    ``single`` keeps one row per book with a ``source`` column.
+    ``single`` keeps one row per book with a ``source`` column (Role 2
+    persistence default via the export CLI — do not book-shop MAE).
 
     Rows with unresolved / non-gsis ids are dropped when ``require_gsis`` is
     True. Post-kickoff quotes (``as_of > kickoff_at``) are dropped, never

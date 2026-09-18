@@ -175,15 +175,22 @@ def consensus_for_market(
         q for q in evaluated if q.reject_reason is None and q.kind == "book"
     ]
     rejected = [q for q in evaluated if q.reject_reason is not None]
-    book_names = {q.sportsbook.strip().lower() for q in accepted_books}
+    book_names = tuple(
+        sorted({q.sportsbook.strip().lower() for q in accepted_books})
+    )
     if accepted_books:
+        # Role 1 display line: median-of-books when DK+FD (or more) both
+        # present — never primary-book-only + badge. Single-book still OK
+        # while min_distinct_books_per_market stays 1 (Phase 0b TD hole).
         line = robust_median([q.line for q in accepted_books], policy=policy.quote)
         kind = "books"
         coverage_kind = "books"
+        line_basis = "robust_median" if len(book_names) >= 2 else "single_book"
     else:
         line = None
         kind = "none"
         coverage_kind = "none"
+        line_basis = None
         # Projection-only must not set scoring means.
     reasons = tuple(sorted({str(q.reject_reason) for q in rejected if q.reject_reason}))
     coverage = MarketCoverage(
@@ -192,6 +199,8 @@ def consensus_for_market(
         accepted_quote_count=len(accepted_books),
         rejected_quote_count=len(rejected),
         reject_reasons=reasons,
+        accepted_books=book_names,
+        line_basis=line_basis,  # type: ignore[arg-type]
     )
     return ConsensusMarket(
         market=market,

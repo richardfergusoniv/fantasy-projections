@@ -160,8 +160,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--mode",
         choices=("consensus", "single"),
-        default="consensus",
-        help="consensus merges books; single keeps a source column per book.",
+        default="single",
+        help=(
+            "single keeps one row per book (Role 2 default — persist per-book "
+            "quotes; do not book-shop MAE). consensus merges books with "
+            "robust_median for a Role-1-shaped grain."
+        ),
     )
     parser.add_argument(
         "--output",
