@@ -38,6 +38,7 @@ from src.ingest.props.providers.base import FixturePropProvider  # noqa: E402
 from src.projection.weekly_eval.live_export import (  # noqa: E402
     DEFAULT_SCHEDULE_REL,
     build_identity_map_from_records,
+    build_identity_map_from_records_with_stats,
     describe_s3_env_blocker,
     export_role2_snapshot_rows,
     load_schedule_kickoffs,
@@ -47,6 +48,27 @@ from src.projection.weekly_eval.live_export import (  # noqa: E402
 
 DEFAULT_OUT = REPO_ROOT / "output" / "shadow_vegas_props_compare" / "live_snapshots.csv"
 DEFAULT_FIXTURE_DIR = REPO_ROOT / "data" / "props" / "fixtures" / "providers"
+
+
+def _assert_snapshot_slate(
+    snapshots: list[ProviderSnapshot],
+    *,
+    season: int,
+    week: int,
+) -> None:
+    """Fail closed when loaded snapshots disagree with CLI --season/--week."""
+    bad: list[str] = []
+    for snap in snapshots:
+        if int(snap.season) != int(season) or int(snap.week) != int(week):
+            bad.append(
+                f"{snap.source}: snapshot season/week={snap.season}/{snap.week} "
+                f"!= cli {season}/{week}"
+            )
+    if bad:
+        raise ValueError(
+            "snapshot season/week mismatch (refusing to gate quotes against "
+            "the wrong week's kickoffs): " + "; ".join(bad)
+        )
 
 
 def _load_snapshots_from_fixtures(
@@ -64,10 +86,16 @@ def _load_snapshots_from_fixtures(
         snap = FixturePropProvider(source, path).fetch(season=season, week=week)
         if snap.success:
             loaded.append(snap)
+    _assert_snapshot_slate(loaded, season=season, week=week)
     return loaded
 
 
-def _load_snapshots_from_json(paths: list[Path]) -> list[ProviderSnapshot]:
+def _load_snapshots_from_json(
+    paths: list[Path],
+    *,
+    season: int,
+    week: int,
+) -> list[ProviderSnapshot]:
     out: list[ProviderSnapshot] = []
     for path in paths:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -76,11 +104,10 @@ def _load_snapshots_from_json(paths: list[Path]) -> list[ProviderSnapshot]:
             out.append(ProviderSnapshot.from_dict(payload))
             continue
         source = str(payload.get("source") or path.stem)
-        season = int(payload["season"])
-        week = int(payload["week"])
         snap = FixturePropProvider(source, path).fetch(season=season, week=week)
         if snap.success:
             out.append(snap)
+    _assert_snapshot_slate(out, season=season, week=week)
     return out
 
 
@@ -197,14 +224,26 @@ def main(argv: list[str] | None = None) -> int:
     snapshots: list[ProviderSnapshot] = []
 
     if args.from_fixtures:
-        snapshots = _load_snapshots_from_fixtures(
-            season=args.season,
-            week=args.week,
-            fixtures_dir=args.fixtures_dir,
-            sources=sources,
-        )
+        try:
+            snapshots = _load_snapshots_from_fixtures(
+                season=args.season,
+                week=args.week,
+                fixtures_dir=args.fixtures_dir,
+                sources=sources,
+            )
+        except ValueError as exc:
+            print(f"BLOCKER: {exc}", file=sys.stderr)
+            return 1
     elif args.snapshot_json:
-        snapshots = _load_snapshots_from_json(list(args.snapshot_json))
+        try:
+            snapshots = _load_snapshots_from_json(
+                list(args.snapshot_json),
+                season=args.season,
+                week=args.week,
+            )
+        except ValueError as exc:
+            print(f"BLOCKER: {exc}", file=sys.stderr)
+            return 1
     else:
         missing = missing_live_export_env()
         if missing:
@@ -224,13 +263,27 @@ def main(argv: list[str] | None = None) -> int:
             print(f"BLOCKER: failed to load source_snapshot / artifacts: {exc}", file=sys.stderr)
             print(describe_s3_env_blocker(), file=sys.stderr)
             return 2
-        identity_map = build_identity_map_from_records(identity_records)
+        identity_map, ambiguous = build_identity_map_from_records_with_stats(
+            identity_records
+        )
+        if ambiguous:
+            print(
+                f"warning: dropped {ambiguous} ambiguous identity key(s)",
+                file=sys.stderr,
+            )
 
     if args.identity_json is not None:
         payload = json.loads(args.identity_json.read_text(encoding="utf-8"))
         if isinstance(payload, dict) and "rows" in payload:
             payload = payload["rows"]
-        identity_map = build_identity_map_from_records(payload)
+        patch, patch_ambiguous = build_identity_map_from_records_with_stats(payload)
+        if patch_ambiguous:
+            print(
+                f"warning: identity-json dropped {patch_ambiguous} ambiguous key(s)",
+                file=sys.stderr,
+            )
+        # Merge patch into DB (or empty) map — do not replace.
+        identity_map.update(patch)
 
     if not snapshots:
         print(

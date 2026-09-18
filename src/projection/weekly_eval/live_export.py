@@ -11,19 +11,23 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
+from statistics import median
 from typing import Any, Literal
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
+from src.depth_chart.sleeper_status import normalize_team
 from src.ingest.props.contracts import (
     PLAYER_MARKET_ALIASES,
     NormalizedQuote,
     ProviderSnapshot,
 )
 from src.ingest.props.normalize import canonicalize_market
-from src.projection.market_quotes import robust_median
+from src.projection.market_quotes import QuotePolicy, robust_median
 from src.projection.weekly_eval.schema import ALLOWED_MARKETS
 from src.projection.weekly_latent.availability import kickoff_at_from_row
+from src.projection.weekly_props.config import DEFAULT_WEEKLY_POLICY
 from src.projection.weekly_props.identity import resolve_quote_group_key
 
 ExportMode = Literal["consensus", "single"]
@@ -45,6 +49,17 @@ LIVE_SNAPSHOT_COLUMNS: tuple[str, ...] = (
 DEFAULT_SCHEDULE_REL = (
     "src/projection/weekly_latent/fixtures/nfl_schedules_2026_reg.csv"
 )
+
+#: nflverse ``gameday`` / ``gametime`` are US/Eastern wall-clock.
+SCHEDULE_WALLCLOCK_TZ = ZoneInfo("America/New_York")
+
+#: Extra book aliases beyond ``normalize_team`` (Sleeper map).
+_BOOK_TEAM_ALIASES: dict[str, str] = {
+    "WSH": "WAS",
+    "WAS": "WAS",
+    "LAR": "LA",
+    "LA": "LA",
+}
 
 
 def _aware_utc(value: datetime) -> datetime:
@@ -72,24 +87,59 @@ def canonicalize_role2_market(name: str) -> str | None:
     return canon
 
 
+def canonicalize_team_abbrev(team: str | None) -> str | None:
+    """Normalize book / schedule team codes onto the schedule slate alphabet."""
+    if team is None:
+        return None
+    text = str(team).strip()
+    if not text:
+        return None
+    mapped = normalize_team(text)
+    if mapped is None:
+        return None
+    upper = str(mapped).upper()
+    return _BOOK_TEAM_ALIASES.get(upper, upper)
+
+
+def eastern_wallclock_to_utc(value: datetime) -> datetime:
+    """Interpret a naive schedule stamp as America/New_York, then return UTC.
+
+    Aware timestamps are converted to UTC without re-labeling.
+    """
+    if value.tzinfo is None:
+        return value.replace(tzinfo=SCHEDULE_WALLCLOCK_TZ).astimezone(UTC)
+    return value.astimezone(UTC)
+
+
 def build_identity_map_from_records(
     records: Iterable[Mapping[str, Any]],
 ) -> dict[str, dict[str, Any]]:
     """Index identity rows the same way ``build_identity_map`` indexes baselines.
 
     Each record needs a projection id (gsis preferred) plus optional name/team/pos.
+    Secondary keys (name, team-qualified, sleeper / raw PK) that collide across
+    distinct gsis ids are left unmapped — same spirit as the bare-name guard.
     """
+    identity_map, _ambiguous = build_identity_map_from_records_with_stats(records)
+    return identity_map
+
+
+def build_identity_map_from_records_with_stats(
+    records: Iterable[Mapping[str, Any]],
+) -> tuple[dict[str, dict[str, Any]], int]:
+    """Build identity map; return ``(map, n_ambiguous_keys_dropped)``."""
     from src.app.availability.identity import normalize_name
     from src.draft_assistant.market_adp import canonicalize_player_name
 
-    identity_map: dict[str, dict[str, Any]] = {}
-    by_name: dict[str, list[str]] = {}
+    by_pid: dict[str, dict[str, Any]] = {}
+    secondary: dict[str, set[str]] = defaultdict(set)
+    by_name: dict[str, set[str]] = defaultdict(set)
+
     for raw in records:
         gsis = raw.get("gsis_id") or raw.get("player_id")
         if not gsis:
             continue
         pid = str(gsis)
-        # Prefer an explicit gsis column when the PK is sleeper-shaped.
         if raw.get("gsis_id"):
             pid = str(raw["gsis_id"])
         elif not is_gsis_shaped(pid):
@@ -101,33 +151,45 @@ def build_identity_map_from_records(
             "position": raw.get("position") or raw.get("pos"),
             "opponent": raw.get("opponent"),
         }
-        identity_map[pid] = payload
-        # Also index the raw PK when it differs (sleeper id → gsis).
+        by_pid[pid] = payload
+
         raw_pk = raw.get("player_id")
         if raw_pk and str(raw_pk) != pid:
-            identity_map[str(raw_pk)] = payload
+            secondary[str(raw_pk)].add(pid)
         sleeper = raw.get("sleeper_id")
         if sleeper:
-            identity_map[str(sleeper)] = payload
+            secondary[str(sleeper)].add(pid)
+
         canon = canonicalize_player_name(str(payload.get("name") or ""))
         norm = normalize_name(str(payload.get("name") or ""))
         if canon:
-            by_name.setdefault(canon, []).append(pid)
+            by_name[canon].add(pid)
         if norm and norm != canon:
-            by_name.setdefault(norm, []).append(pid)
-        team = str(payload.get("team") or "").upper()
+            by_name[norm].add(pid)
+        team = str(canonicalize_team_abbrev(payload.get("team")) or "").upper()
         pos = str(payload.get("position") or "").upper()
         if canon and team:
-            identity_map[f"{canon}|{team}"] = payload
+            secondary[f"{canon}|{team}"].add(pid)
             if pos:
-                identity_map[f"{canon}|{team}|{pos}"] = payload
+                secondary[f"{canon}|{team}|{pos}"].add(pid)
         if norm and team:
-            identity_map[f"{norm}|{team}"] = payload
-    for name, ids in by_name.items():
-        unique = sorted(set(ids))
+            secondary[f"{norm}|{team}"].add(pid)
+
+    identity_map: dict[str, dict[str, Any]] = dict(by_pid)
+    ambiguous = 0
+    for key, pids in secondary.items():
+        unique = sorted(pids)
         if len(unique) == 1:
-            identity_map[name] = identity_map[unique[0]]
-    return identity_map
+            identity_map[key] = by_pid[unique[0]]
+        else:
+            ambiguous += 1
+    for name, pids in by_name.items():
+        unique = sorted(pids)
+        if len(unique) == 1:
+            identity_map[name] = by_pid[unique[0]]
+        else:
+            ambiguous += 1
+    return identity_map, ambiguous
 
 
 def build_identity_map_from_player_identity_rows(
@@ -138,7 +200,6 @@ def build_identity_map_from_player_identity_rows(
 
     records: list[dict[str, Any]] = []
     for row in rows:
-        # Prefer projection_id_for_identity when available.
         try:
             pid = projection_id_for_identity(row)
         except Exception:  # noqa: BLE001 — duck-typed fixtures
@@ -158,13 +219,46 @@ def build_identity_map_from_player_identity_rows(
     return build_identity_map_from_records(records)
 
 
+def _schedule_row_kickoff_utc(row: Mapping[str, Any]) -> datetime | None:
+    """Kickoff in UTC from one schedule row.
+
+    nflverse ``gameday``/``gametime`` (and naive ``kickoff_at``) are Eastern
+    wall-clock. ``kickoff_at_from_row`` / ``parse_available_at`` label naive
+    stamps as UTC, so we strip that label and localize as America/New_York.
+    An explicit offset on ``kickoff_at`` (``Z`` / ``±HH:MM``) is honored as-is.
+    """
+    raw = row.get("kickoff_at")
+    raw_text = "" if raw is None else str(raw).strip()
+    has_explicit_offset = bool(raw_text) and (
+        raw_text.endswith("Z")
+        or raw_text.endswith("z")
+        or (
+            "T" in raw_text
+            and ("+" in raw_text[10:] or raw_text.count("-") >= 3)
+        )
+    )
+    if has_explicit_offset:
+        parsed = kickoff_at_from_row(kickoff_at=raw)
+        return None if parsed is None else _aware_utc(parsed)
+
+    parsed = kickoff_at_from_row(
+        kickoff_at=raw if raw_text else None,
+        gameday=row.get("gameday"),
+        gametime=row.get("gametime"),
+    )
+    if parsed is None:
+        return None
+    # Wall-clock face → Eastern → UTC (ignore any naive-as-UTC label).
+    return eastern_wallclock_to_utc(parsed.replace(tzinfo=None))
+
+
 def kickoffs_by_team_from_schedule(
     schedule: pd.DataFrame,
     *,
     season: int,
     week: int,
 ) -> dict[str, datetime]:
-    """Map team abbreviation → kickoff datetime for one slate week."""
+    """Map team abbreviation → kickoff datetime (UTC) for one slate week."""
     frame = schedule.copy()
     if "season" in frame.columns:
         frame = frame[frame["season"].astype(int) == int(season)]
@@ -172,16 +266,11 @@ def kickoffs_by_team_from_schedule(
         frame = frame[frame["week"].astype(int) == int(week)]
     out: dict[str, datetime] = {}
     for row in frame.to_dict(orient="records"):
-        kickoff = kickoff_at_from_row(
-            kickoff_at=row.get("kickoff_at"),
-            gameday=row.get("gameday"),
-            gametime=row.get("gametime"),
-        )
+        kickoff = _schedule_row_kickoff_utc(row)
         if kickoff is None:
             continue
-        kickoff = _aware_utc(kickoff)
         for side in ("home_team", "away_team"):
-            team = str(row.get(side) or "").upper().strip()
+            team = canonicalize_team_abbrev(row.get(side))
             if team:
                 out[team] = kickoff
     return out
@@ -205,20 +294,53 @@ def _resolve_kickoff(
     *,
     kickoffs_by_team: Mapping[str, datetime],
 ) -> datetime | None:
-    team = str(quote.team or "").upper()
+    """Schedule-only kickoff. Never trust book ``event_start`` as the leakage gate."""
+    team = canonicalize_team_abbrev(quote.team)
     if team and team in kickoffs_by_team:
         return _aware_utc(kickoffs_by_team[team])
-    # Opponent home/away unknown — try opponent only as last schedule miss.
-    opponent = str(quote.opponent or "").upper()
+    opponent = canonicalize_team_abbrev(quote.opponent)
     if opponent and opponent in kickoffs_by_team:
         return _aware_utc(kickoffs_by_team[opponent])
-    if quote.event_start is not None:
-        return _aware_utc(quote.event_start)
     return None
 
 
 def _quote_as_of(quote: NormalizedQuote, snap_fetched_at: datetime) -> datetime:
     return _aware_utc(quote.fetched_at or snap_fetched_at)
+
+
+def _outlier_survivors(
+    quotes: Sequence[NormalizedQuote],
+    *,
+    policy: QuotePolicy,
+) -> list[NormalizedQuote]:
+    """Quotes kept by the same band ``robust_median`` uses (3+ lines)."""
+    values = [float(q.line) for q in quotes]
+    if len(values) <= 2:
+        return list(quotes)
+    center = float(median(values))
+    tolerance = max(
+        abs(center) * policy.robust_median_rel,
+        policy.robust_median_abs_floor,
+    )
+    kept = [q for q in quotes if abs(float(q.line) - center) <= tolerance]
+    if len(kept) >= 2:
+        return kept
+    return list(quotes)
+
+
+def _quotes_for_implied_p_over(
+    quotes: Sequence[NormalizedQuote],
+    *,
+    consensus_line: float,
+    policy: QuotePolicy,
+) -> list[NormalizedQuote]:
+    """Quotes whose line matches the consensus (else outlier-filter survivors)."""
+    matched = [
+        q for q in quotes if abs(float(q.line) - float(consensus_line)) < 1e-9
+    ]
+    if matched:
+        return matched
+    return _outlier_survivors(quotes, policy=policy)
 
 
 def _mean_implied_p_over(quotes: Sequence[NormalizedQuote]) -> float | None:
@@ -267,6 +389,7 @@ def export_role2_snapshot_rows(
     kickoffs_by_team: Mapping[str, datetime] | None = None,
     mode: ExportMode = "consensus",
     require_gsis: bool = True,
+    quote_policy: QuotePolicy | None = None,
 ) -> list[dict[str, Any]]:
     """Turn provider snapshots into Role 2 CSV rows.
 
@@ -275,15 +398,16 @@ def export_role2_snapshot_rows(
 
     Rows with unresolved / non-gsis ids are dropped when ``require_gsis`` is
     True. Post-kickoff quotes (``as_of > kickoff_at``) are dropped, never
-    written — fail closed for leakage.
+    written — fail closed for leakage. Missing schedule kickoff drops the row
+    (book ``event_start`` is not a leakage boundary).
     """
-    identity_map = identity_map or {}
+    lookup = dict(identity_map or {})
     kickoffs_by_team = kickoffs_by_team or {}
+    policy = quote_policy or DEFAULT_WEEKLY_POLICY.quote
 
-    # (player_id, market) → list[(quote, as_of, kickoff, meta)]
-    grouped: dict[tuple[str, str], list[tuple[NormalizedQuote, datetime, datetime, dict[str, Any]]]] = (
-        defaultdict(list)
-    )
+    grouped: dict[
+        tuple[str, str], list[tuple[NormalizedQuote, datetime, datetime, dict[str, Any]]]
+    ] = defaultdict(list)
     season = None
     week = None
 
@@ -298,7 +422,7 @@ def export_role2_snapshot_rows(
             market = canonicalize_role2_market(quote.market)
             if market is None:
                 continue
-            key, ident = resolve_quote_group_key(quote, identity_map)
+            key, ident = resolve_quote_group_key(quote, lookup)
             player_id = str(ident.get("player_id") or quote.player_id or key)
             if require_gsis and not is_gsis_shaped(player_id):
                 continue
@@ -348,8 +472,10 @@ def export_role2_snapshot_rows(
         quotes = [q for q, _, _, _ in items]
         if not quotes:
             continue
-        line = float(robust_median([q.line for q in quotes]))
-        # as_of = latest contributing quote timestamp (still <= kickoff).
+        line = float(robust_median([q.line for q in quotes], policy=policy))
+        p_over_quotes = _quotes_for_implied_p_over(
+            quotes, consensus_line=line, policy=policy
+        )
         as_of = max(as_of for _, as_of, _, _ in items)
         kickoff = min(kickoff for _, _, kickoff, _ in items)
         if as_of > kickoff:
@@ -373,7 +499,7 @@ def export_role2_snapshot_rows(
                 week=week,
                 market=market,
                 line=line,
-                implied_p_over=_mean_implied_p_over(quotes),
+                implied_p_over=_mean_implied_p_over(p_over_quotes),
                 as_of=as_of,
                 kickoff_at=kickoff,
                 source=source,
@@ -432,8 +558,10 @@ def missing_live_export_env() -> list[str]:
         missing.append("ARTIFACT_BACKEND=s3")
     for key in (
         "S3_ENDPOINT_URL",
+        "S3_BUCKET",
         "S3_ACCESS_KEY_ID",
         "S3_SECRET_ACCESS_KEY",
+        "S3_REGION",
     ):
         if not os.environ.get(key):
             missing.append(key)
