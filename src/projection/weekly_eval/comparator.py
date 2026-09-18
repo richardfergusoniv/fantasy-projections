@@ -16,6 +16,7 @@ from src.projection.weekly_eval.leakage import (
     assert_no_role3_blend,
     assert_prediction_frame_has_no_outcomes,
 )
+from src.projection.weekly_eval.match import describe_match, empty_match
 from src.projection.weekly_eval.metrics import (
     brier_score,
     fallback_std,
@@ -250,6 +251,11 @@ def compare_shadow_to_vegas(
             joined = joined.drop(columns=["actual"])
     if not joined.empty:
         joined = _enrich_joined(joined)
+    match = (
+        describe_match(board_df, snap_df, joined)
+        if not snap_df.empty
+        else empty_match(board=board_df, snapshots=snap_df)
+    )
     metrics = _metric_block(joined) if not joined.empty else {
         "n": 0,
         "mae_model_vs_market": None,
@@ -279,6 +285,7 @@ def compare_shadow_to_vegas(
         "n_snapshots": len(snaps),
         "n_matched": len(joined),
         "n_with_actuals": n_with_actuals,
+        "match": match,
         "metrics": metrics,
         "by_market": by_market,
         "leakage": {

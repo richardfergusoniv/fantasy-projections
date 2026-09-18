@@ -11,4 +11,8 @@ Regenerate from committed synthetic fixtures:
 
 ```bash
 uv run python scripts/compare_shadow_vegas_props.py --dry-run
+uv run python scripts/compare_shadow_vegas_props.py --m3-dry-run
 ```
+
+Live weeks: see [`docs/ops/ROLE2_WEEKLY_MEASURE_RUNBOOK.md`](../../docs/ops/ROLE2_WEEKLY_MEASURE_RUNBOOK.md).
+Do not credit fixture runs toward the 6–8 live-shadow bar.

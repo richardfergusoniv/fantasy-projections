@@ -13,6 +13,7 @@ from src.projection.weekly_eval.errors import (
     Role3BlendForbiddenError,
     WeeklyEvalError,
 )
+from src.projection.weekly_eval.live_weeks import credit_live_week, load_tracker
 from src.projection.weekly_eval.schema import (
     PropSnapshot,
     load_outcomes,
@@ -30,8 +31,10 @@ __all__ = [
     "Role3BlendForbiddenError",
     "WeeklyEvalError",
     "compare_shadow_to_vegas",
+    "credit_live_week",
     "load_outcomes",
     "load_prop_snapshots",
     "load_shadow_board",
+    "load_tracker",
     "prop_snapshot_from_row",
 ]

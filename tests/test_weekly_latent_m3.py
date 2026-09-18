@@ -815,6 +815,9 @@ def test_dry_run_m3_identities_and_production_untouched(tmp_path):
     assert Path(result.output_paths["summary"]).is_file()
     assert "vegas_props_compare.json" in result.output_paths
     assert "shadow_board_role2.csv" in result.output_paths or Path(tmp_path, "shadow_board_role2.csv").is_file()
+    assert int(result.vegas_compare["n_matched"]) > 0
+    assert result.vegas_compare["harness"] == "weekly_eval"
+    assert result.vegas_compare["snapshot_source"] == "m3_synthetic_fixture"
 
 
 def test_m3_does_not_import_promote_or_weekly_eval_hard_dep():
@@ -823,8 +826,9 @@ def test_m3_does_not_import_promote_or_weekly_eval_hard_dep():
     assert "src.projection.release_bundle_publish" not in graph
     assert "src.projection.weekly.features.team_context" not in graph
     assert "src.projection.weekly.draws.feature_outcome_split" not in graph
-    # Optional Role 2 hook may load weekly_eval at runtime via importlib;
-    # that must stay invisible to AST import-graph walking.
+    # Role 2 may load weekly_eval at runtime via importlib (read-only denylist
+    # reuse of feature_outcome_split). That must stay off the AST walk so it
+    # cannot pull promote / PWA / same-week team_context into allocation.
     assert "src.projection.weekly_eval" not in graph
     assert "src.projection.weekly_eval.comparator" not in graph
     assert "src.app" not in graph

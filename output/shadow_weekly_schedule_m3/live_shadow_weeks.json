@@ -1,0 +1,9 @@
+{
+  "schema_version": "live_shadow_week_tracker_v1",
+  "credited_weeks": 0,
+  "target_min": 6,
+  "target_max": 8,
+  "gate_verdict": "not_promoting",
+  "credit_rule": "A week is credited only when snapshot_source is live_timestamped (allow-listed; supplied / fixture / synthetic / dry-run never credit), timestamped Vegas snapshot rows for that week have as_of <= kickoff_at, and n_matched > 0. as_of is derived from the snapshot rows, not a caller bool. Fixture and synthetic weeks demonstrate the harness; they do not count toward 6-8. Outcomes are required for vs-actual metrics but not for the first credit of a week (model-vs-market). Re-credit is idempotent per (season, week). Gate remains not_promoting until the decision-note bar clears.",
+  "weeks": []
+}

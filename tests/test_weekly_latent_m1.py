@@ -254,7 +254,9 @@ def test_forbidden_same_week_features_match_canonical_team_denylist():
     is not necessarily merged on this branch. The local list includes those
     hole columns now; extra names beyond (canonical ∪ #70) are also drift.
     """
-    from src.projection.weekly.draws.feature_outcome_split import SAME_WEEK_OUTCOME_DENYLIST
+    from src.projection.weekly.draws.feature_outcome_split import (
+        SAME_WEEK_OUTCOME_DENYLIST,
+    )
 
     canonical_team = frozenset(
         name for name in SAME_WEEK_OUTCOME_DENYLIST if name.startswith("team_")
@@ -278,6 +280,10 @@ def test_m1_does_not_import_promote_or_team_pass_rate_join():
     assert "src.projection.release_bundle_publish" not in graph
     assert "src.projection.weekly.features.team_context" not in graph
     assert "src.projection.weekly.draws.feature_outcome_split" not in graph
+    assert "src.app" not in graph
+    # Role 2 may load weekly_eval at runtime via importlib (read-only denylist
+    # reuse of feature_outcome_split). That is measurement, not a training join,
+    # and must stay off the weekly_latent.run AST walk.
 
 
 def test_2026_fixture_has_32_teams_and_byes():

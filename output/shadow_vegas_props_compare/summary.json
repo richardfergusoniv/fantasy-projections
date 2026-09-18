@@ -8,6 +8,18 @@
   "n_snapshots": 4,
   "n_matched": 4,
   "n_with_actuals": 4,
+  "match": {
+    "join_keys": [
+      "player_id",
+      "season",
+      "week",
+      "market"
+    ],
+    "n_board_unmatched": 0,
+    "n_snapshot_unmatched": 0,
+    "unmatched_board_ids_sample": [],
+    "unmatched_snapshot_ids_sample": []
+  },
   "metrics": {
     "n": 4,
     "mae_model_vs_market": 3.625000000000001,
@@ -101,6 +113,7 @@
   },
   "caveat": "Harness only. Not a promotion sample. Do not optimize toward market agreement or treat this output as weekly accuracy evidence.",
   "dry_run": true,
+  "source": "weekly_eval_fixture",
   "inputs": {
     "props": "src/projection/weekly_eval/fixtures/prop_snapshots.csv",
     "board": "src/projection/weekly_eval/fixtures/shadow_board.csv",
