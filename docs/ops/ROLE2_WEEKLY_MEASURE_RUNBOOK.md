@@ -54,12 +54,22 @@ gsis ids (`00-0034857`), not dry-run names.
 Without live snapshots this compare is **blocked** (`harness=missing_live_snapshots`).
 It will **not** silently join the dry-run fixture (`p-qb`) to the sealed board.
 
-## 3. What Richard must supply for a live week
+## 3. Export Role 1 → Role 2 live snapshots
 
 No timestamped book dump is committed. Role 1 `weekly_props` snapshots live in
-the DB / artifact store and are not a Role 2 as-of CSV.
+Postgres `source_snapshot` with bodies at `s3://fantasy-app/artifacts/...`.
+Export them into the Role 2 CSV (gsis ids, schedule `kickoff_at`, snapshot
+`as_of`) with:
 
-Supply a CSV (or set `WEEKLY_EVAL_PROPS_PATH`) at:
+```bash
+# Requires DATABASE_URL + ARTIFACT_BACKEND=s3 + S3_* (see .env.production.example).
+uv run python scripts/export_role2_live_props.py --season 2026 --week 2
+
+# Offline / CI (fixture providers; does not credit a live week):
+uv run python scripts/export_role2_live_props.py --from-fixtures --season 2026 --week 1
+```
+
+Writes (or set `WEEKLY_EVAL_PROPS_PATH`) to:
 
 `output/shadow_vegas_props_compare/live_snapshots.csv`
 
@@ -89,11 +99,15 @@ A week credits toward 6–8 only when that live run has `n_matched > 0` and
 
 ## 4. Live blockers (current)
 
-- No in-repo timestamped 2026 book snapshots (`as_of` + `kickoff_at`).
-- Role 1 provider dumps are not exported as a Role 2 frame.
+- Live export needs S3 artifact credentials (`ARTIFACT_BACKEND=s3`,
+  `S3_ENDPOINT_URL`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION`,
+  `S3_BUCKET`) plus `DATABASE_URL` / `JOB_DATABASE_URL`. Without them,
+  `scripts/export_role2_live_props.py` exits with a blocker (no fake rows).
 - Sealed-board player ids (`00-…`) do not match dry-run / book name keys
-  unless identity is resolved **before** the CSV is handed to Role 2.
-- Kickoff timestamps must come from the schedule, not a later closing line.
+  unless identity is resolved **before** the CSV is handed to Role 2 (the
+  exporter maps via `player_identity` / gsis-shaped quote ids).
+- Kickoff timestamps come from the schedule CSV (fallback: book `event_start`),
+  never a later closing line.
 - Outcomes are absent until the week is final.
 
 ## 5. Still forbidden
