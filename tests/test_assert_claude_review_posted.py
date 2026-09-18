@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 
 from scripts.assert_claude_review_posted import (
@@ -10,8 +11,10 @@ from scripts.assert_claude_review_posted import (
     artifacts_from_review_comments,
     artifacts_from_reviews,
     evaluate_gate,
+    explain_silent_run,
     is_claude_login,
     parse_since,
+    summarize_execution_messages,
 )
 
 SINCE = datetime(2026, 9, 16, 16, 10, 24, tzinfo=timezone.utc)
@@ -251,3 +254,75 @@ def test_payload_parsers_extract_claude_bot():
     assert reviews[0].kind == "review"
     assert inlines[0].kind == "review_comment"
     assert parse_since("2026-09-16T16:10:24Z") == SINCE
+
+
+def _transcript(**result_overrides):
+    result = {
+        "type": "result",
+        "subtype": "success",
+        "is_error": False,
+        "num_turns": 10,
+        "total_cost_usd": 1.53,
+        "result": "Stopped without posting.",
+        "permission_denials": [
+            {"tool_name": "Bash", "tool_input": {"command": "gh api repos/x/y/files"}},
+            {"tool_name": "WebFetch", "tool_input": {"url": "https://example.com"}},
+        ],
+    }
+    result.update(result_overrides)
+    return [
+        {"type": "system", "subtype": "init", "model": "claude-sonnet-5"},
+        {
+            "type": "assistant",
+            "message": {
+                "content": [
+                    {"type": "text", "text": "Checking eligibility."},
+                    {"type": "tool_use", "name": "Task", "input": {"subagent_type": "haiku"}},
+                ]
+            },
+        },
+        result,
+    ]
+
+
+def test_summary_names_the_denied_command_and_final_text():
+    lines = "\n".join(summarize_execution_messages(_transcript()))
+    assert "turns=10" in lines
+    assert "Stopped without posting." in lines
+    assert "permission denials (2)" in lines
+    assert "gh api repos/x/y/files" in lines
+    assert "Task" in lines
+    assert "Checking eligibility." in lines
+
+
+def test_summary_does_not_echo_tool_inputs_that_could_carry_file_contents():
+    # A public Actions log: only inputs that name the denied action are shown.
+    lines = "\n".join(summarize_execution_messages(_transcript()))
+    assert "https://example.com" not in lines
+
+
+def test_summary_reports_absence_of_denials_rather_than_omitting_it():
+    lines = "\n".join(summarize_execution_messages(_transcript(permission_denials=[])))
+    assert "permission denials: none recorded" in lines
+
+
+def test_summary_survives_a_transcript_with_no_result_message():
+    lines = "\n".join(summarize_execution_messages([{"type": "system"}]))
+    assert "tools called: none" in lines
+
+
+def test_explain_silent_run_never_raises_on_bad_input(tmp_path, monkeypatch):
+    monkeypatch.setenv("RUNNER_TEMP", str(tmp_path))
+    assert "no execution log" in "\n".join(explain_silent_run())
+
+    (tmp_path / "claude-execution-output.json").write_text("{not json")
+    assert "could not read execution log" in "\n".join(explain_silent_run())
+
+    (tmp_path / "claude-execution-output.json").write_text(json.dumps({"a": 1}))
+    assert "unexpected execution log shape" in "\n".join(explain_silent_run())
+
+    (tmp_path / "claude-execution-output.json").write_text(json.dumps(_transcript()))
+    assert "permission denials (2)" in "\n".join(explain_silent_run())
+
+    monkeypatch.delenv("RUNNER_TEMP")
+    assert "not running on a GitHub runner" in "\n".join(explain_silent_run())
