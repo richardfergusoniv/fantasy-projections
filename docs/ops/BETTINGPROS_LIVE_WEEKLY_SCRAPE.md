@@ -1,0 +1,109 @@
+# BettingPros live weekly scrape — ToS / robots / feasibility
+
+**Date:** 2026-09-18  
+**Scope:** Role 1 `weekly_props` third-book ingest + Role 2 per-provider
+snapshot persist. No min_books raise, no Role 3 blend, no promote /
+sealed-pointer change, no prediction-market means.
+
+## Intended use
+
+| Role | What BettingPros contributes |
+|---|---|
+| Role 1 display line | Consensus (`book_id=0`) as sportsbook `bettingpros` — a third eligible book beside DraftKings + FanDuel for yards / receptions / pass TDs / attempts. |
+| Role 2 export | The `bettingpros` provider snapshot is persisted like DK/FD (`source_snapshot` + artifact). Export with `scripts/export_role2_live_props.py` (`--mode single` keeps per-provider rows). |
+
+**Not in scope:** blending Kalshi / Polymarket / other prediction markets into
+Role 1 or Role 2 means (consensus already rejects those books). OddsChecker /
+another US book is a later theme only if coverage gaps remain after BP.
+
+BP weekly boards do **not** expose separate `rush_tds` / `rec_tds` O/Us
+(market `334` is a combined "touchdowns" rung). The Phase 0b DK TD hole is
+only partially helped (pass TDs + volume markets get a third book).
+
+## Endpoints chosen
+
+Public JSON that the BettingPros site already calls:
+
+| Endpoint | Purpose |
+|---|---|
+| `GET https://api.bettingpros.com/v3/events?sport=NFL&season=&week=` | Week slate + home/visitor + kickoff |
+| `GET https://api.bettingpros.com/v3/offers?sport=NFL&market_id=&event_id=&book_id=0&limit=10&page=` | Paginated consensus player O/U offers |
+| `GET https://api.bettingpros.com/v3/markets?sport=NFL` | Catalog (ids pinned in code) |
+| `GET https://api.bettingpros.com/v3/books` | Book id map (`0` = BettingPros Consensus) |
+
+Weekly market ids scraped (see `WEEKLY_MARKET_IDS` in
+`src/ingest/props/providers/bettingpros_live.py`):
+
+`103` pass_yards, `102` pass_tds, `333` pass_attempts, `100` pass_completions,
+`101` pass_ints, `107` rush_yards, `106` rush_attempts, `105` rec_yards,
+`104` receptions.
+
+Auth header: the site's browser-embedded `x-api-key` (public client key,
+hardcoded like FanDuel `_ak` — **not** a repo secret / `.env` value).
+
+Transport: `src/ingest/props/providers/http.py` (`fetch_json` with
+`curl_cffi` Chrome impersonation preferred).
+
+Shape reference (season dump, not the live weekly source of truth):
+`draft_assistant/data/vegas_raw/bettingpros.json`.
+
+## ToS / robots / feasibility
+
+| Check | Finding (2026-09-18) |
+|---|---|
+| `https://www.bettingpros.com/robots.txt` | `User-Agent: *` / `Allow: /` |
+| `https://api.bettingpros.com/robots.txt` | `Disallow: /` (sitemaps allowed) |
+| Feasibility from this cloud egress | Live `events` + `offers` succeed with `x-api-key` + Chrome impersonation |
+
+`api.bettingpros.com` robots Disallow means automated scraping of the API is
+**not** blessed by robots.txt even though the browser UI uses the same host.
+Treat this as a low-volume, ops-owned ingest (same spirit as DK/FD public
+sportsbook feeds), not a high-frequency crawl. Re-check ToS / robots before
+raising cadence. Human legal review remains outside this note.
+
+If egress starts returning 403 / TLS fingerprint blocks: provider isolation
+records `success=False` for BettingPros only; DraftKings / FanDuel in the same
+`run_ingest` continue. Validate parsers offline with `--mode fixture` /
+`--from-fixture` (see below).
+
+## Failure modes
+
+| Failure | Behavior |
+|---|---|
+| HTTP 4xx/5xx, invalid JSON, TLS / bot block | `LiveFetchError` → `LiveBettingProsProvider` returns `success=False` stub; other providers unchanged |
+| Empty board / all events closed | `success=False`, `error=no_quotes` (or board errors) |
+| Mismatched consensus over/under lines | Offer skipped (no guessed line) |
+| Import / unexpected exception | Caught in `LiveBettingProsProvider.fetch` (provider isolation) |
+
+Do **not** raise `min_distinct_books_per_market` globally until BP (or another
+third book) is stable in production scrapes.
+
+## How ops runs it
+
+```bash
+# Live weekly scrape including BettingPros (local / job host with egress).
+# Prefer curl_cffi (declared in pyproject) for Chrome impersonation.
+uv run python -m src.ingest.props.cli \
+  --season 2026 --week 2 \
+  --mode live \
+  --providers draftkings,fanduel,bettingpros
+
+# Offline / CI: fixture providers only (no network).
+uv run python -m src.ingest.props.cli \
+  --season 2026 --week 1 \
+  --from-fixture \
+  --providers draftkings,fanduel,bettingpros \
+  --fixtures-dir data/props/fixtures/providers
+
+# Production job: set WEEKLY_PROPS_PROVIDERS=draftkings,fanduel,bettingpros
+# in PRODUCTION_JOB_ENV (GitHub secret). Default remains draftkings,fanduel
+# until ops opts in — this PR does not flip the production default.
+```
+
+Unit tests mock HTTP; they never hit the live API in CI.
+
+## Related
+
+- Phase 0b DK TD hole: [`WEEKLY_PROPS_DK_TD_COVERAGE_PHASE0B.md`](WEEKLY_PROPS_DK_TD_COVERAGE_PHASE0B.md)
+- Role 2 export: [`ROLE2_WEEKLY_MEASURE_RUNBOOK.md`](ROLE2_WEEKLY_MEASURE_RUNBOOK.md)
+- Roles lock: [`docs/decisions/WEEKLY_MODEL_PROMOTION_AND_PROPS_ROLES_2026-09-15.md`](../decisions/WEEKLY_MODEL_PROMOTION_AND_PROPS_ROLES_2026-09-15.md)

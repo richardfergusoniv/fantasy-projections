@@ -26,6 +26,12 @@ def test_build_providers_live_mode_constructs_live_adapters():
     assert providers[1].__class__.__name__ == "LiveFanDuelProvider"
 
 
+def test_build_providers_live_mode_bettingpros():
+    providers = build_providers(mode="live", provider_names="bettingpros")
+    assert [p.name for p in providers] == ["bettingpros"]
+    assert providers[0].__class__.__name__ == "LiveBettingProsProvider"
+
+
 def test_phase0b_dk_weekly_boards_omit_rush_rec_tds_fd_includes():
     """Document the live DK weekly TD hole that keeps min_books at 1.
 

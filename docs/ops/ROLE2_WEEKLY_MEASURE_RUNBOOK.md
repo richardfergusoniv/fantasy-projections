@@ -138,7 +138,10 @@ A week credits toward 6–8 only when that live run has `n_matched > 0` and
 - **DK weekly TD hole (Phase 0b):** live DraftKings often omits `rush_tds` /
   `rec_tds` while FanDuel has them, so those Role 1 lines can be FD-only
   under `min_distinct_books_per_market=1`. Do not raise min books globally
-  until a third source. See
+  until a third source is stable in production. BettingPros live weekly is
+  the opt-in third book for volume / pass-TD markets (not separate rush/rec
+  TDs) — see
+  [`BETTINGPROS_LIVE_WEEKLY_SCRAPE.md`](BETTINGPROS_LIVE_WEEKLY_SCRAPE.md) and
   [`WEEKLY_PROPS_DK_TD_COVERAGE_PHASE0B.md`](WEEKLY_PROPS_DK_TD_COVERAGE_PHASE0B.md).
 
 ## 5. Still forbidden
