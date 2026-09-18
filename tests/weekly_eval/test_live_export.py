@@ -239,10 +239,32 @@ def test_export_consensus_merges_books(tmp_path):
     assert len(rows) == 1
     assert rows[0]["source"] == "consensus"
     assert rows[0]["line"] == 266.5  # median of two
+    # Midpoint matches neither book line → leave implied_p_over null.
+    assert rows[0]["implied_p_over"] is None
     out = write_live_snapshots_csv(rows, tmp_path / "live_snapshots.csv")
     loaded = load_prop_snapshots(out)
     assert len(loaded) == 1
     assert loaded[0].player_id == "00-0034857"
+
+
+def test_consensus_two_unequal_lines_null_implied_p_over():
+    kickoffs = {"BUF": datetime(2026, 9, 17, 20, 15, tzinfo=UTC)}
+    snaps = [
+        _snap(
+            [_quote(source="draftkings", line=4.5, over_prob_novig=0.62, market="receptions")],
+            source="draftkings",
+        ),
+        _snap(
+            [_quote(source="fanduel", line=5.5, over_prob_novig=0.48, market="receptions")],
+            source="fanduel",
+        ),
+    ]
+    rows = export_role2_snapshot_rows(
+        snaps, kickoffs_by_team=kickoffs, mode="consensus"
+    )
+    assert len(rows) == 1
+    assert rows[0]["line"] == 5.0
+    assert rows[0]["implied_p_over"] is None
 
 
 def test_consensus_implied_p_over_matches_consensus_line_only():
@@ -547,6 +569,65 @@ def test_cli_rejects_snapshot_week_mismatch(tmp_path):
             "2",
             "--snapshot-json",
             str(snap_path),
+            "--schedule",
+            str(SCHEDULE),
+            "--output",
+            str(tmp_path / "out.csv"),
+        ]
+    )
+    assert rc == 1
+
+
+def test_assert_snapshot_slate_raises_on_mismatch():
+    import runpy
+
+    mod = runpy.run_path(str(REPO_ROOT / "scripts" / "export_role2_live_props.py"))
+    snaps = [
+        _snap([_quote()], season=2026, week=1),
+    ]
+    with pytest.raises(ValueError, match="season/week mismatch"):
+        mod["_assert_snapshot_slate"](snaps, season=2026, week=2)
+
+
+def test_db_live_path_rejects_mismatched_slate(tmp_path, monkeypatch):
+    """DB path must slate-assert like fixture / snapshot-json paths."""
+    import runpy
+
+    mod = runpy.run_path(str(REPO_ROOT / "scripts" / "export_role2_live_props.py"))
+
+    def _fake_db(*, season, week, sources):
+        # Catalog asked for week=2 but body claims week=1.
+        return (
+            [_snap([_quote()], season=2026, week=1)],
+            [
+                {
+                    "player_id": "00-0034857",
+                    "gsis_id": "00-0034857",
+                    "name": "Josh Allen",
+                    "team": "BUF",
+                    "position": "QB",
+                }
+            ],
+        )
+
+    monkeypatch.setenv("DATABASE_URL", "postgresql://x")
+    monkeypatch.setenv("ARTIFACT_BACKEND", "s3")
+    monkeypatch.setenv("S3_ENDPOINT_URL", "https://example.test/s3")
+    monkeypatch.setenv("S3_BUCKET", "fantasy-app")
+    monkeypatch.setenv("S3_ACCESS_KEY_ID", "ak")
+    monkeypatch.setenv("S3_SECRET_ACCESS_KEY", "sk")
+    monkeypatch.setenv("S3_REGION", "us-east-1")
+    monkeypatch.setitem(mod, "_load_snapshots_from_db", _fake_db)
+    # runpy locals aren't the module dict used by main's globals — patch on the
+    # function's __globals__ instead.
+    mod["main"].__globals__["_load_snapshots_from_db"] = _fake_db
+
+    rc = mod["main"](
+        [
+            "--season",
+            "2026",
+            "--week",
+            "2",
             "--schedule",
             str(SCHEDULE),
             "--output",

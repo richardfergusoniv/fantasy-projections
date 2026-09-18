@@ -334,12 +334,22 @@ def _quotes_for_implied_p_over(
     consensus_line: float,
     policy: QuotePolicy,
 ) -> list[NormalizedQuote]:
-    """Quotes whose line matches the consensus (else outlier-filter survivors)."""
+    """Quotes whose line matches the consensus (else outlier-filter survivors).
+
+    When exactly two unequal lines produce a midpoint consensus that matches
+    neither quote, return empty so ``implied_p_over`` stays null rather than
+    blending p_over across different lines.
+    """
     matched = [
         q for q in quotes if abs(float(q.line) - float(consensus_line)) < 1e-9
     ]
     if matched:
         return matched
+    if (
+        len(quotes) == 2
+        and abs(float(quotes[0].line) - float(quotes[1].line)) > 1e-9
+    ):
+        return []
     return _outlier_survivors(quotes, policy=policy)
 
 

@@ -259,6 +259,12 @@ def main(argv: list[str] | None = None) -> int:
             snapshots, identity_records = _load_snapshots_from_db(
                 season=args.season, week=args.week, sources=sources
             )
+            _assert_snapshot_slate(
+                snapshots, season=args.season, week=args.week
+            )
+        except ValueError as exc:
+            print(f"BLOCKER: {exc}", file=sys.stderr)
+            return 1
         except Exception as exc:  # noqa: BLE001
             print(f"BLOCKER: failed to load source_snapshot / artifacts: {exc}", file=sys.stderr)
             print(describe_s3_env_blocker(), file=sys.stderr)

@@ -79,9 +79,14 @@ Writes (or set `WEEKLY_EVAL_PROPS_PATH`) to:
 | `season`, `week` | yes | Join key |
 | `market` | yes | Role 2 names: `pass_yards`, `rec_yards`, `receptions`, `rush_yards`, … |
 | `as_of` | yes | ISO-8601 UTC snapshot time |
-| `kickoff_at` | yes | Game kickoff. `as_of > kickoff_at` fails closed |
+| `kickoff_at` | yes | Schedule kickoff only (Eastern wall-clock → UTC). `as_of > kickoff_at` fails closed |
 | `line` or `implied_mean` | one of | Over/under and/or market location |
 | `implied_p_over` | no | De-vig P(over) when available |
+
+`kickoff_at` is **schedule-only**. The exporter resolves kickoff from the NFL
+schedule CSV by team (or opponent). Missing schedule team/opponent → row
+dropped (fail closed). Book `event_start` is never used as the leakage
+boundary.
 
 Optional after the week: outcomes CSV with `player_id,season,week,market,actual`.
 
@@ -106,8 +111,9 @@ A week credits toward 6–8 only when that live run has `n_matched > 0` and
 - Sealed-board player ids (`00-…`) do not match dry-run / book name keys
   unless identity is resolved **before** the CSV is handed to Role 2 (the
   exporter maps via `player_identity` / gsis-shaped quote ids).
-- Kickoff timestamps come from the schedule CSV (fallback: book `event_start`),
-  never a later closing line.
+- Kickoff timestamps come from the schedule CSV only (localized Eastern →
+  UTC). Quotes whose team/opponent miss the schedule map are dropped — book
+  `event_start` is not a fallback. Never use a later closing line as kickoff.
 - Outcomes are absent until the week is final.
 
 ## 5. Still forbidden
