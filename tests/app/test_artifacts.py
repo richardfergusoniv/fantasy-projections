@@ -9,10 +9,57 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-def _missing_object_client(encoded: bytes) -> MagicMock:
-    """An S3 client mock whose HEAD reports the object does not exist yet."""
+def _s3_client_after_put(encoded: bytes) -> MagicMock:
+    """S3 client mock: HEAD misses until put_object, then succeeds (verify-after-upload)."""
+    client = MagicMock()
+    present = {"value": False}
+
+    def head_object(**kwargs):  # noqa: ANN003
+        if not present["value"]:
+            raise RuntimeError("NoSuchKey")
+        return {"ContentLength": len(encoded)}
+
+    def put_object(**kwargs):  # noqa: ANN003
+        present["value"] = True
+        return {"ETag": '"ok"'}
+
+    client.head_object.side_effect = head_object
+    client.put_object.side_effect = put_object
+    client.get_object.return_value = {"Body": MagicMock(read=lambda: encoded)}
+    return client
+
+
+def _s3_client_put_ok_head_always_missing(encoded: bytes) -> MagicMock:
+    """Put appears to succeed but the object is never HEAD-able afterward."""
     client = MagicMock()
     client.head_object.side_effect = RuntimeError("NoSuchKey")
+    client.put_object.return_value = {"ETag": '"ok"'}
+    client.get_object.return_value = {"Body": MagicMock(read=lambda: encoded)}
+    return client
+
+
+def _s3_client_put_ok_head_access_denied_after_put(encoded: bytes) -> MagicMock:
+    """Put succeeds; post-put HEAD is AccessDenied (put-only IAM), not missing."""
+    client = MagicMock()
+    present = {"value": False}
+
+    class AccessDenied(Exception):
+        response = {
+            "Error": {"Code": "AccessDenied"},
+            "ResponseMetadata": {"HTTPStatusCode": 403},
+        }
+
+    def head_object(**kwargs):  # noqa: ANN003
+        if not present["value"]:
+            raise RuntimeError("NoSuchKey")
+        raise AccessDenied("AccessDenied")
+
+    def put_object(**kwargs):  # noqa: ANN003
+        present["value"] = True
+        return {"ETag": '"ok"'}
+
+    client.head_object.side_effect = head_object
+    client.put_object.side_effect = put_object
     client.get_object.return_value = {"Body": MagicMock(read=lambda: encoded)}
     return client
 
@@ -24,6 +71,34 @@ def test_local_artifact_store_roundtrip(tmp_path):
     uri = store.put_json({"hello": "world"})
     assert uri.startswith("local://")
     assert store.get_json(uri) == {"hello": "world"}
+    store.verify_readable(uri)
+
+
+def test_local_put_json_fails_closed_when_object_missing_after_write(tmp_path):
+    """Verify-after-upload must not return a URI for a vanished local object."""
+    from src.app.artifacts.store import ArtifactError, LocalArtifactStore
+
+    store = LocalArtifactStore(root=tmp_path)
+    original = LocalArtifactStore.verify_readable
+
+    def wipe_then_verify(self, uri: str) -> None:  # noqa: ANN001
+        path = self._resolve(uri)
+        path.unlink(missing_ok=True)
+        original(self, uri)
+
+    with patch.object(LocalArtifactStore, "verify_readable", wipe_then_verify):
+        with pytest.raises(ArtifactError, match="not readable after write"):
+            store.put_json({"gone": True})
+    assert list(tmp_path.rglob("*.json")) == []
+
+
+def test_local_put_json_verify_success_keeps_object(tmp_path):
+    from src.app.artifacts.store import LocalArtifactStore
+
+    store = LocalArtifactStore(root=tmp_path)
+    uri = store.put_json({"durable": True})
+    store.verify_readable(uri)
+    assert store.get_json(uri) == {"durable": True}
 
 
 def test_s3_artifact_store_put_and_get():
@@ -32,7 +107,7 @@ def test_s3_artifact_store_put_and_get():
     payload = {"players": 1}
     _, envelope = wrap_json_payload(payload)
     encoded = json.dumps(envelope, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    mock_client = _missing_object_client(encoded)
+    mock_client = _s3_client_after_put(encoded)
 
     with patch("boto3.session.Session") as session_cls:
         session_cls.return_value.client.return_value = mock_client
@@ -41,6 +116,62 @@ def test_s3_artifact_store_put_and_get():
         assert uri.startswith("s3://")
         assert store.get_json(uri) == payload
         mock_client.put_object.assert_called_once()
+        # put + verify-after-upload: HEAD before put (miss) and after put (hit).
+        assert mock_client.head_object.call_count >= 2
+
+
+def test_s3_put_json_fails_closed_when_head_misses_after_put():
+    from src.app.artifacts.store import ArtifactError, S3ArtifactStore, wrap_json_payload
+
+    payload = {"players": 1}
+    _, envelope = wrap_json_payload(payload)
+    encoded = json.dumps(envelope, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    mock_client = _s3_client_put_ok_head_always_missing(encoded)
+
+    with patch("boto3.session.Session") as session_cls:
+        session_cls.return_value.client.return_value = mock_client
+        store = S3ArtifactStore()
+        with pytest.raises(ArtifactError, match="not readable after write"):
+            store.put_json(payload)
+    mock_client.put_object.assert_called_once()
+
+
+def test_s3_put_json_does_not_fail_on_access_denied_head_after_put():
+    """Put-only IAM / non-missing HEAD errors match _exists — do not fail the write."""
+    from src.app.artifacts.store import S3ArtifactStore, wrap_json_payload
+
+    payload = {"players": 1}
+    _, envelope = wrap_json_payload(payload)
+    encoded = json.dumps(envelope, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    mock_client = _s3_client_put_ok_head_access_denied_after_put(encoded)
+
+    with patch("boto3.session.Session") as session_cls:
+        session_cls.return_value.client.return_value = mock_client
+        store = S3ArtifactStore()
+        uri = store.put_json(payload)
+    assert uri.startswith("s3://")
+    mock_client.put_object.assert_called_once()
+
+
+def test_is_s3_missing_object_error_distinguishes_absence_from_iam():
+    from src.app.artifacts.store import _is_s3_missing_object_error
+
+    class AccessDenied(Exception):
+        response = {
+            "Error": {"Code": "AccessDenied"},
+            "ResponseMetadata": {"HTTPStatusCode": 403},
+        }
+
+    class Missing(Exception):
+        response = {
+            "Error": {"Code": "NoSuchKey"},
+            "ResponseMetadata": {"HTTPStatusCode": 404},
+        }
+
+    assert _is_s3_missing_object_error(RuntimeError("NoSuchKey")) is True
+    assert _is_s3_missing_object_error(Missing("gone")) is True
+    assert _is_s3_missing_object_error(AccessDenied("denied")) is False
+    assert _is_s3_missing_object_error(RuntimeError("Throttling: SlowDown")) is False
 
 
 @pytest.mark.parametrize(
@@ -108,7 +239,7 @@ def test_local_and_s3_key_derivation_are_identical(tmp_path):
     assert local_uri.endswith(expected_key)
 
     encoded = json.dumps(envelope, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    mock_client = _missing_object_client(encoded)
+    mock_client = _s3_client_after_put(encoded)
     with patch("boto3.session.Session") as session_cls:
         session_cls.return_value.client.return_value = mock_client
         s3_uri = S3ArtifactStore().put_json(payload)

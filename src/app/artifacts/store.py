@@ -4,6 +4,12 @@ Local and S3 backends are deliberately contract-identical: same key
 derivation, same URI parsing rules, same idempotent-put semantics, same error
 types. That way a deployment can switch ``ARTIFACT_BACKEND`` without changing
 any caller behaviour or any stored URI's meaning.
+
+Every successful ``put_bytes`` / ``put_json`` **verifies the object after
+write** before returning a URI. On S3, verify fails closed only when HEAD
+proves the key is missing (404 / NoSuchKey); AccessDenied / throttling / 5xx
+match ``_exists`` and do not fail the write. Callers that catalog snapshots
+must still skip healthy/complete metadata when verify raises for a missing blob.
 """
 
 from __future__ import annotations
@@ -151,6 +157,16 @@ class ArtifactStore(ABC):
     def get_json(self, uri: str) -> Any:
         raise NotImplementedError
 
+    @abstractmethod
+    def verify_readable(self, uri: str) -> None:
+        """Confirm ``uri`` is readable after write.
+
+        Raises :class:`ArtifactError` when the object is missing or unreadable.
+        Callers that catalog snapshots (e.g. weekly_props ``source_snapshot``)
+        must not mark a row healthy/complete until this succeeds.
+        """
+        raise NotImplementedError
+
     def get_manifest(self, uri: str) -> dict[str, Any] | None:
         """Return the stamped manifest for a JSON artifact, if it has one."""
         decoded = json.loads(self.get_bytes(uri).decode("utf-8"))
@@ -192,7 +208,21 @@ class LocalArtifactStore(ArtifactStore):
         if not path.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
             _atomic_write_bytes(path, content)
-        return f"{LOCAL_SCHEME}{path.as_posix()}"
+        uri = f"{LOCAL_SCHEME}{path.as_posix()}"
+        self.verify_readable(uri)
+        return uri
+
+    def verify_readable(self, uri: str) -> None:
+        path = self._resolve(uri)
+        try:
+            if not path.is_file():
+                raise ArtifactError(f"Artifact not readable after write: {uri}")
+            # Touch the bytes so a dangling inode / empty rename cannot pass.
+            path.read_bytes()
+        except ArtifactError:
+            raise
+        except OSError as exc:
+            raise ArtifactError(f"Artifact not readable after write: {uri}") from exc
 
     def get_bytes(self, uri: str) -> bytes:
         path = self._resolve(uri)
@@ -248,6 +278,29 @@ def _atomic_write_bytes(path: Path, content: bytes) -> None:
         raise
 
 
+def _is_s3_missing_object_error(exc: BaseException) -> bool:
+    """True when an S3 HEAD/GET failure means the key is absent.
+
+    ``_exists`` swallows *any* HEAD error as \"safe to write\". Verify-after-
+    upload must only fail closed on genuine absence (404 / NoSuchKey /
+    NotFound). AccessDenied (put-only IAM), throttling, and 5xx are the same
+    non-fatal class ``_exists`` already ignores — they do not prove the object
+    is missing after a successful put.
+    """
+    response = getattr(exc, "response", None)
+    if isinstance(response, dict):
+        error = response.get("Error") or {}
+        code = str(error.get("Code") or "").replace(" ", "").lower()
+        if code in {"404", "nosuchkey", "notfound"}:
+            return True
+        meta = response.get("ResponseMetadata") or {}
+        if meta.get("HTTPStatusCode") == 404:
+            return True
+    # Unit mocks often raise RuntimeError("NoSuchKey") without a boto response.
+    compact = "".join(ch for ch in str(exc).lower() if ch.isalnum())
+    return "nosuchkey" in compact or compact in {"404", "notfound"}
+
+
 class S3ArtifactStore(ArtifactStore):
     def __init__(self) -> None:
         import boto3
@@ -290,7 +343,10 @@ class S3ArtifactStore(ArtifactStore):
                 Body=content,
                 ContentType=content_type,
             )
-        return f"{S3_SCHEME}{self.bucket}/{key}"
+        uri = f"{S3_SCHEME}{self.bucket}/{key}"
+        # Fail closed only when HEAD proves the object is missing after put.
+        self.verify_readable(uri)
+        return uri
 
     def _exists(self, key: str) -> bool:
         head = getattr(self.client, "head_object", None)
@@ -301,6 +357,26 @@ class S3ArtifactStore(ArtifactStore):
         except Exception:  # noqa: BLE001 - any failure means "write it"
             return False
         return True
+
+    def verify_readable(self, uri: str) -> None:
+        """Confirm the object is present after write.
+
+        Fail closed only on genuine missing-object responses. Other HEAD
+        failures (AccessDenied on put-only IAM, throttling, 5xx) match
+        :meth:`_exists`: they do not prove absence, so they do not fail the
+        write.
+        """
+        bucket, key = self._parse(uri)
+        head = getattr(self.client, "head_object", None)
+        if head is None:
+            # Same as _exists → False: cannot prove presence or absence.
+            return
+        try:
+            head(Bucket=bucket, Key=key)
+        except Exception as exc:  # noqa: BLE001 - classify missing vs other
+            if _is_s3_missing_object_error(exc):
+                raise ArtifactError(f"Artifact not readable after write: {uri}") from exc
+            return
 
     def get_bytes(self, uri: str) -> bytes:
         bucket, key = self._parse(uri)

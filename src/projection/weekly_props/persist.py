@@ -43,6 +43,12 @@ def persist_provider_snapshots(session: Session, snapshots: list[ProviderSnapsho
     GitHub Actions runners discard the local ``data/props/snapshots`` tree when
     the job ends. Cataloguing here is what lets a later thin live scrape reuse
     the week's closing book.
+
+    Fail-closed **per provider**: a successful scrape is only catalogued as
+    healthy/complete after the artifact backend confirms the object is
+    readable (verify-after-upload). A missing or unreadable blob skips that
+    provider — no healthy ``source_snapshot`` row for the void URI — without
+    aborting other providers in the same call (provider isolation).
     """
     uris: list[str] = []
     try:
@@ -70,10 +76,15 @@ def persist_provider_snapshots(session: Session, snapshots: list[ProviderSnapsho
                 },
                 provenance={"kind": "weekly_props_provider_snapshot"},
             )
-        except Exception as exc:  # noqa: BLE001
-            logger.warning(
+            # Defense in depth: put_json already verifies, but catalog rows
+            # must never be written without an explicit readable check.
+            store.verify_readable(uri)
+        except Exception as exc:  # noqa: BLE001 — fail closed for this provider only
+            logger.error(
                 "weekly_props_snapshot_put_failed",
                 source=snap.source,
+                season=snap.season,
+                week=snap.week,
                 error=str(exc),
             )
             continue

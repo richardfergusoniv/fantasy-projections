@@ -103,6 +103,15 @@ the same job also writes season-long O/U closing lines into
 `data/props/season_consensus/` (sealed `vegas_consensus_{season}.json` is only
 overwritten when `SEASON_VEGAS_WRITE_SEALED=true`).
 
+**Verify-after-upload (Role 1 durability).** `persist_provider_snapshots` writes
+provider bodies through `ArtifactStore.put_json` (local or S3). After every put,
+the store checks the object (local read / S3 HEAD). A **missing** blob fails
+closed **for that provider only** — no healthy/complete `source_snapshot` row —
+while other providers in the same scrape still catalog. On S3, HEAD failures
+that do not prove absence (put-only IAM `AccessDenied`, throttling, 5xx) match
+`_exists` and do not fail the write. Role 2 live export depends on the catalog
+not claiming healthy bodies that are gone.
+
 Weekly-props jobs **auto-promote** a passing candidate onto the dedicated
 `weekly_props` pointer. Quality gates still apply (minimum players, freshness
 bounds). Thin or stale books are not promoted; Matchup/Home fail fast with a
