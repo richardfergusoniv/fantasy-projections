@@ -21,10 +21,11 @@ modeling work.
 
 Promotion discipline and the three Vegas weekly-props roles are locked in
 [PR #76](https://github.com/richardfergusoniv/fantasy-projections/pull/76)
-(lands at `docs/decisions/WEEKLY_MODEL_PROMOTION_AND_PROPS_ROLES_2026-09-15.md`;
-the file is not on `master` yet). That note owns the formal promotion gate,
-the three-role table, the ADP allowed/not-allowed list, and the M1–M3 ladder
-aligned to [PR #71](https://github.com/richardfergusoniv/fantasy-projections/pull/71).
+and live on `master` at
+[`docs/decisions/WEEKLY_MODEL_PROMOTION_AND_PROPS_ROLES_2026-09-15.md`](docs/decisions/WEEKLY_MODEL_PROMOTION_AND_PROPS_ROLES_2026-09-15.md).
+That note owns the formal promotion gate, the three-role table, the ADP
+allowed/not-allowed list, and the M1–M3 ladder aligned to
+[PR #71](https://github.com/richardfergusoniv/fantasy-projections/pull/71).
 This file owns what to flag on a PR.
 
 ### The freeze is over — do not re-derive it from older docs
@@ -58,9 +59,8 @@ the list is not evidence a column is safe.
 `team_attempts` and `team_air_yards` are same-week team aggregates built in
 `panel.py:_add_team_shares` whose player-level equivalents (`attempts`,
 `air_yards`) were already denied. They were missing from the denylist and so
-reached the prediction frame. **#70 closes `team_attempts` / `team_air_yards`.**
-Until it merges, treat the hole as open on `master`; once it lands this is
-closed — do not re-raise it.
+reached the prediction frame. **#70 closed `team_attempts` / `team_air_yards`**
+on `master` — do not re-raise it.
 
 Sanctioned pre-kickoff features: lagged rolls (`_l3`, `_l5`, `_roll3`),
 `_prior` / prior-season means, and pregame schedule (spread, total, rest,
@@ -85,9 +85,9 @@ Two rolling recipes exist and are **not interchangeable at week 1**:
 | `src/projection/data/features_weekly.py` (v3) | `groupby(player_id)` | roll3 can pull in prior-season weeks |
 | `src/projection/weekly/features/rolling.py` (v2) | `groupby(gsis_id, season)` | `_l3` is null; prior season is a separate column |
 
-`scripts/audit_weekly_integrity_extension.py` (PR #70, **not yet merged**) runs
-these checks on synthetic fixtures without a database, and adds live checks
-when `projections.db` exists.
+`scripts/audit_weekly_integrity_extension.py` (landed with PR #70) runs these
+checks on synthetic fixtures without a database, and adds live checks when
+`projections.db` exists.
 
 ### 2. Model shape — generate box scores, do not regress fantasy points
 
@@ -144,9 +144,11 @@ board. Gate changes deserve more scrutiny than the flag ever did.
 
 ### 4. Conservation in the weekly allocator
 
-`src/projection/weekly_latent/` (PR #71, **not yet merged**) allocates season
-volume across weeks. Matchup multipliers reshape the weekly path and must never
-move season mass — weights are renormalized per team so they sum to 1.
+`src/projection/weekly_latent/` (PR #71 on `master`; M2 #78 and M3 #84/#86
+also landed) allocates season volume across weeks. For M1, matchup multipliers
+reshape the weekly path and must never move season mass — weights are
+renormalized per team so they sum to 1. M2 may move season team volume under
+its own rules; conservation still applies where the milestone requires it.
 
 `evaluate_conservation` enforces this and `scripts/run_weekly_schedule_m1.py`
 exits 1 when it fails. Treat a change that weakens either as a finding.
@@ -163,9 +165,10 @@ ladder itself — and the formal bar for leaving shadow — is in
 aligned to [PR #71](https://github.com/richardfergusoniv/fantasy-projections/pull/71).
 
 M1 being deterministic is deliberate scaffolding. Do not fault it for lacking
-the learned components rule 2 describes — those arrive in M2/M3. M2 (shadow
-only, not a promotion) lives in `src/projection/weekly_latent/` and may move
-season team volume with lagged opponent/environment; see
+the learned components rule 2 describes — those live in M2/M3 (landed via
+#78 / #84 / #86). M2 (shadow only, not a promotion) lives in
+`src/projection/weekly_latent/` and may move season team volume with lagged
+opponent/environment; see
 `docs/research/WEEKLY_LATENT_M2_TEAM_WEEK_LATENT_2026-09-16.md`.
 
 ### 5. Validation — findings, not a second gate copy
