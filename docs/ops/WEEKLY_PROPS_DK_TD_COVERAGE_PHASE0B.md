@@ -43,8 +43,10 @@ rush/rec TD lines from the board until a third source (or DK weekly TD
 coverage) appears. That is a coverage regression, not a quality upgrade.
 
 Phase 0b documents the hole. Do **not** raise the global min until a third
-eligible book is online. No BettingPros / OddsChecker / prediction markets
-in this phase.
+eligible book is online that actually covers those TD markets. BettingPros
+weekly O/U (opt-in Role 1 path) does not currently expose rush/rec TD boards —
+see [`WEEKLY_PROPS_BETTINGPROS_TOS_FEASIBILITY_2026-09-18.md`](WEEKLY_PROPS_BETTINGPROS_TOS_FEASIBILITY_2026-09-18.md).
+OddsChecker / prediction markets remain out until Orchestrator unlocks them.
 
 ## Related
 

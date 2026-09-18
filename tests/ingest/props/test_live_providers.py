@@ -26,6 +26,22 @@ def test_build_providers_live_mode_constructs_live_adapters():
     assert providers[1].__class__.__name__ == "LiveFanDuelProvider"
 
 
+def test_build_providers_live_mode_includes_opt_in_bettingpros():
+    providers = build_providers(
+        mode="live", provider_names="draftkings,fanduel,bettingpros"
+    )
+    assert [p.name for p in providers] == ["draftkings", "fanduel", "bettingpros"]
+    assert providers[2].__class__.__name__ == "LiveBettingProsProvider"
+
+
+def test_build_providers_unknown_live_name_is_disabled_stub():
+    providers = build_providers(mode="live", provider_names="draftkings,oddschecker")
+    assert providers[1].name == "oddschecker"
+    snap = providers[1].fetch(season=2026, week=2)
+    assert snap.success is False
+    assert snap.error == "live_provider_not_implemented"
+
+
 def test_phase0b_dk_weekly_boards_omit_rush_rec_tds_fd_includes():
     """Document the live DK weekly TD hole that keeps min_books at 1.
 
@@ -239,3 +255,89 @@ def test_fanduel_season_parser():
     rows = parse_season_markets(payload)
     assert len(rows) == 1
     assert rows[0]["markets"]["pass_yards"]["line"] == 3050.5
+
+
+def test_bettingpros_board_parser_emits_normalized_quotes():
+    import json
+    from pathlib import Path
+
+    from src.ingest.props.providers.bettingpros_live import (
+        WEEKLY_MARKETS_ABSENT,
+        WEEKLY_MARKET_BOARDS,
+        parse_board_offers,
+    )
+
+    fixture = Path("data/props/fixtures/providers/bettingpros_board_passing_yards.json")
+    bootstrap = json.loads(fixture.read_text(encoding="utf-8"))
+    quotes = parse_board_offers(
+        bootstrap,
+        market="pass_yards",
+        market_id=103,
+        fetched_at=datetime(2026, 9, 18, tzinfo=timezone.utc),
+        season=2026,
+        week=2,
+        source_url="https://www.bettingpros.com/nfl/odds/player-props/passing-yards/",
+    )
+    assert len(quotes) >= 1
+    quote = quotes[0]
+    assert quote.source == "bettingpros"
+    assert quote.sportsbook == "bettingpros"
+    assert quote.market == "pass_yards"
+    assert quote.period == "game"
+    assert quote.kind == "book"
+    assert quote.line > 0
+    assert quote.player_name_raw
+    # Documented: BP weekly catalog has no rush_tds / rec_tds O/U boards.
+    mapped = {market for _, market, _ in WEEKLY_MARKET_BOARDS}
+    assert "rush_tds" not in mapped
+    assert "rec_tds" not in mapped
+    assert "rush_tds" in WEEKLY_MARKETS_ABSENT
+    assert "rec_tds" in WEEKLY_MARKETS_ABSENT
+
+
+def test_bettingpros_consensus_book_id_zero_not_skipped():
+    """Regression: book_id 0 (Consensus) must not be treated as missing via `or`."""
+    from src.ingest.props.providers.bettingpros_live import _main_consensus_line
+
+    selection = {
+        "selection": "over",
+        "books": [
+            {
+                "id": 0,
+                "lines": [
+                    {
+                        "main": True,
+                        "active": True,
+                        "is_off": False,
+                        "line": 250.5,
+                        "cost": -110,
+                    }
+                ],
+            }
+        ],
+    }
+    assert _main_consensus_line(selection) == (250.5, -110.0)
+    import json
+    from pathlib import Path
+
+    from src.ingest.props.providers.bettingpros_live import parse_participant_prop_offer
+
+    payload = json.loads(
+        Path("data/props/fixtures/providers/bettingpros_participant_pass_yards.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    quote = parse_participant_prop_offer(
+        payload,
+        market="pass_yards",
+        market_id=103,
+        fetched_at=datetime(2026, 9, 18, tzinfo=timezone.utc),
+        source_url="https://www.bettingpros.com/nfl/props/josh-allen-qb/passing-yards/",
+    )
+    assert quote is not None
+    assert quote.player_name_raw == "Josh Allen"
+    assert quote.team == "BUF"
+    assert quote.line == 250.5
+    assert quote.over_odds == -113
+    assert quote.under_odds == -113
+    assert quote.sportsbook == "bettingpros"

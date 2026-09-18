@@ -95,7 +95,11 @@ postpones itself when the NFL week is not final.
 
 `WEEKLY_PROPS_MODE=live` (default) scrapes DraftKings + FanDuel over/unders on
 each weekly-props slot. DraftKings requires the `curl_cffi` dependency for TLS
-impersonation; FanDuel uses the public SBAPI. Snapshots land under
+impersonation; FanDuel uses the public SBAPI. Opt-in BettingPros HTML scrape by
+appending `bettingpros` to `WEEKLY_PROPS_PROVIDERS` (default stays
+`draftkings,fanduel`) — see
+[`docs/ops/WEEKLY_PROPS_BETTINGPROS_TOS_FEASIBILITY_2026-09-18.md`](ops/WEEKLY_PROPS_BETTINGPROS_TOS_FEASIBILITY_2026-09-18.md).
+Snapshots land under
 `data/props/snapshots/` **and** in the artifact store / `source_snapshot`
 catalog (GitHub Actions disks are ephemeral). With `SEASON_VEGAS_REFRESH=true`,
 the same job also writes season-long O/U closing lines into
@@ -112,13 +116,15 @@ that do not prove absence (put-only IAM `AccessDenied`, throttling, 5xx) match
 `_exists` and do not fail the write. Role 2 live export depends on the catalog
 not claiming healthy bodies that are gone.
 
-**Role 1 display line (DK + FD).** Consensus uses `robust_median` across
-accepted books for each `(player, market)` — median when both DraftKings and
-FanDuel quote, single-book fallback otherwise (`min_distinct_books_per_market`
+**Role 1 display line (DK + FD, opt-in BP).** Consensus uses `robust_median` across
+accepted books for each `(player, market)` — median when two or more books
+quote, single-book fallback otherwise (`min_distinct_books_per_market`
 stays 1). Live DK weekly boards often omit `rush_tds` / `rec_tds` while FD has
 them; see
 [`docs/ops/WEEKLY_PROPS_DK_TD_COVERAGE_PHASE0B.md`](ops/WEEKLY_PROPS_DK_TD_COVERAGE_PHASE0B.md).
-Do not raise min books until a third source.
+BettingPros weekly O/U also lacks dedicated rush/rec TD markets today
+([`ops/WEEKLY_PROPS_BETTINGPROS_TOS_FEASIBILITY_2026-09-18.md`](ops/WEEKLY_PROPS_BETTINGPROS_TOS_FEASIBILITY_2026-09-18.md)).
+Do not raise min books until a true independent third book covers those holes.
 
 Weekly-props jobs **auto-promote** a passing candidate onto the dedicated
 `weekly_props` pointer. Quality gates still apply (minimum players, freshness

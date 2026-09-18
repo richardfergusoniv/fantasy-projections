@@ -139,6 +139,26 @@ def test_td_fd_only_allowed_while_min_books_stays_one():
     assert sources["rec_tds"] == "weekly_props_consensus"
 
 
+def test_bettingpros_joins_robust_median_as_third_book():
+    """Opt-in BP Consensus quotes participate in Role 1 robust_median."""
+    assert DEFAULT_WEEKLY_POLICY.min_distinct_books_per_market == 1
+    quotes = [
+        _q(source="draftkings", sportsbook="draftkings", line=48.5),
+        _q(source="fanduel", sportsbook="fanduel", line=50.5),
+        _q(source="bettingpros", sportsbook="bettingpros", line=49.5),
+    ]
+    market = consensus_for_market(
+        quotes,
+        market="rec_yards",
+        policy=DEFAULT_WEEKLY_POLICY,
+        position="WR",
+    )
+    assert market.line == 49.5
+    assert market.coverage.book_count == 3
+    assert market.coverage.line_basis == "robust_median"
+    assert market.coverage.accepted_books == ("bettingpros", "draftkings", "fanduel")
+
+
 def test_pierce_juice_cannot_replace_baseline_component():
     juiced = _q(line=99.5, over_odds=125, under_odds=None, sportsbook="DraftKings")
     clean = _q(

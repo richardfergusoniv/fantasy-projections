@@ -1,0 +1,35 @@
+{
+  "sport": "NFL",
+  "market_id": 103,
+  "event_id": 21908,
+  "participant": {
+    "id": "17298",
+    "name": "Josh Allen",
+    "link": "/nfl/props/josh-allen-qb/",
+    "player": {
+      "short_name": "J. Allen",
+      "first_name": "Josh",
+      "last_name": "Allen",
+      "image": "https://images.fantasypros.com/images/players/nfl/17298/headshot/210x210.webp",
+      "slug": "josh-allen-qb",
+      "position": "QB",
+      "team": "BUF",
+      "popularity": 25,
+      "jersey_number": 17
+    }
+  },
+  "over": {
+    "line": 253.5,
+    "odds": -104,
+    "book": 60,
+    "consensus_line": 250.5,
+    "consensus_odds": -113
+  },
+  "under": {
+    "line": 249.5,
+    "odds": 113,
+    "book": 73,
+    "consensus_line": 250.5,
+    "consensus_odds": -113
+  }
+}

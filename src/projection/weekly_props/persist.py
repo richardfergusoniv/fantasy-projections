@@ -117,7 +117,7 @@ def load_latest_provider_snapshots(
     *,
     season: int,
     week: int,
-    sources: tuple[str, ...] = ("draftkings", "fanduel"),
+    sources: tuple[str, ...] = ("draftkings", "fanduel", "bettingpros"),
 ) -> list[ProviderSnapshot]:
     from src.app.artifacts.store import ArtifactError, get_artifact_store
 

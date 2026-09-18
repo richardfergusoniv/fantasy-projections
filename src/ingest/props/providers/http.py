@@ -70,3 +70,44 @@ def fetch_json(
             return response.json()
         except Exception as exc:  # noqa: BLE001
             raise LiveFetchError(f"invalid JSON from {url}: {exc}") from exc
+
+
+def fetch_text(
+    url: str,
+    *,
+    headers: Mapping[str, str] | None = None,
+    timeout: float = 45.0,
+    prefer_curl_cffi: bool = True,
+    impersonate: str = "chrome131",
+) -> str:
+    """Fetch a text/HTML document with the same TLS preference as ``fetch_json``."""
+    merged = dict(DEFAULT_BROWSER_HEADERS)
+    merged.setdefault("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+    if headers:
+        merged.update(dict(headers))
+
+    if prefer_curl_cffi:
+        try:
+            from curl_cffi import requests as cffi_requests
+        except ImportError:
+            cffi_requests = None  # type: ignore[assignment]
+        else:
+            response = cffi_requests.get(
+                url,
+                headers=merged,
+                timeout=timeout,
+                impersonate=impersonate,
+            )
+            if response.status_code >= 400:
+                raise LiveFetchError(
+                    f"HTTP {response.status_code} for {url}: {response.text[:240]}"
+                )
+            return str(response.text)
+
+    with httpx.Client(timeout=timeout, follow_redirects=True, headers=merged) as client:
+        response = client.get(url)
+        if response.status_code >= 400:
+            raise LiveFetchError(
+                f"HTTP {response.status_code} for {url}: {response.text[:240]}"
+            )
+        return response.text

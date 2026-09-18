@@ -1,0 +1,2105 @@
+{
+  "sport": "NFL",
+  "markets": [
+    {
+      "id": 105,
+      "sport_id": 1,
+      "sport": "NFL",
+      "category": "player-props",
+      "slug": "receiving-yards",
+      "period": "game",
+      "stat": "rec-yds",
+      "active": true,
+      "updated": "2020-06-17 00:55:00",
+      "sort": 240,
+      "is_live_activity": true,
+      "validation": {
+        "has_spread": true,
+        "player_id": 1,
+        "team_id": -1,
+        "game_id": 1,
+        "opponent_id": -1
+      },
+      "meta": {
+        "label": "Receiving Yards Over/Under",
+        "short_label": "Rec YDs",
+        "meta_title": "Receiving Yards Prop Bets {VISITOR_TEAM_CITY_NAME} at {HOME_TEAM_CITY_NAME} | Over/Under Odds for {SEASON} (Week {WEEK}) | BettingPros",
+        "meta_description": "View Receiving Yards prop bets for the {VISITOR_TEAM_CITY_NAME} and {HOME_TEAM_CITY_NAME} in Week {WEEK} of the {SEASON} NFL season. Get over/under {ODDS_TYPE} from the top sportsbooks in the US and instantly locate the best sports betting opportunities.",
+        "page_title": "NFL Receiving Yards Prop Bets - Week {WEEK} ({SEASON})",
+        "page_subtitle": " ",
+        "app_top_label": "{o_u_short}{line} {stat_short_title} ({odds})",
+        "app_bottom_label": "{player_team_short} - {visitor_team_id} @ {home_team_id}",
+        "prop_full_label": "Receiving Yards",
+        "prop_short_label": "Rec Yds",
+        "prop_suffix": "yards"
+      }
+    },
+    {
+      "id": 104,
+      "sport_id": 1,
+      "sport": "NFL",
+      "category": "player-props",
+      "slug": "receptions",
+      "period": "game",
+      "stat": "rec-rec",
+      "active": true,
+      "updated": "2020-06-17 00:54:57",
+      "sort": 241,
+      "is_live_activity": true,
+      "validation": {
+        "has_spread": true,
+        "player_id": 1,
+        "team_id": -1,
+        "game_id": 1,
+        "opponent_id": -1
+      },
+      "meta": {
+        "label": "Receptions Over/Under",
+        "short_label": "Recs",
+        "meta_title": "Receptions Prop Bets {VISITOR_TEAM_CITY_NAME} at {HOME_TEAM_CITY_NAME} | Over/Under Odds for {SEASON} (Week {WEEK}) | BettingPros",
+        "meta_description": "View Receptions prop bets for the {VISITOR_TEAM_CITY_NAME} and {HOME_TEAM_CITY_NAME} in Week {WEEK} of the {SEASON} NFL season. Get over/under {ODDS_TYPE} from the top sportsbooks in the US and instantly locate the best sports betting opportunities.",
+        "page_title": "NFL Receptions Prop Bets - Week {WEEK} ({SEASON})",
+        "page_subtitle": " ",
+        "app_top_label": "{o_u_short}{line} {stat_short_title} ({odds})",
+        "app_bottom_label": "{player_team_short} - {visitor_team_id} @ {home_team_id}",
+        "prop_full_label": "Receptions",
+        "prop_short_label": "RECs",
+        "prop_suffix": "receptions"
+      }
+    },
+    {
+      "id": 107,
+      "sport_id": 1,
+      "sport": "NFL",
+      "category": "player-props",
+      "slug": "rushing-yards",
+      "period": "game",
+      "stat": "rush-yds",
+      "active": true,
+      "updated": "2020-06-17 00:55:03",
+      "sort": 242,
+      "is_live_activity": true,
+      "validation": {
+        "has_spread": true,
+        "player_id": 1,
+        "team_id": -1,
+        "game_id": 1,
+        "opponent_id": -1
+      },
+      "meta": {
+        "label": "Rushing Yards Over/Under",
+        "short_label": "Rush YDs",
+        "meta_title": "Rushing Yards Prop Bets {VISITOR_TEAM_CITY_NAME} at {HOME_TEAM_CITY_NAME} | Over/Under Odds for {SEASON} (Week {WEEK}) | BettingPros",
+        "meta_description": "View Rushing Yards prop bets for the {VISITOR_TEAM_CITY_NAME} and {HOME_TEAM_CITY_NAME} in Week {WEEK} of the {SEASON} NFL season. Get over/under {ODDS_TYPE} from the top sportsbooks in the US and instantly locate the best sports betting opportunities.",
+        "page_title": "NFL Rushing Yards Prop Bets - Week {WEEK} ({SEASON})",
+        "page_subtitle": " ",
+        "app_top_label": "{o_u_short}{line} {stat_short_title} ({odds})",
+        "app_bottom_label": "{player_short_name} - {visitor_team_id} @ {home_team_id}",
+        "prop_full_label": "Rushing Yards",
+        "prop_short_label": "Rush Yds",
+        "prop_suffix": "yards"
+      }
+    },
+    {
+      "id": 106,
+      "sport_id": 1,
+      "sport": "NFL",
+      "category": "player-props",
+      "slug": "rushing-attempts",
+      "period": "game",
+      "stat": "rush-att",
+      "active": true,
+      "updated": "2020-06-17 00:55:01",
+      "sort": 243,
+      "is_live_activity": true,
+      "validation": {
+        "has_spread": true,
+        "player_id": 1,
+        "team_id": -1,
+        "game_id": 1,
+        "opponent_id": -1
+      },
+      "meta": {
+        "label": "Rushing Attempts Over/Under",
+        "short_label": "Rush ATTs",
+        "meta_title": "Rushing Attempts Prop Bets {VISITOR_TEAM_CITY_NAME} at {HOME_TEAM_CITY_NAME} | Over/Under Odds for {SEASON} (Week {WEEK}) | BettingPros",
+        "meta_description": "View Rushing Attempts prop bets for the {VISITOR_TEAM_CITY_NAME} and {HOME_TEAM_CITY_NAME} in Week {WEEK} of the {SEASON} NFL season. Get over/under {ODDS_TYPE} from the top sportsbooks in the US and instantly locate the best sports betting opportunities.",
+        "page_title": "NFL Rushing Attempts Prop Bets - Week {WEEK} ({SEASON})",
+        "page_subtitle": " ",
+        "app_top_label": "{o_u_short}{line} {stat_short_title} ({odds})",
+        "app_bottom_label": "{player_team_short} - {visitor_team_id} @ {home_team_id}",
+        "prop_full_label": "Rushing Attempts",
+        "prop_short_label": "Rush ATTs",
+        "prop_suffix": "attempts"
+      }
+    },
+    {
+      "id": 103,
+      "sport_id": 1,
+      "sport": "NFL",
+      "category": "player-props",
+      "slug": "passing-yards",
+      "period": "game",
+      "stat": "pass-yds",
+      "active": true,
+      "updated": "2020-06-17 00:54:56",
+      "sort": 245,
+      "is_live_activity": true,
+      "validation": {
+        "has_spread": true,
+        "player_id": 1,
+        "team_id": -1,
+        "game_id": 1,
+        "opponent_id": -1
+      },
+      "meta": {
+        "label": "Passing Yards Over/Under",
+        "short_label": "Pass YDs",
+        "meta_title": "Passing Yards Prop Bets {VISITOR_TEAM_CITY_NAME} at {HOME_TEAM_CITY_NAME} | Over/Under Odds for {SEASON} (Week {WEEK}) | BettingPros",
+        "meta_description": "View Passing Yards prop bets for the {VISITOR_TEAM_CITY_NAME} and {HOME_TEAM_CITY_NAME} in Week {WEEK} of the {SEASON} NFL season. Get over/under {ODDS_TYPE} from the top sportsbooks in the US and instantly locate the best sports betting opportunities.",
+        "page_title": "NFL Passing Yards Prop Bets - Week {WEEK} ({SEASON})",
+        "page_subtitle": " ",
+        "app_top_label": "{o_u_short}{line} {stat_short_title} ({odds})",
+        "app_bottom_label": "{player_team_short} - {visitor_team_id} @ {home_team_id}",
+        "prop_full_label": "Passing Yards",
+        "prop_short_label": "Pass Yds",
+        "prop_suffix": "yards"
+      }
+    },
+    {
+      "id": 102,
+      "sport_id": 1,
+      "sport": "NFL",
+      "category": "player-props",
+      "slug": "passing-touchdowns",
+      "period": "game",
+      "stat": "pass-tds",
+      "active": true,
+      "updated": "2020-06-17 00:54:54",
+      "sort": 246,
+      "is_live_activity": true,
+      "validation": {
+        "has_spread": true,
+        "player_id": 1,
+        "team_id": -1,
+        "game_id": 1,
+        "opponent_id": -1
+      },
+      "meta": {
+        "label": "Passing Touchdowns Over/Under",
+        "short_label": "Pass TDs",
+        "meta_title": "Passing Touchdowns Prop Bets {VISITOR_TEAM_CITY_NAME} at {HOME_TEAM_CITY_NAME} | Over/Under Odds for {SEASON} (Week {WEEK}) | BettingPros",
+        "meta_description": "View Passing Touchdowns prop bets for the {VISITOR_TEAM_CITY_NAME} and {HOME_TEAM_CITY_NAME} in Week {WEEK} of the {SEASON} NFL season. Get over/under {ODDS_TYPE} from the top sportsbooks in the US and instantly locate the best sports betting opportunities.",
+        "page_title": "NFL Passing Touchdowns Prop Bets - Week {WEEK} ({SEASON})",
+        "page_subtitle": " ",
+        "app_top_label": "{o_u_short}{line} {stat_short_title} ({odds})",
+        "app_bottom_label": "{player_team_short} - {visitor_team_id} @ {home_team_id}",
+        "prop_full_label": "Passing Touchdowns",
+        "prop_short_label": "Pass TDs",
+        "prop_suffix": "touchdowns"
+      }
+    },
+    {
+      "id": 333,
+      "sport_id": 1,
+      "sport": "NFL",
+      "category": "player-props",
+      "slug": "passing-attempts",
+      "period": "game",
+      "stat": "pass-att",
+      "active": true,
+      "updated": "2022-11-11 16:55:01",
+      "sort": 247,
+      "is_live_activity": true,
+      "validation": {
+        "has_spread": true,
+        "player_id": 1,
+        "team_id": -1,
+        "game_id": 1,
+        "opponent_id": -1
+      },
+      "meta": {
+        "label": "Passing Attempts Over/Under",
+        "short_label": "Pass ATTs",
+        "meta_title": "Passing Attempts Prop Bets {VISITOR_TEAM_CITY_NAME} at {HOME_TEAM_CITY_NAME} | Over/Under Odds for {SEASON} (Week {WEEK}) | BettingPros",
+        "meta_description": "View Passing Attempts prop bets for the {VISITOR_TEAM_CITY_NAME} and {HOME_TEAM_CITY_NAME} in Week {WEEK} of the {SEASON} NFL season. Get over/under {ODDS_TYPE} from the top sportsbooks in the US and instantly locate the best sports betting opportunities.",
+        "page_title": "NFL Passing Attempts Prop Bets - Week {WEEK} ({SEASON})",
+        "page_subtitle": " ",
+        "app_top_label": "{o_u_short}{line} {stat_short_title} ({odds})",
+        "app_bottom_label": "{player_team_short} - {visitor_team_id} @ {home_team_id}",
+        "prop_full_label": "Passing Attempts",
+        "prop_short_label": "Pass ATTs",
+        "prop_suffix": "pass attempts"
+      }
+    },
+    {
+      "id": 100,
+      "sport_id": 1,
+      "sport": "NFL",
+      "category": "player-props",
+      "slug": "passing-completions",
+      "period": "game",
+      "stat": "pass-cmp",
+      "active": true,
+      "updated": "2020-06-17 00:54:51",
+      "sort": 248,
+      "is_live_activity": true,
+      "validation": {
+        "has_spread": true,
+        "player_id": 1,
+        "team_id": -1,
+        "game_id": 1,
+        "opponent_id": -1
+      },
+      "meta": {
+        "label": "Passing Completions Over/Under",
+        "short_label": "Pass CMPs",
+        "meta_title": "Pass Completions Prop Bets {VISITOR_TEAM_CITY_NAME} at {HOME_TEAM_CITY_NAME} | Over/Under Odds for {SEASON} (Week {WEEK}) | BettingPros",
+        "meta_description": "View Pass Completions prop bets for the {VISITOR_TEAM_CITY_NAME} and {HOME_TEAM_CITY_NAME} in Week {WEEK} of the {SEASON} NFL season. Get over/under {ODDS_TYPE} from the top sportsbooks in the US and instantly locate the best sports betting opportunities.",
+        "page_title": "NFL Pass Completions Prop Bets - Week {WEEK} ({SEASON})",
+        "page_subtitle": " ",
+        "app_top_label": "{o_u_short}{line} {stat_short_title} ({odds})",
+        "app_bottom_label": "{player_team_short} - {visitor_team_id} @ {home_team_id}",
+        "prop_full_label": "Completions",
+        "prop_short_label": "CMPs",
+        "prop_suffix": "completions"
+      }
+    }
+  ],
+  "books": [
+    {
+      "id": 0,
+      "name": "BettingPros Consensus",
+      "short_name": "Consensus",
+      "display_name": "Consensus",
+      "image_url": "https://www.bettingpros.com/assets/images/bettingpros-logo-1.svg",
+      "image_square_url": "https://www.bettingpros.com/assets/images/bettingpros-app-icon.svg",
+      "book_review": null,
+      "show_odds": true,
+      "ordering": 0,
+      "featured_ordering": 0,
+      "locations": [
+        "ALL"
+      ],
+      "locations_odds": [
+        "ALL"
+      ],
+      "link": "https://www.bettingpros.com",
+      "slug": "bettingpros",
+      "live_odds": false,
+      "color": null,
+      "secondary_color": null,
+      "secondary_logo": null,
+      "exclude_from_best": true,
+      "affiliate": {
+        "url": null,
+        "text": null,
+        "text_long": null,
+        "id": null,
+        "is_fallback": null,
+        "is_valid": null,
+        "start_date": null,
+        "end_date": null
+      },
+      "autofill": null,
+      "is_prediction_market": false
+    }
+  ],
+  "events": {
+    "events": [
+      {
+        "id": 21932,
+        "sr_id": "7eae8fde-7efb-4405-9c6e-d102bb36e19e",
+        "sport": "NFL",
+        "scheduled": "2026-09-20 17:00:00",
+        "season": 2026,
+        "season_type": "REG",
+        "event_name": null,
+        "status": "scheduled",
+        "home": "ATL",
+        "visitor": "CAR",
+        "link": "/nfl/matchups/atlanta-falcons-vs-carolina-panthers/",
+        "series_summary": null,
+        "week": "2",
+        "popularity": 113,
+        "venue": {
+          "name": "Mercedes-Benz Stadium",
+          "city": "Atlanta",
+          "state": "GA",
+          "country": "USA",
+          "zip": "30313",
+          "surface": "artificial",
+          "stadium_type": "retractable_dome",
+          "id": null
+        },
+        "participants": [
+          {
+            "id": "ATL",
+            "name": "Falcons",
+            "link": "/nfl/teams/atlanta-falcons/",
+            "team": {
+              "city": "Atlanta",
+              "abbreviation": "ATL",
+              "conference": "NFC",
+              "division": "South",
+              "record": {
+                "W": 0,
+                "L": 1,
+                "T": 0
+              },
+              "slug": "atlanta-falcons"
+            }
+          },
+          {
+            "id": "CAR",
+            "name": "Panthers",
+            "link": "/nfl/teams/carolina-panthers/",
+            "team": {
+              "city": "Carolina",
+              "abbreviation": "CAR",
+              "conference": "NFC",
+              "division": "South",
+              "record": {
+                "W": 0,
+                "L": 1,
+                "T": 0
+              },
+              "slug": "carolina-panthers"
+            }
+          }
+        ],
+        "weather": {
+          "forecast_temp": 85,
+          "forecast_wind_speed": 4,
+          "forecast_wind_direction": "ENE",
+          "forecast_wind_degree": 75,
+          "forecast_rain_chance": 0,
+          "forecast_icon": "Mostly Clear",
+          "forecast_pressure": 1015,
+          "forecast_humidity": 0.66
+        },
+        "broadcasts": [
+          {
+            "network": "FOX",
+            "type": "tv",
+            "logo_url": "https://www.bettingpros.com/assets/images/logos/networks/fox-us.png"
+          }
+        ],
+        "is_free": false
+      },
+      {
+        "id": 21985,
+        "sr_id": "2d44a274-30af-452b-8bd8-bbd13925eb8a",
+        "sport": "NFL",
+        "scheduled": "2026-09-20 17:00:00",
+        "season": 2026,
+        "season_type": "REG",
+        "event_name": null,
+        "status": "scheduled",
+        "home": "TEN",
+        "visitor": "PHI",
+        "link": "/nfl/matchups/philadelphia-eagles-vs-tennessee-titans/",
+        "series_summary": null,
+        "week": "2",
+        "popularity": 133,
+        "venue": {
+          "name": "Nissan Stadium",
+          "city": "Nashville",
+          "state": "TN",
+          "country": "USA",
+          "zip": "37213",
+          "surface": "turf",
+          "stadium_type": "outdoor",
+          "id": null
+        },
+        "participants": [
+          {
+            "id": "TEN",
+            "name": "Titans",
+            "link": "/nfl/teams/tennessee-titans/",
+            "team": {
+              "city": "Tennessee",
+              "abbreviation": "TEN",
+              "conference": "AFC",
+              "division": "South",
+              "record": {
+                "W": 0,
+                "L": 1,
+                "T": 0
+              },
+              "slug": "tennessee-titans"
+            }
+          },
+          {
+            "id": "PHI",
+            "name": "Eagles",
+            "link": "/nfl/teams/philadelphia-eagles/",
+            "team": {
+              "city": "Philadelphia",
+              "abbreviation": "PHI",
+              "conference": "NFC",
+              "division": "East",
+              "record": {
+                "W": 1,
+                "L": 0,
+                "T": 0
+              },
+              "slug": "philadelphia-eagles"
+            }
+          }
+        ],
+        "weather": {
+          "forecast_temp": 91,
+          "forecast_wind_speed": 7,
+          "forecast_wind_direction": "WSW",
+          "forecast_wind_degree": 240,
+          "forecast_rain_chance": 0,
+          "forecast_icon": "Mostly Clear",
+          "forecast_pressure": 1013,
+          "forecast_humidity": 0.5
+        },
+        "broadcasts": [
+          {
+            "network": "FOX",
+            "type": "tv",
+            "logo_url": "https://www.bettingpros.com/assets/images/logos/networks/fox-us.png"
+          }
+        ],
+        "is_free": false
+      },
+      {
+        "id": 21986,
+        "sr_id": "2fe4a5e6-0991-40cf-b06a-0fa383d9c3f2",
+        "sport": "NFL",
+        "scheduled": "2026-09-20 17:00:00",
+        "season": 2026,
+        "season_type": "REG",
+        "event_name": null,
+        "status": "scheduled",
+        "home": "NE",
+        "visitor": "PIT",
+        "link": "/nfl/matchups/new-england-patriots-vs-pittsburgh-steelers/",
+        "series_summary": null,
+        "week": "2",
+        "popularity": 111,
+        "venue": {
+          "name": "Gillette Stadium",
+          "city": "Foxborough",
+          "state": "MA",
+          "country": "USA",
+          "zip": "02035",
+          "surface": "artificial",
+          "stadium_type": "outdoor",
+          "id": null
+        },
+        "participants": [
+          {
+            "id": "NE",
+            "name": "Patriots",
+            "link": "/nfl/teams/new-england-patriots/",
+            "team": {
+              "city": "New England",
+              "abbreviation": "NE",
+              "conference": "AFC",
+              "division": "East",
+              "record": {
+                "W": 0,
+                "L": 1,
+                "T": 0
+              },
+              "slug": "new-england-patriots"
+            }
+          },
+          {
+            "id": "PIT",
+            "name": "Steelers",
+            "link": "/nfl/teams/pittsburgh-steelers/",
+            "team": {
+              "city": "Pittsburgh",
+              "abbreviation": "PIT",
+              "conference": "AFC",
+              "division": "North",
+              "record": {
+                "W": 1,
+                "L": 0,
+                "T": 0
+              },
+              "slug": "pittsburgh-steelers"
+            }
+          }
+        ],
+        "weather": {
+          "forecast_temp": 63,
+          "forecast_wind_speed": 10,
+          "forecast_wind_direction": "SE",
+          "forecast_wind_degree": 146,
+          "forecast_rain_chance": 7,
+          "forecast_icon": "Cloudy",
+          "forecast_pressure": 1018,
+          "forecast_humidity": 0.77
+        },
+        "broadcasts": [
+          {
+            "network": "CBS",
+            "type": "tv",
+            "logo_url": "https://www.bettingpros.com/assets/images/logos/networks/cbs-news-us.png"
+          }
+        ],
+        "is_free": false
+      }
+    ],
+    "ts": 1789771735,
+    "utc": "2026-09-18 22:48:55"
+  },
+  "offerCounts": {
+    "player-props": [
+      {
+        "market_id": 103,
+        "offers": 32,
+        "participants": [
+          {
+            "id": "17298",
+            "name": "Josh Allen",
+            "player": {
+              "short_name": "J. Allen",
+              "first_name": "Josh",
+              "last_name": "Allen",
+              "image": "https://images.fantasypros.com/images/players/nfl/17298/headshot/210x210.webp",
+              "position": "QB",
+              "team": "BUF",
+              "slug": "josh-allen-qb",
+              "jersey_number": 17,
+              "popularity": 25
+            },
+            "link": "/nfl/props/josh-allen-qb/"
+          },
+          {
+            "id": "17233",
+            "name": "Lamar Jackson",
+            "player": {
+              "short_name": "L. Jackson",
+              "first_name": "Lamar",
+              "last_name": "Jackson",
+              "image": "https://images.fantasypros.com/images/players/nfl/17233/headshot/210x210.webp",
+              "position": "QB",
+              "team": "BAL",
+              "slug": "lamar-jackson",
+              "jersey_number": 8,
+              "popularity": 27
+            },
+            "link": "/nfl/props/lamar-jackson/"
+          },
+          {
+            "id": "19275",
+            "name": "Jalen Hurts",
+            "player": {
+              "short_name": "J. Hurts",
+              "first_name": "Jalen",
+              "last_name": "Hurts",
+              "image": "https://images.fantasypros.com/images/players/nfl/19275/headshot/210x210.webp",
+              "position": "QB",
+              "team": "PHI",
+              "slug": "jalen-hurts",
+              "jersey_number": 1,
+              "popularity": 38
+            },
+            "link": "/nfl/props/jalen-hurts/"
+          }
+        ],
+        "books": [
+          10,
+          12,
+          13,
+          14,
+          19,
+          27,
+          33,
+          36,
+          37,
+          38,
+          39,
+          45,
+          49,
+          60,
+          63,
+          68,
+          73,
+          75
+        ]
+      }
+    ]
+  },
+  "offers": [
+    {
+      "id": "8914ac09348deee591f2dc297b7bdf0f",
+      "market_id": 103,
+      "event_id": 21932,
+      "player_id": 16477,
+      "team_id": null,
+      "opponent_id": null,
+      "link": "",
+      "active": true,
+      "participants": [
+        {
+          "id": "16477",
+          "name": "Cooper Rush",
+          "link": "/nfl/props/cooper-rush/",
+          "player": {
+            "short_name": "C. Rush",
+            "first_name": "Cooper",
+            "last_name": "Rush",
+            "image": "https://images.fantasypros.com/images/players/nfl/16477/headshot/210x210.webp",
+            "position": "QB",
+            "team": "ATL",
+            "slug": "cooper-rush",
+            "jersey_number": 13
+          }
+        }
+      ],
+      "selections": [
+        {
+          "participant": null,
+          "selection": "over",
+          "active": true,
+          "opening_line": {
+            "line": 185.5,
+            "cost": -114,
+            "book_id": 10,
+            "created": "2026-09-18 15:40:29"
+          },
+          "label": "Over",
+          "short_label": "Over",
+          "books": [
+            {
+              "id": 0,
+              "lines": [
+                {
+                  "id": null,
+                  "from_scout": false,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:03",
+                  "cost": -115,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://www.bettingpros.com",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": null,
+                    "fair_probability": null,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "lines": [
+                {
+                  "id": "10_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:03",
+                  "cost": -114,
+                  "line": 183.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://account.sportsbook.fanduel.com/sportsbook/addToBetslip?marketId=42.608603078&selectionId=36726827",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.058478147136886864,
+                    "fair_probability": 0.5015583702167986,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 12,
+              "lines": [
+                {
+                  "id": "12_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:19:47",
+                  "cost": -113,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sportsbook.draftkings.com/event/34118054?outcomes=0QA369834009%232290154401_13L88808Q1-391758552Q20",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.056245937164199275,
+                    "fair_probability": 0.5006770380302605,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 13,
+              "lines": [
+                {
+                  "id": "13_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:01:43",
+                  "cost": -115,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=d1e741a1-ff22-3f46-9046-cc6e57238baf",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.06273395919467846,
+                    "fair_probability": 0.5013283474074977,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 14,
+              "lines": [
+                {
+                  "id": "14_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:35:05",
+                  "cost": -120,
+                  "line": 180.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://betfanatics.com/sportsbook?af_force_deeplink=true&deep_link_value=consume-betslip&deep_link_sub1=%7B%22legs%22%3A%5B%7B%22eventId%22%3A%225324717%22%2C%22marketId%22%3A%22707352707_103_5324717%22%2C%22selectionId%22%3A%221744707939%22%7D%5D%7D&pid=inteliticstech_int&af_siteid=Raketech&c=bettingpros.com-US-SPO-Fanatics-A186782C&af_click_lookback=7d&source_caller=sdk",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": null,
+                    "fair_probability": null,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 37,
+              "lines": [
+                {
+                  "id": "37_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:15:37",
+                  "cost": -118,
+                  "line": 185.5,
+                  "is_off": true,
+                  "active": true,
+                  "link": "https://app.prizepicks.com/board?projections=15011456-o-185.5&invite_code=FP100",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": null,
+                    "fair_probability": null,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 36,
+              "lines": [
+                {
+                  "id": "36_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:44:58",
+                  "cost": -107,
+                  "line": 183.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://btng.pro/68tHkO",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.030363739214285767,
+                    "fair_probability": 0.5012129463964803,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 60,
+              "lines": [
+                {
+                  "id": "60_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:42:33",
+                  "cost": -115,
+                  "line": 183.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://novig.com/events/01a0b65d-c10d-7e21-985a-1b50ace8a28a/bettingpros/?referralCode=BETTINGPROS",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.0652178576865492,
+                    "fair_probability": 0.4999997505397528,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 38,
+              "lines": [
+                {
+                  "id": "38_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:37:40",
+                  "cost": -121,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://www.prophetx.co/event/1700008750?currency=cash&affiliate=BETTINGPROS",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.08458960445708402,
+                    "fair_probability": 0.501197546880963,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 68,
+              "lines": [
+                {
+                  "id": "68_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": true,
+                  "updated": "2026-09-18 22:41:04",
+                  "cost": -133,
+                  "line": 174.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://kalshi.com/markets/kxnflpassyds/-/kxnflpassyds-26sep20caratl?referral=BPROS&utm_source=predictions_web_int&utm_medium=referral&utm_content=BPROS&op_market_ticker=KXNFLPASSYDS-26SEP20CARATL-ATLCRUSH13-175&op_order_side=yes",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": null,
+                    "fair_probability": null,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 39,
+              "lines": [
+                {
+                  "id": "39_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:44:40",
+                  "cost": -120,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sports.getfliff.com/markets?eventId=404264_c_p_202_prematch",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.08054263143420529,
+                    "fair_probability": 0.501522201035888,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 63,
+              "lines": [
+                {
+                  "id": "63_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:06",
+                  "cost": -128,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sleeper.com/picks/entry?c=BETTINGPROS&lids=1406761220660273164",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.10724186961828454,
+                    "fair_probability": 0.501197546880963,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            },
+            {
+              "id": 45,
+              "lines": [
+                {
+                  "id": "45_1404d2a5064c3cbbc328965886574a47",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:46:06",
+                  "cost": -118,
+                  "line": 183.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://btng.pro/TArbRX",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.0719069560588675,
+                    "fair_probability": 0.5023622898396956,
+                    "pm_win_pct": 55.11
+                  }
+                }
+              ]
+            }
+          ],
+          "id": "1404d2a5064c3cbbc328965886574a47"
+        },
+        {
+          "participant": null,
+          "selection": "under",
+          "active": true,
+          "opening_line": {
+            "line": 185.5,
+            "cost": -114,
+            "book_id": 10,
+            "created": "2026-09-18 15:40:29"
+          },
+          "label": "Under",
+          "short_label": "Under",
+          "books": [
+            {
+              "id": 0,
+              "lines": [
+                {
+                  "id": null,
+                  "from_scout": false,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:03",
+                  "cost": -111,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://www.bettingpros.com",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": null,
+                    "fair_probability": null,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "lines": [
+                {
+                  "id": "10_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:03",
+                  "cost": -114,
+                  "line": 183.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://account.sportsbook.fanduel.com/sportsbook/addToBetslip?marketId=42.608603078&selectionId=36726828",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.06432958812384643,
+                    "fair_probability": 0.4984412474480444,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 12,
+              "lines": [
+                {
+                  "id": "12_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": true,
+                  "updated": "2026-09-18 22:19:47",
+                  "cost": -111,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sportsbook.draftkings.com/event/34118054?outcomes=0QA369834009%232290154402_13L88808Q1-1245971631Q20",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.05083676903798049,
+                    "fair_probability": 0.49932283714115716,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 13,
+              "lines": [
+                {
+                  "id": "13_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:01:43",
+                  "cost": -114,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=95fb3d1a-fa4a-3266-bcbe-b2dfb1cd7b06",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.06389762510437796,
+                    "fair_probability": 0.49867135858925654,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 14,
+              "lines": [
+                {
+                  "id": "14_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:35:05",
+                  "cost": -110,
+                  "line": 180.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://betfanatics.com/sportsbook?af_force_deeplink=true&deep_link_value=consume-betslip&deep_link_sub1=%7B%22legs%22%3A%5B%7B%22eventId%22%3A%225324717%22%2C%22marketId%22%3A%22707352707_103_5324717%22%2C%22selectionId%22%3A%221744707941%22%7D%5D%7D&pid=inteliticstech_int&af_siteid=Raketech&c=bettingpros.com-US-SPO-Fanatics-A186782C&af_click_lookback=7d&source_caller=sdk",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": null,
+                    "fair_probability": null,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 37,
+              "lines": [
+                {
+                  "id": "37_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:15:37",
+                  "cost": -118,
+                  "line": 185.5,
+                  "is_off": true,
+                  "active": true,
+                  "link": "https://app.prizepicks.com/board?projections=15011456-u-185.5&invite_code=FP100",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": null,
+                    "fair_probability": null,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 36,
+              "lines": [
+                {
+                  "id": "36_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:44:58",
+                  "cost": -107,
+                  "line": 183.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://btng.pro/68tHkO",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.03505761117644896,
+                    "fair_probability": 0.4987866454305312,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 60,
+              "lines": [
+                {
+                  "id": "60_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:42:33",
+                  "cost": -111,
+                  "line": 183.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://novig.com/events/01a0b65d-c10d-7e21-985a-1b63e302d2ce/bettingpros/?referralCode=BETTINGPROS",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.04955002374875817,
+                    "fair_probability": 0.4999997505397528,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 38,
+              "lines": [
+                {
+                  "id": "38_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:14:45",
+                  "cost": -122,
+                  "line": 183.5,
+                  "is_off": true,
+                  "active": true,
+                  "link": "https://www.prophetx.co/event/1700008750?currency=cash&affiliate=BETTINGPROS",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": null,
+                    "fair_probability": null,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 68,
+              "lines": [
+                {
+                  "id": "68_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:41:04",
+                  "cost": 108,
+                  "line": 174.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://kalshi.com/markets/kxnflpassyds/-/kxnflpassyds-26sep20caratl?referral=BPROS&utm_source=predictions_web_int&utm_medium=referral&utm_content=BPROS&op_market_ticker=KXNFLPASSYDS-26SEP20CARATL-ATLCRUSH13-175&op_order_side=no",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": null,
+                    "fair_probability": null,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 39,
+              "lines": [
+                {
+                  "id": "39_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:44:40",
+                  "cost": -120,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sports.getfliff.com/markets?eventId=404264_c_p_202_prematch",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.08612275735419454,
+                    "fair_probability": 0.4984784959886211,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 63,
+              "lines": [
+                {
+                  "id": "63_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:06",
+                  "cost": -128,
+                  "line": 185.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sleeper.com/picks/entry?c=BETTINGPROS&lids=1406761220660273165",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.11150786376870077,
+                    "fair_probability": 0.4988026027965188,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            },
+            {
+              "id": 45,
+              "lines": [
+                {
+                  "id": "45_51b457457732b92b54a1944acabebf32",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:46:06",
+                  "cost": -118,
+                  "line": 183.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://btng.pro/TArbRX",
+                  "metrics": {
+                    "projection": 0,
+                    "cover_probability": null,
+                    "expected_value": null,
+                    "bet_rating": null,
+                    "result": null,
+                    "notes": null,
+                    "market_ev": -0.0806360120764159,
+                    "fair_probability": 0.49763738795863727,
+                    "pm_win_pct": 51.88
+                  }
+                }
+              ]
+            }
+          ],
+          "id": "51b457457732b92b54a1944acabebf32"
+        }
+      ]
+    },
+    {
+      "id": "f249628f6cc0ac36e9c3c2435ada57a9",
+      "market_id": 103,
+      "event_id": 21932,
+      "player_id": 22900,
+      "team_id": null,
+      "opponent_id": null,
+      "link": "",
+      "active": true,
+      "participants": [
+        {
+          "id": "22900",
+          "name": "Bryce Young",
+          "link": "/nfl/props/bryce-young/",
+          "player": {
+            "short_name": "B. Young",
+            "first_name": "Bryce",
+            "last_name": "Young",
+            "image": "https://images.fantasypros.com/images/players/nfl/22900/headshot/210x210.webp",
+            "position": "QB",
+            "team": "CAR",
+            "slug": "bryce-young",
+            "jersey_number": 9
+          }
+        }
+      ],
+      "selections": [
+        {
+          "participant": null,
+          "selection": "over",
+          "active": true,
+          "opening_line": {
+            "line": 215.5,
+            "cost": -110,
+            "book_id": 14,
+            "created": "2026-09-15 02:01:51"
+          },
+          "label": "Over",
+          "short_label": "Over",
+          "books": [
+            {
+              "id": 0,
+              "lines": [
+                {
+                  "id": null,
+                  "from_scout": false,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:03",
+                  "cost": -114,
+                  "line": 221.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://www.bettingpros.com",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "lines": [
+                {
+                  "id": "10_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:03",
+                  "cost": -114,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://account.sportsbook.fanduel.com/sportsbook/addToBetslip?marketId=42.608603079&selectionId=41172024",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 12,
+              "lines": [
+                {
+                  "id": "12_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:19:47",
+                  "cost": -113,
+                  "line": 221.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sportsbook.draftkings.com/event/34118054?outcomes=0QA369834101%232289397944_13L88808Q1-1943477089Q20",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 13,
+              "lines": [
+                {
+                  "id": "13_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:01:43",
+                  "cost": -114,
+                  "line": 221.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=ffcf0511-8c90-3ba1-bad5-e7daa9928898",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 33,
+              "lines": [
+                {
+                  "id": "33_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:40:10",
+                  "cost": -115,
+                  "line": 224.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://thescore.bet/sport/football/organization/united-states/competition/nfl/event/66521a86-2063-4ef8-9fce-85738d66577f",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 49,
+              "lines": [
+                {
+                  "id": "49_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:46:09",
+                  "cost": -115,
+                  "line": 221.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://app.hardrock.bet/?deep_link_value=betslip%2F2365627172313498005",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 14,
+              "lines": [
+                {
+                  "id": "14_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:35:02",
+                  "cost": -115,
+                  "line": 220.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://betfanatics.com/sportsbook?af_force_deeplink=true&deep_link_value=consume-betslip&deep_link_sub1=%7B%22legs%22%3A%5B%7B%22eventId%22%3A%225324717%22%2C%22marketId%22%3A%22703855786_103_5324717%22%2C%22selectionId%22%3A%221736223465%22%7D%5D%7D&pid=inteliticstech_int&af_siteid=Raketech&c=bettingpros.com-US-SPO-Fanatics-A186782C&af_click_lookback=7d&source_caller=sdk",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 37,
+              "lines": [
+                {
+                  "id": "37_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:15:27",
+                  "cost": -118,
+                  "line": 222.5,
+                  "is_off": true,
+                  "active": true,
+                  "link": "https://app.prizepicks.com/board?projections=14847183-o-222.5&invite_code=FP100",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 36,
+              "lines": [
+                {
+                  "id": "36_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:44:57",
+                  "cost": -107,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://btng.pro/68tHkO",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 38,
+              "lines": [
+                {
+                  "id": "38_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:37:39",
+                  "cost": -110,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://www.prophetx.co/event/1700008750?currency=cash&affiliate=BETTINGPROS",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 60,
+              "lines": [
+                {
+                  "id": "60_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:42:33",
+                  "cost": -102,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://novig.com/events/01a0a893-0002-7560-a336-4f1874bc10c4/bettingpros/?referralCode=BETTINGPROS",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 68,
+              "lines": [
+                {
+                  "id": "68_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:41:04",
+                  "cost": 104,
+                  "line": 224.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://kalshi.com/markets/kxnflpassyds/-/kxnflpassyds-26sep20caratl?referral=BPROS&utm_source=predictions_web_int&utm_medium=referral&utm_content=BPROS&op_market_ticker=KXNFLPASSYDS-26SEP20CARATL-CARBYOUNG9-225&op_order_side=yes",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 73,
+              "lines": [
+                {
+                  "id": "73_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:42:23",
+                  "cost": 100,
+                  "line": 224.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://polymarket.com/event/nfl-car-atl-2026-09-20-player-props",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 63,
+              "lines": [
+                {
+                  "id": "63_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:06",
+                  "cost": -130,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sleeper.com/picks/entry?c=BETTINGPROS&lids=1406792051382566934",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 39,
+              "lines": [
+                {
+                  "id": "39_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:44:40",
+                  "cost": -120,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sports.getfliff.com/markets?eventId=404264_c_p_202_prematch",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 45,
+              "lines": [
+                {
+                  "id": "45_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": true,
+                  "updated": "2026-09-18 22:46:06",
+                  "cost": -118,
+                  "line": 219.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://btng.pro/TArbRX",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 75,
+              "lines": [
+                {
+                  "id": "75_8e7eecc4f4f983fec6b6829406c911d0",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:44:33",
+                  "cost": -108,
+                  "line": 224.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://polymarket.us/event/nfl-car-atl-2026-09-20",
+                  "metrics": null
+                }
+              ]
+            }
+          ],
+          "id": "8e7eecc4f4f983fec6b6829406c911d0"
+        },
+        {
+          "participant": null,
+          "selection": "under",
+          "active": true,
+          "opening_line": {
+            "line": 215.5,
+            "cost": -120,
+            "book_id": 14,
+            "created": "2026-09-15 02:01:51"
+          },
+          "label": "Under",
+          "short_label": "Under",
+          "books": [
+            {
+              "id": 0,
+              "lines": [
+                {
+                  "id": null,
+                  "from_scout": false,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:03",
+                  "cost": -114,
+                  "line": 221.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://www.bettingpros.com",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "lines": [
+                {
+                  "id": "10_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:03",
+                  "cost": -114,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://account.sportsbook.fanduel.com/sportsbook/addToBetslip?marketId=42.608603079&selectionId=41172023",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 12,
+              "lines": [
+                {
+                  "id": "12_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:19:47",
+                  "cost": -111,
+                  "line": 221.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sportsbook.draftkings.com/event/34118054?outcomes=0QA369834101%232289397945_13L88808Q1-704273721Q20",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 13,
+              "lines": [
+                {
+                  "id": "13_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:01:43",
+                  "cost": -115,
+                  "line": 221.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=4fa8538a-a284-367a-a67f-38331d6947d3",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 33,
+              "lines": [
+                {
+                  "id": "33_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:40:10",
+                  "cost": -115,
+                  "line": 224.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://thescore.bet/sport/football/organization/united-states/competition/nfl/event/66521a86-2063-4ef8-9fce-85738d66577f",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 49,
+              "lines": [
+                {
+                  "id": "49_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:46:09",
+                  "cost": -115,
+                  "line": 221.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://app.hardrock.bet/?deep_link_value=betslip%2F5921922765564281237",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 14,
+              "lines": [
+                {
+                  "id": "14_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:35:02",
+                  "cost": -115,
+                  "line": 220.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://betfanatics.com/sportsbook?af_force_deeplink=true&deep_link_value=consume-betslip&deep_link_sub1=%7B%22legs%22%3A%5B%7B%22eventId%22%3A%225324717%22%2C%22marketId%22%3A%22703855786_103_5324717%22%2C%22selectionId%22%3A%221736223467%22%7D%5D%7D&pid=inteliticstech_int&af_siteid=Raketech&c=bettingpros.com-US-SPO-Fanatics-A186782C&af_click_lookback=7d&source_caller=sdk",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 37,
+              "lines": [
+                {
+                  "id": "37_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:15:27",
+                  "cost": -118,
+                  "line": 222.5,
+                  "is_off": true,
+                  "active": true,
+                  "link": "https://app.prizepicks.com/board?projections=14847183-u-222.5&invite_code=FP100",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 36,
+              "lines": [
+                {
+                  "id": "36_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:44:57",
+                  "cost": -107,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://btng.pro/68tHkO",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 38,
+              "lines": [
+                {
+                  "id": "38_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:37:39",
+                  "cost": -118,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://www.prophetx.co/event/1700008750?currency=cash&affiliate=BETTINGPROS",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 60,
+              "lines": [
+                {
+                  "id": "60_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:42:33",
+                  "cost": -122,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://novig.com/events/01a0a893-0002-7560-a336-4f2994d9e02b/bettingpros/?referralCode=BETTINGPROS",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 68,
+              "lines": [
+                {
+                  "id": "68_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:41:04",
+                  "cost": -108,
+                  "line": 224.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://kalshi.com/markets/kxnflpassyds/-/kxnflpassyds-26sep20caratl?referral=BPROS&utm_source=predictions_web_int&utm_medium=referral&utm_content=BPROS&op_market_ticker=KXNFLPASSYDS-26SEP20CARATL-CARBYOUNG9-225&op_order_side=no",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 73,
+              "lines": [
+                {
+                  "id": "73_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:42:23",
+                  "cost": 100,
+                  "line": 224.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://polymarket.com/event/nfl-car-atl-2026-09-20-player-props",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 63,
+              "lines": [
+                {
+                  "id": "63_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:43:06",
+                  "cost": -127,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sleeper.com/picks/entry?c=BETTINGPROS&lids=1406792051382566935",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 39,
+              "lines": [
+                {
+                  "id": "39_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:44:40",
+                  "cost": -120,
+                  "line": 222.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://sports.getfliff.com/markets?eventId=404264_c_p_202_prematch",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 45,
+              "lines": [
+                {
+                  "id": "45_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": false,
+                  "updated": "2026-09-18 22:46:06",
+                  "cost": -118,
+                  "line": 219.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://btng.pro/TArbRX",
+                  "metrics": null
+                }
+              ]
+            },
+            {
+              "id": 75,
+              "lines": [
+                {
+                  "id": "75_54fbd02675dd6f1db6f620de6775bfd6",
+                  "from_scout": true,
+                  "main": true,
+                  "best": true,
+                  "updated": "2026-09-18 22:44:33",
+                  "cost": 104,
+                  "line": 224.5,
+                  "is_off": false,
+                  "active": true,
+                  "link": "https://polymarket.us/event/nfl-car-atl-2026-09-20",
+                  "metrics": null
+                }
+              ]
+            }
+          ],
+          "id": "54fbd02675dd6f1db6f620de6775bfd6"
+        }
+      ]
+    }
+  ],
+  "offersPagination": {
+    "page": 1,
+    "limit": 5,
+    "total_pages": 7,
+    "total_items": 32,
+    "paginated_array": "offers",
+    "self": "/v3/offers?event_id=21932:21985:21986:21987:21988:21989:21990:21991:21992:21993:21994:21995:21996:21997:21998:21908&limit=5&market_id=103&sport=NFL&event_id=21932:21985:21986:21987:21988:21989:21990:21991:21992:21993:21994:21995:21996:21997:21998:21908&limit=5&market_id=103&sport=NFL",
+    "next": "/v3/offers?event_id=21932%3A21985%3A21986%3A21987%3A21988%3A21989%3A21990%3A21991%3A21992%3A21993%3A21994%3A21995%3A21996%3A21997%3A21998%3A21908&limit=5&market_id=103&sport=NFL&page=2"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "source": "bettingpros",
+  "fetched_at": "2026-09-18T22:00:00Z",
+  "players": [
+    {
+      "name": "Josh Allen",
+      "team": "BUF",
+      "markets": {
+        "pass_yards": {
+          "line": 250.5,
+          "over_odds": -113,
+          "under_odds": -113
+        },
+        "rush_yards": {
+          "line": 35.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    },
+    {
+      "name": "Bijan Robinson",
+      "team": "ATL",
+      "markets": {
+        "rush_yards": {
+          "line": 81.5,
+          "over_odds": -125,
+          "under_odds": -105
+        },
+        "receptions": {
+          "line": 5.5,
+          "over_odds": 122,
+          "under_odds": -155
+        },
+        "rec_yards": {
+          "line": 40.5,
+          "over_odds": -110,
+          "under_odds": -110
+        }
+      }
+    }
+  ]
+}
