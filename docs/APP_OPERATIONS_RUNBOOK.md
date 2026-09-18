@@ -103,6 +103,13 @@ the same job also writes season-long O/U closing lines into
 `data/props/season_consensus/` (sealed `vegas_consensus_{season}.json` is only
 overwritten when `SEASON_VEGAS_WRITE_SEALED=true`).
 
+**Verify-after-upload (Role 1 durability).** `persist_provider_snapshots` writes
+provider bodies through `ArtifactStore.put_json` (local or S3). After every put,
+the store **HEAD/reads the object** before returning the URI. If that check
+fails, the weekly-props job fails closed: no healthy/complete `source_snapshot`
+row is recorded for a missing blob. Role 2 live export depends on that catalog
+being honest — a metadata-only success is worse than a failed scrape.
+
 Weekly-props jobs **auto-promote** a passing candidate onto the dedicated
 `weekly_props` pointer. Quality gates still apply (minimum players, freshness
 bounds). Thin or stale books are not promoted; Matchup/Home fail fast with a

@@ -248,6 +248,64 @@ def test_provider_snapshot_roundtrip_and_catalog(db_session, tmp_path, monkeypat
     get_settings.cache_clear()
 
 
+def test_persist_provider_snapshots_fails_closed_when_artifact_unreadable(
+    db_session, tmp_path, monkeypatch
+):
+    """Do not catalog a healthy source_snapshot when verify-after-upload fails."""
+    from unittest.mock import patch
+
+    import pytest
+
+    from src.app.artifacts.store import ArtifactError, LocalArtifactStore
+    from src.app.persistence.models import SourceSnapshot
+
+    monkeypatch.setenv("ARTIFACT_BACKEND", "local")
+    monkeypatch.setenv("ARTIFACT_LOCAL_ROOT", str(tmp_path))
+    get_settings.cache_clear()
+    snap = _snap(n_quotes=5)
+
+    original = LocalArtifactStore.verify_readable
+
+    def wipe_then_verify(self, uri: str) -> None:  # noqa: ANN001
+        path = self._resolve(uri)
+        path.unlink(missing_ok=True)
+        original(self, uri)
+
+    with patch.object(LocalArtifactStore, "verify_readable", wipe_then_verify):
+        with pytest.raises(ArtifactError, match="not durable"):
+            persist_provider_snapshots(db_session, [snap])
+
+    rows = (
+        db_session.query(SourceSnapshot)
+        .filter(SourceSnapshot.endpoint == "weekly_props:draftkings:2026:1")
+        .all()
+    )
+    assert rows == [], "fail-closed must not leave a healthy/complete catalog row"
+    get_settings.cache_clear()
+
+
+def test_persist_provider_snapshots_verify_success_catalogs_healthy(
+    db_session, tmp_path, monkeypatch
+):
+    from src.app.persistence.models import SourceSnapshot
+
+    monkeypatch.setenv("ARTIFACT_BACKEND", "local")
+    monkeypatch.setenv("ARTIFACT_LOCAL_ROOT", str(tmp_path))
+    get_settings.cache_clear()
+    snap = _snap(n_quotes=5)
+    uris = persist_provider_snapshots(db_session, [snap])
+    assert len(uris) == 1
+    row = (
+        db_session.query(SourceSnapshot)
+        .filter(SourceSnapshot.endpoint == "weekly_props:draftkings:2026:1")
+        .one()
+    )
+    assert row.health_verdict == "healthy"
+    assert row.is_complete is True
+    assert row.artifact_uri == uris[0]
+    get_settings.cache_clear()
+
+
 def _quote(i: int, *, fetched_at: datetime, source: str = "draftkings") -> NormalizedQuote:
     return NormalizedQuote(
         source=source,

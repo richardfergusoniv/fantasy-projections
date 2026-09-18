@@ -4,6 +4,11 @@ Local and S3 backends are deliberately contract-identical: same key
 derivation, same URI parsing rules, same idempotent-put semantics, same error
 types. That way a deployment can switch ``ARTIFACT_BACKEND`` without changing
 any caller behaviour or any stored URI's meaning.
+
+Every successful ``put_bytes`` / ``put_json`` **verifies the object is readable
+after write** (local file read, S3 HEAD) before returning a URI. Callers that
+catalog snapshots must treat a verify failure as fail-closed — do not record
+healthy/complete metadata pointing at a missing blob.
 """
 
 from __future__ import annotations
@@ -151,6 +156,16 @@ class ArtifactStore(ABC):
     def get_json(self, uri: str) -> Any:
         raise NotImplementedError
 
+    @abstractmethod
+    def verify_readable(self, uri: str) -> None:
+        """Confirm ``uri`` is readable after write.
+
+        Raises :class:`ArtifactError` when the object is missing or unreadable.
+        Callers that catalog snapshots (e.g. weekly_props ``source_snapshot``)
+        must not mark a row healthy/complete until this succeeds.
+        """
+        raise NotImplementedError
+
     def get_manifest(self, uri: str) -> dict[str, Any] | None:
         """Return the stamped manifest for a JSON artifact, if it has one."""
         decoded = json.loads(self.get_bytes(uri).decode("utf-8"))
@@ -192,7 +207,21 @@ class LocalArtifactStore(ArtifactStore):
         if not path.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
             _atomic_write_bytes(path, content)
-        return f"{LOCAL_SCHEME}{path.as_posix()}"
+        uri = f"{LOCAL_SCHEME}{path.as_posix()}"
+        self.verify_readable(uri)
+        return uri
+
+    def verify_readable(self, uri: str) -> None:
+        path = self._resolve(uri)
+        try:
+            if not path.is_file():
+                raise ArtifactError(f"Artifact not readable after write: {uri}")
+            # Touch the bytes so a dangling inode / empty rename cannot pass.
+            path.read_bytes()
+        except ArtifactError:
+            raise
+        except OSError as exc:
+            raise ArtifactError(f"Artifact not readable after write: {uri}") from exc
 
     def get_bytes(self, uri: str) -> bytes:
         path = self._resolve(uri)
@@ -290,7 +319,10 @@ class S3ArtifactStore(ArtifactStore):
                 Body=content,
                 ContentType=content_type,
             )
-        return f"{S3_SCHEME}{self.bucket}/{key}"
+        uri = f"{S3_SCHEME}{self.bucket}/{key}"
+        # Fail closed: never hand callers a URI whose object is not HEAD-able.
+        self.verify_readable(uri)
+        return uri
 
     def _exists(self, key: str) -> bool:
         head = getattr(self.client, "head_object", None)
@@ -301,6 +333,16 @@ class S3ArtifactStore(ArtifactStore):
         except Exception:  # noqa: BLE001 - any failure means "write it"
             return False
         return True
+
+    def verify_readable(self, uri: str) -> None:
+        bucket, key = self._parse(uri)
+        head = getattr(self.client, "head_object", None)
+        if head is None:
+            raise ArtifactError(f"Artifact not readable after write: {uri}")
+        try:
+            head(Bucket=bucket, Key=key)
+        except Exception as exc:  # noqa: BLE001 - missing / denied / eventual miss
+            raise ArtifactError(f"Artifact not readable after write: {uri}") from exc
 
     def get_bytes(self, uri: str) -> bytes:
         bucket, key = self._parse(uri)
