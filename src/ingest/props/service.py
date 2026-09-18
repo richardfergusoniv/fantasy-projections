@@ -15,7 +15,7 @@ from src.projection.weekly_props.config import DEFAULT_WEEKLY_POLICY, WeeklyProp
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_FIXTURES_DIR = REPO_ROOT / "data" / "props" / "fixtures" / "providers"
 
-LIVE_CAPABLE = frozenset({"draftkings", "fanduel"})
+LIVE_CAPABLE = frozenset({"draftkings", "fanduel", "bettingpros"})
 
 
 @dataclass(frozen=True)
@@ -121,9 +121,10 @@ def build_providers(
 ) -> list[PropProvider]:
     """Build provider adapters for weekly props ingest.
 
-    ``mode=live`` uses real DraftKings + FanDuel HTTP fetch for named live-capable
-    books. Non-live names in the list are skipped (BettingPros/OddsChecker remain
-    fixture-only until implemented). ``mode=fixture`` loads local JSON fixtures.
+    ``mode=live`` uses real DraftKings / FanDuel / BettingPros HTTP fetch for
+    named live-capable books. Non-live names in the list become disabled stubs
+    (OddsChecker remains fixture-only). ``mode=fixture`` loads local JSON
+    fixtures.
     """
     names = parse_provider_names(provider_names)
     normalized = (mode or "live").strip().lower()
@@ -134,7 +135,11 @@ def build_providers(
         by_name = {p.name: p for p in available}
         return [by_name[name] for name in names if name in by_name]
 
-    from src.ingest.props.providers import LiveDraftKingsProvider, LiveFanDuelProvider
+    from src.ingest.props.providers import (
+        LiveBettingProsProvider,
+        LiveDraftKingsProvider,
+        LiveFanDuelProvider,
+    )
     from src.ingest.props.providers.base import live_fetch_stub
     from src.ingest.props.contracts import ProviderSnapshot
     from datetime import datetime as _dt
@@ -159,6 +164,7 @@ def build_providers(
     live_map = {
         "draftkings": LiveDraftKingsProvider,
         "fanduel": LiveFanDuelProvider,
+        "bettingpros": LiveBettingProsProvider,
     }
     providers: list[PropProvider] = []
     for name in names:
