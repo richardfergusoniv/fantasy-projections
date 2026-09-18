@@ -254,9 +254,7 @@ def test_persist_provider_snapshots_fails_closed_when_artifact_unreadable(
     """Do not catalog a healthy source_snapshot when verify-after-upload fails."""
     from unittest.mock import patch
 
-    import pytest
-
-    from src.app.artifacts.store import ArtifactError, LocalArtifactStore
+    from src.app.artifacts.store import LocalArtifactStore
     from src.app.persistence.models import SourceSnapshot
 
     monkeypatch.setenv("ARTIFACT_BACKEND", "local")
@@ -272,15 +270,59 @@ def test_persist_provider_snapshots_fails_closed_when_artifact_unreadable(
         original(self, uri)
 
     with patch.object(LocalArtifactStore, "verify_readable", wipe_then_verify):
-        with pytest.raises(ArtifactError, match="not durable"):
-            persist_provider_snapshots(db_session, [snap])
+        uris = persist_provider_snapshots(db_session, [snap])
 
+    assert uris == []
     rows = (
         db_session.query(SourceSnapshot)
         .filter(SourceSnapshot.endpoint == "weekly_props:draftkings:2026:1")
         .all()
     )
     assert rows == [], "fail-closed must not leave a healthy/complete catalog row"
+    get_settings.cache_clear()
+
+
+def test_persist_provider_snapshots_isolates_provider_verify_failures(
+    db_session, tmp_path, monkeypatch
+):
+    """One provider's missing blob must not block cataloguing another provider."""
+    from unittest.mock import patch
+
+    from src.app.artifacts.store import ArtifactError, LocalArtifactStore
+    from src.app.persistence.models import SourceSnapshot
+
+    monkeypatch.setenv("ARTIFACT_BACKEND", "local")
+    monkeypatch.setenv("ARTIFACT_LOCAL_ROOT", str(tmp_path))
+    get_settings.cache_clear()
+    draftkings = _snap(source="draftkings", n_quotes=5)
+    fanduel = _snap(source="fanduel", n_quotes=5)
+
+    real_put = LocalArtifactStore.put_json
+
+    def put_json(self, payload, *, inputs=None, provenance=None):  # noqa: ANN001
+        if (inputs or {}).get("source") == "draftkings":
+            raise ArtifactError("not readable after write: synthetic-dk")
+        return real_put(self, payload, inputs=inputs, provenance=provenance)
+
+    with patch.object(LocalArtifactStore, "put_json", put_json):
+        uris = persist_provider_snapshots(db_session, [draftkings, fanduel])
+
+    assert len(uris) == 1
+    dk_rows = (
+        db_session.query(SourceSnapshot)
+        .filter(SourceSnapshot.endpoint == "weekly_props:draftkings:2026:1")
+        .all()
+    )
+    fd_rows = (
+        db_session.query(SourceSnapshot)
+        .filter(SourceSnapshot.endpoint == "weekly_props:fanduel:2026:1")
+        .all()
+    )
+    assert dk_rows == []
+    assert len(fd_rows) == 1
+    assert fd_rows[0].health_verdict == "healthy"
+    assert fd_rows[0].is_complete is True
+    assert fd_rows[0].artifact_uri == uris[0]
     get_settings.cache_clear()
 
 

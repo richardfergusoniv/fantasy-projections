@@ -92,11 +92,13 @@ boundary.
 
 Production scrapes catalog `weekly_props:{draftkings|fanduel}:{season}:{week}`
 rows with S3 `artifact_uri`s. The write path
-(`src.app.artifacts.store` via `persist_provider_snapshots`) **verifies the
-object is readable (HEAD/get) after upload** before marking the snapshot
-healthy/complete. If verification fails, the ingest fails closed — it does
-**not** leave a healthy catalog row pointing at a missing object. That keeps
-Role 2 `export_role2_live_props` from trusting metadata whose body is gone.
+(`src.app.artifacts.store` via `persist_provider_snapshots`) **verifies after
+upload** before marking a snapshot healthy/complete. A missing blob fails
+closed **per provider** (no healthy catalog row for that book) without aborting
+other providers in the same scrape. On S3, verify fails closed only on genuine
+absence (404 / NoSuchKey); put-only IAM / transient HEAD errors match `_exists`
+and do not fail the write. That keeps Role 2 `export_role2_live_props` from
+trusting metadata whose body is gone, while preserving provider isolation.
 
 Optional after the week: outcomes CSV with `player_id,season,week,market,actual`.
 
@@ -118,10 +120,10 @@ A week credits toward 6–8 only when that live run has `n_matched > 0` and
   `S3_ENDPOINT_URL`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION`,
   `S3_BUCKET`) plus `DATABASE_URL` / `JOB_DATABASE_URL`. Without them,
   `scripts/export_role2_live_props.py` exits with a blocker (no fake rows).
-- If Role 1 verify-after-upload fails, the weekly-props job fails and no new
-  healthy `source_snapshot` is written — re-run the scrape after fixing S3
-  durability / credentials rather than treating a prior healthy row as proof
-  the blob still exists.
+- If Role 1 verify-after-upload finds a missing blob for one provider, that
+  provider is not catalogued as healthy; surviving providers in the same scrape
+  still persist. Re-run the scrape after fixing S3 durability rather than
+  treating a prior healthy row as proof the blob still exists.
 - Sealed-board player ids (`00-…`) do not match dry-run / book name keys
   unless identity is resolved **before** the CSV is handed to Role 2 (the
   exporter maps via `player_identity` / gsis-shaped quote ids).
