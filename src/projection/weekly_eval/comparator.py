@@ -102,10 +102,84 @@ def _snapshot_frame(snaps: Sequence[PropSnapshot]) -> pd.DataFrame:
     frame = pd.DataFrame(rows)
     if frame.empty:
         return frame
-    # Latest pre-kickoff snapshot wins when duplicates exist (all rows already
-    # failed closed if as_of > kickoff).
-    frame = frame.sort_values("as_of")
-    return frame.drop_duplicates(subset=list(JOIN_KEYS), keep="last")
+    # Duplicate (player, season, week, market) rows: do **not** keep a single
+    # book by latest as_of (that is a one-book pick / MAE book-shop risk).
+    # Collapse with the same weekly robust_median used for Role 1; per-book
+    # quotes remain in the export CSV when mode=single.
+    return _collapse_multi_book_snapshots(frame)
+
+
+def _collapse_multi_book_snapshots(frame: pd.DataFrame) -> pd.DataFrame:
+    """One row per JOIN_KEYS; multi-book → robust_median line (not pick-one)."""
+    from src.projection.market_quotes import robust_median
+    from src.projection.weekly_props.config import DEFAULT_WEEKLY_POLICY
+
+    policy = DEFAULT_WEEKLY_POLICY.quote
+    out_rows: list[dict[str, Any]] = []
+    for _, grp in frame.groupby(list(JOIN_KEYS), sort=False):
+        if len(grp) == 1:
+            out_rows.append(grp.iloc[0].to_dict())
+            continue
+        lines = [
+            float(v)
+            for v in grp["line"].tolist()
+            if v is not None and pd.notna(v)
+        ]
+        means = [
+            float(v)
+            for v in grp["market_mean"].tolist()
+            if v is not None and pd.notna(v)
+        ]
+        line = float(robust_median(lines, policy=policy)) if lines else None
+        market_mean = (
+            float(robust_median(means, policy=policy)) if means else line
+        )
+        sources = sorted(
+            {
+                str(s).strip().lower()
+                for s in grp["source"].tolist()
+                if s is not None and str(s).strip()
+            }
+        )
+        # Matching Role 1 export: multi-book → "consensus"; else keep the book.
+        source = "consensus" if len(sources) > 1 else (sources[0] if sources else "consensus")
+        # Keep the freshest pre-kickoff as_of and earliest kickoff (already
+        # fail-closed upstream); do not use as_of to pick a book line.
+        as_of = max(str(v) for v in grp["as_of"].tolist())
+        kickoff_at = min(str(v) for v in grp["kickoff_at"].tolist())
+        p_overs = [
+            float(v)
+            for v in grp["implied_p_over"].tolist()
+            if v is not None and pd.notna(v)
+        ]
+        implied_means = [
+            float(v)
+            for v in grp["implied_mean"].tolist()
+            if v is not None and pd.notna(v)
+        ]
+        row0 = grp.iloc[0]
+        out_rows.append(
+            {
+                "player_id": row0["player_id"],
+                "season": row0["season"],
+                "week": row0["week"],
+                "market": row0["market"],
+                "line": line,
+                "implied_p_over": (
+                    sum(p_overs) / len(p_overs) if p_overs else None
+                ),
+                "implied_mean": (
+                    float(robust_median(implied_means, policy=policy))
+                    if implied_means
+                    else line
+                ),
+                "market_mean": market_mean,
+                "as_of": as_of,
+                "kickoff_at": kickoff_at,
+                "source": source,
+            }
+        )
+    return pd.DataFrame(out_rows)
 
 
 def _finite_pair(pred: np.ndarray, actual: np.ndarray) -> tuple[np.ndarray, np.ndarray] | None:

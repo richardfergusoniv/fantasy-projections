@@ -69,6 +69,76 @@ def test_stale_and_started_rejected():
     assert started.reject_reason == "event_started"
 
 
+def test_role1_median_when_dk_and_fd_both_present():
+    """Role 1 display line is median-of-books, not primary-book-only."""
+    dk = _q(source="draftkings", sportsbook="DraftKings", line=50.5)
+    fd = _q(source="fanduel", sportsbook="FanDuel", line=60.5)
+    market = consensus_for_market(
+        [dk, fd],
+        market="rec_yards",
+        policy=DEFAULT_WEEKLY_POLICY,
+        position="WR",
+    )
+    assert market.line == 55.5
+    assert market.kind == "books"
+    assert market.coverage.book_count == 2
+    assert market.coverage.line_basis == "robust_median"
+    assert market.coverage.accepted_books == ("draftkings", "fanduel")
+    assert len(market.accepted_quotes) == 2
+
+
+def test_role1_single_book_fallback():
+    market = consensus_for_market(
+        [_q(source="fanduel", sportsbook="FanDuel", line=48.5)],
+        market="rec_yards",
+        policy=DEFAULT_WEEKLY_POLICY,
+        position="WR",
+    )
+    assert market.line == 48.5
+    assert market.coverage.book_count == 1
+    assert market.coverage.line_basis == "single_book"
+    assert market.coverage.accepted_books == ("fanduel",)
+
+
+def test_td_fd_only_allowed_while_min_books_stays_one():
+    """Phase 0b: DK weekly often omits rush/rec TDs; FD-only must still score.
+
+    Do not raise min_distinct_books_per_market until a third source exists.
+    """
+    assert DEFAULT_WEEKLY_POLICY.min_distinct_books_per_market == 1
+    fd_only = _q(
+        source="fanduel",
+        sportsbook="FanDuel",
+        market="rec_tds",
+        line=0.5,
+    )
+    market = consensus_for_market(
+        [fd_only],
+        market="rec_tds",
+        policy=DEFAULT_WEEKLY_POLICY,
+        position="WR",
+    )
+    assert market.line == 0.5
+    assert market.coverage.book_count == 1
+    assert market.coverage.line_basis == "single_book"
+    assert market.coverage.accepted_books == ("fanduel",)
+
+    player = build_player_consensus(
+        player_key="pierce",
+        quotes=[fd_only],
+        player_id="00-0038120",
+        player_name="Alec Pierce",
+        team="IND",
+        position="WR",
+    )
+    components, sources, _scoring = merge_player_components(
+        player,
+        {"rec_yards": 45.0, "rec_tds": 0.4, "receptions": 3.0, "points": 8.0},
+    )
+    assert components["rec_tds"] == 0.5
+    assert sources["rec_tds"] == "weekly_props_consensus"
+
+
 def test_pierce_juice_cannot_replace_baseline_component():
     juiced = _q(line=99.5, over_odds=125, under_odds=None, sportsbook="DraftKings")
     clean = _q(
@@ -87,6 +157,7 @@ def test_pierce_juice_cannot_replace_baseline_component():
     assert any(q.reject_reason == "one_sided_longshot" for q in market.rejected_quotes)
     assert market.line == 48.5
     assert market.kind == "books"
+    assert market.coverage.line_basis == "single_book"
 
     player = build_player_consensus(
         player_key="pierce",

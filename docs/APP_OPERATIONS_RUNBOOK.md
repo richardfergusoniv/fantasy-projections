@@ -112,6 +112,14 @@ that do not prove absence (put-only IAM `AccessDenied`, throttling, 5xx) match
 `_exists` and do not fail the write. Role 2 live export depends on the catalog
 not claiming healthy bodies that are gone.
 
+**Role 1 display line (DK + FD).** Consensus uses `robust_median` across
+accepted books for each `(player, market)` — median when both DraftKings and
+FanDuel quote, single-book fallback otherwise (`min_distinct_books_per_market`
+stays 1). Live DK weekly boards often omit `rush_tds` / `rec_tds` while FD has
+them; see
+[`docs/ops/WEEKLY_PROPS_DK_TD_COVERAGE_PHASE0B.md`](ops/WEEKLY_PROPS_DK_TD_COVERAGE_PHASE0B.md).
+Do not raise min books until a third source.
+
 Weekly-props jobs **auto-promote** a passing candidate onto the dedicated
 `weekly_props` pointer. Quality gates still apply (minimum players, freshness
 bounds). Thin or stale books are not promoted; Matchup/Home fail fast with a

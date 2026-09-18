@@ -35,7 +35,7 @@ Grain: one row per `(player_id, season, week, market)`.
    | `implied_p_over` | no | De-vig P(over) when available |
    | `as_of` | **yes** | Snapshot timestamp. Missing/blank → fail closed |
    | `kickoff_at` | **yes** | Cutoff. `as_of > kickoff_at` → fail closed (later-season leak) |
-   | `player_name`, `source` | no | Provenance |
+   | `player_name`, `source` | no | Provenance. Prefer `--mode single` so DK/FD rows stay distinct; the comparator medians multi-book duplicates at join time (no pick-one / MAE book-shop). |
 
 2. **Shadow weekly board** (player-week means CSV)
 
@@ -99,8 +99,11 @@ snapshots and model draws exist.
 - **kickoff_at required.** A timestamp without a cutoff cannot prove the line
   was observable before the game.
 - **as_of ≤ kickoff_at.** A November line must not sit on a week-1 row.
-- Duplicate `(player, season, week, market)` snapshots: latest still-valid
-  `as_of` wins.
+- Duplicate `(player, season, week, market)` snapshots from **different books**:
+  collapse with weekly `robust_median` (same Role 1 aggregator). Do **not**
+  keep a single book by latest `as_of` — that is a one-book pick / MAE
+  book-shop risk. Same-book refreshes still median (identical lines → same
+  line).
 - **Same-week outcomes are not features.** The comparator reuses
   `SAME_WEEK_OUTCOME_DENYLIST` / `is_allowed_prediction_column` from
   `src/projection/weekly/draws/feature_outcome_split.py` (read-only import).
