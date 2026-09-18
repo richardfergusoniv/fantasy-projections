@@ -46,14 +46,15 @@
   --radius-lg: 14px;
   --radius-pill: 999px;
 
-  /* Type */
-  --font: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
-  --text-xs: 0.72rem;
-  --text-sm: 0.82rem;
-  --text-md: 0.95rem;
-  --text-lg: 1.15rem;
-  --text-xl: 1.4rem;
+  /* Type — platform stack; skip webfonts on cold start */
+  --font: system-ui, "Segoe UI", ui-sans-serif, -apple-system, sans-serif;
+  --font-sans: var(--font);
+  --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", monospace;
+  --text-xs: clamp(0.68rem, 0.62rem + 0.3vw, 0.75rem);
+  --text-sm: clamp(0.78rem, 0.72rem + 0.35vw, 0.88rem);
+  --text-md: clamp(0.9rem, 0.82rem + 0.4vw, 1rem);
+  --text-lg: clamp(1.05rem, 0.95rem + 0.6vw, 1.2rem);
+  --text-xl: clamp(1.2rem, 1.05rem + 0.9vw, 1.5rem);
   --leading-tight: 1.25;
   --leading-body: 1.45;
 
@@ -147,10 +148,21 @@
   top: var(--space-2);
 }
 
+html {
+  color-scheme: dark;
+  overflow-x: clip;
+}
+
 html,
 body,
 #root {
   min-height: 100%;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: pretty;
 }
 
 body {
@@ -184,6 +196,7 @@ a {
   flex-direction: column;
   max-width: var(--content-max);
   margin: 0 auto;
+  padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
 }
 
 /*
@@ -196,7 +209,6 @@ a {
   transition:
     transform var(--duration) var(--ease-out),
     opacity var(--duration) var(--ease-out);
-  will-change: transform;
 }
 
 .app-shell.is-chrome-collapsed .app-topbar {
@@ -346,6 +358,8 @@ a {
 .app-main {
   flex: 1;
   padding: 0 0.85rem calc(var(--bottom-nav-height) + var(--safe-bottom) + 1rem);
+  container-type: inline-size;
+  container-name: app-shell;
 }
 
 .screen {
@@ -903,6 +917,8 @@ a {
   border-top: 1px solid var(--border);
   backdrop-filter: blur(14px);
   padding-bottom: var(--safe-bottom);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 /*
@@ -952,6 +968,10 @@ a {
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .bottom-nav-more {
@@ -1380,7 +1400,7 @@ a {
   background: var(--bg);
 }
 
-@media (min-width: 560px) {
+@container app-shell (min-width: 560px) {
   .lineup-row {
     grid-template-columns: 3rem minmax(0, 1fr) 4.25rem;
     gap: var(--space-3);
@@ -1556,7 +1576,7 @@ a {
   padding-left: 0;
 }
 
-@media (min-width: 720px) {
+@container app-shell (min-width: 720px) {
   .matchup-board-head,
   .matchup-board-row {
     grid-template-columns: minmax(0, 1fr) 3rem minmax(0, 1fr);
@@ -1572,7 +1592,7 @@ a {
   }
 }
 
-@media (max-width: 480px) {
+@container app-shell (max-width: 480px) {
   .matchup-board-you,
   .matchup-board-opp {
     grid-template-columns: minmax(0, 1fr);
@@ -1590,6 +1610,14 @@ a {
   .matchup-board-you .lineup-proj {
     justify-items: start;
     order: 2;
+  }
+
+  .lineup-summary-value {
+    font-size: var(--text-lg);
+  }
+
+  .lineup-name {
+    white-space: normal;
   }
 }
 
@@ -2090,7 +2118,7 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 680px) {
+@container app-shell (max-width: 680px) {
   .draft-board-controls,
   .draft-player-grid {
     grid-template-columns: 1fr;
@@ -2129,7 +2157,7 @@ a {
     padding: 0;
     margin: -1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
     white-space: nowrap;
     border: 0;
   }
@@ -2174,7 +2202,7 @@ a {
   }
 }
 
-@media (min-width: 681px) {
+@container app-shell (min-width: 681px) {
   .draft-checklist-caveat {
     display: block;
     margin: 0 0 0.45rem;
@@ -2278,7 +2306,9 @@ a {
   .bottom-nav a {
     font-size: 0.75rem;
   }
+}
 
+@container app-shell (min-width: 768px) {
   .placeholder-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -2348,6 +2378,13 @@ a {
 }
 
 @media (min-width: 640px) {
+  .stack .btn-primary,
+  .stack .btn-ghost {
+    width: auto;
+  }
+}
+
+@container app-shell (min-width: 640px) {
   .stack .btn-primary,
   .stack .btn-ghost {
     width: auto;
@@ -2489,3 +2526,292 @@ a {
     place-items: center;
   }
 }
+
+@container app-shell (min-width: 640px) {
+  .player-card-backdrop {
+    place-items: center;
+  }
+}
+
+/* —— As-of vintage chrome (projection boards) —— */
+
+.as-of-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  min-height: 2.15rem;
+  margin: 0 0 var(--space-3);
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  contain: layout;
+}
+
+.as-of-chrome.is-stale,
+.as-of-chrome.is-unknown {
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 45%, var(--border));
+  background: color-mix(in srgb, var(--warning) 10%, var(--bg-panel));
+}
+
+.as-of-chrome.is-pending {
+  pointer-events: none;
+}
+
+.as-of-chrome .skel-as-of {
+  width: 11.5rem;
+  min-height: 0.75rem;
+}
+
+.as-of-chrome time {
+  font-weight: 800;
+  color: inherit;
+}
+
+/* Skeletons share the loaded row grid to avoid layout jump. */
+.skel {
+  display: block;
+  min-height: 0.85rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--text-muted) 22%, var(--bg));
+}
+
+.skel-name {
+  min-height: 1rem;
+  width: 70%;
+}
+
+.skel-proj,
+.skel-stat {
+  width: 2.6rem;
+  min-height: 1.1rem;
+}
+
+.skel-slot,
+.skel-rank {
+  width: 1.8rem;
+}
+
+.skel-action {
+  width: 4.5rem;
+  min-height: 1.6rem;
+}
+
+.projection-skeleton .matchup-board-row,
+.projection-skeleton .draft-player-card,
+.projection-skeleton .draft-checklist-row,
+.projection-skeleton .waiver-item {
+  pointer-events: none;
+  animation: none;
+}
+
+/* Compact projection rows: default ≤8 columns, color only for injury/sit/stale. */
+.projection-table .matchup-board-row,
+.lineup-list .lineup-row {
+  padding-block: 0.4rem;
+  min-height: 2.75rem;
+}
+
+.projection-table .lineup-proj-range,
+.lineup-list .lineup-proj-range {
+  display: none;
+}
+
+.matchup-board-row,
+.draft-player-card,
+.draft-checklist-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 2.85rem;
+}
+
+.waiver-list.projection-table .waiver-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 3.6rem;
+}
+
+.draft-player-grid.projection-table,
+.draft-player-grid.projection-skeleton {
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+}
+
+.draft-player-card {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr) 4.25rem 4.25rem auto;
+  grid-template-areas:
+    "rank name vorp pts action"
+    ". note note note note";
+  align-items: center;
+  gap: 0.3rem 0.45rem;
+  padding: 0.4rem 0.5rem;
+}
+
+.draft-player-card-header,
+.draft-player-card .draft-card-stats {
+  display: contents;
+}
+
+.draft-player-card .draft-rank {
+  grid-area: rank;
+}
+
+.draft-player-card .draft-player-identity {
+  grid-area: name;
+}
+
+.draft-player-card .draft-player-action {
+  grid-area: action;
+}
+
+.draft-player-card .draft-card-stat:nth-child(1) {
+  grid-area: vorp;
+}
+
+.draft-player-card .draft-card-stat:nth-child(2) {
+  grid-area: pts;
+}
+
+.draft-player-card .draft-card-stat {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.draft-player-card .draft-card-stat .hint,
+.draft-player-card .draft-card-stat .label {
+  display: none;
+}
+
+.draft-player-card .draft-card-stat strong {
+  font-size: 0.95rem;
+}
+
+.draft-player-card .draft-replacement-note {
+  grid-area: note;
+  margin: 0;
+  font-size: 0.62rem;
+}
+
+.draft-player-card.is-skeleton .skel-rank {
+  grid-area: rank;
+}
+
+.draft-player-card.is-skeleton .skel-name {
+  grid-area: name;
+}
+
+.draft-player-card.is-skeleton .skel-stat:nth-child(3) {
+  grid-area: vorp;
+}
+
+.draft-player-card.is-skeleton .skel-stat:nth-child(4) {
+  grid-area: pts;
+}
+
+.draft-player-card.is-skeleton .skel-action {
+  grid-area: action;
+}
+
+.draft-checklist-row.is-skeleton .skel-name {
+  width: 55%;
+}
+
+.waiver-list.projection-table,
+.waiver-list.projection-skeleton {
+  list-style: none;
+  padding-left: 0;
+}
+
+.waiver-list.projection-table .waiver-item,
+.waiver-list.projection-skeleton .waiver-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.4rem 3.5rem 6.25rem;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+  padding-block: 0.4rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.waiver-list.projection-table .waiver-name,
+.waiver-list.projection-skeleton .waiver-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+}
+
+.waiver-list.projection-table .waiver-util,
+.waiver-list.projection-table .faab-range {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.waiver-list.projection-table .rationale-list,
+.waiver-list.projection-table .waiver-rationale-empty,
+.waiver-injury,
+.waiver-list.projection-skeleton .skel-rationale {
+  grid-column: 1 / -1;
+}
+
+.waiver-list.projection-table .rationale-list {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+
+.waiver-list.projection-skeleton .skel-rationale {
+  height: 0.55rem;
+  width: 72%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matchup-board-row,
+  .lineup-row {
+    animation: none;
+  }
+}
+
+.matchup-chip.projection-skeleton {
+  min-height: 3.1rem;
+}
+
+.matchup-screen .pos-badge,
+.draft-player-card .pos-badge,
+.draft-checklist-row .pos-badge,
+.waiver-list .pos-badge {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.draft-rank-pill.is-strong,
+.draft-rank-pill.is-mild,
+.draft-rank-pill.is-muted {
+  background: transparent;
+  color: var(--text-muted);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+@container app-shell (max-width: 520px) {
+  .draft-player-card {
+    grid-template-columns: 2.2rem minmax(0, 1fr) 3.4rem 3.4rem;
+    grid-template-areas:
+      "rank name vorp pts"
+      ". note note action";
+  }
+}
+

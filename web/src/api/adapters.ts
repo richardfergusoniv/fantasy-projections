@@ -19,13 +19,14 @@ import type {
   TradeEvaluation,
   WaiverRecommendation,
 } from "./types";
+import { readPublishedAsOf } from "../components/asOfVintage";
 
 type RawRecord = Record<string, unknown>;
 
 function metaFrom(raw: RawRecord): { data_as_of: string; projection_run_id: string } {
   const nested = raw.meta as RawRecord | undefined;
   return {
-    data_as_of: String(nested?.data_as_of ?? raw.data_as_of ?? new Date().toISOString()),
+    data_as_of: readPublishedAsOf(nested?.data_as_of ?? raw.data_as_of) ?? "",
     projection_run_id: String(nested?.projection_run_id ?? raw.projection_run_id ?? "fixture"),
   };
 }

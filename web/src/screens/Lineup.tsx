@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import { AsyncStateBanner } from "../components/AsyncState";
+import { AsOfChrome } from "../components/AsOfChrome";
 import { CitationList } from "../components/CitationList";
 import { FreshnessBadge } from "../components/FreshnessBadge";
 import { isActionableInjuryEvidence } from "../components/injuryEvidence";
 import { LineupSourceTabs } from "../components/LineupSourceTabs";
 import { OpponentModeToggle, OPPONENT_MODES } from "../components/OpponentModeToggle";
 import { Panel } from "../components/Panel";
+import { ProjectionRowSkeleton } from "../components/ProjectionRowSkeleton";
 import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
 import { useInjuryEvidence } from "../hooks/useInjuryEvidence";
@@ -410,6 +412,14 @@ export function LineupScreen() {
           </p>
         </div>
 
+        {noLeague || noWeek ? null : (
+          <AsOfChrome
+            dataAsOf={lineup.data?.meta.data_as_of}
+            runId={lineup.data?.meta.projection_run_id}
+            pending={!lineup.data && !lineup.error}
+          />
+        )}
+
         {noLeague ? (
           <p className="state-notice state-empty">
             <span className="state-glyph" aria-hidden="true">
@@ -449,6 +459,12 @@ export function LineupScreen() {
           />
         )}
 
+        {lineup.loading && !lineup.data && !noLeague && !noWeek ? (
+          <div className="projection-table" aria-busy="true">
+            <ProjectionRowSkeleton variant="matchup" rows={8} />
+          </div>
+        ) : null}
+
         {lineup.data ? (
           <>
             <div className="lineup-summary matchup-summary" aria-label="Matchup summary">
@@ -482,7 +498,7 @@ export function LineupScreen() {
               <div className="matchup-side-label matchup-side-label-opp">Opponent</div>
             </div>
 
-            <ul className="matchup-board" aria-label="Starter matchup board">
+            <ul className="matchup-board projection-table" aria-label="Starter matchup board">
               {boardRows.map((row, index) => (
                 <li key={`${row.slot}-${index}`} className="matchup-board-row">
                   <div className="matchup-board-you">

@@ -12,6 +12,7 @@ import {
   adaptTradeEvaluation,
   adaptWaivers,
 } from "./adapters";
+import { readPublishedAsOf } from "../components/asOfVintage";
 import type {
   ApiError,
   AssistantResponse,
@@ -377,7 +378,7 @@ export class ApiClient {
       points_p10: Number((raw.quantiles as RawRecord)?.p10 ?? 0),
       points_p90: Number((raw.quantiles as RawRecord)?.p90 ?? 0),
       meta: {
-        data_as_of: String(raw.data_as_of ?? new Date().toISOString()),
+        data_as_of: readPublishedAsOf(raw.data_as_of) ?? "",
         projection_run_id: String(raw.projection_run_id ?? "fixture"),
       },
     }));
@@ -473,7 +474,7 @@ export class ApiClient {
           caveats: ((board.caveats as unknown[]) ?? []).map(String),
         },
         meta: {
-          data_as_of: String(board.data_as_of ?? raw.data_as_of ?? new Date().toISOString()),
+          data_as_of: readPublishedAsOf(board.data_as_of ?? raw.data_as_of) ?? "",
           projection_run_id: String(board.projection_run_id ?? raw.projection_run_id ?? "fixture"),
         },
       };
@@ -609,7 +610,8 @@ export class ApiClient {
               : undefined,
         },
         meta: {
-          data_as_of: String(raw.data_as_of ?? new Date().toISOString()),
+          data_as_of:
+            readPublishedAsOf(raw.data_as_of ?? checklistMeta.data_as_of) ?? "",
           projection_run_id: String(raw.projection_run_id ?? "checklist"),
         },
       };

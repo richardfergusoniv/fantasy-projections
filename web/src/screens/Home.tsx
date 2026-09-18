@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { AppBuildStamp } from "../components/AppBuildStamp";
 import { AsyncStateBanner } from "../components/AsyncState";
+import { AsOfChrome } from "../components/AsOfChrome";
 import { LineupSourceTabs } from "../components/LineupSourceTabs";
+import { ProjectionRowSkeleton } from "../components/ProjectionRowSkeleton";
 import { Panel } from "../components/Panel";
 import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
@@ -189,6 +191,14 @@ export function HomeScreen() {
           emptyMessage="No lineup recommendation published for the selected league and week."
           onRetry={() => void lineup.refresh()}
         />
+        <AsOfChrome
+          dataAsOf={lineup.data?.meta.data_as_of}
+          runId={lineup.data?.meta.projection_run_id}
+          pending={!lineup.data && !lineup.error}
+        />
+        {lineup.loading && !lineup.data ? (
+          <ProjectionRowSkeleton variant="snapshot" rows={1} />
+        ) : null}
         {lineup.data ? (
           <div className="matchup-card matchup-chip" data-testid="matchup-snapshot-chip">
             <div className="matchup-chip-score">

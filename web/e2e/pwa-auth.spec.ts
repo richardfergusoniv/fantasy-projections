@@ -79,6 +79,8 @@ test.describe("PWA auth and manifest (production build)", () => {
     // Navigations stay NetworkOnly; API/health must not get a Workbox route
     // (NetworkOnly on API turns timeouts into opaque no-response errors).
     expect(body).toContain("NetworkOnly");
+    expect(body).toContain("CacheFirst");
+    expect(body).toContain("hashed-static-assets");
     expect(body).not.toContain("NetworkFirst");
     expect(body).not.toContain("html-navigations");
     // vite-plugin-pwa stringifies urlPattern into sw.js without bundling imports.

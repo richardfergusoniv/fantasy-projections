@@ -1,8 +1,11 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { AsyncStateBanner } from "../components/AsyncState";
+import { AsOfChrome } from "../components/AsOfChrome";
 import { FreshnessBadge } from "../components/FreshnessBadge";
 import { Panel } from "../components/Panel";
+import { ProjectionRowSkeleton } from "../components/ProjectionRowSkeleton";
 import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
 import { api } from "../api/client";
@@ -12,6 +15,7 @@ import type {
   DraftChecklist,
   DraftChecklistEntry,
 } from "../api/types";
+import { pickAsOfStamp } from "../components/asOfVintage";
 import { readLocal, writeLocal } from "../storage/safeStorage";
 
 const DRAFTED_STORAGE_PREFIX = "fantasy-decisions:drafted";
@@ -283,7 +287,7 @@ export function DraftScreen() {
   const [maxAvgRank, setMaxAvgRank] = useState(0);
   const [dataAsOf, setDataAsOf] = useState<string | undefined>();
   const [runId, setRunId] = useState<string | undefined>();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(() => Boolean(selectedLeagueId));
   const [error, setError] = useState<string | null>(null);
   // Store the id, not a snapshot: a league switch or refetch while the card is
   // open must move the card to the new data (or close it), never leave a
@@ -410,7 +414,9 @@ export function DraftScreen() {
         setProfile(board?.profile);
         setSearch("");
         setVisibleCount(25);
-        setDataAsOf(checklistPayload?.meta.data_as_of ?? board?.meta.data_as_of);
+        setDataAsOf(
+          pickAsOfStamp(checklistPayload?.meta.data_as_of, board?.meta.data_as_of) ?? undefined,
+        );
         setRunId(
           checklistPayload?.meta.projection_run_id ?? board?.meta.projection_run_id,
         );
@@ -588,6 +594,13 @@ export function DraftScreen() {
           ))}
         </div>
 
+        <AsOfChrome
+          dataAsOf={dataAsOf}
+          availableAt={market?.as_of ?? market?.comparison_generated_at}
+          runId={runId}
+          pending={loading}
+        />
+
         <AsyncStateBanner
           label="Draft board"
           loading={loading}
@@ -616,6 +629,15 @@ export function DraftScreen() {
                 }. Promote a release to populate it.`
           }
         />
+
+        {loading &&
+        ((pane === "checklist" && !checklist?.entries.length) ||
+          (pane !== "checklist" && entries.length === 0)) ? (
+          <ProjectionRowSkeleton
+            variant={pane === "checklist" ? "checklist" : "draft"}
+            rows={6}
+          />
+        ) : null}
 
         <div className={`draft-board-controls${pane === "checklist" ? " is-checklist" : ""}`}>
           <div className="field draft-search-field">
@@ -756,7 +778,7 @@ export function DraftScreen() {
                 ) : null}
               </span>
             </div>
-            <div className="draft-checklist-list" role="list">
+            <div className="draft-checklist-list projection-table" role="list">
               {checklistVisible.map((entry: DraftChecklistEntry, index: number) => {
                 const drafted = draftedPlayerSet.has(entry.player_id);
                 const keys = criteriaForEntry(checklist, entry);
@@ -830,7 +852,7 @@ export function DraftScreen() {
                           </span>
                         </div>
                         <div className="draft-rank-pills" aria-label={`${entry.name} ranks`}>
-                          {keys.map((key) => {
+                          {keys.slice(0, 4).map((key) => {
                             const rank = entry.ranks[key];
                             const label = shortCheckLabel(key, criteriaLabels);
                             const display =
@@ -941,7 +963,7 @@ export function DraftScreen() {
                 ) : null}
               </div>
             ) : null}
-            <div className="draft-player-grid" role="list">
+            <div className="draft-player-grid projection-table" role="list">
               {visibleEntries.map((entry, index) => {
                 const drafted = draftedPlayerSet.has(entry.player_id);
                 const prevTier = index > 0 ? visibleEntries[index - 1]?.tier : undefined;
@@ -1025,73 +1047,76 @@ export function DraftScreen() {
         ) : null}
       </Panel>
 
-      {selectedPlayer ? (
-        <div
-          className="player-card-backdrop"
-          role="presentation"
-          onClick={() => setSelectedPlayerId(null)}
-        >
-          <div
-            ref={dialogRef}
-            className="player-card-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="player-card-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="player-card-header">
-              <div>
-                <h2 id="player-card-title">{selectedPlayer.name}</h2>
-                <p className="muted">
-                  <span className={`pos-badge ${selectedPlayer.position}`}>
-                    {selectedPlayer.position}
-                  </span>
-                  {selectedPlayer.team ? ` · ${selectedPlayer.team}` : ""}
-                  {selectedPlayer.adp != null ? ` · ADP ${selectedPlayer.adp}` : ""}
-                  {selectedPlayer.vegas_fp != null
-                    ? ` · Vegas FP ${selectedPlayer.vegas_fp.toFixed(1)}`
-                    : " · Vegas FP —"}
-                </p>
-              </div>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                aria-label="Close player card"
-                onClick={() => setSelectedPlayerId(null)}
+      {selectedPlayer
+        ? createPortal(
+            <div
+              className="player-card-backdrop"
+              role="presentation"
+              onClick={() => setSelectedPlayerId(null)}
+            >
+              <div
+                ref={dialogRef}
+                className="player-card-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="player-card-title"
+                onClick={(event) => event.stopPropagation()}
               >
-                Close
-              </button>
-            </div>
-            <p className="muted player-card-coverage">{coverageCopy(cardRows)}</p>
-            {cardRows.length ? (
-              <>
-                <dl className="player-card-markets">
-                  {cardRows.map((row) => (
-                    <div key={row.key} className="player-card-market-row">
-                      <dt>
-                        {row.label}
-                        <span
-                          className={`player-card-kind is-${row.kind}`}
-                          title={MARKET_KIND_TITLES[row.kind] ?? "Source unknown"}
-                        >
-                          {MARKET_KIND_LABELS[row.kind] ?? "—"}
-                        </span>
-                      </dt>
-                      <dd>{row.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <p className="muted player-card-footnote">
-                  These rows are exactly what Vegas FP adds up: half-PPR scoring, 4-point
-                  passing TDs, no interceptions or fumbles.
-                </p>
-              </>
-            ) : (
-              <p className="muted">No season prop lines available for this player.</p>
-            )}
-          </div>
-        </div>
-      ) : null}
+                <div className="player-card-header">
+                  <div>
+                    <h2 id="player-card-title">{selectedPlayer.name}</h2>
+                    <p className="muted">
+                      <span className={`pos-badge ${selectedPlayer.position}`}>
+                        {selectedPlayer.position}
+                      </span>
+                      {selectedPlayer.team ? ` · ${selectedPlayer.team}` : ""}
+                      {selectedPlayer.adp != null ? ` · ADP ${selectedPlayer.adp}` : ""}
+                      {selectedPlayer.vegas_fp != null
+                        ? ` · Vegas FP ${selectedPlayer.vegas_fp.toFixed(1)}`
+                        : " · Vegas FP —"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    aria-label="Close player card"
+                    onClick={() => setSelectedPlayerId(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+                <p className="muted player-card-coverage">{coverageCopy(cardRows)}</p>
+                {cardRows.length ? (
+                  <>
+                    <dl className="player-card-markets">
+                      {cardRows.map((row) => (
+                        <div key={row.key} className="player-card-market-row">
+                          <dt>
+                            {row.label}
+                            <span
+                              className={`player-card-kind is-${row.kind}`}
+                              title={MARKET_KIND_TITLES[row.kind] ?? "Source unknown"}
+                            >
+                              {MARKET_KIND_LABELS[row.kind] ?? "—"}
+                            </span>
+                          </dt>
+                          <dd>{row.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    <p className="muted player-card-footnote">
+                      These rows are exactly what Vegas FP adds up: half-PPR scoring, 4-point
+                      passing TDs, no interceptions or fumbles.
+                    </p>
+                  </>
+                ) : (
+                  <p className="muted">No season prop lines available for this player.</p>
+                )}
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

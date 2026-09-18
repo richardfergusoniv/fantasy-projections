@@ -205,6 +205,7 @@ describe("DraftScreen", () => {
     const vegasProps = screen.getByRole("tab", { name: "Vegas Props" });
     expect(leagueValue).toHaveAttribute("aria-selected", "true");
     expect(vegasProps).toHaveAttribute("aria-selected", "false");
+    expect(await screen.findByTestId("as-of-chrome")).toHaveTextContent(/As of /);
 
     fireEvent.click(vegasProps);
     expect(await screen.findByText(/Market as of ADP 2026-09-03/i)).toBeInTheDocument();
@@ -222,6 +223,26 @@ describe("DraftScreen", () => {
       "aria-selected",
       "true",
     );
+  });
+
+  it("shows draft-shaped skeletons while the board is loading", async () => {
+    getDraftBoard.mockReturnValue(new Promise(() => {}));
+    getDraftChecklist.mockReturnValue(new Promise(() => {}));
+    renderDraft();
+    expect(await screen.findByTestId("projection-skeleton")).toBeInTheDocument();
+    expect(screen.getByTestId("projection-skeleton").querySelector(".draft-player-card")).not.toBeNull();
+    expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-pending/);
+    expect(screen.getByTestId("as-of-chrome")).not.toHaveTextContent(/As-of unknown/i);
+  });
+
+  it("shows checklist-shaped skeletons on the Vegas Props pane while loading", async () => {
+    getDraftBoard.mockReturnValue(new Promise(() => {}));
+    getDraftChecklist.mockReturnValue(new Promise(() => {}));
+    renderDraft("/draft?pane=checklist");
+    expect(await screen.findByTestId("projection-skeleton")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("projection-skeleton").querySelector(".draft-checklist-row"),
+    ).not.toBeNull();
   });
 
   it("opens Vegas Props from the pane query", async () => {
@@ -354,6 +375,7 @@ describe("DraftScreen", () => {
     fireEvent.click(screen.getByRole("button", { name: "WR Player 1" }));
     const dialog = screen.getByRole("dialog", { name: "WR Player 1" });
     expect(dialog).toBeInTheDocument();
+    expect(dialog.closest(".player-card-backdrop")?.parentElement).toBe(document.body);
     expect(within(dialog).getByText("Rec Yds")).toBeInTheDocument();
     expect(within(dialog).getByText("900.5")).toBeInTheDocument();
     expect(within(dialog).getAllByText("book").length).toBeGreaterThan(0);

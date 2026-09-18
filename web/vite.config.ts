@@ -89,6 +89,26 @@ export default defineConfig({
               !url.pathname.startsWith("/health/"),
             handler: "NetworkOnly",
           },
+          {
+            // Hashed Vite assets are content-addressed. CacheFirst matches
+            // Chrome's static-asset guidance; keep the matcher inline — the
+            // plugin stringifies urlPattern into sw.js and will not bundle
+            // `isHashedStaticAssetPath`.
+            urlPattern: ({ request, url }: { request: Request; url: URL }) =>
+              url.pathname.startsWith("/assets/") &&
+              ["script", "style", "font", "image", "worker"].includes(
+                request.destination,
+              ),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "hashed-static-assets",
+              expiration: {
+                maxEntries: 64,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           // Do not register a Workbox route for /api or /health. Unmatched
           // requests fall through to the browser network stack (no caching,
           // native fetch errors instead of Workbox no-response).

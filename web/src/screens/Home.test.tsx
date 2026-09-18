@@ -74,6 +74,7 @@ const getWaivers = vi.fn();
 const getOperationsStatus = vi.fn();
 
 vi.mock("../api/client", () => ({
+  recoveryActionForError: () => null,
   api: {
     getLeagues: (...args: unknown[]) => getLeagues(...args),
     getRosters: (...args: unknown[]) => getRosters(...args),
@@ -126,6 +127,34 @@ describe("HomeScreen urgent decisions", () => {
     expect(screen.getByRole("tab", { name: "League Value" })).toBeInTheDocument();
     expect(screen.getByTestId("app-build-stamp")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh" })).toBeInTheDocument();
+    expect(screen.getByTestId("as-of-chrome")).toHaveTextContent(/As of /);
+  });
+
+  it("shows a chip-shaped skeleton while the snapshot is loading", async () => {
+    getLineup.mockReturnValue(new Promise(() => {}));
+    renderHome();
+    expect(await screen.findByTestId("projection-skeleton")).toBeInTheDocument();
+    expect(screen.getByTestId("projection-skeleton")).toHaveClass("matchup-chip");
+    expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-pending/);
+    expect(screen.getByTestId("as-of-chrome")).not.toHaveTextContent(/As-of unknown/i);
+  });
+
+  it("shows as-of unknown when the snapshot omitted a vintage", async () => {
+    getLineup.mockResolvedValue(
+      lineup({ meta: { data_as_of: "", projection_run_id: "weekly-2026-w01" } }),
+    );
+    renderHome();
+    expect(await screen.findByTestId("matchup-snapshot-chip")).toBeInTheDocument();
+    expect(screen.getByTestId("as-of-chrome")).toHaveTextContent(/As-of unknown/i);
+    expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-unknown/);
+  });
+
+  it("shows as-of unknown after an error instead of staying pending", async () => {
+    getLineup.mockRejectedValue(new Error("lineup unavailable"));
+    renderHome();
+    expect(await screen.findByText(/As-of unknown/i)).toBeInTheDocument();
+    expect(screen.getByTestId("as-of-chrome").className).toMatch(/is-unknown/);
+    expect(screen.getByTestId("as-of-chrome").className).not.toMatch(/is-pending/);
   });
 
   it("persists Vegas / League Value as the app projection preference", async () => {

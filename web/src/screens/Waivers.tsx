@@ -1,8 +1,11 @@
 import { useMemo } from "react";
 import { AsyncStateBanner } from "../components/AsyncState";
+import { AsOfChrome } from "../components/AsOfChrome";
 import { CitationList } from "../components/CitationList";
 import { FreshnessBadge } from "../components/FreshnessBadge";
+import { isActionableInjuryEvidence } from "../components/injuryEvidence";
 import { Panel } from "../components/Panel";
+import { ProjectionRowSkeleton } from "../components/ProjectionRowSkeleton";
 import { MaybeNumber } from "../components/UncertaintyRange";
 import { useAppState } from "../hooks/useAppState";
 import { useInjuryEvidence } from "../hooks/useInjuryEvidence";
@@ -66,23 +69,34 @@ export function WaiversScreen() {
             </span>
           </p>
         ) : (
-          <AsyncStateBanner
-            label="Waiver recommendations"
-            loading={waivers.loading}
-            offline={waivers.offline}
-            error={waivers.error}
-            fromCache={waivers.fromCache}
-            cachedAt={waivers.cachedAt}
-            dataAsOf={waivers.data?.meta.data_as_of}
-            hasData={Boolean(waivers.data)}
-            isEmpty={Boolean(waivers.data && waivers.data.adds.length === 0)}
-            missing={missing}
-            emptyMessage={`No waiver targets published for week ${week ?? "?"} of ${
-              selectedLeague?.name ?? "this league"
-            }. Available weeks: ${availableWeeks.join(", ") || "none"}.`}
-            onRetry={() => void waivers.refresh()}
-          />
+          <>
+            <AsOfChrome
+              dataAsOf={waivers.data?.meta.data_as_of}
+              runId={waivers.data?.meta.projection_run_id}
+              pending={!waivers.data && !waivers.error}
+            />
+            <AsyncStateBanner
+              label="Waiver recommendations"
+              loading={waivers.loading}
+              offline={waivers.offline}
+              error={waivers.error}
+              fromCache={waivers.fromCache}
+              cachedAt={waivers.cachedAt}
+              dataAsOf={waivers.data?.meta.data_as_of}
+              hasData={Boolean(waivers.data)}
+              isEmpty={Boolean(waivers.data && waivers.data.adds.length === 0)}
+              missing={missing}
+              emptyMessage={`No waiver targets published for week ${week ?? "?"} of ${
+                selectedLeague?.name ?? "this league"
+              }. Available weeks: ${availableWeeks.join(", ") || "none"}.`}
+              onRetry={() => void waivers.refresh()}
+            />
+          </>
         )}
+
+        {waivers.loading && !waivers.data && !noLeague && !noWeek ? (
+          <ProjectionRowSkeleton variant="waiver" rows={5} />
+        ) : null}
 
         {waivers.data ? (
           <>
@@ -90,49 +104,63 @@ export function WaiversScreen() {
               Release <code>{waivers.data.meta.projection_run_id}</code> · week {waivers.data.week}
             </p>
             {waivers.data.adds.length ? (
-              <ul className="waiver-list">
+              <ul className="waiver-list projection-table">
                 {waivers.data.adds.map((add) => {
                   const playerEvidence = evidence.byPlayerId[add.player_id];
+                  const injury = isActionableInjuryEvidence(playerEvidence)
+                    ? playerEvidence
+                    : null;
                   return (
-                    <li key={add.player_id} className="waiver-item">
-                      <div className="waiver-main">
-                        <p className="waiver-name">
-                          <strong>{add.name}</strong>{" "}
-                          <span className={`pos-badge ${add.position}`}>{add.position}</span>
-                        </p>
-                        {add.rationale.length ? (
-                          <ul className="rationale-list">
-                            {add.rationale.map((line) => (
-                              <li key={line}>{line}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="muted">No rationale published for this target.</p>
-                        )}
-                        <p className="muted">
-                          Confidence: <MaybeNumber value={add.confidence} digits={0} percent /> ·
-                          start probability:{" "}
-                          <MaybeNumber value={add.start_probability} digits={0} percent /> ·
-                          utility over replacement:{" "}
-                          <MaybeNumber value={add.incremental_utility} digits={1} suffix=" pts" />
-                        </p>
-                        {playerEvidence ? (
-                          <div className="evidence">
-                            <p className="muted">
-                              Injury status <strong>{playerEvidence.status}</strong> —{" "}
-                              {playerEvidence.summary}
-                            </p>
-                            <CitationList
-                              citations={playerEvidence.sources}
-                              label={`Injury sources for ${add.name}`}
-                              emptyMessage="No injury sources published for this player."
-                            />
-                          </div>
-                        ) : null}
-                      </div>
-                      <div className="faab-range">
+                    <li
+                      key={add.player_id}
+                      className="waiver-item"
+                      title={
+                        [
+                          add.confidence != null ? `Confidence ${Math.round(add.confidence * 100)}%` : null,
+                          add.start_probability != null
+                            ? `Start ${Math.round(add.start_probability * 100)}%`
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ") || undefined
+                      }
+                    >
+                      <strong className="waiver-name">{add.name}</strong>
+                      <span className={`pos-badge ${add.position}`}>{add.position}</span>
+                      <span className="waiver-util">
+                        <MaybeNumber value={add.incremental_utility} digits={1} suffix=" u" />
+                      </span>
+                      <span className="faab-range">
                         FAAB ${add.faab_min}–${add.faab_max}
-                      </div>
+                      </span>
+                      {add.rationale.length ? (
+                        <ul className="rationale-list">
+                          {add.rationale.map((line) => (
+                            <li key={line}>{line}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="muted waiver-rationale-empty">
+                          No rationale published for this target.
+                        </p>
+                      )}
+                      {injury ? (
+                        <div className="evidence waiver-injury">
+                          <p className="muted">
+                            <span
+                              className={`injury-pill injury-${injury.status.toLowerCase()}`}
+                            >
+                              {injury.status}
+                            </span>{" "}
+                            {injury.summary}
+                          </p>
+                          <CitationList
+                            citations={injury.sources}
+                            label={`Injury sources for ${add.name}`}
+                            emptyMessage="No injury sources published for this player."
+                          />
+                        </div>
+                      ) : null}
                     </li>
                   );
                 })}

@@ -80,6 +80,16 @@ describe("adaptLineup", () => {
     expect(lineup.win_probability).toBe(0.62);
   });
 
+  it("does not fabricate data_as_of when the API omitted the vintage", () => {
+    const lineup = adaptLineup({
+      week: 1,
+      starters: [],
+      swaps: [],
+      expected_points: 110,
+    });
+    expect(lineup.meta.data_as_of).toBe("");
+  });
+
   it("maps per-starter points, team, and board_source without inventing opponent", () => {
     const lineup = adaptLineup({
       week: 2,
