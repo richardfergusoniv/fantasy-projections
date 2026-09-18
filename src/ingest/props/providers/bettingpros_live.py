@@ -6,7 +6,9 @@ web UI calls (same capture surface as the draft-assistant vegas_raw dump).
 Endpoints
 ---------
 - ``GET /v3/events?sport=NFL&season={season}&week={week}``
-- ``GET /v3/offers?sport=NFL&market_id={ids}&event_id={id}&book_id=0&limit=10&page=N``
+- ``GET /v3/offers?sport=NFL&market_id={ids}&event_id={id}&limit=10&page=N``
+  (all books; we filter client-side — never Role-1-emit ``book_id=0`` consensus)
+- ``GET /v3/books`` (id → sportsbook name)
 - ``GET /v3/markets?sport=NFL`` (catalog reference; market ids are pinned below)
 
 Auth uses the site's browser-embedded ``x-api-key``, supplied at runtime via
@@ -16,21 +18,32 @@ provider isolation skips BettingPros without aborting DK/FD.
 ``api.bettingpros.com`` robots.txt disallows crawling; see
 ``docs/ops/BETTINGPROS_LIVE_WEEKLY_SCRAPE.md``.
 
-Role 1 emits BettingPros **consensus** (``book_id=0``) as sportsbook
-``bettingpros`` so we do not double-count DraftKings/FanDuel or blend
-prediction markets into Role 1/2 means.
+Role 1 / Role 2 emission
+------------------------
+Emits **per-book** quotes (``source=bettingpros``, ``sportsbook=<book name>``),
+matching the season-path approach in ``draft_assistant/vegas_consensus.py``:
+
+- Skip ``book_id=0`` (BettingPros Consensus) — that aggregate already blends
+  DK/FD (and can include prediction markets); treating it as an independent
+  book would inflate ``book_count`` / double-weight DK/FD in ``robust_median``.
+- Skip prediction markets (Kalshi / Polymarket / …).
+- Skip DraftKings / FanDuel — already scraped by primary live providers.
+- Skip DFS / pick'em / exchange-style boards (PrizePicks, Underdog, …).
+
+Surviving books (Caesars, BetMGM, …) are the genuine third+ books for Role 1.
 """
 
 from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 from urllib.parse import urlencode
 
 from src.ingest.props.contracts import NormalizedQuote, ProviderSnapshot
 from src.ingest.props.normalize import build_normalized_quote
 from src.ingest.props.providers.http import LiveFetchError, fetch_json
+from src.projection.market_quotes import is_prediction_market_book
 
 BP_API_BASE = "https://api.bettingpros.com/v3"
 BP_SITE = "https://www.bettingpros.com"
@@ -53,6 +66,29 @@ WEEKLY_MARKET_IDS: tuple[tuple[int, str], ...] = (
 WEEKLY_MARKET_ID_MAP: dict[int, str] = {mid: key for mid, key in WEEKLY_MARKET_IDS}
 CONSENSUS_BOOK_ID = 0
 OFFERS_PAGE_LIMIT = 10
+
+# Primary live scrapes already cover these; re-emitting from BP would
+# double-weight their lines inside Role 1 robust_median.
+PRIMARY_LIVE_SPORTSBOOKS = frozenset({"draftkings", "fanduel"})
+
+# DFS / pick'em / exchange-style boards — not traditional sportsbook O/U.
+NON_SPORTSBOOK_NAMES = frozenset(
+    {
+        "prizepicks",
+        "underdog",
+        "sleeper",
+        "dabble",
+        "fliff",
+        "betr",
+        "draftkings pick6",
+        "fanduel picks",
+        "draftkings predictions",
+        "playsqor",
+        "novig",
+        "prophetx",
+    }
+)
+
 # Closed/complete events are post-kickoff — skip for Role 1 boards.
 _SKIP_EVENT_STATUSES = frozenset(
     {"closed", "complete", "completed", "final", "cancelled", "canceled", "postponed"}
@@ -86,6 +122,28 @@ def _bp_headers(
         "Referer": referer or f"{BP_SITE}/nfl/odds/player-props/",
         "x-api-key": key,
     }
+
+
+def normalize_sportsbook_name(name: str) -> str:
+    return str(name or "").strip().lower()
+
+
+def is_eligible_role1_sportsbook(name: str) -> bool:
+    """Whether a BettingPros book name may enter Role 1 / Role 2 means."""
+    key = normalize_sportsbook_name(name)
+    if not key:
+        return False
+    if key in {"bettingpros", "bettingpros consensus", "consensus"}:
+        return False
+    if key in PRIMARY_LIVE_SPORTSBOOKS:
+        return False
+    if is_prediction_market_book(key):
+        return False
+    if key in NON_SPORTSBOOK_NAMES:
+        return False
+    if "pick6" in key or key.endswith(" predictions"):
+        return False
+    return True
 
 
 def _parse_dt(raw: Any) -> datetime | None:
@@ -132,18 +190,17 @@ def _main_line(book_entry: dict[str, Any] | None) -> tuple[float | None, float |
     return None, None
 
 
-def _selection_book(
-    selection: dict[str, Any], *, book_id: int = CONSENSUS_BOOK_ID
-) -> dict[str, Any] | None:
+def _books_on_selection(selection: dict[str, Any]) -> dict[int, dict[str, Any]]:
+    out: dict[int, dict[str, Any]] = {}
     for book in selection.get("books") or []:
         if not isinstance(book, dict):
             continue
         try:
-            if int(book.get("id")) == book_id:
-                return book
+            bid = int(book.get("id"))
         except (TypeError, ValueError):
             continue
-    return None
+        out[bid] = book
+    return out
 
 
 def parse_offer(
@@ -151,18 +208,22 @@ def parse_offer(
     *,
     event: dict[str, Any] | None,
     fetched_at: datetime,
+    books_by_id: Mapping[int, str] | None = None,
     source_url: str | None = None,
-) -> NormalizedQuote | None:
-    """Parse one BettingPros offer into a consensus NormalizedQuote."""
+) -> list[NormalizedQuote]:
+    """Parse one BettingPros offer into per-book NormalizedQuote rows.
+
+    Never emits ``book_id=0`` consensus or prediction-market / primary-live books.
+    """
     try:
         market_id = int(offer.get("market_id"))
     except (TypeError, ValueError):
-        return None
+        return []
     market = WEEKLY_MARKET_ID_MAP.get(market_id)
     if market is None:
-        return None
+        return []
     if offer.get("active") is False:
-        return None
+        return []
 
     participants = offer.get("participants") or []
     player_name = None
@@ -180,34 +241,25 @@ def parse_offer(
         if player_name:
             break
     if not player_name:
-        return None
+        return []
 
-    over_line = under_line = None
-    over_odds = under_odds = None
+    over_by_book: dict[int, tuple[float, float | None]] = {}
+    under_by_book: dict[int, tuple[float, float | None]] = {}
     for sel in offer.get("selections") or []:
         if not isinstance(sel, dict) or sel.get("active") is False:
             continue
         side = str(sel.get("selection") or sel.get("label") or "").strip().lower()
-        book = _selection_book(sel, book_id=CONSENSUS_BOOK_ID)
-        line, cost = _main_line(book)
-        if line is None:
-            continue
-        if side.startswith("over"):
-            over_line, over_odds = line, cost
-        elif side.startswith("under"):
-            under_line, under_odds = line, cost
+        for bid, book in _books_on_selection(sel).items():
+            line, cost = _main_line(book)
+            if line is None:
+                continue
+            if side.startswith("over"):
+                over_by_book[bid] = (line, cost)
+            elif side.startswith("under"):
+                under_by_book[bid] = (line, cost)
 
-    if over_line is None and under_line is None:
-        return None
-    if (
-        over_line is not None
-        and under_line is not None
-        and abs(over_line - under_line) > 1e-9
-    ):
-        # Consensus sometimes posts mismatched O/U rungs — skip rather than guess.
-        return None
-    line = over_line if over_line is not None else under_line
-    assert line is not None
+    book_ids = set(over_by_book) | set(under_by_book)
+    catalog = dict(books_by_id or {})
 
     home = away = None
     event_id = offer.get("event_id")
@@ -229,30 +281,58 @@ def parse_offer(
         elif team_u == away_u:
             opponent = home_u
 
-    return build_normalized_quote(
-        source="bettingpros",
-        sportsbook="bettingpros",
-        player_name_raw=player_name,
-        market=market,
-        line=float(line),
-        over_odds=over_odds,
-        under_odds=under_odds,
-        fetched_at=fetched_at,
-        event_id=None if event_id is None else str(event_id),
-        game_id=None if event_id is None else str(event_id),
-        player_id=None if player_id is None else str(player_id),
-        team=None if team is None else str(team).upper(),
-        opponent=opponent,
-        period="game",
-        event_start=event_start,
-        source_url=source_url,
-        kind="book",
-        raw={
-            "market_id": market_id,
-            "offer_id": offer.get("id"),
-            "book_id": CONSENSUS_BOOK_ID,
-        },
-    )
+    quotes: list[NormalizedQuote] = []
+    for bid in sorted(book_ids):
+        if bid == CONSENSUS_BOOK_ID:
+            continue
+        sportsbook = catalog.get(bid) or f"book_{bid}"
+        if not is_eligible_role1_sportsbook(sportsbook):
+            continue
+        over = over_by_book.get(bid)
+        under = under_by_book.get(bid)
+        over_line = over[0] if over else None
+        under_line = under[0] if under else None
+        over_odds = over[1] if over else None
+        under_odds = under[1] if under else None
+        if over_line is None and under_line is None:
+            continue
+        if (
+            over_line is not None
+            and under_line is not None
+            and abs(over_line - under_line) > 1e-9
+        ):
+            # Mismatched O/U rungs on the same book — skip rather than guess.
+            continue
+        line = over_line if over_line is not None else under_line
+        assert line is not None
+        quotes.append(
+            build_normalized_quote(
+                source="bettingpros",
+                sportsbook=str(sportsbook),
+                player_name_raw=player_name,
+                market=market,
+                line=float(line),
+                over_odds=over_odds,
+                under_odds=under_odds,
+                fetched_at=fetched_at,
+                event_id=None if event_id is None else str(event_id),
+                game_id=None if event_id is None else str(event_id),
+                player_id=None if player_id is None else str(player_id),
+                team=None if team is None else str(team).upper(),
+                opponent=opponent,
+                period="game",
+                event_start=event_start,
+                source_url=source_url,
+                kind="book",
+                raw={
+                    "market_id": market_id,
+                    "offer_id": offer.get("id"),
+                    "book_id": bid,
+                    "sportsbook": sportsbook,
+                },
+            )
+        )
+    return quotes
 
 
 def parse_offers(
@@ -260,6 +340,7 @@ def parse_offers(
     *,
     events_by_id: dict[str, dict[str, Any]],
     fetched_at: datetime,
+    books_by_id: Mapping[int, str] | None = None,
     source_url: str | None = None,
 ) -> list[NormalizedQuote]:
     quotes: list[NormalizedQuote] = []
@@ -270,11 +351,15 @@ def parse_offers(
         eid = offer.get("event_id")
         if eid is not None:
             event = events_by_id.get(str(eid))
-        quote = parse_offer(
-            offer, event=event, fetched_at=fetched_at, source_url=source_url
+        quotes.extend(
+            parse_offer(
+                offer,
+                event=event,
+                fetched_at=fetched_at,
+                books_by_id=books_by_id,
+                source_url=source_url,
+            )
         )
-        if quote is not None:
-            quotes.append(quote)
     return quotes
 
 
@@ -285,12 +370,18 @@ def _events_url(*, season: int, week: int) -> str:
     )
 
 
+def _books_url() -> str:
+    return f"{BP_API_BASE}/books"
+
+
 def _offers_url(
     *,
     event_id: int | str,
     market_ids: str,
     page: int = 1,
 ) -> str:
+    # No book_id filter — response includes per-book lines; we drop consensus
+    # and ineligible books in parse_offer.
     return (
         f"{BP_API_BASE}/offers?"
         + urlencode(
@@ -298,12 +389,33 @@ def _offers_url(
                 "sport": "NFL",
                 "market_id": market_ids,
                 "event_id": str(event_id),
-                "book_id": str(CONSENSUS_BOOK_ID),
                 "limit": str(OFFERS_PAGE_LIMIT),
                 "page": str(page),
             }
         )
     )
+
+
+def fetch_books_catalog() -> dict[int, str]:
+    url = _books_url()
+    payload = fetch_json(url, headers=_bp_headers(), prefer_curl_cffi=True)
+    if not isinstance(payload, dict):
+        raise LiveFetchError(f"unexpected books payload type from {url}")
+    books = payload.get("books") or []
+    if not isinstance(books, list):
+        raise LiveFetchError(f"books is not a list from {url}")
+    out: dict[int, str] = {}
+    for book in books:
+        if not isinstance(book, dict):
+            continue
+        try:
+            bid = int(book.get("id"))
+        except (TypeError, ValueError):
+            continue
+        name = str(book.get("name") or book.get("slug") or "").strip()
+        if name:
+            out[bid] = name
+    return out
 
 
 def fetch_events(*, season: int, week: int) -> list[dict[str, Any]]:
@@ -322,7 +434,7 @@ def fetch_offers_for_event(
     *,
     market_ids: str | None = None,
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    """Paginate consensus offers for one event across weekly market ids."""
+    """Paginate all-book offers for one event across weekly market ids."""
     mid = market_ids or ":".join(str(m) for m, _ in WEEKLY_MARKET_IDS)
     urls: list[str] = []
     offers: list[dict[str, Any]] = []
@@ -387,6 +499,23 @@ def fetch_weekly_snapshot(
             },
         )
 
+    books_url = _books_url()
+    urls.append(books_url)
+    try:
+        books_by_id = fetch_books_catalog()
+    except LiveFetchError as exc:
+        return ProviderSnapshot(
+            source="bettingpros",
+            season=season,
+            week=week,
+            fetched_at=clock,
+            urls=tuple(urls),
+            quotes=(),
+            success=False,
+            error=str(exc),
+            metadata={"live": True, "provider": "bettingpros", "period": "game"},
+        )
+
     events_url = _events_url(season=season, week=week)
     urls.append(events_url)
     try:
@@ -423,6 +552,7 @@ def fetch_weekly_snapshot(
                     offers,
                     events_by_id=events_by_id,
                     fetched_at=clock,
+                    books_by_id=books_by_id,
                     source_url=offer_urls[0] if offer_urls else None,
                 )
             )
@@ -448,7 +578,14 @@ def fetch_weekly_snapshot(
             "event_count": len(open_events),
             "board_errors": errors,
             "period": "game",
-            "book_id": CONSENSUS_BOOK_ID,
+            "emission": "per_book",
+            "skipped_book_ids": [CONSENSUS_BOOK_ID],
+            "skipped_sportsbooks": sorted(
+                PRIMARY_LIVE_SPORTSBOOKS
+                | NON_SPORTSBOOK_NAMES
+                | {"bettingpros", "bettingpros consensus", "consensus"}
+            ),
             "markets": [key for _, key in WEEKLY_MARKET_IDS],
+            "sportsbooks": sorted({q.sportsbook.lower() for q in quotes}),
         },
     )

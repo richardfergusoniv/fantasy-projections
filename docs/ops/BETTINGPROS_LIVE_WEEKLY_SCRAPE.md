@@ -9,16 +9,25 @@ sealed-pointer change, no prediction-market means.
 
 | Role | What BettingPros contributes |
 |---|---|
-| Role 1 display line | Consensus (`book_id=0`) as sportsbook `bettingpros` — a third eligible book beside DraftKings + FanDuel for yards / receptions / pass TDs / attempts. |
-| Role 2 export | The `bettingpros` provider snapshot is persisted like DK/FD (`source_snapshot` + artifact). Export with `scripts/export_role2_live_props.py` (`--mode single` keeps per-provider rows). |
+| Role 1 display line | **Per-book** quotes from traditional sportsbooks on BP (e.g. Caesars, BetMGM) with `source=bettingpros` and `sportsbook=<book name>`. These are genuine third+ books beside live DraftKings + FanDuel. |
+| Role 2 export | The `bettingpros` provider snapshot persists those per-book rows (`scripts/export_role2_live_props.py --mode single`). |
 
-**Not in scope:** blending Kalshi / Polymarket / other prediction markets into
-Role 1 or Role 2 means (consensus already rejects those books). OddsChecker /
-another US book is a later theme only if coverage gaps remain after BP.
+### What we deliberately do **not** emit
 
-BP weekly boards do **not** expose separate `rush_tds` / `rec_tds` O/Us
+| Skip | Why |
+|---|---|
+| `book_id=0` BettingPros Consensus | Aggregate already blends DK/FD (and can include prediction markets). Emitting it as `sportsbook=bettingpros` / `kind=book` would inflate `book_count` / `line_basis` and double-weight DK/FD inside `robust_median`. |
+| DraftKings / FanDuel on BP | Already scraped by primary live providers — re-emitting would double-weight lines. |
+| Kalshi / Polymarket / … | Prediction markets must not enter Role 1/2 means (same rule as season-path `vegas_consensus.py`). |
+| PrizePicks / Underdog / Pick6 / … | DFS / pick'em / exchange-style boards, not sportsbook O/U. |
+
+Same spirit as season-path BP handling in `src/draft_assistant/vegas_consensus.py`
+(per-book map, strip prediction markets). OddsChecker remains a later theme if
+gaps remain after BP.
+
+BP weekly boards do **not** expose separate `rush_tds` / `rec_tds` O/U
 (market `334` is a combined "touchdowns" rung). The Phase 0b DK TD hole is
-only partially helped (pass TDs + volume markets get a third book).
+only partially helped (pass TDs + volume markets get additional books).
 
 ## Endpoints chosen
 
@@ -27,9 +36,9 @@ Public JSON that the BettingPros site already calls:
 | Endpoint | Purpose |
 |---|---|
 | `GET https://api.bettingpros.com/v3/events?sport=NFL&season=&week=` | Week slate + home/visitor + kickoff |
-| `GET https://api.bettingpros.com/v3/offers?sport=NFL&market_id=&event_id=&book_id=0&limit=10&page=` | Paginated consensus player O/U offers |
+| `GET https://api.bettingpros.com/v3/offers?sport=NFL&market_id=&event_id=&limit=10&page=` | Paginated **all-book** player O/U offers (no `book_id=0` filter; client drops consensus / PMs / DK/FD) |
+| `GET https://api.bettingpros.com/v3/books` | Book id → name map |
 | `GET https://api.bettingpros.com/v3/markets?sport=NFL` | Catalog (ids pinned in code) |
-| `GET https://api.bettingpros.com/v3/books` | Book id map (`0` = BettingPros Consensus) |
 
 Weekly market ids scraped (see `WEEKLY_MARKET_IDS` in
 `src/ingest/props/providers/bettingpros_live.py`):
@@ -77,7 +86,7 @@ records `success=False` for BettingPros only; DraftKings / FanDuel in the same
 | `BETTINGPROS_API_KEY` unset/empty | `LiveFetchError` before HTTP → `success=False` stub; DK/FD unchanged |
 | HTTP 4xx/5xx, invalid JSON, TLS / bot block | `LiveFetchError` → `LiveBettingProsProvider` returns `success=False` stub; other providers unchanged |
 | Empty board / all events closed | `success=False`, `error=no_quotes` (or board errors) |
-| Mismatched consensus over/under lines | Offer skipped (no guessed line) |
+| Mismatched per-book over/under lines | That book skipped (no guessed line) |
 | Import / unexpected exception | Caught in `LiveBettingProsProvider.fetch` (provider isolation) |
 
 Do **not** raise `min_distinct_books_per_market` globally until BP (or another
