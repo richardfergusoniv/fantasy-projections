@@ -9,9 +9,12 @@ Endpoints
 - ``GET /v3/offers?sport=NFL&market_id={ids}&event_id={id}&book_id=0&limit=10&page=N``
 - ``GET /v3/markets?sport=NFL`` (catalog reference; market ids are pinned below)
 
-Auth is the site's browser-embedded ``x-api-key`` (public client key, not a
-repo secret — same pattern as FanDuel's ``_ak`` query param). ``api.bettingpros.com``
-robots.txt disallows crawling; see ``docs/ops/BETTINGPROS_LIVE_WEEKLY_SCRAPE.md``.
+Auth uses the site's browser-embedded ``x-api-key``, supplied at runtime via
+``BETTINGPROS_API_KEY`` (ops-owned env — not committed; gitleaks treats the
+literal as ``generic-api-key``). Missing/empty key → ``LiveFetchError`` and
+provider isolation skips BettingPros without aborting DK/FD.
+``api.bettingpros.com`` robots.txt disallows crawling; see
+``docs/ops/BETTINGPROS_LIVE_WEEKLY_SCRAPE.md``.
 
 Role 1 emits BettingPros **consensus** (``book_id=0``) as sportsbook
 ``bettingpros`` so we do not double-count DraftKings/FanDuel or blend
@@ -20,6 +23,7 @@ prediction markets into Role 1/2 means.
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from typing import Any, Iterable
 from urllib.parse import urlencode
@@ -30,8 +34,7 @@ from src.ingest.props.providers.http import LiveFetchError, fetch_json
 
 BP_API_BASE = "https://api.bettingpros.com/v3"
 BP_SITE = "https://www.bettingpros.com"
-# Public client key embedded in the BettingPros web app (not a private secret).
-BP_PUBLIC_API_KEY = "CHi8Hy5CEE4khd46XNYL23dCFX96oUdw6qOt1Dnh"
+BP_API_KEY_ENV = "BETTINGPROS_API_KEY"
 
 # Weekly game player-prop market_id → canonical market.
 # Intentionally omits market 334 ("touchdowns") — combined TD O/U, not rush/rec.
@@ -56,11 +59,32 @@ _SKIP_EVENT_STATUSES = frozenset(
 )
 
 
-def _bp_headers(*, referer: str | None = None) -> dict[str, str]:
+def resolve_bettingpros_api_key() -> str:
+    """Return the BettingPros public client key from the environment.
+
+    The value is the browser-embedded ``x-api-key`` the site uses for
+    ``api.bettingpros.com`` (not a private account credential). It must not be
+    committed — set ``BETTINGPROS_API_KEY`` in local env / ``PRODUCTION_JOB_ENV``.
+    """
+    key = (os.environ.get(BP_API_KEY_ENV) or "").strip()
+    if not key:
+        raise LiveFetchError(
+            f"{BP_API_KEY_ENV} is not set; BettingPros live scrape requires the "
+            "site's public browser x-api-key (ops-owned env, not committed)"
+        )
+    return key
+
+
+def _bp_headers(
+    *,
+    referer: str | None = None,
+    api_key: str | None = None,
+) -> dict[str, str]:
+    key = api_key if api_key is not None else resolve_bettingpros_api_key()
     return {
         "Origin": BP_SITE,
         "Referer": referer or f"{BP_SITE}/nfl/odds/player-props/",
-        "x-api-key": BP_PUBLIC_API_KEY,
+        "x-api-key": key,
     }
 
 
@@ -341,6 +365,27 @@ def fetch_weekly_snapshot(
     urls: list[str] = []
     quotes: list[NormalizedQuote] = []
     errors: list[str] = []
+
+    try:
+        # Fail closed before any HTTP when the ops key is missing.
+        resolve_bettingpros_api_key()
+    except LiveFetchError as exc:
+        return ProviderSnapshot(
+            source="bettingpros",
+            season=season,
+            week=week,
+            fetched_at=clock,
+            urls=(),
+            quotes=(),
+            success=False,
+            error=str(exc),
+            metadata={
+                "live": True,
+                "provider": "bettingpros",
+                "period": "game",
+                "missing_api_key": True,
+            },
+        )
 
     events_url = _events_url(season=season, week=week)
     urls.append(events_url)

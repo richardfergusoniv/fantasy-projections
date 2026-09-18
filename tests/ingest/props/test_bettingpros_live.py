@@ -253,8 +253,34 @@ def test_bettingpros_failure_does_not_break_dk_fd_persist(tmp_path: Path, monkey
 def test_fetch_weekly_snapshot_empty_events(monkeypatch):
     from src.ingest.props.providers import bettingpros_live as bp
 
+    monkeypatch.setenv(bp.BP_API_KEY_ENV, "test-bettingpros-client-key")
     monkeypatch.setattr(bp, "fetch_events", lambda **_kwargs: [])
     snap = bp.fetch_weekly_snapshot(season=2026, week=3)
     assert snap.success is False
     assert snap.error == "no_quotes"
     assert snap.quotes == ()
+
+
+def test_missing_api_key_skips_provider_without_http(monkeypatch):
+    from src.ingest.props.providers import bettingpros_live as bp
+
+    monkeypatch.delenv(bp.BP_API_KEY_ENV, raising=False)
+
+    def _must_not_fetch(*_args, **_kwargs):
+        raise AssertionError("HTTP must not run when API key is missing")
+
+    monkeypatch.setattr(bp, "fetch_json", _must_not_fetch)
+    snap = bp.fetch_weekly_snapshot(season=2026, week=2)
+    assert snap.success is False
+    assert bp.BP_API_KEY_ENV in (snap.error or "")
+    assert snap.metadata.get("missing_api_key") is True
+    assert snap.quotes == ()
+
+
+def test_resolve_api_key_rejects_blank(monkeypatch):
+    from src.ingest.props.providers import bettingpros_live as bp
+    import pytest
+
+    monkeypatch.setenv(bp.BP_API_KEY_ENV, "   ")
+    with pytest.raises(LiveFetchError, match=bp.BP_API_KEY_ENV):
+        bp.resolve_bettingpros_api_key()

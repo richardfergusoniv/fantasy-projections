@@ -38,8 +38,11 @@ Weekly market ids scraped (see `WEEKLY_MARKET_IDS` in
 `101` pass_ints, `107` rush_yards, `106` rush_attempts, `105` rec_yards,
 `104` receptions.
 
-Auth header: the site's browser-embedded `x-api-key` (public client key,
-hardcoded like FanDuel `_ak` — **not** a repo secret / `.env` value).
+Auth header: `x-api-key` from env **`BETTINGPROS_API_KEY`** (the site's
+browser-embedded public client key). Do **not** commit the value — gitleaks
+flags the literal as `generic-api-key`. Ops sets it locally or in
+`PRODUCTION_JOB_ENV`. Missing/empty → provider `success=False` with a clear
+error; DK/FD continue.
 
 Transport: `src/ingest/props/providers/http.py` (`fetch_json` with
 `curl_cffi` Chrome impersonation preferred).
@@ -53,7 +56,8 @@ Shape reference (season dump, not the live weekly source of truth):
 |---|---|
 | `https://www.bettingpros.com/robots.txt` | `User-Agent: *` / `Allow: /` |
 | `https://api.bettingpros.com/robots.txt` | `Disallow: /` (sitemaps allowed) |
-| Feasibility from this cloud egress | Live `events` + `offers` succeed with `x-api-key` + Chrome impersonation |
+| Feasibility from this cloud egress | Live `events` + `offers` succeed with `BETTINGPROS_API_KEY` + Chrome impersonation |
+| Missing `BETTINGPROS_API_KEY` | Provider skipped (`LiveFetchError`); no HTTP calls |
 
 `api.bettingpros.com` robots Disallow means automated scraping of the API is
 **not** blessed by robots.txt even though the browser UI uses the same host.
@@ -70,6 +74,7 @@ records `success=False` for BettingPros only; DraftKings / FanDuel in the same
 
 | Failure | Behavior |
 |---|---|
+| `BETTINGPROS_API_KEY` unset/empty | `LiveFetchError` before HTTP → `success=False` stub; DK/FD unchanged |
 | HTTP 4xx/5xx, invalid JSON, TLS / bot block | `LiveFetchError` → `LiveBettingProsProvider` returns `success=False` stub; other providers unchanged |
 | Empty board / all events closed | `success=False`, `error=no_quotes` (or board errors) |
 | Mismatched consensus over/under lines | Offer skipped (no guessed line) |
@@ -83,12 +88,14 @@ third book) is stable in production scrapes.
 ```bash
 # Live weekly scrape including BettingPros (local / job host with egress).
 # Prefer curl_cffi (declared in pyproject) for Chrome impersonation.
+# BETTINGPROS_API_KEY = site's public browser x-api-key (ops-owned; not in git).
+export BETTINGPROS_API_KEY='…'   # from BettingPros frontend network tab / ops vault
 uv run python -m src.ingest.props.cli \
   --season 2026 --week 2 \
   --mode live \
   --providers draftkings,fanduel,bettingpros
 
-# Offline / CI: fixture providers only (no network).
+# Offline / CI: fixture providers only (no network, no API key needed).
 uv run python -m src.ingest.props.cli \
   --season 2026 --week 1 \
   --from-fixture \
@@ -96,8 +103,9 @@ uv run python -m src.ingest.props.cli \
   --fixtures-dir data/props/fixtures/providers
 
 # Production job: set WEEKLY_PROPS_PROVIDERS=draftkings,fanduel,bettingpros
-# in PRODUCTION_JOB_ENV (GitHub secret). Default remains draftkings,fanduel
-# until ops opts in — this PR does not flip the production default.
+# and BETTINGPROS_API_KEY in PRODUCTION_JOB_ENV (GitHub secret). Default
+# providers remain draftkings,fanduel until ops opts in — this PR does not
+# flip the production default.
 ```
 
 Unit tests mock HTTP; they never hit the live API in CI.
