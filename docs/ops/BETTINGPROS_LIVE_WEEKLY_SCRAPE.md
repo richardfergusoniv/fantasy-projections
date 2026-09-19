@@ -10,7 +10,7 @@ sealed-pointer change, no prediction-market means.
 | Role | What BettingPros contributes |
 |---|---|
 | Role 1 display line | **Per-book** quotes from traditional sportsbooks on BP (e.g. Caesars, BetMGM) with `source=bettingpros` and `sportsbook=<book name>`. These are genuine third+ books beside live DraftKings + FanDuel. |
-| Role 2 export | The `bettingpros` provider snapshot persists those per-book rows (`scripts/export_role2_live_props.py --mode single`). |
+| Role 2 export | The `bettingpros` provider snapshot persists those per-book rows (`scripts/export_role2_live_props.py --mode single`). Offline `--from-fixture` uses the same per-book shape (`data/props/fixtures/providers/bettingpros.json`); blended top-level lines are rejected. |
 
 ### What we deliberately do **not** emit
 
@@ -105,6 +105,9 @@ uv run python -m src.ingest.props.cli \
   --providers draftkings,fanduel,bettingpros
 
 # Offline / CI: fixture providers only (no network, no API key needed).
+# Fixture BP JSON mirrors live per-book emission (`markets.*.books` with
+# Caesars/BetMGM etc.). Blended top-level lines without a books map are
+# filtered out by BettingProsProvider (fail closed — never sportsbook=bettingpros).
 uv run python -m src.ingest.props.cli \
   --season 2026 --week 1 \
   --from-fixture \

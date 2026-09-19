@@ -26,7 +26,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--from-fixture",
         action="store_true",
-        help="Alias for --mode fixture (offline / recorded boards)",
+        help=(
+            "Alias for --mode fixture (offline / recorded boards). "
+            "BettingPros fixture must use per-book markets.*.books "
+            "(not blended sportsbook=bettingpros)"
+        ),
     )
     parser.add_argument(
         "--providers",

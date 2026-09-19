@@ -14,19 +14,38 @@
       "player_id": "23163",
       "markets": {
         "rec_yards": {
-          "line": 56.5,
-          "over_odds": -115,
-          "under_odds": -112
+          "books": {
+            "Caesars": {
+              "line": 55.5,
+              "over_odds": -115,
+              "under_odds": -105
+            },
+            "BetMGM": {
+              "line": 56.5,
+              "over_odds": -110,
+              "under_odds": -110
+            }
+          }
         },
         "receptions": {
-          "line": 5.5,
-          "over_odds": -110,
-          "under_odds": -110
+          "books": {
+            "Caesars": {
+              "line": 5.5,
+              "over_odds": -110,
+              "under_odds": -110
+            },
+            "BetMGM": {
+              "line": 5.5,
+              "over_odds": -115,
+              "under_odds": -105
+            }
+          }
         }
       }
     }
   ],
   "notes": [
-    "Sanitized weekly-shaped fixture for offline BettingPros ingest tests."
+    "Offline mirror of live BettingPros emission: per-book rows only (Caesars/BetMGM).",
+    "Do not use top-level line/odds without a books map — that defaults sportsbook=bettingpros and would inflate Role 1 book_count / double-weight DK/FD."
   ]
 }

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from src.ingest.props.providers.bettingpros_live import (
@@ -275,8 +275,8 @@ def test_bp_per_book_does_not_double_count_dk_fd_in_role1():
     Emitting BP consensus as an independent book next to live DK/FD would make
     book_count=3 and bias robust_median. Per-book Caesars is a real third book.
     """
-    fetched = datetime(2026, 9, 18, tzinfo=timezone.utc)
-    event_start = datetime(2099, 9, 20, tzinfo=timezone.utc)
+    fetched = datetime.now(timezone.utc)
+    event_start = fetched + timedelta(days=2)
 
     def _q(source: str, sportsbook: str, line: float):
         return build_normalized_quote(
@@ -444,3 +444,96 @@ def test_resolve_api_key_rejects_blank(monkeypatch):
     monkeypatch.setenv(bp.BP_API_KEY_ENV, "   ")
     with pytest.raises(LiveFetchError, match=bp.BP_API_KEY_ENV):
         bp.resolve_bettingpros_api_key()
+
+
+def test_fixture_provider_emits_per_book_not_blended_bettingpros():
+    """Offline fixture mirrors live: Caesars/BetMGM, never sportsbook=bettingpros."""
+    from src.ingest.props.providers.bettingpros import BettingProsProvider
+
+    path = (
+        Path(__file__).resolve().parents[3]
+        / "data"
+        / "props"
+        / "fixtures"
+        / "providers"
+        / "bettingpros.json"
+    )
+    snap = BettingProsProvider(path).fetch(season=2026, week=1)
+    assert snap.success is True
+    names = sorted({q.sportsbook.lower() for q in snap.quotes})
+    assert names == ["betmgm", "caesars"]
+    assert all(q.source == "bettingpros" for q in snap.quotes)
+    assert "bettingpros" not in names
+    assert "draftkings" not in names
+    assert "fanduel" not in names
+
+
+def test_fixture_provider_rejects_blended_top_level_lines(tmp_path: Path):
+    """Guard: top-level line without books map must not reach Role 1 consensus."""
+    from src.ingest.props.providers.bettingpros import BettingProsProvider
+    from src.ingest.props.normalize import build_normalized_quote
+    from src.projection.weekly_props.consensus import consensus_for_market
+
+    blended = tmp_path / "bettingpros_blended.json"
+    blended.write_text(
+        """
+        {
+          "source": "bettingpros",
+          "season": 2026,
+          "week": 1,
+          "fetched_at": "2026-09-11T12:00:00+00:00",
+          "players": [{
+            "name": "Drake London",
+            "team": "ATL",
+            "markets": {
+              "rec_yards": {
+                "line": 55.5,
+                "over_odds": -110,
+                "under_odds": -110
+              }
+            }
+          }]
+        }
+        """.strip(),
+        encoding="utf-8",
+    )
+    snap = BettingProsProvider(blended).fetch(season=2026, week=1)
+    assert snap.success is False
+    assert snap.quotes == ()
+    assert "per-book" in (snap.error or "").lower() or "no_eligible" in (snap.error or "")
+
+    # Rejected fixture contributes nothing beside live DK/FD.
+    fetched = datetime.now(timezone.utc)
+    event_start = fetched + timedelta(days=2)
+    dk = build_normalized_quote(
+        source="draftkings",
+        sportsbook="DraftKings",
+        player_name_raw="Drake London",
+        market="rec_yards",
+        line=50.5,
+        fetched_at=fetched,
+        over_odds=-110,
+        under_odds=-110,
+        event_start=event_start,
+        period="game",
+    )
+    fd = build_normalized_quote(
+        source="fanduel",
+        sportsbook="FanDuel",
+        player_name_raw="Drake London",
+        market="rec_yards",
+        line=60.5,
+        fetched_at=fetched,
+        over_odds=-110,
+        under_odds=-110,
+        event_start=event_start,
+        period="game",
+    )
+    market = consensus_for_market(
+        [dk, fd, *snap.quotes],
+        market="rec_yards",
+        policy=DEFAULT_WEEKLY_POLICY,
+        position="WR",
+    )
+    assert market.coverage.book_count == 2
+    assert "bettingpros" not in market.coverage.accepted_books
