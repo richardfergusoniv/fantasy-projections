@@ -43,8 +43,11 @@ rush/rec TD lines from the board until a third source (or DK weekly TD
 coverage) appears. That is a coverage regression, not a quality upgrade.
 
 Phase 0b documents the hole. Do **not** raise the global min until a third
-eligible book is online. No BettingPros / OddsChecker / prediction markets
-in this phase.
+eligible book is online. BettingPros live weekly scrape lands as that third
+book (opt-in via `WEEKLY_PROPS_PROVIDERS` / `--providers`); see
+[`BETTINGPROS_LIVE_WEEKLY_SCRAPE.md`](BETTINGPROS_LIVE_WEEKLY_SCRAPE.md).
+OddsChecker remains a later theme if gaps remain after BP. Prediction markets
+must not enter Role 1/2 means.
 
 ## Related
 

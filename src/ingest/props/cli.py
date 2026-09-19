@@ -21,12 +21,24 @@ def main(argv: list[str] | None = None) -> int:
         "--mode",
         choices=("live", "fixture"),
         default="live",
-        help="live DraftKings/FanDuel fetch (default) or local fixtures",
+        help="live DraftKings/FanDuel/BettingPros fetch (default) or local fixtures",
+    )
+    parser.add_argument(
+        "--from-fixture",
+        action="store_true",
+        help=(
+            "Alias for --mode fixture (offline / recorded boards). "
+            "BettingPros fixture must use per-book markets.*.books "
+            "(not blended sportsbook=bettingpros)"
+        ),
     )
     parser.add_argument(
         "--providers",
         default="draftkings,fanduel",
-        help="Comma-separated provider names",
+        help=(
+            "Comma-separated provider names "
+            "(live-capable: draftkings,fanduel,bettingpros)"
+        ),
     )
     parser.add_argument(
         "--fixtures-dir",
@@ -41,8 +53,9 @@ def main(argv: list[str] | None = None) -> int:
         help="Local snapshot root (fixtures/regression only)",
     )
     args = parser.parse_args(argv)
+    mode = "fixture" if args.from_fixture else args.mode
     providers = build_providers(
-        mode=args.mode,
+        mode=mode,
         provider_names=args.providers,
         fixtures_dir=args.fixtures_dir,
     )
@@ -54,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
         week=args.week,
         providers=providers,
         store=store,
-        mode=args.mode,
+        mode=mode,
     )
     print(json.dumps(result.to_dict(), indent=2))
     return 0 if result.success_count else 1

@@ -1,0 +1,51 @@
+{
+  "source": "bettingpros",
+  "season": 2026,
+  "week": 1,
+  "fetched_at": "2026-09-11T12:00:00+00:00",
+  "urls": [
+    "https://api.bettingpros.com/v3/offers"
+  ],
+  "players": [
+    {
+      "name": "Drake London",
+      "team": "ATL",
+      "opponent": "CAR",
+      "player_id": "23163",
+      "markets": {
+        "rec_yards": {
+          "books": {
+            "Caesars": {
+              "line": 55.5,
+              "over_odds": -115,
+              "under_odds": -105
+            },
+            "BetMGM": {
+              "line": 56.5,
+              "over_odds": -110,
+              "under_odds": -110
+            }
+          }
+        },
+        "receptions": {
+          "books": {
+            "Caesars": {
+              "line": 5.5,
+              "over_odds": -110,
+              "under_odds": -110
+            },
+            "BetMGM": {
+              "line": 5.5,
+              "over_odds": -115,
+              "under_odds": -105
+            }
+          }
+        }
+      }
+    }
+  ],
+  "notes": [
+    "Offline mirror of live BettingPros emission: per-book rows only (Caesars/BetMGM).",
+    "Do not use top-level line/odds without a books map — that defaults sportsbook=bettingpros and would inflate Role 1 book_count / double-weight DK/FD."
+  ]
+}
